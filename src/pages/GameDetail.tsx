@@ -1,0 +1,253 @@
+import { ArrowLeftIcon, BookOpenIcon, CopyIcon, PencilSimpleIcon, PlayIcon, TrashIcon, TrophyIcon } from '@phosphor-icons/react'
+import { useMemo } from 'react'
+import { Link, useNavigate, useParams } from 'react-router-dom'
+import { Avatar, TeamAvatar } from '../components/Avatar'
+import { GameBadge, PlayRow } from '../components/GameBits'
+import { LevelIcon } from '../components/icons'
+import { MatchRow } from '../components/MatchRow'
+import { Medal } from '../components/Medal'
+import { isBuiltin } from '../lib/games'
+import { CUP_FORMATS, type GameDef, type PlayMode } from '../lib/games/schema'
+import { formatDate, plural, UNKNOWN_PLAYER, useBoard, useGame, useLeaderboard, usePlayerMap } from '../lib/hooks'
+import { gameMedals } from '../lib/medals'
+import { beltOf, gameStatsOf, levelFor, winRate } from '../lib/stats'
+import { actions, useData } from '../lib/store'
+
+export const MODE_NAMES: Record<PlayMode, string> = {
+  rally: 'Marcador punto a punto',
+  counter: 'Marcador en vivo',
+  rounds: 'Por manos',
+  turns: 'Por turnos, puntaje al final',
+  result: 'Resultado final',
+  coop: 'Cooperativo',
+}
+
+export function playPath(game: Pick<GameDef, 'id'>): string {
+  return game.id === 'pingpong' ? '/ping-pong/nuevo' : `/jugar/${game.id}`
+}
+
+export function GameDetail() {
+  const { id } = useParams()
+  const game = useGame(id)
+  if (!game) {
+    return (
+      <div className="page">
+        <p>Juego no encontrado.</p>
+        <Link to="/juegos" className="back">
+          <ArrowLeftIcon /> Juegos
+        </Link>
+      </div>
+    )
+  }
+  return <GameView key={game.id} game={game} />
+}
+
+function GameView({ game }: { game: GameDef }) {
+  const data = useData()
+  const navigate = useNavigate()
+  const board = useBoard()
+  const ppBoard = useLeaderboard()
+  const players = usePlayerMap()
+  const builtin = isBuiltin(game.id)
+
+  const ranking = useMemo(
+    () =>
+      [...board.players.values()]
+        .map((s) => s.perGame.get(game.id))
+        .filter((s) => !!s && s.played > 0)
+        .sort((a, b) => b!.elo - a!.elo || b!.wins - a!.wins) as NonNullable<ReturnType<typeof gameStatsOf>>[],
+    [board, game.id],
+  )
+  const belt = beltOf(board.views, game.id)
+  const coop = game.mode === 'coop'
+
+  // Para cada familia de medallas, quién llegó más alto.
+  const leaders = useMemo(() => {
+    return gameMedals(game, gameStatsOf(board, '', game.id)).map((fam, k) => {
+      let best: { id: string; level: number; value: number } | undefined
+      for (const s of ranking) {
+        const m = gameMedals(game, s, ppBoard.stats.get(s.playerId))[k]
+        if (m.level >= 0 && (!best || m.level > best.level || (m.level === best.level && m.value > best.value))) best = { id: s.playerId, level: m.level, value: m.value }
+      }
+      return { fam, best }
+    })
+  }, [game, board, ppBoard, ranking])
+
+  const recentPlays =
+    game.id === 'pingpong'
+      ? []
+      : data.plays
+          .filter((p) => p.gameId === game.id)
+          .sort((a, b) => (b.finishedAt ?? b.createdAt) - (a.finishedAt ?? a.createdAt))
+          .slice(0, 5)
+  const recentMatches =
+    game.id === 'pingpong'
+      ? [...data.matches].sort((a, b) => (b.finishedAt ?? b.createdAt) - (a.finishedAt ?? a.createdAt)).slice(0, 5)
+      : []
+
+  const remove = () => {
+    if (!confirm(`¿Borrar ${game.name} de la biblioteca?`)) return
+    if (actions.deleteGame(game.id)) navigate('/juegos')
+    else alert('No se puede borrar: tiene partidas o torneos. Borralos primero.')
+  }
+
+  return (
+    <div className="page" style={{ ['--gc' as string]: game.color }}>
+      <Link to="/juegos" className="back">
+        <ArrowLeftIcon /> Juegos
+      </Link>
+      <header className="game-head">
+        <GameBadge game={game} size={64} />
+        <div className="grow">
+          <h1>{game.name}</h1>
+          <p className="muted">{game.tagline}</p>
+          <div className="chips">
+            <span className="pill">
+              {game.players.min === game.players.max ? game.players.min : `${game.players.min}–${game.players.max}`} jugadores
+            </span>
+            <span className="pill">{MODE_NAMES[game.mode]}</span>
+            {game.source === 'ai' && <span className="pill">Ficha hecha con IA</span>}
+          </div>
+        </div>
+      </header>
+
+      <div className="quick-actions">
+        <Link to={playPath(game)} className="btn primary big">
+          <PlayIcon weight="fill" /> Jugar
+        </Link>
+        {game.formats.length > 0 && (
+          <Link to={game.id === 'pingpong' ? '/ping-pong/torneo/nuevo' : `/torneos/nuevo?juego=${game.id}`} className="btn big">
+            <TrophyIcon /> Torneo
+          </Link>
+        )}
+      </div>
+
+      {belt && (
+        <div className="card belt">
+          <span className="belt-icon" aria-hidden>
+            🥊
+          </span>
+          <div className="grow">
+            <span className="muted small">Cinturón de {game.name}</span>
+            <b className="block">{belt.holders.map((id) => players.get(id)?.name ?? '?').join(' & ')}</b>
+            <span className="muted small">
+              Desde {formatDate(belt.since)} · {plural(belt.defenses, 'defensa', 'defensas')}
+            </span>
+          </div>
+          <TeamAvatar team={belt.holders.map((id) => players.get(id) ?? UNKNOWN_PLAYER)} size={44} />
+        </div>
+      )}
+
+      {ranking.length > 0 && (
+        <section>
+          <h2>Ranking</h2>
+          <div className="list ranking">
+            {ranking.slice(0, 10).map((s, i) => {
+              const p = players.get(s.playerId) ?? UNKNOWN_PLAYER
+              return (
+                <Link key={s.playerId} to={`/jugadores/${s.playerId}?juego=${game.id}`} className="card rank-row">
+                  <span className="rank-pos">{i + 1}</span>
+                  <Avatar player={p} size={36} />
+                  <span className="grow">
+                    <b>{p.name}</b>
+                    <span className="muted small block">
+                      {coop
+                        ? `${plural(s.coopWins, 'victoria', 'victorias')} de ${s.played}`
+                        : `${s.wins}G ${s.losses}P${s.draws ? ` ${s.draws}E` : ''} · ${Math.round(winRate(s) * 100)}%`}
+                    </span>
+                  </span>
+                  {!coop && (
+                    <span className="rank-value">
+                      <LevelIcon icon={levelFor(s.elo).icon} /> {s.elo}
+                    </span>
+                  )}
+                </Link>
+              )
+            })}
+          </div>
+        </section>
+      )}
+
+      <section>
+        <h2>Medallas de {game.name}</h2>
+        <div className="award-list">
+          {leaders.map(({ fam, best }) => (
+            <div key={fam.family.id + fam.family.name} className="card award-row">
+              <div className="award-medals">
+                {fam.family.levels.slice(0, 3).map((_, i) => (
+                  <Medal key={i} family={fam.family} level={i} size={44} />
+                ))}
+              </div>
+              <div className="grow">
+                <b>{fam.family.name}</b>
+                <span className="muted small block">{fam.family.measures}</span>
+                <span className="small block">{fam.family.levels.map((l) => l.name).join(' · ')}</span>
+                {best && (
+                  <span className="small block award-leader">
+                    👑 {players.get(best.id)?.name}: {fam.family.levels[best.level].name}
+                  </span>
+                )}
+              </div>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      {game.rules.length > 0 && (
+        <section className="card">
+          <h2>
+            <BookOpenIcon className="inline-icon" /> Reglas en dos minutos
+          </h2>
+          <ul className="rules">
+            {game.rules.map((r, i) => (
+              <li key={i}>{r}</li>
+            ))}
+          </ul>
+          {game.rulesUrl && (
+            <a href={game.rulesUrl} target="_blank" rel="noreferrer noopener" className="small">
+              Reglamento completo ↗
+            </a>
+          )}
+          {game.formats.length > 0 && (
+            <p className="muted small mt">Torneos: {game.formats.map((f) => CUP_FORMATS.find((x) => x.id === f)?.name).join(', ')}.</p>
+          )}
+        </section>
+      )}
+
+      {(recentPlays.length > 0 || recentMatches.length > 0) && (
+        <section>
+          <h2>Últimas partidas</h2>
+          <div className="list">
+            {recentPlays.map((p) => (
+              <PlayRow key={p.id} play={p} game={game} players={players} showGame={false} />
+            ))}
+            {recentMatches.map((m) => (
+              <MatchRow key={m.id} match={m} players={players} />
+            ))}
+          </div>
+        </section>
+      )}
+
+      <div className="row mt">
+        {game.id !== 'pingpong' && (
+          <Link to={builtin ? `/juegos/nuevo?copiar=${game.id}` : `/juegos/${game.id}/editar`} className="btn grow">
+            {builtin ? (
+              <>
+                <CopyIcon /> Copiar y modificar
+              </>
+            ) : (
+              <>
+                <PencilSimpleIcon /> Editar ficha
+              </>
+            )}
+          </Link>
+        )}
+        {!builtin && (
+          <button className="btn danger" onClick={remove}>
+            <TrashIcon /> Borrar
+          </button>
+        )}
+      </div>
+    </div>
+  )
+}

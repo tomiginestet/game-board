@@ -1,0 +1,751 @@
+/* ---------- Game Board: estilos propios (sobre la base del Ping Pong Club) ---------- */
+
+.block {
+  display: block;
+}
+
+.center-block {
+  display: block;
+  margin: 0 auto;
+}
+
+.warn {
+  border-color: rgba(255, 180, 0, 0.5);
+  background: rgba(255, 180, 0, 0.08);
+}
+
+.hint.block {
+  display: block;
+  font-weight: 400;
+}
+
+.row.wrap {
+  flex-wrap: wrap;
+}
+
+.row {
+  gap: 8px;
+}
+
+.segmented.small button {
+  font-size: 13px;
+  padding: 7px 4px;
+}
+
+.segmented:has(> :nth-child(3)) {
+  grid-template-columns: repeat(3, 1fr);
+}
+
+.segmented:has(> :nth-child(4)) {
+  grid-template-columns: repeat(4, 1fr);
+}
+
+.pill.tiny {
+  font-size: 11px;
+  padding: 1px 7px;
+}
+
+/* Íconos de juegos */
+.game-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  border-radius: 28%;
+  border: 2px solid;
+  line-height: 1;
+}
+
+.game-badge.add {
+  width: 44px;
+  height: 44px;
+  font-size: 22px;
+  border-color: var(--border);
+  border-style: dashed;
+  color: var(--muted);
+}
+
+.game-head {
+  display: flex;
+  gap: 14px;
+  align-items: center;
+}
+
+.game-head h1,
+.game-head h2 {
+  margin: 0 0 4px;
+}
+
+.game-head p {
+  margin: 0 0 6px;
+}
+
+/* Inicio: juegos rápidos */
+.quick-games {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(76px, 1fr));
+  gap: 8px;
+}
+
+.quick-game {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  padding: 10px 4px;
+  border-radius: 14px;
+  background: var(--card);
+  border: 1px solid var(--border);
+  color: var(--text);
+  font-size: 12px;
+  font-weight: 600;
+  text-align: center;
+  min-width: 0;
+}
+
+.quick-game > span:last-child {
+  max-width: 100%;
+}
+
+.quick-game:active {
+  transform: scale(0.97);
+}
+
+/* Biblioteca */
+.search {
+  position: relative;
+  display: block;
+}
+
+.search svg {
+  position: absolute;
+  left: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--muted);
+}
+
+.search .input {
+  padding-left: 38px;
+}
+
+.game-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(138px, 1fr));
+  gap: 10px;
+}
+
+.game-card {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 6px;
+  padding: 14px;
+  border-radius: var(--radius);
+  background: linear-gradient(160deg, color-mix(in srgb, var(--gc) 16%, var(--card)), var(--card) 70%);
+  border: 1px solid var(--border);
+  color: var(--text);
+  text-align: left;
+  font: inherit;
+  cursor: pointer;
+  min-width: 0;
+}
+
+.game-card b {
+  max-width: 100%;
+}
+
+.game-card .pill {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+}
+
+/* Filas de partidas */
+.play-row {
+  flex-direction: row;
+  align-items: center;
+  gap: 12px;
+}
+
+.pr-body {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.pr-sides {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 8px;
+  align-items: center;
+}
+
+.pr-side {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+  max-width: 100%;
+}
+
+.pr-side.first {
+  font-weight: 700;
+}
+
+.pr-side .crown {
+  color: var(--accent-2);
+}
+
+.pr-score {
+  font-variant-numeric: tabular-nums;
+  color: var(--muted);
+}
+
+.pr-side.first .pr-score {
+  color: var(--text);
+}
+
+.mr-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 10px;
+}
+
+.cup-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  color: var(--text);
+  text-align: left;
+  font: inherit;
+  width: 100%;
+}
+
+/* Partida */
+.play-head {
+  position: sticky;
+  top: 0;
+  z-index: 6;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: -20px -16px 0;
+  padding: 12px 16px;
+  background: color-mix(in srgb, var(--bg) 88%, transparent);
+  backdrop-filter: blur(8px);
+  border-bottom: 1px solid var(--border);
+}
+
+.play-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.counter-board {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 10px;
+}
+
+.counter-board.two {
+  grid-template-columns: 1fr 1fr;
+}
+
+.counter-side {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-width: 0;
+}
+
+.counter-main {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  padding: 16px 8px;
+  min-height: 210px;
+  border-radius: 20px;
+  border: 2px solid color-mix(in srgb, var(--pc) 60%, transparent);
+  background: linear-gradient(180deg, color-mix(in srgb, var(--pc) 28%, #0b0f15), #0b0f15);
+  color: #fff;
+  font: inherit;
+  cursor: pointer;
+  user-select: none;
+  -webkit-user-select: none;
+  touch-action: manipulation;
+}
+
+.counter-main:active {
+  transform: scale(0.985);
+  background: color-mix(in srgb, var(--pc) 40%, #0b0f15);
+}
+
+.cs-name {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-weight: 700;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.cs-score {
+  font-size: 72px;
+  font-weight: 900;
+  font-variant-numeric: tabular-nums;
+  line-height: 1;
+  animation: pop 0.25s ease-out;
+}
+
+.cs-sub {
+  font-size: 13px;
+  color: rgba(255, 255, 255, 0.7);
+}
+
+.cs-hint {
+  margin-top: auto;
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.55);
+}
+
+.cs-events {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.cs-events .chip {
+  font-size: 13px;
+  padding: 7px 10px;
+}
+
+.chip-count {
+  display: inline-block;
+  margin-left: 6px;
+  min-width: 20px;
+  padding: 0 6px;
+  border-radius: 999px;
+  background: var(--accent-fill);
+  color: #fff;
+  font-size: 12px;
+}
+
+.tally {
+  display: block;
+  margin: 4px 0;
+}
+
+@keyframes pop {
+  from {
+    transform: scale(1.18);
+  }
+  to {
+    transform: scale(1);
+  }
+}
+
+.log-list ul {
+  margin: 6px 0 0;
+  padding-left: 18px;
+  color: var(--muted);
+  font-size: 13px;
+}
+
+/* Por manos */
+.rounds-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-variant-numeric: tabular-nums;
+}
+
+.rounds-table th,
+.rounds-table td {
+  padding: 8px 6px;
+  text-align: center;
+  border-bottom: 1px solid var(--border);
+  min-width: 64px;
+  max-width: 120px;
+}
+
+.rounds-table th:first-child,
+.rounds-table td:first-child {
+  text-align: left;
+  min-width: 70px;
+}
+
+.rounds-table th {
+  font-size: 12px;
+  vertical-align: bottom;
+}
+
+.rounds-table th.out {
+  opacity: 0.45;
+  text-decoration: line-through;
+}
+
+.rounds-table tfoot td {
+  border-bottom: none;
+  font-size: 18px;
+}
+
+.rounds-table td.lead b {
+  color: var(--accent-2);
+}
+
+.round-form {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.rf-side {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 12px;
+  border-radius: 14px;
+  background: var(--bg-2);
+  border-left: 4px solid var(--pc);
+}
+
+.rf-head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+
+.rf-total {
+  font-size: 22px;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+}
+
+.rf-inputs {
+  display: flex;
+  gap: 8px;
+}
+
+.mini-field {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: 12px;
+  color: var(--muted);
+}
+
+.ev-stepper {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  padding: 4px 4px 4px 10px;
+  border-radius: 999px;
+  border: 1px solid var(--border);
+  background: var(--card);
+}
+
+.ev-stepper .stepper button {
+  width: 30px;
+  height: 30px;
+}
+
+/* Por turnos */
+.turn-banner {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  padding: 18px;
+  border-radius: 20px;
+  background: linear-gradient(180deg, color-mix(in srgb, var(--pc) 30%, var(--card)), var(--card));
+  border: 2px solid color-mix(in srgb, var(--pc) 60%, transparent);
+  text-align: center;
+}
+
+.turn-name {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 22px;
+}
+
+.holders {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.holder-row {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.turn-sides {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.turn-side {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  border-left: 4px solid var(--pc);
+}
+
+.turn-side.current {
+  box-shadow: 0 0 0 2px var(--pc);
+}
+
+.ts-score {
+  font-size: 24px;
+  font-weight: 900;
+  font-variant-numeric: tabular-nums;
+}
+
+/* Fin de partida */
+.finish-form {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.pick-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  border-radius: 14px;
+  border: 2px solid var(--border);
+  background: var(--card);
+  color: var(--text);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.pick-row.active {
+  border-color: var(--accent-2);
+  background: color-mix(in srgb, var(--accent-2) 10%, var(--card));
+}
+
+.pick-pos {
+  width: 30px;
+  font-weight: 800;
+  text-align: center;
+  flex-shrink: 0;
+}
+
+.score-row {
+  gap: 10px;
+  padding: 4px 0;
+}
+
+.score-input {
+  width: 96px;
+  text-align: center;
+  padding: 8px;
+  font-variant-numeric: tabular-nums;
+}
+
+.role-row {
+  flex-wrap: wrap;
+  gap: 6px;
+  padding: 6px 0;
+}
+
+/* Resumen */
+.summary {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.summary-hero {
+  text-align: center;
+  background: linear-gradient(180deg, color-mix(in srgb, var(--gc, var(--accent)) 22%, var(--card)), var(--card));
+}
+
+.standings-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  text-align: left;
+}
+
+.standings-list li {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 10px;
+  border-radius: 12px;
+  background: var(--bg-2);
+}
+
+.standings-list li.first {
+  background: color-mix(in srgb, var(--accent-2) 16%, var(--bg-2));
+  font-weight: 700;
+}
+
+.medal-up {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  text-align: left;
+}
+
+/* Torneos */
+.prize {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.round-group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-bottom: 12px;
+}
+
+.teams-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+  gap: 10px;
+}
+
+.team-col {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 6px;
+}
+
+/* Juego */
+.belt {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: linear-gradient(120deg, rgba(255, 196, 0, 0.18), var(--card) 60%);
+  border-color: rgba(255, 196, 0, 0.4);
+}
+
+.belt-icon {
+  font-size: 34px;
+}
+
+.award-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.award-row {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+}
+
+.award-row + .award-row {
+  margin-top: 12px;
+}
+
+.award-list .award-row + .award-row {
+  margin-top: 0;
+}
+
+.award-medals {
+  display: flex;
+  flex-shrink: 0;
+}
+
+.award-medals .medal + .medal {
+  margin-left: -10px;
+}
+
+.award-leader {
+  margin-top: 4px;
+  color: var(--accent-2);
+}
+
+.rules {
+  margin: 0 0 10px;
+  padding-left: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.game-stats {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+/* Editor de juegos */
+.game-editor {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.editor-item {
+  padding: 12px 0;
+  border-top: 1px solid var(--border);
+}
+
+.emoji-input {
+  width: 56px;
+  text-align: center;
+  padding: 10px 4px;
+  flex-shrink: 0;
+}
+
+.color-input {
+  width: 44px;
+  height: 44px;
+  padding: 0;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: none;
+  flex-shrink: 0;
+}
+
+.level-edit {
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+  margin-top: 12px;
+}
+
+.code-area {
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 13px;
+}
+
+.steps ol {
+  margin: 0 0 12px;
+  padding-left: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.game-preview {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
