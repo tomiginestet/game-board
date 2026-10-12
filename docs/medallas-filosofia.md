@@ -1,22 +1,28 @@
-# Luz y metal
+# Medallas: el lenguaje
 
-Cada medalla es una pieza de joyería: un hexágono de metal fundido y pulido que sube de material con el nivel
-(latón, plata, oro, platino, oro rosa y un metal tornasolado), con su plaqueta de número romano en relieve, la
-piedra engarzada de los niveles altos y la corona de laureles de leyenda. El marco pone el valor; la ilustración
-pone el chiste.
+Cada medalla es un hexágono de metal (el marco, en `src/lib/medalArt.ts`) con una estampa adentro (la
+ilustración, en `src/lib/art/nuevas/`). El marco pone el valor: el metal sube con el nivel (bronce, plata, oro,
+platino, oro rosa y tornasolado), con la plaqueta del número romano, la piedra engarzada de diamante para arriba
+y la corona de laureles de leyenda. La ilustración pone el chiste.
 
-**Sin líneas.** Adentro no hay contornos ni filetes. Las formas se separan sólo por color y por luz, como en una
-pintura: el borde de una cosa es donde termina su color. Nada de trazos gruesos ni de dibujito.
+Las ilustraciones siguen la gramática de una estampa impresa (la referencia fue "La bandera del sur", de
+Pilardibujito), simplificada: un solo símbolo por medalla y nada de ornamento barroco.
 
-**Una sola luz.** Llega desde arriba a la izquierda. Cada objeto tiene su lado iluminado, su lado en sombra y,
-si apoya en algo, una sombra proyectada difusa. Los fondos son degradés profundos con un halo detrás del
-protagonista, como un objeto en una vitrina.
+**Paleta fija.** Tinta azul, papel crema, celestes y un solo acento dorado (`P` en `src/lib/art/kit.ts`). Un color
+propio sólo cuando el tema lo pide: el marrón de la calabaza, el verde de la yerba, el rojo de una rosa.
 
-**Un símbolo.** Una sola idea por medalla, grande, centrada y con aire alrededor. El humor está en el objeto
-elegido (una camiseta con aureola, una mano que sale de las nubes, un barrilete entre planetas), no en caras de
-historieta. Pocos colores, elegidos para el tema.
+**Línea con peso.** El contorno de tinta va sólo por fuera de cada figura y es más grueso del lado de la sombra
+(abajo a la derecha). Adentro, líneas más finas. Los pliegues, el vapor y los nudillos son trazos que se afinan
+en las puntas (`hair`), como hechos a mano.
 
-**Textura.** Un grano fino de impresión sobre toda la ilustración, para que se sienta material y no digital.
+**Volumen impreso.** Una sola luz, arriba a la izquierda. Las sombras son un velo suave del tono con el mismo
+degradé hecho grano encima (`shade`). Nada de brillos de plástico ni de 3D.
 
-**Oficio.** Cada pieza tiene que parecer hecha a mano por alguien que sabe: luces que coinciden, sombras que
-apoyan, nada que toque otra cosa por accidente. Antes de agregar algo, se pule lo que ya está.
+**Un fondo que enmarca.** El sol de Mayo o una gloria de rayos (`sun`), un escenario celeste (`stage`) o la noche
+(`night`). Algunas medallas suman un texto en cursiva, como los rótulos de las estampillas ("¡fiu!").
+
+**Humor en el objeto.** El chiste está en lo que se elige dibujar (la camiseta colgada con aureola, el puño que le
+pega al dado, el rey del tablero con los rivales tirados), no en caras de historieta. A las personas reales no se
+las dibuja: aparecen por sus símbolos.
+
+**Oficio.** Cada medalla se revisa grande y a 44 px. Antes de agregar algo, se pule lo que ya está.
