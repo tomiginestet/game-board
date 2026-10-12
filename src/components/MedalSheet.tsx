@@ -2,7 +2,7 @@ import { CaretLeftIcon, CaretRightIcon, ChartBarIcon, CheckCircleIcon, CrownIcon
 import { useEffect, useRef, useState, type ReactNode } from 'react'
 import { TIERS } from '../lib/medalArt'
 import { shareMedal } from '../lib/shareMedal'
-import type { MedalFamily } from '../lib/medals'
+import { missingLabel, type MedalFamily } from '../lib/medals'
 import { Medal } from './Medal'
 
 /** Progreso de alguien en la familia que se está mirando. */
@@ -289,7 +289,7 @@ function Progress({ who, value, target, got, unit }: { who?: string; value: numb
       label={label}
       main={
         <>
-          {missing === 1 ? 'Falta' : 'Faltan'} {missing}
+          {missingLabel({ unit }, missing)}
           <span className="ms-count">
             {value}/{target}
           </span>

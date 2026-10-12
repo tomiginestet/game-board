@@ -4,7 +4,7 @@ import { bracketRounds, cupChampion, cupStandings, knockoutSeedsIdx, nextTables,
 import { autoResult, computeLive, placesFromScores, roundScore, winnerSides } from './engine'
 import { BUILTIN_GAMES, findGame } from './games'
 import type { GameDef } from './games/schema'
-import { closestFirst, gameMedals, GLOBAL_FAMILIES, globalMedals, progressOf } from './medals'
+import { closestFirst, gameMedals, missingLabel, GLOBAL_FAMILIES, globalMedals, progressOf } from './medals'
 import { beltOf, computeBoard, gameStatsOf, globalStatsOf, gloriaPoints } from './stats'
 import type { AppData, Cup, LogEntry, Play } from './types'
 
@@ -176,6 +176,15 @@ describe('estadísticas y medallas', () => {
     const g = globalStatsOf(board, 'a')
     expect(globalMedals(g).find((m) => m.family.id === 'wins')?.level).toBe(0)
     expect(gameStatsOf(board, 'c', 'catan').elo).toBeLessThan(1000)
+  })
+
+  it('lo que falta para una medalla, con la unidad cuando se puede', () => {
+    const fam = (unit: (n: number) => string) => ({ unit })
+    expect(missingLabel(GLOBAL_FAMILIES[0], 3)).toBe('Faltan 3 victorias')
+    expect(missingLabel(GLOBAL_FAMILIES[0], 1)).toBe('Falta 1 victoria')
+    expect(missingLabel(fam((n) => `+${n} de ELO`), 55)).toBe('Faltan 55 de ELO')
+    expect(missingLabel(fam((n) => `ganó por ${n}`), 3)).toBe('Faltan 3')
+    expect(missingLabel(fam((n) => `de ${n} abajo`), 2)).toBe('Faltan 2')
   })
 
   it('medallas más cercanas: primero la de más avance, sin las ganadas ni las sin empezar', () => {
