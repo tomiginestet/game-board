@@ -1,5 +1,5 @@
-import { CaretLeftIcon, CaretRightIcon, CheckCircleIcon, CrownIcon, LockSimpleIcon, TargetIcon, XIcon } from '@phosphor-icons/react'
-import { useEffect, useRef, useState } from 'react'
+import { CaretLeftIcon, CaretRightIcon, ChartBarIcon, CheckCircleIcon, CrownIcon, LockSimpleIcon, TargetIcon, XIcon } from '@phosphor-icons/react'
+import { useEffect, useRef, useState, type ReactNode } from 'react'
 import { TIERS } from '../lib/medalArt'
 import type { MedalFamily } from '../lib/medals'
 import { Medal } from './Medal'
@@ -109,38 +109,29 @@ export function MedalSheet({
           <p className="ms-desc">{l.description}</p>
         </div>
 
-        <div className="ms-box">
-          <span className="sheet-title">
-            <TargetIcon className="inline-icon" /> Cómo se gana
-          </span>
-          <p>
-            {family.measures}: llegá a <b>{family.unit(l.at)}</b>.
-          </p>
-        </div>
+        <dl className="ms-facts">
+          <Fact icon={<TargetIcon />} label="Cómo se gana" main={`Llegá a ${family.unit(l.at)}`} sub={family.measures} />
 
-        {mine && <Progress who={mine.name} value={mine.value} target={l.at} got={mine.level >= level} unit={family.unit} />}
+          {mine && <Progress who={mine.name} value={mine.value} target={l.at} got={mine.level >= level} unit={family.unit} />}
 
-        {others && (
-          <div className="ms-box">
-            <span className="sheet-title">
-              <CrownIcon className="inline-icon" /> En el grupo
-            </span>
-            {holders && holders.length > 0 ? (
-              <p>
-                {holders.length === 1 ? 'La tiene ' : 'La tienen '}
-                <b>{holders.map((h) => h.name).join(', ')}</b>.
-              </p>
-            ) : (
-              <p className="muted">Nadie la tiene todavía. ¡Puede ser tuya!</p>
-            )}
-            {closest && (
-              <p className="small muted">
-                Más cerca de ganarla: {closest.name}, con {family.unit(closest.value)} (le {closest.value + 1 === l.at ? 'falta' : 'faltan'}{' '}
-                {l.at - closest.value}).
-              </p>
-            )}
-          </div>
-        )}
+          {others && (
+            <Fact
+              icon={<CrownIcon />}
+              label="En el grupo"
+              main={holders?.length ? names(holders.map((h) => h.name)) : 'Nadie la tiene todavía'}
+              sub={
+                <>
+                  {holders?.length ? (holders.length === 1 ? 'Ya la tiene.' : 'Ya la tienen.') : '¡Puede ser tuya!'}
+                  {closest && (
+                    <span className="block">
+                      Más cerca: {closest.name}, a {l.at - closest.value} de ganarla.
+                    </span>
+                  )}
+                </>
+              }
+            />
+          )}
+        </dl>
 
         <ol className="ms-levels" aria-label="Niveles">
           {family.levels.map((x, i) => {
@@ -164,35 +155,55 @@ export function MedalSheet({
   )
 }
 
+/** "Ana", "Ana y Beto", "Ana, Beto y Caro", "Ana, Beto, Caro y 2 más". */
+function names(list: string[]): string {
+  if (list.length <= 1) return list.join('')
+  if (list.length > 4) return `${list.slice(0, 3).join(', ')} y ${list.length - 3} más`
+  return `${list.slice(0, -1).join(', ')} y ${list[list.length - 1]}`
+}
+
+/** Un dato de la ficha: ícono, etiqueta chica, lo importante y una aclaración. */
+function Fact({ icon, label, main, sub, tone, children }: { icon: ReactNode; label: string; main: ReactNode; sub?: ReactNode; tone?: 'win'; children?: ReactNode }) {
+  return (
+    <div className={'ms-fact' + (tone ? ' ' + tone : '')}>
+      <span className="ms-fact-icon" aria-hidden>
+        {icon}
+      </span>
+      <div className="ms-fact-body">
+        <dt>{label}</dt>
+        <dd>
+          <span className="ms-fact-main">{main}</span>
+          {children}
+          {sub && <span className="ms-fact-sub">{sub}</span>}
+        </dd>
+      </div>
+    </div>
+  )
+}
+
 function Progress({ who, value, target, got, unit }: { who?: string; value: number; target: number; got: boolean; unit: (n: number) => string }) {
   const missing = target - value
+  const label = who ? `Progreso de ${who}` : 'Tu progreso'
+  if (got) {
+    return <Fact icon={<CheckCircleIcon weight="fill" />} tone="win" label={label} main={who ? 'La ganó' : '¡La ganaste!'} sub={`Lleva${who ? '' : 's'} ${unit(value)}.`} />
+  }
   return (
-    <div className={'ms-box' + (got ? ' got' : '')}>
-      {got ? (
-        <p>
-          <CheckCircleIcon weight="fill" className="inline-icon win-text" />{' '}
-          {who ? (
-            <>
-              <b>{who}</b> la ganó. Lleva {unit(value)}.
-            </>
-          ) : (
-            <>¡La ganaste! Llevás {unit(value)}.</>
-          )}
-        </p>
-      ) : (
+    <Fact
+      icon={<ChartBarIcon />}
+      label={label}
+      main={
         <>
-          <p>
-            {who ? <b>{who}</b> : 'Vos'} lleva{who ? '' : 's'} {unit(value)} de {unit(target)}.{' '}
-            <b>
-              {missing === 1 ? 'Falta' : 'Faltan'} {missing}
-            </b>{' '}
-            para ganarla.
-          </p>
-          <span className="medal-bar" aria-hidden="true">
-            <i style={{ width: `${Math.round(Math.min(1, Math.max(0, value / target)) * 100)}%` }} />
+          {missing === 1 ? 'Falta' : 'Faltan'} {missing}
+          <span className="ms-count">
+            {value}/{target}
           </span>
         </>
-      )}
-    </div>
+      }
+      sub={`Lleva${who ? '' : 's'} ${unit(value)} hasta ahora.`}
+    >
+      <span className="medal-bar ms-bar" role="progressbar" aria-valuemin={0} aria-valuemax={target} aria-valuenow={Math.min(value, target)} aria-label={label}>
+        <i style={{ width: `${Math.round(Math.min(1, Math.max(0, value / target)) * 100)}%` }} />
+      </span>
+    </Fact>
   )
 }

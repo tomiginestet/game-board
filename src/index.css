@@ -1300,7 +1300,8 @@ svg {
 
 /* Ficha de una medalla en grande (MedalSheet). */
 .medal-sheet {
-  gap: 10px;
+  gap: 0;
+  padding-inline: 20px;
   overflow-x: hidden;
 }
 
@@ -1398,18 +1399,24 @@ svg {
 }
 
 .ms-text {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  margin-top: 8px;
   text-align: center;
   animation: ms-text-in 0.4s 0.35s ease-out backwards;
 }
 
 .ms-text h2 {
-  font-size: 24px;
-  margin: 2px 0 4px;
+  margin: 0;
+  font-size: 26px;
+  letter-spacing: -0.01em;
+  text-wrap: balance;
 }
 
 .ms-tier {
-  display: inline-block;
-  padding: 3px 10px;
+  padding: 4px 10px;
   border-radius: 99px;
   font-size: 11px;
   font-weight: 800;
@@ -1421,39 +1428,99 @@ svg {
 }
 
 .ms-desc {
+  max-width: 34ch;
   margin: 0;
-  font-style: italic;
+  color: var(--muted);
+  font-size: 15px;
+  line-height: 1.5;
+  text-wrap: balance;
+}
+
+/* Datos de la medalla: filas separadas por una línea, sin tarjetas. */
+.ms-facts {
+  margin: 28px 0 0;
+  border-top: 1px solid var(--border);
+}
+
+.ms-fact {
+  display: grid;
+  grid-template-columns: 36px 1fr;
+  gap: 14px;
+  align-items: start;
+  padding: 16px 0;
+  border-bottom: 1px solid var(--border);
+}
+
+.ms-fact-icon {
+  width: 36px;
+  height: 36px;
+  display: grid;
+  place-items: center;
+  border-radius: 10px;
+  background: var(--card);
+  color: var(--tier);
+  font-size: 18px;
+}
+
+.ms-fact.win .ms-fact-icon {
+  color: var(--win);
+  background: color-mix(in srgb, var(--win) 14%, transparent);
+}
+
+.ms-fact-body {
+  min-width: 0;
+}
+
+.ms-fact dt {
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
   color: var(--muted);
 }
 
-.ms-box {
-  padding: 10px 12px;
-  border-radius: 14px;
-  background: var(--card);
-  border: 1px solid var(--border);
-}
-
-.ms-box.got {
-  border-color: color-mix(in srgb, var(--win) 45%, transparent);
-}
-
-.ms-box p {
+.ms-fact dd {
   margin: 4px 0 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
 }
 
-.ms-box .sheet-title {
-  display: block;
-  margin: 0;
+.ms-fact-main {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  font-size: 17px;
+  font-weight: 700;
+  line-height: 1.3;
+}
+
+.ms-fact-sub {
+  color: var(--muted);
+  font-size: 14px;
+  line-height: 1.45;
+}
+
+.ms-count {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--muted);
+  font-variant-numeric: tabular-nums;
+}
+
+.ms-bar {
+  margin: 4px 0 2px;
 }
 
 .ms-levels {
   list-style: none;
-  margin: 4px 0 0;
+  margin: 20px 0 0;
   padding: 0;
   display: flex;
   justify-content: center;
   flex-wrap: wrap;
-  gap: 4px;
+  gap: 8px;
 }
 
 .ms-level {
