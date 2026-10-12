@@ -1,6 +1,6 @@
 // Medallas generales redibujadas (ver el kit en ../kit.ts): Victorias y Racha.
 import { f } from '../helpers'
-import { along, card, die, ellipse, flame, hair, kit, MEEPLE, meeple, P, roundRect, sparkle, starPath, taper } from '../kit'
+import { along, card, die, ellipse, flame, hair, kit, laurel, MEEPLE, meeple, P, roundRect, sparkle, starPath, taper } from '../kit'
 
 export const GENERALES_NUEVAS_ART: Record<string, (u: number) => string> = {
   // ── Victorias ──────────────────────────────────────────────────────
@@ -298,7 +298,7 @@ export const GENERALES_NUEVAS_ART: Record<string, (u: number) => string> = {
     )
   },
 
-  // Diez seguidas: la camiseta con el 10 colgada delante del sol de Mayo.
+  // Diez seguidas: la camiseta con el 10, con aureola y laureles, delante del sol de Mayo.
   'D10S': (u) => {
     const k = kit(u)
     const body = 'M52.6 42.4Q60 45.6 67.4 42.4L75.6 45.4C76.4 50 76.2 55 75.8 60V90.6C66 93.4 54 93.4 44.2 90.6V60C43.8 55 43.6 50 44.4 45.4Z'
@@ -310,9 +310,11 @@ export const GENERALES_NUEVAS_ART: Record<string, (u: number) => string> = {
       'M64.6 65C63.5 65 62.9 65.8 62.9 67V75C62.9 76.2 63.5 77 64.6 77C65.7 77 66.3 76.2 66.3 75V67C66.3 65.8 65.7 65 64.6 65Z'
     return (
       k.day() +
-      k.sun(60, 56, 17, 44) +
+      k.sun(60, 58, 17, 46) +
+      k.shade(ellipse(60, 62, 30, 32), k.rad(P.goldL, 0.5, 0.5, 0.5, 0.7, 0), P.goldL, 0.45) +
+      laurel(50, 99, 29, 90, 26, 62, 8) + laurel(70, 99, 91, 90, 94, 62, 8, true) +
+      `<g transform="translate(60 66) scale(1.06) translate(-60 -66)">` +
       k.cast([body, sl, sr]) +
-      `<path d="M60 41.4V35.4C60 32.4 63.6 31.8 64.4 34.2" fill="none" stroke="${P.ink}" stroke-width="1.15" stroke-linecap="round"/>` +
       k.draw([
         { d: sl, fill: P.white, line: 0.4, inner: `<path d="M40.4 46.6L43.6 48.8L38.6 61.2L35.4 58.8Z" fill="${P.sky}"/><path d="M31 57L35 54.6L41.4 61.8L38 65Z" fill="${P.ink}"/>` + k.sh(sl, 0, 0, 0, 1, 0, 0.55, P.blue, 0.3) },
         { d: sr, fill: P.white, line: 0.4, inner: `<path d="M79.6 46.6L76.4 48.8L81.4 61.2L84.6 58.8Z" fill="${P.sky}"/><path d="M89 57L85 54.6L78.6 61.8L82 65Z" fill="${P.ink}"/>` + k.sh(sr, 0, 0, 1, 1, 0.25, 0.95, P.blue, 0.4) },
@@ -332,7 +334,11 @@ export const GENERALES_NUEVAS_ART: Record<string, (u: number) => string> = {
       hair(36.6, 55.6, 39.6, 53, 42.4, 50.8, 0.45) + hair(83.4, 55.6, 80.4, 53, 77.6, 50.8, 0.45) +
       `<path d="${ten}" fill-rule="evenodd" fill="${P.ink}"/>` +
       `<path d="M68.8 50.2H73V52.6C73 54.4 71.9 55.4 70.9 56C69.9 55.4 68.8 54.4 68.8 52.6Z" fill="${P.gold}" stroke="${P.ink}" stroke-width=".4"/><path d="M70.9 50.8V55.2M69.4 52.4H72.4" stroke="${P.ink}" stroke-width=".3"/>` +
-      sparkle(86, 30, 2.6) + sparkle(33, 37, 1.8) + sparkle(90, 74, 1.4) +
+      `</g>` +
+      k.shade(ellipse(60, 30.6, 20, 9), k.rad(P.goldL, 0.5, 0.5, 0.5, 0.9, 0), P.goldL, 0.5) +
+      k.draw([{ d: `${ellipse(60, 30.6, 13, 4.2)} ${ellipse(60, 31.2, 9.8, 2.4)}`, fill: P.gold, inner: k.sh(ellipse(60, 30.6, 13, 4.2), 0, 0, 0, 1, 0, 0.9, P.goldD, 0.45) }], 0.55) +
+      `<path d="M49.6 28.8Q55 27 60.6 26.8" fill="none" stroke="#fff" stroke-width=".8" stroke-linecap="round"/>` +
+      sparkle(86, 30, 2.6) + sparkle(33, 37, 1.8) + sparkle(90, 76, 1.4) +
       k.defs()
     )
   },

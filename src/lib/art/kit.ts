@@ -251,3 +251,20 @@ export function flame(k: Kit, t: string) {
     `<g transform="translate(60 ${90 + dy}) scale(${s}) translate(-60 -90)"><path d="${FLAME}" fill="${fill}"/>${k.shade(FLAME, k.lin(grain, 0, 0, 0, 1, 0, 0.8), grain, 0.3)}</g>`
   return `<g transform="${t}">` + k.draw([{ d: FLAME, fill: P.red, inner: k.sh(FLAME, 0, 0, 1, 1, 0, 0.7, P.wine) }], 0.7) + layer(0.78, 0, P.goldD, P.red) + layer(0.56, 0, P.gold, P.goldD) + layer(0.32, 0, P.goldL, P.gold) + `</g>`
 }
+
+/** Rama de laurel dorada a lo largo de una curva, de abajo hacia arriba. */
+export function laurel(x0: number, y0: number, cx: number, cy: number, x1: number, y1: number, n = 7, flip = false) {
+  const leaf = 'M0 0C2.6 -2.8 7.6 -2.8 10.4 0C7.6 2.8 2.6 2.8 0 0Z'
+  let out = `<path d="M${x0} ${y0}Q${cx} ${cy} ${x1} ${y1}" fill="none" stroke="${P.ink}" stroke-width="1.6" stroke-linecap="round"/><path d="M${x0} ${y0}Q${cx} ${cy} ${x1} ${y1}" fill="none" stroke="${P.goldD}" stroke-width=".7" stroke-linecap="round"/>`
+  for (let i = 1; i <= n; i++) {
+    const t = i / (n + 0.4), a = 1 - t
+    const x = a * a * x0 + 2 * a * t * cx + t * t * x1, y = a * a * y0 + 2 * a * t * cy + t * t * y1
+    const dx = 2 * a * (cx - x0) + 2 * t * (x1 - cx), dy = 2 * a * (cy - y0) + 2 * t * (y1 - cy)
+    const ang = (Math.atan2(dy, dx) * 180) / Math.PI, s = 1 - t * 0.35
+    for (const side of [-1, 1]) {
+      const rot = ang + side * (flip ? -38 : 38)
+      out += `<g transform="translate(${f(x)} ${f(y)}) rotate(${f(rot)}) scale(${f(s)})"><path d="${leaf}" fill="${side < 0 ? P.gold : P.goldL}" stroke="${P.ink}" stroke-width=".5"/><path d="M1.2 0H8.6" stroke="${P.goldD}" stroke-width=".4"/></g>`
+    }
+  }
+  return out
+}
