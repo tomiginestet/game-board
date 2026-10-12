@@ -67,9 +67,74 @@ export async function verifyEmailCode(email: string, token: string): Promise<voi
   if (error) throw new Error(error.message)
 }
 
+/** Plan B: ir a Google y volver (Google muestra el dominio de Supabase). */
 export async function signInWithGoogle(): Promise<void> {
   const { error } = await client().auth.signInWithOAuth({ provider: 'google', options: { redirectTo: redirectTo() } })
   if (error) throw new Error(error.message)
+}
+
+// ---------------------------------------------------------------------------
+// Botón oficial de Google dentro de la app: Google muestra el dominio de la app
+// (no el de Supabase) y no hay redirecciones. Le pasa a Supabase el token de Google.
+
+const GOOGLE_CLIENT_ID = import.meta.env.VITE_GOOGLE_CLIENT_ID as string | undefined
+export const googleButtonAvailable = !!GOOGLE_CLIENT_ID
+
+interface GoogleId {
+  initialize(config: { client_id: string; callback: (r: { credential: string }) => void; nonce: string; ux_mode: 'popup' }): void
+  renderButton(el: HTMLElement, options: Record<string, string | number>): void
+}
+declare global {
+  interface Window {
+    google?: { accounts: { id: GoogleId } }
+  }
+}
+
+let gsiScript: Promise<GoogleId> | undefined
+function loadGsi(): Promise<GoogleId> {
+  gsiScript ??= new Promise((resolve, reject) => {
+    const s = document.createElement('script')
+    s.src = 'https://accounts.google.com/gsi/client'
+    s.async = true
+    s.onload = () => (window.google ? resolve(window.google.accounts.id) : reject(new Error('No cargó Google')))
+    s.onerror = () => {
+      gsiScript = undefined
+      reject(new Error('No cargó Google'))
+    }
+    document.head.appendChild(s)
+  })
+  return gsiScript
+}
+
+async function sha256Hex(text: string): Promise<string> {
+  const hash = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(text))
+  return Array.from(new Uint8Array(hash), (b) => b.toString(16).padStart(2, '0')).join('')
+}
+
+/** Dibuja el botón de Google en `el`. Al elegir la cuenta, entra a Supabase con ese token. */
+export async function renderGoogleButton(el: HTMLElement, onError: (message: string) => void): Promise<void> {
+  if (!GOOGLE_CLIENT_ID) throw new Error('Falta VITE_GOOGLE_CLIENT_ID')
+  const gsi = await loadGsi()
+  // Google firma el hash del nonce; Supabase recibe el original y verifica que coincidan.
+  const nonce = crypto.randomUUID()
+  gsi.initialize({
+    client_id: GOOGLE_CLIENT_ID,
+    nonce: await sha256Hex(nonce),
+    ux_mode: 'popup',
+    callback: ({ credential }) => {
+      void client()
+        .auth.signInWithIdToken({ provider: 'google', token: credential, nonce })
+        .then(({ error }) => error && onError(error.message))
+    },
+  })
+  gsi.renderButton(el, {
+    theme: 'filled_black',
+    size: 'large',
+    shape: 'pill',
+    text: 'continue_with',
+    locale: 'es',
+    width: Math.min(400, Math.max(200, el.clientWidth)),
+  })
 }
 
 /** Cierra la sesión y borra de este dispositivo las copias de los grupos de la cuenta. */

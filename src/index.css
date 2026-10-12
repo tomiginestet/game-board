@@ -355,6 +355,13 @@ section > .section-head {
   width: 100%;
 }
 
+/* Botón oficial de Google (lo dibuja Google adentro de este div). */
+.google-btn {
+  display: flex;
+  justify-content: center;
+  min-height: 44px;
+}
+
 .link-btn {
   background: none;
   border: none;
