@@ -3,7 +3,7 @@ import { useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { findGame } from '../lib/games'
 import { useBoard, useLeaderboard, usePlayerMap } from '../lib/hooks'
-import { closestFirst, gameMedals, globalMedals, type MedalProgress } from '../lib/medals'
+import { closestFirst, gameMedals, globalMedals, missingLabel, type MedalProgress } from '../lib/medals'
 import { useMyGroups } from '../lib/social'
 import { useData } from '../lib/store'
 import { useSyncState } from '../lib/sync'
@@ -82,9 +82,7 @@ export function NextMedals() {
               <span className="near-medal-body">
                 <span className="near-medal-top">
                   <b className="ellipsis">{next!.name}</b>
-                  <span className="near-medal-missing">
-                    {missing === 1 ? 'Falta' : 'Faltan'} {missing}
-                  </span>
+                  <span className="near-medal-missing">{missingLabel(family, missing)}</span>
                 </span>
                 <span className="muted small ellipsis">
                   {mine ? '' : `${who} · `}

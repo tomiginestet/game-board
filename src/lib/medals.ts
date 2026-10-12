@@ -267,3 +267,13 @@ export function closestFirst<T extends { progress: MedalProgress }>(list: T[]): 
     .filter(({ progress: p }) => p.next && p.value > 0 && p.ratio < 1)
     .sort((a, b) => b.progress.ratio - a.progress.ratio || missing(a.progress) - missing(b.progress))
 }
+
+/**
+ * "Faltan 3 victorias", "Faltan 55 de ELO", "Falta 1 caballero". Si la unidad no empieza con el número
+ * ("ganó por 3", "nivel 2", "de 5 abajo"), queda sólo el número: "Faltan 3".
+ */
+export function missingLabel(family: Pick<MedalFamily, 'unit'>, missing: number): string {
+  const verb = missing === 1 ? 'Falta' : 'Faltan'
+  const m = family.unit(missing).match(/^\+?(\d+)\s+(.+)$/)
+  return m && Number(m[1]) === missing ? `${verb} ${missing} ${m[2]}` : `${verb} ${missing}`
+}
