@@ -4,6 +4,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 import { TeamAvatar } from '../../components/Avatar'
 import { Medal } from '../../components/Medal'
+import { MedalCelebration } from '../../components/MedalCelebration'
 import { MedalSheet } from '../../components/MedalSheet'
 import { levelUps, type LevelUp } from '../../lib/pingpong/achievements'
 import { formatDate, UNKNOWN_PLAYER, usePlayerMap } from '../../lib/hooks'
@@ -298,6 +299,13 @@ function MatchResult({ match, teamA, teamB, onUndo, backTo }: { match: Match; te
       return Math.round(team.reduce((sum, p) => sum + (withMatch.stats.get(p.id)?.elo ?? 1000), 0) / team.length)
     }
   }, [data, match.id, teamA, teamB])
+  const fresh = useMemo(
+    () =>
+      newAchievements.flatMap(({ player, ups }) =>
+        ups.map(({ family, level }) => ({ who: player.name, family, level, value: withStats.get(player.id)?.[family.stat] ?? 0 })),
+      ),
+    [newAchievements, withStats],
+  )
   const [shownUp, setShownUp] = useState<(LevelUp & { player: Player; value: number }) | null>(null)
 
   const rematch = () => {
@@ -308,6 +316,7 @@ function MatchResult({ match, teamA, teamB, onUndo, backTo }: { match: Match; te
   return (
     <div className="overlay result">
       {winner && <Confetti />}
+      <MedalCelebration id={match.id} finishedAt={match.finishedAt} medals={fresh} />
       <div className="overlay-card">
         {winner ? <TrophyIcon className="big-icon gold" weight="duotone" /> : <HandshakeIcon className="big-icon" weight="duotone" />}
         {winner ? (

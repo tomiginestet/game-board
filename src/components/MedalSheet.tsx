@@ -1,4 +1,4 @@
-import { CaretLeftIcon, CaretRightIcon, ChartBarIcon, CheckCircleIcon, CrownIcon, LockSimpleIcon, TargetIcon, XIcon } from '@phosphor-icons/react'
+import { CaretLeftIcon, CaretRightIcon, ChartBarIcon, CheckCircleIcon, CrownIcon, LockSimpleIcon, SparkleIcon, TargetIcon, XIcon } from '@phosphor-icons/react'
 import { useEffect, useRef, useState, type ReactNode } from 'react'
 import { TIERS } from '../lib/medalArt'
 import type { MedalFamily } from '../lib/medals'
@@ -24,6 +24,7 @@ export function MedalSheet({
   level: initial,
   mine,
   others,
+  celebrate,
   onClose,
 }: {
   family: MedalFamily
@@ -31,18 +32,22 @@ export function MedalSheet({
   /** Sin nombre, la ficha le habla a quien la mira ("llevás"). */
   mine?: Omit<MedalHolder, 'name'> & { name?: string }
   others?: MedalHolder[]
+  /** Festejo de una medalla recién ganada: confeti y un botón para pasar a la siguiente. */
+  celebrate?: { who: string; step: number; total: number; onNext: () => void }
   onClose: () => void
 }) {
   const last = family.levels.length - 1
   const [level, setLevel] = useState(Math.min(Math.max(initial, 0), last))
   const closeRef = useRef<HTMLButtonElement>(null)
+  const dialogRef = useRef<HTMLDivElement>(null)
   const go = (i: number) => setLevel(Math.min(Math.max(i, 0), last))
 
   useEffect(() => {
     const prevFocus = document.activeElement as HTMLElement | null
     const prevOverflow = document.body.style.overflow
     document.body.style.overflow = 'hidden'
-    closeRef.current?.focus()
+    // En el festejo se abre sola: el foco va al diálogo para no marcar un botón ni desplazar la ficha.
+    ;(celebrate ? dialogRef.current : closeRef.current)?.focus({ preventScroll: true })
     return () => {
       document.body.style.overflow = prevOverflow
       prevFocus?.focus?.()
@@ -64,6 +69,8 @@ export function MedalSheet({
   return (
     <div className="sheet-backdrop" onClick={onClose}>
       <div
+        ref={dialogRef}
+        tabIndex={-1}
         className="sheet medal-sheet"
         role="dialog"
         aria-modal="true"
@@ -73,7 +80,13 @@ export function MedalSheet({
         onKeyDown={onKey}
       >
         <div className="row-between">
-          <span className="medal-family">{family.name}</span>
+          {celebrate ? (
+            <span className="ms-kicker">
+              <SparkleIcon weight="fill" aria-hidden /> ¡Medalla nueva! · {celebrate.who}
+            </span>
+          ) : (
+            <span className="medal-family">{family.name}</span>
+          )}
           <button ref={closeRef} className="tool-btn" onClick={onClose} aria-label="Cerrar">
             <XIcon />
           </button>
@@ -86,6 +99,7 @@ export function MedalSheet({
           {/* La key reinicia la animación de apertura en cada nivel. */}
           <div key={level} className={'ms-medal-wrap' + (locked ? ' locked' : '')}>
             <span className="ms-rays" aria-hidden />
+            {celebrate && !locked && <Burst />}
             <span className="ms-medal">
               <Medal family={family} level={level} locked={locked} size={168} />
               {!locked && <span className="ms-shine" aria-hidden />}
@@ -106,6 +120,7 @@ export function MedalSheet({
             {tier.name} · Nivel {tier.roman}
           </span>
           <h2>{l.name}</h2>
+          {celebrate && <span className="ms-sub">{family.name}</span>}
           <p className="ms-desc">{l.description}</p>
         </div>
 
@@ -133,6 +148,12 @@ export function MedalSheet({
           )}
         </dl>
 
+        {celebrate && (
+          <button className="btn primary big block ms-next" onClick={celebrate.onNext}>
+            {celebrate.step < celebrate.total ? `Siguiente medalla (${celebrate.step}/${celebrate.total})` : '¡Genial!'}
+          </button>
+        )}
+
         <ol className="ms-levels" aria-label="Niveles">
           {family.levels.map((x, i) => {
             const got = mine ? mine.level >= i : others ? others.some((o) => o.level >= i) : true
@@ -152,6 +173,28 @@ export function MedalSheet({
         </ol>
       </div>
     </div>
+  )
+}
+
+const BURST_COLORS = ['var(--tier)', '#ffb400', '#ff6b35', '#22c55e', '#3b82f6', '#ec4899']
+
+/** Estallido de papelitos desde la medalla (distribución fija, sin Math.random en el render). */
+function Burst() {
+  return (
+    <span className="ms-burst" aria-hidden>
+      {Array.from({ length: 22 }, (_, i) => (
+        <i
+          key={i}
+          style={{
+            ['--a' as string]: `${(i * 360) / 22 + ((i * 7) % 11)}deg`,
+            ['--d' as string]: `${110 + ((i * 29) % 60)}px`,
+            ['--r' as string]: `${(i * 97) % 360}deg`,
+            background: BURST_COLORS[i % BURST_COLORS.length],
+            animationDelay: `${0.5 + ((i * 3) % 5) / 40}s`,
+          }}
+        />
+      ))}
+    </span>
   )
 }
 
