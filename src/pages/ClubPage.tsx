@@ -218,8 +218,11 @@ export function ClubPage() {
           <section className="card">
             <h2>Crear un club</h2>
             <p className="muted small">{hasLocalData ? 'Los datos que ya cargaste en este dispositivo pasan al club.' : 'Después invitás a tus amigos con un link.'}</p>
-            <input className="input" value={name} onChange={(e) => setName(e.target.value)} maxLength={60} placeholder="Nombre del club" />
-            <button className="btn primary block mt" disabled={busy || !name.trim()} onClick={() => run(() => createClub(name))}>
+            <label className="field">
+              <span className="field-label">Nombre del club</span>
+              <input className="input" value={name} onChange={(e) => setName(e.target.value)} maxLength={60} placeholder="Los del asado" />
+            </label>
+            <button className="btn primary block" disabled={busy || !name.trim()} onClick={() => run(() => createClub(name))}>
               <SparkleIcon /> Crear club
             </button>
           </section>
@@ -227,9 +230,12 @@ export function ClubPage() {
           <section className="card">
             <h2>Unirme con un código</h2>
             <p className="muted small">Sirve también el link de un club del Ping Pong Club: es el mismo club.</p>
-            <input className="input" value={code} onChange={(e) => setCode(e.target.value)} placeholder="Código o link de invitación" />
+            <label className="field">
+              <span className="field-label">Código o link de invitación</span>
+              <input className="input" value={code} onChange={(e) => setCode(e.target.value)} autoCapitalize="none" autoCorrect="off" spellCheck={false} />
+            </label>
             <button
-              className="btn block mt"
+              className="btn block"
               disabled={busy || !code.trim()}
               onClick={() => {
                 const match = code.match(/unirse\/([a-z0-9-]+)/i)

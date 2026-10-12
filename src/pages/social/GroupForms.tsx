@@ -4,10 +4,12 @@ import { cancelJoinRequest, createGroup, requestJoin, searchGroups, updateGroup,
 import { useData } from '../../lib/store'
 import { friendlyError } from '../../lib/text'
 import { ErrorText } from '../../components/Feedback'
+import { EmojiPicker } from '../../components/PlayerForm'
+import { ChoiceGroup } from '../../components/PlayerPicker'
 
-export const GROUP_EMOJIS = ['🎲', '🔥', '🃏', '🏓', '🍕', '🧉', '🏆', '🎉', '👾', '🦁', '🐙', '🌮', '♟️', '🚀', '🍻', '⚽']
+const GROUP_EMOJIS = ['🎲', '🔥', '🃏', '🏓', '🍕', '🧉', '🏆', '🎉', '👾', '🦁', '🐙', '🌮', '♟️', '🚀', '🍻', '⚽']
 
-/** Formulario para crear (o editar) un grupo. */
+/** Formulario para crear (o editar) un club. */
 export function GroupForm({ initial, onDone }: { initial?: MyGroup; onDone: (g?: MyGroup) => void }) {
   const data = useData()
   const [name, setName] = useState(initial?.name ?? '')
@@ -45,32 +47,40 @@ export function GroupForm({ initial, onDone }: { initial?: MyGroup; onDone: (g?:
         <span className="group-emoji big" aria-hidden>
           {emoji}
         </span>
-        <input className="input" placeholder="Nombre del club (Los del asado)" value={name} onChange={(e) => setName(e.target.value)} maxLength={60} aria-label="Nombre del club" />
+        <label className="field grow">
+          <span className="field-label">Nombre del club</span>
+          <input className="input" placeholder="Los del asado" value={name} onChange={(e) => setName(e.target.value)} maxLength={60} />
+        </label>
       </div>
-      <div className="emoji-grid">
-        {GROUP_EMOJIS.map((em) => (
-          <button key={em} type="button" className={'emoji-btn' + (em === emoji ? ' active' : '')} onClick={() => setEmoji(em)}>
-            {em}
-          </button>
-        ))}
-      </div>
-      <textarea
-        className="input"
-        rows={2}
-        maxLength={200}
-        placeholder="Descripción corta (opcional): qué juegan, dónde, cuándo…"
-        value={description}
-        onChange={(e) => setDescription(e.target.value)}
-        aria-label="Descripción"
+      <EmojiPicker label="Emoji del club" options={GROUP_EMOJIS} value={emoji} onChange={setEmoji} />
+      <label className="field">
+        <span className="field-label">Descripción corta (opcional)</span>
+        <textarea className="input" rows={2} maxLength={200} placeholder="Truco los viernes en lo de Juli" value={description} onChange={(e) => setDescription(e.target.value)} />
+      </label>
+      <ChoiceGroup
+        className="segmented mt"
+        label="Quién puede encontrar el club"
+        value={isPublic}
+        onChange={setIsPublic}
+        options={[
+          {
+            value: false,
+            content: (
+              <>
+                <LockSimpleIcon /> Privado
+              </>
+            ),
+          },
+          {
+            value: true,
+            content: (
+              <>
+                <GlobeHemisphereWestIcon /> Público
+              </>
+            ),
+          },
+        ]}
       />
-      <div className="segmented mt">
-        <button type="button" className={!isPublic ? 'active' : ''} onClick={() => setIsPublic(false)}>
-          <LockSimpleIcon /> Privado
-        </button>
-        <button type="button" className={isPublic ? 'active' : ''} onClick={() => setIsPublic(true)}>
-          <GlobeHemisphereWestIcon /> Público
-        </button>
-      </div>
       <p className="muted small">
         {isPublic
           ? 'Aparece en el buscador. Quien quiera entrar te pide permiso y vos (o un admin) lo aceptás.'
@@ -85,7 +95,7 @@ export function GroupForm({ initial, onDone }: { initial?: MyGroup; onDone: (g?:
       <ErrorText>{error}</ErrorText>
       <button className="btn primary block" disabled={busy || !name.trim()}>
         {initial ? (
-          'Guardar'
+          busy ? 'Guardando…' : 'Guardar cambios'
         ) : (
           <>
             <SparkleIcon /> {busy ? 'Creando…' : 'Crear club'}
@@ -96,7 +106,7 @@ export function GroupForm({ initial, onDone }: { initial?: MyGroup; onDone: (g?:
   )
 }
 
-/** Buscador de grupos públicos, con el botón para pedir unirse. */
+/** Buscador de clubes públicos, con el botón para pedir unirse. */
 export function GroupSearch({ onOpenMine }: { onOpenMine?: (groupId: string) => void }) {
   const [q, setQ] = useState('')
   const [results, setResults] = useState<FoundGroup[] | null>(null)

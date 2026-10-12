@@ -2566,3 +2566,24 @@ svg {
   font-size: 14px;
   color: var(--muted);
 }
+
+/* Formularios con gap propio: los campos no suman margen extra. */
+.player-form .field,
+.group-form .field {
+  margin-bottom: 0;
+}
+
+.field .error {
+  margin: 0;
+}
+
+.player-form-top .field.grow {
+  min-width: 0;
+}
+
+/* Selección que no depende sólo del color: el elegido lleva un anillo marcado. */
+.color-dot[aria-checked='true'] {
+  box-shadow:
+    0 0 0 2px var(--bg),
+    0 0 0 4px var(--text);
+}

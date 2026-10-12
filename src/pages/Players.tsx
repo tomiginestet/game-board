@@ -3,7 +3,7 @@ import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { Avatar } from '../components/Avatar'
 import { PlayerForm } from '../components/PlayerForm'
-import { useBoard } from '../lib/hooks'
+import { plural, useBoard } from '../lib/hooks'
 import { actions, useData } from '../lib/store'
 
 export function Players() {
@@ -18,7 +18,7 @@ export function Players() {
         <h1>Jugadores</h1>
         {!adding && (
           <button className="btn primary" onClick={() => setAdding(true)}>
-            <PlusIcon /> Nuevo
+            <PlusIcon /> Nuevo jugador
           </button>
         )}
       </div>
@@ -36,7 +36,7 @@ export function Players() {
               <div className="grow">
                 <strong>{p.name}</strong>
                 <div className="muted small">
-                  {s?.played ?? 0} partidas · {s?.wins ?? 0} victorias · {s?.gamesPlayed ?? 0} juegos
+                  {plural(s?.played ?? 0, 'partida', 'partidas')} · {plural(s?.wins ?? 0, 'victoria', 'victorias')} · {plural(s?.gamesPlayed ?? 0, 'juego', 'juegos')}
                 </div>
               </div>
               <span className="elo">✨ {s?.gloria ?? 0}</span>
