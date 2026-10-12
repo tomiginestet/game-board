@@ -61,7 +61,7 @@ export function Settings() {
             }}
           />
         </div>
-        {inClub && <p className="muted small">Para importar, primero salí del club (en Inicio → Club).</p>}
+        {inClub && <p className="muted small">Mientras estés en un grupo no se puede importar: reemplazaría los datos de todos. Usalo sin grupo (o sin cuenta).</p>}
         {message && (
           <p className={'status-message ' + message.kind}>
             {message.kind === 'ok' && <CheckCircleIcon weight="fill" />}

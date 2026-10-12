@@ -1,11 +1,14 @@
-import { useMemo, useState } from 'react'
-import { Link } from 'react-router-dom'
+import { useEffect, useMemo, useState } from 'react'
+import { Link, useSearchParams } from 'react-router-dom'
 import { Avatar, TeamAvatar } from '../components/Avatar'
 import { GameBadge } from '../components/GameBits'
 import { LevelIcon } from '../components/icons'
 import { gameOrMissing, plural, UNKNOWN_PLAYER, useGames, usePlayerMap } from '../lib/hooks'
 import { beltOf, computeBoard, levelFor, periodStart, winRate, type GlobalStats } from '../lib/stats'
 import { useData } from '../lib/store'
+import { useAuth } from '../lib/auth'
+import { globalRanking, userAsPlayer, type GlobalRow } from '../lib/social'
+import { syncAvailable, useSyncState } from '../lib/sync'
 
 type Tab = 'gloria' | 'wins' | 'elo' | 'allround' | 'belts'
 type Period = 'all' | 'year' | 'month' | 'week'
@@ -26,6 +29,111 @@ const PERIODS: { id: Period; name: string }[] = [
 ]
 
 export function Ranking() {
+  const auth = useAuth()
+  const sync = useSyncState()
+  const [params, setParams] = useSearchParams()
+  const canGlobal = syncAvailable && !!auth.session
+  const scope = canGlobal && params.get('global') === '1' ? 'global' : 'group'
+  return (
+    <div className="page">
+      <h1>Ranking</h1>
+      {canGlobal && (
+        <div className="segmented">
+          <button className={scope === 'group' ? 'active' : ''} onClick={() => setParams({})}>
+            {sync.club?.emoji ?? '👥'} {sync.club ? sync.club.name : 'Este dispositivo'}
+          </button>
+          <button className={scope === 'global' ? 'active' : ''} onClick={() => setParams({ global: '1' })}>
+            🌎 Global
+          </button>
+        </div>
+      )}
+      {scope === 'global' ? <GlobalRanking /> : <GroupRanking />}
+    </div>
+  )
+}
+
+type GlobalTab = 'gloria' | 'wins' | 'allround'
+
+/** Ranking de todas las cuentas, sumando las partidas de todos los grupos. */
+function GlobalRanking() {
+  const games = useGames()
+  const myId = useAuth().session?.user.id
+  const [tab, setTab] = useState<GlobalTab>('gloria')
+  const [period, setPeriod] = useState<Period>('all')
+  const [gameId, setGameId] = useState('')
+  // Resultado de la última consulta, con la clave de los filtros que la pidieron.
+  const [result, setResult] = useState<{ key: string; rows?: GlobalRow[]; error?: string } | null>(null)
+  const key = `${period}|${gameId}`
+  const rows = result?.key === key ? (result.rows ?? null) : null
+  const error = result?.key === key ? (result.error ?? '') : ''
+
+  useEffect(() => {
+    let cancelled = false
+    globalRanking(periodStart(period), gameId || undefined)
+      .then((r) => !cancelled && setResult({ key: `${period}|${gameId}`, rows: r }))
+      .catch((e) => !cancelled && setResult({ key: `${period}|${gameId}`, error: e instanceof Error ? e.message : String(e) }))
+    return () => {
+      cancelled = true
+    }
+  }, [period, gameId])
+
+  const sorted = [...(rows ?? [])].sort((a, b) =>
+    tab === 'wins' ? b.wins - a.wins || b.gloria - a.gloria : tab === 'allround' ? b.games_won - a.games_won || b.wins - a.wins : b.gloria - a.gloria || b.wins - a.wins,
+  )
+
+  return (
+    <>
+      <div className="chips scroll mt">
+        {TABS.filter((t) => t.id === 'gloria' || t.id === 'wins' || t.id === 'allround').map((t) => (
+          <button key={t.id} className={'chip' + (tab === t.id ? ' active' : '')} onClick={() => setTab(t.id as GlobalTab)}>
+            {t.name}
+          </button>
+        ))}
+      </div>
+      <div className="segmented small mt">
+        {PERIODS.map((p) => (
+          <button key={p.id} className={period === p.id ? 'active' : ''} onClick={() => setPeriod(p.id)}>
+            {p.name}
+          </button>
+        ))}
+      </div>
+      <select className="input mt" value={gameId} onChange={(e) => setGameId(e.target.value)} aria-label="Juego">
+        <option value="">Todos los juegos</option>
+        {games.map((g) => (
+          <option key={g.id} value={g.id}>
+            {g.emoji} {g.name}
+          </option>
+        ))}
+      </select>
+      <p className="hint">Suma las partidas de todos los grupos y mano a mano. Sólo cuentan los jugadores que tienen cuenta (“este jugador soy yo”).</p>
+      {error && <p className="error">{error}</p>}
+      {rows === null && !error && <p className="muted">Cargando…</p>}
+      {rows?.length === 0 && <div className="empty">Todavía no hay partidas de jugadores con cuenta en este período.</div>}
+      <div className="list ranking">
+        {sorted.map((r, i) => (
+          <div key={r.user_id} className={'card rank-row' + (r.user_id === myId ? ' me' : '')}>
+            <span className="rank-pos">{i + 1}</span>
+            <Avatar player={userAsPlayer(r)} size={36} />
+            <span className="grow">
+              <b>
+                {r.display_name ?? r.username} {r.user_id === myId && <span className="muted small">(vos)</span>}
+              </b>
+              <span className="muted small block">
+                {tab === 'allround'
+                  ? `ganó en ${plural(r.games_won, 'juego', 'juegos')}`
+                  : `${plural(r.played, 'partida', 'partidas')} · ${r.wins} ganadas · ${Math.round((r.wins / Math.max(1, r.played)) * 100)}%`}
+                {` · ${plural(r.groups, 'grupo', 'grupos')}`}
+              </span>
+            </span>
+            <span className="rank-value">{tab === 'wins' ? r.wins : tab === 'allround' ? r.games_won : `✨ ${r.gloria}`}</span>
+          </div>
+        ))}
+      </div>
+    </>
+  )
+}
+
+function GroupRanking() {
   const data = useData()
   const players = usePlayerMap()
   const games = useGames()
@@ -61,9 +169,8 @@ export function Ranking() {
     : []
 
   return (
-    <div className="page">
-      <h1>Ranking</h1>
-      <div className="chips scroll">
+    <>
+      <div className="chips scroll mt">
         {TABS.map((t) => (
           <button key={t.id} className={'chip' + (tab === t.id ? ' active' : '')} onClick={() => setTab(t.id)}>
             {t.name}
@@ -143,6 +250,6 @@ export function Ranking() {
                 )
               })}
       </div>
-    </div>
+    </>
   )
 }

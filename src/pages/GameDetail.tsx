@@ -1,13 +1,14 @@
-import { ArrowLeftIcon, BookOpenIcon, CopyIcon, PencilSimpleIcon, PlayIcon, TrashIcon, TrophyIcon } from '@phosphor-icons/react'
+import { ArrowLeftIcon, BookOpenIcon, CopyIcon, PencilSimpleIcon, PlayIcon, SparkleIcon, TrashIcon, TrophyIcon, UsersIcon } from '@phosphor-icons/react'
 import { useMemo } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 import { Avatar, TeamAvatar } from '../components/Avatar'
-import { GameBadge, PlayRow } from '../components/GameBits'
+import { GameCover } from '../components/GameCover'
+import { PlayRow } from '../components/GameBits'
 import { LevelIcon } from '../components/icons'
 import { MatchRow } from '../components/MatchRow'
 import { Medal } from '../components/Medal'
-import { isBuiltin } from '../lib/games'
-import { CUP_FORMATS, type GameDef, type PlayMode } from '../lib/games/schema'
+import { isBuiltin, playersLabel, WEIGHT_NAMES } from '../lib/games'
+import { CATEGORIES, CUP_FORMATS, type GameDef, type PlayMode } from '../lib/games/schema'
 import { formatDate, plural, UNKNOWN_PLAYER, useBoard, useGame, useLeaderboard, usePlayerMap } from '../lib/hooks'
 import { gameMedals } from '../lib/medals'
 import { beltOf, gameStatsOf, levelFor, winRate } from '../lib/stats'
@@ -59,6 +60,7 @@ function GameView({ game }: { game: GameDef }) {
     [board, game.id],
   )
   const belt = beltOf(board.views, game.id)
+  const playCount = useMemo(() => board.views.filter((v) => v.gameId === game.id).length, [board.views, game.id])
   const coop = game.mode === 'coop'
 
   // Para cada familia de medallas, quién llegó más alto.
@@ -94,19 +96,29 @@ function GameView({ game }: { game: GameDef }) {
   return (
     <div className="page" style={{ ['--gc' as string]: game.color }}>
       <Link to="/juegos" className="back">
-        <ArrowLeftIcon /> Juegos
+        <ArrowLeftIcon /> Catálogo
       </Link>
-      <header className="game-head">
-        <GameBadge game={game} size={64} />
-        <div className="grow">
+      <header className="gd-hero">
+        <GameCover game={game} aspect="landscape" showTitle={false} className="gd-hero-cover" />
+        <div className="gd-hero-info">
+          <span className="gd-hero-kicker">
+            {CATEGORIES.find((c) => c.id === game.category)?.emoji} {CATEGORIES.find((c) => c.id === game.category)?.name}
+            {game.source === 'custom' && ' · Del grupo'}
+          </span>
           <h1>{game.name}</h1>
-          <p className="muted">{game.tagline}</p>
-          <div className="chips">
-            <span className="pill">
-              {game.players.min === game.players.max ? game.players.min : `${game.players.min}–${game.players.max}`} jugadores
+          {game.tagline && <p className="gd-hero-tagline">{game.tagline}</p>}
+          <div className="gd-hero-chips">
+            <span className="cc-chip">
+              <UsersIcon aria-hidden /> {playersLabel(game, true)}
             </span>
-            <span className="pill">{MODE_NAMES[game.mode]}</span>
-            {game.source === 'ai' && <span className="pill">Ficha hecha con IA</span>}
+            <span className="cc-chip">{MODE_NAMES[game.mode]}</span>
+            {game.mode !== 'coop' && <span className="cc-chip">{WEIGHT_NAMES[game.weight]}</span>}
+            {game.source === 'ai' && (
+              <span className="cc-chip ai">
+                <SparkleIcon aria-hidden /> Ficha hecha con IA
+              </span>
+            )}
+            {playCount > 0 && <span className="cc-chip hot">{plural(playCount, 'partida', 'partidas')}</span>}
           </div>
         </div>
       </header>

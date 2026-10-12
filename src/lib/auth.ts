@@ -1,10 +1,11 @@
-// Cuentas (opcionales). Sin cuenta la app funciona igual, con clubes por link.
-// Con cuenta: tus clubes quedan guardados para entrar desde cualquier dispositivo,
-// y podés decir qué jugador sos en cada club.
+// Cuentas. Con cuenta: tu perfil, tus grupos (en cualquier dispositivo), amigos,
+// notificaciones y ranking global. Sin cuenta ("modo invitado") la app funciona
+// como antes: datos en el dispositivo y, si querés, un club por link.
 
 import type { Session } from '@supabase/supabase-js'
 import { useEffect, useSyncExternalStore } from 'react'
-import { supabase, syncAvailable } from './sync'
+import { clearScopes } from './store'
+import { deactivateClub, supabase, syncAvailable, syncNow } from './sync'
 
 export interface AuthState {
   ready: boolean
@@ -71,21 +72,48 @@ export async function signInWithGoogle(): Promise<void> {
   if (error) throw new Error(error.message)
 }
 
+/** Cierra la sesión y borra de este dispositivo las copias de los grupos de la cuenta. */
 export async function signOut(): Promise<void> {
+  // Lo pendiente del grupo activo se sube antes de salir.
+  await syncNow().catch(() => {})
   await client().auth.signOut()
+  deactivateClub()
+  clearScopes()
+  setGuest(false)
 }
 
-export interface MyClub {
-  code: string
-  name: string
-  player_id: string | null
-  joined_at: string
+// ---------------------------------------------------------------------------
+// Modo invitado (sin cuenta)
+
+const GUEST_KEY = 'game-board-guest-v1'
+let guest = (() => {
+  try {
+    return localStorage.getItem(GUEST_KEY) === '1'
+  } catch {
+    return false
+  }
+})()
+const guestListeners = new Set<() => void>()
+
+export function setGuest(on: boolean) {
+  guest = on
+  try {
+    if (on) localStorage.setItem(GUEST_KEY, '1')
+    else localStorage.removeItem(GUEST_KEY)
+  } catch {
+    // ignorar
+  }
+  guestListeners.forEach((l) => l())
 }
 
-export async function myClubs(): Promise<MyClub[]> {
-  const { data, error } = await client().rpc('my_clubs')
-  if (error) throw new Error(error.message)
-  return (data ?? []) as MyClub[]
+export function useGuest(): boolean {
+  return useSyncExternalStore(
+    (l) => {
+      guestListeners.add(l)
+      return () => guestListeners.delete(l)
+    },
+    () => guest,
+  )
 }
 
 /** Guarda un club en la cuenta. No hace nada si no hay sesión. */

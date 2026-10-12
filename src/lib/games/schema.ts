@@ -259,6 +259,12 @@ export interface GameDef {
   /** Resumen de las reglas en pocas líneas. */
   rules: string[]
   rulesUrl?: string
+  /**
+   * Carátula opcional: URL de una imagen (https:// o data:) que se muestra como
+   * "caja" del juego en el catálogo. Si no hay (o no carga), la app dibuja una
+   * carátula propia a partir del color, la categoría y el emoji (ver GameCover).
+   */
+  cover?: string
   /** De dónde salió la ficha. */
   source?: 'builtin' | 'custom' | 'ai'
   createdAt?: number

@@ -1,5 +1,5 @@
 import type { AppData } from '../types'
-import type { GameDef } from './schema'
+import { CATEGORIES, type GameDef } from './schema'
 
 // Todas las fichas de src/lib/games/catalog/ (una por archivo) se cargan solas.
 const modules = import.meta.glob<Record<string, GameDef>>('./catalog/*.ts', { eager: true })
@@ -12,8 +12,34 @@ export const BUILTIN_GAMES: GameDef[] = Object.values(modules)
 
 const BUILTIN_BY_ID = new Map(BUILTIN_GAMES.map((g) => [g.id, g]))
 
-/** Juegos destacados en la pantalla de inicio. */
-export const FEATURED = ['pingpong', 'truco', 'catan', 'buraco', 'skullking', 'impostor', 'pistascruzadas', 'tateti']
+/** Juegos destacados en la pantalla de inicio (estante "Destacados"). */
+export const FEATURED = ['truco', 'catan', 'pingpong', 'skullking', 'buraco', 'impostor', 'codigosecreto', 'pistascruzadas', 'generala', 'sushigo', 'tateti']
+
+/** Juegos del carrusel grande de arriba de todo en el inicio (5–6). */
+export const HERO = ['truco', 'catan', 'pingpong', 'skullking', 'impostor', 'pistascruzadas']
+
+/** Nombre corto de cuánto "pesa" una partida. */
+export const WEIGHT_NAMES: Record<GameDef['weight'], string> = { 1: 'Liviano', 2: 'Medio', 3: 'Pesado' }
+
+/** "2–6 jug." o "4 jug." */
+export function playersLabel(game: Pick<GameDef, 'players'>, long = false): string {
+  const { min, max } = game.players
+  const n = min === max ? `${min}` : `${min}–${max}`
+  return long ? `${n} ${max === 1 ? 'jugador' : 'jugadores'}` : `${n} jug.`
+}
+
+/** Nombre de la categoría de un juego ("Cartas", "Juegos de mesa"...). */
+export function categoryName(game: Pick<GameDef, 'category'>): string {
+  return CATEGORIES.find((c) => c.id === game.category)?.name ?? ''
+}
+
+/** Busca varios juegos por id, en ese orden, salteando los que no existen. */
+export function pickGames(data: Pick<AppData, 'games'>, ids: string[]): GameDef[] {
+  return ids
+    .filter((id, i) => ids.indexOf(id) === i)
+    .map((id) => findGame(data, id))
+    .filter((g): g is GameDef => !!g)
+}
 
 /** Todos los juegos disponibles: los de fábrica más los que agregó el grupo. */
 export function allGames(data: Pick<AppData, 'games'>): GameDef[] {

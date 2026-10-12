@@ -203,6 +203,7 @@ export function checkGame(raw: unknown, opts: { source?: GameDef['source']; keep
     formats,
     rules: arr(r.rules).map(String).slice(0, 12),
     ...(typeof r.rulesUrl === 'string' && /^https?:\/\//.test(r.rulesUrl) ? { rulesUrl: r.rulesUrl } : {}),
+    ...(typeof r.cover === 'string' && /^https:\/\//.test(r.cover) ? { cover: r.cover } : {}),
     source: opts.source ?? 'ai',
   }
   return { game, warnings }

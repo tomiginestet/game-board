@@ -24,6 +24,9 @@ import type {
 } from './types'
 
 const STORAGE_KEY = 'game-board-data-v1'
+/** Datos de cada grupo, guardados aparte para cambiar entre grupos al instante (y sin conexión). */
+const SCOPE_PREFIX = STORAGE_KEY + ':'
+let storageKey = STORAGE_KEY
 
 export const EMPTY: AppData = { version: 1, players: [], matches: [], tournaments: [], plays: [], cups: [], games: [] }
 
@@ -34,9 +37,9 @@ export function uid(): Id {
   return Math.random().toString(36).slice(2, 10) + Date.now().toString(36).slice(-4)
 }
 
-function load(): AppData {
+function load(key = storageKey): AppData {
   try {
-    const raw = localStorage.getItem(STORAGE_KEY)
+    const raw = localStorage.getItem(key)
     if (!raw) return EMPTY
     return validate(JSON.parse(raw))
   } catch {
@@ -79,17 +82,57 @@ function commit(next: AppData, options: { remote?: boolean } = {}) {
     if (changes.length) changeListener(changes)
   }
   try {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(data))
+    localStorage.setItem(storageKey, JSON.stringify(data))
   } catch {
     // Sin espacio o modo privado: seguimos en memoria.
   }
   listeners.forEach((l) => l())
 }
 
+const keyFor = (scope: string | null) => (scope ? SCOPE_PREFIX + scope : STORAGE_KEY)
+
+/**
+ * Cambia de qué grupo son los datos que se muestran (`null`: los de este dispositivo, sin grupo).
+ * No genera cambios para subir.
+ */
+export function switchScope(scope: string | null) {
+  const key = keyFor(scope)
+  if (key === storageKey) return
+  storageKey = key
+  data = load(key)
+  listeners.forEach((l) => l())
+}
+
+export function hasScope(scope: string | null): boolean {
+  try {
+    return localStorage.getItem(keyFor(scope)) !== null
+  } catch {
+    return false
+  }
+}
+
+/** Guarda una copia de los datos que se están mostrando en otro lugar (p. ej. al pasar los datos locales a un grupo). */
+export function copyCurrentTo(scope: string | null) {
+  try {
+    localStorage.setItem(keyFor(scope), JSON.stringify(data))
+  } catch {
+    // ignorar
+  }
+}
+
+/** Borra las copias de los grupos guardadas en este dispositivo (al cerrar sesión). */
+export function clearScopes() {
+  try {
+    for (const k of Object.keys(localStorage)) if (k.startsWith(SCOPE_PREFIX)) localStorage.removeItem(k)
+  } catch {
+    // ignorar
+  }
+}
+
 if (typeof window !== 'undefined') {
   // Mantener sincronizadas varias pestañas abiertas.
   window.addEventListener('storage', (e) => {
-    if (e.key === STORAGE_KEY) {
+    if (e.key === storageKey) {
       data = load()
       listeners.forEach((l) => l())
     }
