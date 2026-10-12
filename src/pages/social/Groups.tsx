@@ -5,6 +5,8 @@ import { linkClub } from '../../lib/auth'
 import { refreshGroups, switchToGroup, useMyGroups, type MyGroup } from '../../lib/social'
 import { findClub, normalizeCode, useSyncState } from '../../lib/sync'
 import { GroupForm, GroupSearch } from './GroupForms'
+import { friendlyError } from '../../lib/text'
+import { ErrorText } from '../../components/Feedback'
 
 /** Todos tus grupos y mano a mano, para cambiar entre ellos o crear/buscar otros. */
 export function Groups() {
@@ -24,7 +26,7 @@ export function Groups() {
       await switchToGroup(g)
       navigate('/grupo')
     } catch (e) {
-      setError(e instanceof Error ? e.message : String(e))
+      setError(friendlyError(e))
     } finally {
       setBusy(null)
     }
@@ -50,26 +52,26 @@ export function Groups() {
   return (
     <div className="page">
       <div className="section-head">
-        <h1>Grupos</h1>
+        <h1>Clubes</h1>
       </div>
-      <p className="muted">Cada grupo tiene sus jugadores, partidas, torneos y ranking. Podés estar en varios y cambiar cuando quieras.</p>
+      <p className="muted">Cada club tiene sus jugadores, partidas, torneos y ranking. Podés estar en varios y cambiar cuando quieras.</p>
       <div className="row gap wrap">
         <Link to="/grupos/nuevo" className="btn primary">
-          <PlusIcon /> Crear grupo
+          <PlusIcon /> Crear club
         </Link>
         <Link to="/grupos/buscar" className="btn">
-          <MagnifyingGlassIcon /> Buscar grupos
+          <MagnifyingGlassIcon /> Buscar clubes
         </Link>
         <Link to="/amigos" className="btn">
           <UserPlusIcon /> Amigos
         </Link>
       </div>
-      {error && <p className="error">{error}</p>}
+      <ErrorText>{error}</ErrorText>
 
       <section>
-        <h2>Tus grupos</h2>
+        <h2>Tus clubes</h2>
         {groups === undefined && <p className="muted">Cargando…</p>}
-        {groups && !regular.length && <div className="empty">Todavía no estás en ningún grupo. Creá uno o buscá uno para sumarte.</div>}
+        {groups && !regular.length && <div className="empty">Todavía no estás en ningún club. Creá uno o buscá el de tus amigos para sumarte.</div>}
         <div className="list">{regular.map(card)}</div>
       </section>
 
@@ -92,9 +94,9 @@ export function NewGroupPage() {
   return (
     <div className="page">
       <Link to="/grupos" className="back">
-        <ArrowLeftIcon /> Grupos
+        <ArrowLeftIcon /> Clubes
       </Link>
-      <h1>Nuevo grupo</h1>
+      <h1>Nuevo club</h1>
       <GroupForm onDone={() => navigate('/grupo')} />
     </div>
   )
@@ -106,10 +108,10 @@ export function SearchGroupsPage() {
   return (
     <div className="page">
       <Link to="/grupos" className="back">
-        <ArrowLeftIcon /> Grupos
+        <ArrowLeftIcon /> Clubes
       </Link>
-      <h1>Buscar grupos</h1>
-      <p className="muted">Grupos públicos. Al pedir unirte le llega un aviso al dueño; cuando te acepte, el grupo aparece en tu lista.</p>
+      <h1>Buscar clubes</h1>
+      <p className="muted">Clubes públicos. Al pedir sumarte le llega un aviso a quien lo administra; cuando te acepte, el club aparece en tu lista.</p>
       <GroupSearch
         onOpenMine={(id) => {
           const g = groups?.find((x) => x.id === id)
@@ -151,7 +153,7 @@ export function JoinByLink() {
       if (g) await switchToGroup(g)
       navigate('/grupo#yo')
     } catch (e) {
-      setError(e instanceof Error ? e.message : String(e))
+      setError(friendlyError(e))
     } finally {
       setBusy(false)
     }
@@ -160,18 +162,18 @@ export function JoinByLink() {
   return (
     <div className="page">
       <h1>Invitación</h1>
-      {name === undefined && <p className="muted">Buscando el grupo…</p>}
-      {name === null && <div className="card warn">El link no corresponde a ningún grupo. Revisá que esté completo.</div>}
+      {name === undefined && <p className="muted">Buscando el club…</p>}
+      {name === null && <div className="card warn">El link no corresponde a ningún club. Revisá que esté completo.</div>}
       {name && (
         <section className="card highlight">
           <h2>{mine ? `Ya sos parte de “${name}”` : `Te invitaron a “${name}”`}</h2>
-          <p className="muted">Vas a ver los jugadores, partidas y el ranking del grupo, y vas a poder cargar partidas.</p>
+          <p className="muted">Vas a ver los jugadores, partidas y el ranking del club, y vas a poder anotar partidas.</p>
           <button className="btn primary big block" disabled={busy} onClick={join}>
-            <SignInIcon /> {mine ? 'Ir al grupo' : 'Unirme al grupo'}
+            <SignInIcon /> {mine ? 'Ir al club' : 'Sumarme al club'}
           </button>
         </section>
       )}
-      {error && <p className="error">{error}</p>}
+      <ErrorText>{error}</ErrorText>
       <Link to="/" className="back mt">
         <ArrowLeftIcon /> Inicio
       </Link>

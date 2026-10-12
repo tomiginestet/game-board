@@ -100,7 +100,7 @@ export function PlayerDetail() {
           <h1>{player.name}</h1>
           <div className="profile-elo">
             <span className="big-number">✨ {s.gloria}</span>
-            <span className="muted">puntos de gloria{position ? ` · #${position} del grupo` : ''}</span>
+            <span className="muted">puntos de gloria{position ? ` · #${position} del club` : ''}</span>
           </div>
         </header>
       )}

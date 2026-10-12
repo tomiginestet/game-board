@@ -75,6 +75,15 @@ export interface SyncState {
   error?: string
 }
 
+/** Cómo se cuenta el estado del guardado en la interfaz (nunca sólo con un color). */
+export const SYNC_LABEL: Record<SyncStatus, string> = {
+  ok: 'Todo guardado',
+  syncing: 'Guardando…',
+  offline: 'Sin conexión: guardamos cuando vuelva',
+  error: 'No se pudo guardar',
+  off: 'Solo en este teléfono',
+}
+
 function readJSON<T>(key: string): T | undefined {
   try {
     const raw = localStorage.getItem(key)

@@ -2,6 +2,8 @@ import { CheckIcon, GlobeHemisphereWestIcon, HourglassIcon, LockSimpleIcon, Magn
 import { useEffect, useState } from 'react'
 import { cancelJoinRequest, createGroup, requestJoin, searchGroups, updateGroup, type FoundGroup, type MyGroup } from '../../lib/social'
 import { useData } from '../../lib/store'
+import { friendlyError } from '../../lib/text'
+import { ErrorText } from '../../components/Feedback'
 
 export const GROUP_EMOJIS = ['🎲', '🔥', '🃏', '🏓', '🍕', '🧉', '🏆', '🎉', '👾', '🦁', '🐙', '🌮', '♟️', '🚀', '🍻', '⚽']
 
@@ -33,7 +35,7 @@ export function GroupForm({ initial, onDone }: { initial?: MyGroup; onDone: (g?:
             onDone(await createGroup({ name: name.trim(), description, emoji, isPublic, importLocal: hasLocal && importLocal }))
           }
         } catch (err) {
-          setError(err instanceof Error ? err.message : String(err))
+          setError(friendlyError(err))
         } finally {
           setBusy(false)
         }
@@ -43,7 +45,7 @@ export function GroupForm({ initial, onDone }: { initial?: MyGroup; onDone: (g?:
         <span className="group-emoji big" aria-hidden>
           {emoji}
         </span>
-        <input className="input" placeholder="Nombre del grupo (Los del asado)" value={name} onChange={(e) => setName(e.target.value)} maxLength={60} aria-label="Nombre del grupo" />
+        <input className="input" placeholder="Nombre del club (Los del asado)" value={name} onChange={(e) => setName(e.target.value)} maxLength={60} aria-label="Nombre del club" />
       </div>
       <div className="emoji-grid">
         {GROUP_EMOJIS.map((em) => (
@@ -77,16 +79,16 @@ export function GroupForm({ initial, onDone }: { initial?: MyGroup; onDone: (g?:
       {hasLocal && (
         <label className="check-row">
           <input type="checkbox" checked={importLocal} onChange={(e) => setImportLocal(e.target.checked)} />
-          <span>Sumar al grupo los jugadores y partidas que ya cargaste en este dispositivo</span>
+          <span>Sumar al club los jugadores y partidas que ya cargaste en este teléfono</span>
         </label>
       )}
-      {error && <p className="error">{error}</p>}
+      <ErrorText>{error}</ErrorText>
       <button className="btn primary block" disabled={busy || !name.trim()}>
         {initial ? (
           'Guardar'
         ) : (
           <>
-            <SparkleIcon /> {busy ? 'Creando…' : 'Crear grupo'}
+            <SparkleIcon /> {busy ? 'Creando…' : 'Crear club'}
           </>
         )}
       </button>
@@ -106,7 +108,7 @@ export function GroupSearch({ onOpenMine }: { onOpenMine?: (groupId: string) => 
     const t = setTimeout(() => {
       searchGroups(q)
         .then((r) => !cancelled && (setResults(r), setError('')))
-        .catch((e) => !cancelled && setError(e instanceof Error ? e.message : String(e)))
+        .catch((e) => !cancelled && setError(friendlyError(e)))
     }, 250)
     return () => {
       cancelled = true
@@ -122,7 +124,7 @@ export function GroupSearch({ onOpenMine }: { onOpenMine?: (groupId: string) => 
       else await requestJoin(g.id)
       setResults((r) => r?.map((x) => (x.id === g.id ? { ...x, my_status: g.my_status === 'pending' ? null : 'pending' } : x)) ?? null)
     } catch (e) {
-      setError(e instanceof Error ? e.message : String(e))
+      setError(friendlyError(e))
     } finally {
       setBusyId(null)
     }
@@ -132,11 +134,11 @@ export function GroupSearch({ onOpenMine }: { onOpenMine?: (groupId: string) => 
     <div className="group-search">
       <label className="search">
         <MagnifyingGlassIcon />
-        <input className="input" placeholder="Buscar grupos públicos…" value={q} onChange={(e) => setQ(e.target.value)} />
+        <input className="input" placeholder="Buscar clubes públicos…" aria-label="Buscar clubes públicos" value={q} onChange={(e) => setQ(e.target.value)} />
       </label>
-      {error && <p className="error">{error}</p>}
+      <ErrorText>{error}</ErrorText>
       {results === null && !error && <p className="muted">Buscando…</p>}
-      {results?.length === 0 && <div className="empty">{q ? `No hay grupos públicos con “${q}”.` : 'Todavía no hay grupos públicos.'}</div>}
+      {results?.length === 0 && <div className="empty">{q ? `No hay clubes públicos con “${q}”. Probá con otra palabra.` : 'Todavía no hay clubes públicos.'}</div>}
       <div className="list">
         {results?.map((g) => (
           <div key={g.id} className="card group-row">

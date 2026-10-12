@@ -103,7 +103,7 @@ function GameView({ game }: { game: GameDef }) {
         <div className="gd-hero-info">
           <span className="gd-hero-kicker">
             {CATEGORIES.find((c) => c.id === game.category)?.emoji} {CATEGORIES.find((c) => c.id === game.category)?.name}
-            {game.source === 'custom' && ' · Del grupo'}
+            {game.source === 'custom' && ' · Del club'}
           </span>
           <h1>{game.name}</h1>
           {game.tagline && <p className="gd-hero-tagline">{game.tagline}</p>}

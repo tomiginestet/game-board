@@ -105,7 +105,7 @@ function GlobalRanking() {
           </option>
         ))}
       </select>
-      <p className="hint">Suma las partidas de todos los grupos y mano a mano. Sólo cuentan los jugadores que tienen cuenta (“este jugador soy yo”).</p>
+      <p className="hint">Suma las partidas de todos los clubes y mano a mano. Sólo cuentan los jugadores que tienen cuenta (“este jugador soy yo”).</p>
       {error && <p className="error">{error}</p>}
       {rows === null && !error && <p className="muted">Cargando…</p>}
       {rows?.length === 0 && <div className="empty">Todavía no hay partidas de jugadores con cuenta en este período.</div>}
@@ -122,7 +122,7 @@ function GlobalRanking() {
                 {tab === 'allround'
                   ? `ganó en ${plural(r.games_won, 'juego', 'juegos')}`
                   : `${plural(r.played, 'partida', 'partidas')} · ${r.wins} ganadas · ${Math.round((r.wins / Math.max(1, r.played)) * 100)}%`}
-                {` · ${plural(r.groups, 'grupo', 'grupos')}`}
+                {` · ${plural(r.groups, 'club', 'clubes')}`}
               </span>
             </span>
             <span className="rank-value">{tab === 'wins' ? r.wins : tab === 'allround' ? r.games_won : `✨ ${r.gloria}`}</span>

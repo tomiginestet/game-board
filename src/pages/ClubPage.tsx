@@ -1,31 +1,27 @@
 import { ArrowsClockwiseIcon, ArrowsCounterClockwiseIcon, CheckIcon, CloudIcon, CopyIcon, SignInIcon, PlusIcon, ShareNetworkIcon, SignOutIcon, SparkleIcon } from '@phosphor-icons/react'
 import { useEffect, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
-import { formatDate } from '../lib/hooks'
+import { formatDate, plural } from '../lib/hooks'
+import { SyncIcon } from '../components/SyncIcon'
 import { useData } from '../lib/store'
 import { linkClub } from '../lib/auth'
-import { createClub as createClubRaw, findClub, inviteLink, joinClub as joinClubRaw, leaveClub, syncAvailable, syncNow, useSyncState } from '../lib/sync'
+import { createClub as createClubRaw, findClub, inviteLink, joinClub as joinClubRaw, leaveClub, SYNC_LABEL, syncAvailable, syncNow, useSyncState } from '../lib/sync'
 import { AccountCard } from '../components/AccountCard'
+import { confirmAction } from '../lib/feedback'
 import { Loader } from '../components/Logo'
+import { friendlyError } from '../lib/text'
+import { ErrorText } from '../components/Feedback'
 
 // Si hay sesión, el club queda guardado en la cuenta.
 const createClub = (name: string) => createClubRaw(name).then(async (c) => (await linkClub(c.code).catch(() => {}), c))
 const joinClub = (code: string, mode: 'replace' | 'merge') => joinClubRaw(code, mode).then(async (c) => (await linkClub(c.code).catch(() => {}), c))
-
-const STATUS_TEXT = {
-  off: 'Sin sincronizar',
-  syncing: 'Sincronizando…',
-  ok: 'Sincronizado',
-  offline: 'Sin conexión (se sube al volver)',
-  error: 'Error al sincronizar',
-} as const
 
 export function ClubPage() {
   const sync = useSyncState()
   const data = useData()
   const navigate = useNavigate()
   const { code: inviteCode } = useParams()
-  const [name, setName] = useState('Los del grupo')
+  const [name, setName] = useState('Los del club')
   const [code, setCode] = useState(inviteCode ?? '')
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState('')
@@ -50,7 +46,7 @@ export function ClubPage() {
     try {
       await fn()
     } catch (e) {
-      setError(e instanceof Error ? e.message : String(e))
+      setError(friendlyError(e))
     } finally {
       setBusy(false)
     }
@@ -60,7 +56,7 @@ export function ClubPage() {
     return (
       <div className="page">
         <h1>Club</h1>
-        <div className="empty">La sincronización no está configurada en esta instalación.</div>
+        <div className="empty">Los clubes compartidos no están disponibles en esta versión de la app. Todo lo que anotes queda guardado en este teléfono.</div>
       </div>
     )
   }
@@ -80,19 +76,18 @@ export function ClubPage() {
         )}
         <section className="card">
           <div className="row-between">
-            <span className={'sync-badge ' + sync.status}>
-              <span className="sync-dot" />
-              {STATUS_TEXT[sync.status]}
+            <span className={'pill sync-pill ' + sync.status}>
+              <SyncIcon status={sync.status} /> {SYNC_LABEL[sync.status]}
             </span>
             <button className="btn small" disabled={sync.status === 'syncing'} onClick={() => run(syncNow)}>
-              <ArrowsClockwiseIcon /> Sincronizar
+              <ArrowsClockwiseIcon /> Actualizar
             </button>
           </div>
           <p className="muted small">
-            {sync.lastSync ? `Última sincronización: ${formatDate(sync.lastSync)}` : ''}
-            {sync.pending ? ` · ${sync.pending} cambios por subir` : ''}
+            {sync.lastSync ? `Última actualización: ${formatDate(sync.lastSync)}` : ''}
+            {sync.pending ? ` · ${plural(sync.pending, 'cambio', 'cambios')} esperando para guardarse en el club` : ''}
           </p>
-          {sync.error && sync.status !== 'ok' && <p className="error">{sync.error}</p>}
+          <ErrorText>{sync.error && sync.status !== 'ok' ? friendlyError(sync.error) : ''}</ErrorText>
           <p>Todos los que estén en este club ven los mismos jugadores, partidas, torneos, juegos y ranking. Es el mismo club que en el Ping Pong Club: los partidos de ping pong se ven en las dos apps.</p>
         </section>
 
@@ -149,8 +144,14 @@ export function ClubPage() {
 
         <button
           className="btn danger"
-          onClick={() => {
-            if (confirm('¿Dejar de sincronizar este dispositivo? Los datos quedan guardados acá, pero ya no se van a actualizar.')) {
+          onClick={async () => {
+            const ok = await confirmAction({
+              title: `¿Salir de “${sync.club!.name}” en este teléfono?`,
+              detail: 'Lo que ya está acá queda guardado, pero deja de actualizarse con lo que anoten los demás.',
+              confirmLabel: 'Salir del club',
+              danger: true,
+            })
+            if (ok) {
               leaveClub()
               navigate('/club')
             }
@@ -189,10 +190,15 @@ export function ClubPage() {
                   <button
                     className="btn block"
                     disabled={busy}
-                    onClick={() =>
-                      confirm('Se borran los datos de este dispositivo y se usan los del club. ¿Seguir?') &&
-                      run(() => joinClub(inviteCode, 'replace').then(() => navigate('/')))
-                    }
+                    onClick={async () => {
+                      const ok = await confirmAction({
+                        title: '¿Usar sólo los datos del club?',
+                        detail: 'Se borran los jugadores y partidas que cargaste en este teléfono y quedan los del club.',
+                        confirmLabel: 'Borrar los míos y unirme',
+                        danger: true,
+                      })
+                      if (ok) void run(() => joinClub(inviteCode, 'replace').then(() => navigate('/')))
+                    }}
                   >
                     <ArrowsCounterClockwiseIcon /> Unirme y usar sólo los datos del club
                   </button>
@@ -237,7 +243,7 @@ export function ClubPage() {
       )}
 
       {busy && <Loader text="Sincronizando…" delay={0} size={72} />}
-      {error && <p className="error">{error}</p>}
+      <ErrorText>{error}</ErrorText>
     </div>
   )
 }

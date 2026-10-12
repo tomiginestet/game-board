@@ -3,6 +3,8 @@ import { useCallback, useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Avatar } from '../../components/Avatar'
 import { myFriends, openDuo, removeFriend, respondFriendRequest, searchUsers, sendFriendRequest, userAsPlayer, type Friend, type FoundUser } from '../../lib/social'
+import { friendlyError } from '../../lib/text'
+import { ErrorText } from '../../components/Feedback'
 
 export function Friends() {
   const navigate = useNavigate()
@@ -15,7 +17,7 @@ export function Friends() {
   const load = useCallback(() => {
     myFriends()
       .then(setFriends)
-      .catch((e) => setError(e instanceof Error ? e.message : String(e)))
+      .catch((e) => setError(friendlyError(e)))
   }, [])
   useEffect(load, [load])
 
@@ -42,7 +44,7 @@ export function Friends() {
       await fn()
       load()
     } catch (e) {
-      setError(e instanceof Error ? e.message : String(e))
+      setError(friendlyError(e))
     } finally {
       setBusy(null)
     }
@@ -95,7 +97,7 @@ export function Friends() {
         </div>
       )}
       {q.trim().length >= 2 && !shown.length && <p className="muted small">No encontramos a nadie con “{q}”.</p>}
-      {error && <p className="error">{error}</p>}
+      <ErrorText>{error}</ErrorText>
 
       {incoming.length > 0 && (
         <section>
