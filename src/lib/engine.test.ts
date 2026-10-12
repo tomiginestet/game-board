@@ -276,11 +276,12 @@ describe('catálogo', () => {
           expect(medalSvg(name, 2, { glyph, color })).toContain('<svg')
   })
 
-  it('cada medalla tiene su ilustración', async () => {
+  // Las que traen `glyph` usan el dibujo genérico a propósito (las de cartas coleccionables, hasta el rediseño de medallas).
+  it('cada medalla tiene su ilustración (o un dibujo genérico elegido)', async () => {
     const { ART_REGISTRY } = await import('./art')
     const { GLOBAL_FAMILIES } = await import('./medals')
     const missing: string[] = []
-    for (const g of BUILTIN_GAMES) for (const a of g.awards) for (const l of a.levels) if (!ART_REGISTRY[l.name]) missing.push(`${g.id}: ${l.name}`)
+    for (const g of BUILTIN_GAMES) for (const a of g.awards) for (const l of a.levels) if (!l.glyph && !ART_REGISTRY[l.name]) missing.push(`${g.id}: ${l.name}`)
     for (const f of GLOBAL_FAMILIES) for (const l of f.levels) if (!ART_REGISTRY[l.name]) missing.push(`general: ${l.name}`)
     expect(missing).toEqual([])
   })
