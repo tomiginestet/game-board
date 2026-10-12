@@ -16,7 +16,7 @@
   background: var(--card-2);
   container-type: inline-size;
   isolation: isolate;
-  color: #fff;
+  color: var(--on-fill);
 }
 
 .gcover-landscape {
@@ -52,7 +52,7 @@
   line-height: 1;
   font-family: 'Apple Color Emoji', 'Segoe UI Emoji', 'Noto Color Emoji', sans-serif;
   transform: translate(-50%, -50%) rotate(var(--tilt, 0deg));
-  filter: drop-shadow(0 0 5cqi color-mix(in srgb, var(--glow, #fff) 70%, transparent)) drop-shadow(0 2.5cqi 3cqi rgba(0, 0, 0, 0.55));
+  filter: drop-shadow(0 0 5cqi color-mix(in srgb, var(--glow, var(--on-fill)) 70%, transparent)) drop-shadow(0 2.5cqi 3cqi rgba(0, 0, 0, 0.55));
   transition: scale 0.25s ease;
   pointer-events: none;
   user-select: none;
@@ -60,7 +60,7 @@
 
 .gcover-landscape .gcover-emoji {
   font-size: 22cqi;
-  filter: drop-shadow(0 0 3cqi color-mix(in srgb, var(--glow, #fff) 70%, transparent)) drop-shadow(0 1.5cqi 2cqi rgba(0, 0, 0, 0.55));
+  filter: drop-shadow(0 0 3cqi color-mix(in srgb, var(--glow, var(--on-fill)) 70%, transparent)) drop-shadow(0 1.5cqi 2cqi rgba(0, 0, 0, 0.55));
 }
 
 .gcover-title {
@@ -121,18 +121,18 @@
   gap: 3px;
   padding: 2px 7px;
   border-radius: 999px;
-  font-size: 10px;
+  font-size: 12px;
   font-weight: 800;
   letter-spacing: 0.02em;
   text-transform: uppercase;
-  color: #fff;
+  color: var(--on-fill);
   background: rgba(10, 12, 18, 0.72);
   backdrop-filter: blur(4px);
   border: 1px solid rgba(255, 255, 255, 0.18);
 }
 
 .cc-pill.ai {
-  color: #e5d9ff;
+  color: var(--ai-soft);
   border-color: rgba(180, 150, 255, 0.5);
 }
 
@@ -151,7 +151,7 @@
   background: rgba(255, 255, 255, 0.08);
   border: 1px solid rgba(255, 255, 255, 0.1);
   color: var(--text);
-  font-size: 11.5px;
+  font-size: 12px;
   font-weight: 700;
   line-height: 1.5;
   white-space: nowrap;
@@ -162,13 +162,13 @@
 .cc-chip.hot {
   background: rgba(255, 107, 53, 0.16);
   border-color: rgba(255, 107, 53, 0.35);
-  color: #ffb08f;
+  color: var(--accent-soft);
 }
 
 .cc-chip.ai {
   background: rgba(150, 120, 255, 0.16);
   border-color: rgba(150, 120, 255, 0.4);
-  color: #e0d6ff;
+  color: var(--ai-soft);
 }
 
 /* Foco y hover compartidos: la tarjeta "se levanta" y el emoji crece. */
@@ -196,7 +196,7 @@
     transform: translateY(-4px);
     box-shadow:
       0 14px 28px rgba(0, 0, 0, 0.5),
-      0 0 0 2px color-mix(in srgb, var(--gc, #fff) 70%, white);
+      0 0 0 2px color-mix(in srgb, var(--gc, var(--on-fill)) 70%, white);
   }
 
   .shelf-card:hover .gcover-emoji,
@@ -216,6 +216,10 @@
   display: flex;
   flex-direction: column;
   gap: 10px;
+}
+
+.hero-carousel h2 {
+  margin: 0;
 }
 
 .hero-track {
@@ -267,19 +271,9 @@
   min-width: 0;
 }
 
-.hero-kicker {
-  align-self: flex-start;
-  font-size: 11px;
-  font-weight: 800;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  color: var(--accent-2);
-  text-shadow: 0 1px 4px rgba(0, 0, 0, 0.8);
-}
-
 .hero-name {
   margin: 0;
-  font-size: 26px;
+  font-size: 28px;
   font-weight: 900;
   line-height: 1.05;
   letter-spacing: -0.02em;
@@ -289,7 +283,7 @@
 
 .hero-tagline {
   margin: 0;
-  color: #d5dbe6;
+  color: var(--text-soft);
   font-size: 14px;
   line-height: 1.35;
   display: -webkit-box;
@@ -402,7 +396,7 @@
   width: 7px;
   height: 7px;
   border-radius: 999px;
-  background: var(--border);
+  background: var(--border-strong);
   transform: translate(-50%, -50%);
   transition:
     width 0.2s ease,
@@ -417,8 +411,8 @@
 .hero-arrow {
   display: grid;
   place-items: center;
-  width: 34px;
-  height: 34px;
+  width: 44px;
+  height: 44px;
   border-radius: 999px;
   border: 1px solid var(--border);
   background: var(--bg-2);
@@ -459,6 +453,7 @@
   display: inline-flex;
   align-items: center;
   gap: 4px;
+  min-height: 44px;
   padding: 6px 2px;
   font-size: 14px;
   font-weight: 700;
@@ -477,6 +472,8 @@
 }
 
 .shelf-card {
+  /* Contiene al nombre oculto (.sr-only) para que no se escape de la fila y ensanche la página. */
+  position: relative;
   flex: 0 0 128px;
   display: flex;
   flex-direction: column;
@@ -505,7 +502,7 @@
 }
 
 .shelf-count {
-  color: #ffb08f;
+  color: var(--accent-soft);
   font-weight: 700;
 }
 
@@ -574,14 +571,6 @@
   text-shadow: 0 1px 8px rgba(0, 0, 0, 0.7);
 }
 
-.cta-kicker {
-  font-size: 11px;
-  font-weight: 800;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  color: var(--accent);
-}
-
 .cta-text b {
   font-size: 20px;
   font-weight: 900;
@@ -589,7 +578,7 @@
 }
 
 .cta-count {
-  color: #c7cfdc;
+  color: var(--text-soft);
   font-size: 13px;
 }
 
@@ -604,7 +593,7 @@
   height: 40px;
   border-radius: 999px;
   background: var(--accent-fill);
-  color: #fff;
+  color: var(--on-fill);
   box-shadow: 0 6px 16px rgba(201, 68, 18, 0.5);
 }
 
@@ -672,7 +661,7 @@
 }
 
 .cc-name {
-  font-size: 14.5px;
+  font-size: 16px;
   font-weight: 800;
   line-height: 1.2;
   white-space: nowrap;
@@ -682,7 +671,7 @@
 
 .cc-tagline {
   color: var(--muted);
-  font-size: 12.5px;
+  font-size: 13px;
   line-height: 1.35;
   display: -webkit-box;
   -webkit-line-clamp: 2;
@@ -724,16 +713,6 @@
   min-width: 0;
 }
 
-.gd-hero-kicker {
-  align-self: flex-start;
-  font-size: 12px;
-  font-weight: 800;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-  color: var(--accent-2);
-  text-shadow: 0 1px 6px rgba(0, 0, 0, 0.9);
-}
-
 .gd-hero h1 {
   margin: 0;
   font-size: 32px;
@@ -746,8 +725,8 @@
 
 .gd-hero-tagline {
   margin: 0;
-  color: #d5dbe6;
-  font-size: 15px;
+  color: var(--text-soft);
+  font-size: 16px;
 }
 
 .gd-hero-chips {
@@ -758,7 +737,7 @@
 }
 
 .gd-hero-chips .cc-chip {
-  font-size: 12.5px;
+  font-size: 13px;
   padding: 3px 10px;
 }
 
@@ -800,5 +779,26 @@
   .hero-track,
   .shelf-row {
     scroll-behavior: auto;
+  }
+}
+
+/* Con mouse, las filas horizontales muestran una barra fina (si no, no hay pista de que se desplazan). */
+@media (hover: hover) and (pointer: fine) {
+  .hero-track,
+  .shelf-row {
+    scrollbar-width: thin;
+    scrollbar-color: var(--border-strong) transparent;
+  }
+
+  .hero-track::-webkit-scrollbar,
+  .shelf-row::-webkit-scrollbar {
+    display: block;
+    height: 8px;
+  }
+
+  .hero-track::-webkit-scrollbar-thumb,
+  .shelf-row::-webkit-scrollbar-thumb {
+    border-radius: 999px;
+    background: var(--border-strong);
   }
 }

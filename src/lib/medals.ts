@@ -115,8 +115,8 @@ export const GLOBAL_FAMILIES: GlobalFamily[] = [
   {
     id: 'giant',
     name: 'Matagigantes',
-    measures: 'Diferencia de ELO con el rival más fuerte que venciste',
-    unit: (n) => `+${n} de ELO`,
+    measures: 'Diferencia de Elo con el rival más fuerte que venciste',
+    unit: (n) => `+${n} de Elo`,
     value: (s) => s.biggestUpset,
     levels: [
       { at: 100, name: 'La gomera', description: 'David contra Goliat, con la gomera de cuando eras pibe.' },

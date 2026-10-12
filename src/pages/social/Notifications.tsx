@@ -15,10 +15,12 @@ import {
   userAsPlayer,
   type AppNotification,
 } from '../../lib/social'
+import { friendlyError } from '../../lib/text'
+import { ErrorText } from '../../components/Feedback'
 
 function text(n: AppNotification): string {
   const from = n.data.from?.display_name ?? 'Alguien'
-  const group = n.data.name ? `“${n.data.name}”` : 'un grupo'
+  const group = n.data.name ? `“${n.data.name}”` : 'un club'
   switch (n.kind) {
     case 'join_request':
       return `${from} quiere entrar a ${group}`
@@ -62,7 +64,7 @@ export function Notifications() {
       await fn()
       setDone((d) => ({ ...d, [n.id]: label }))
     } catch (e) {
-      setError(e instanceof Error ? e.message : String(e))
+      setError(friendlyError(e))
     } finally {
       setBusy(null)
     }
@@ -87,11 +89,11 @@ export function Notifications() {
           </button>
         )}
       </div>
-      {error && <p className="error">{error}</p>}
+      <ErrorText>{error}</ErrorText>
       {!items.length && (
         <div className="empty">
           <BellSlashIcon size={32} className="block-center" />
-          <p>No tenés novedades. Acá te van a llegar las solicitudes para entrar a tus grupos, invitaciones y pedidos de amistad.</p>
+          <p>No tenés novedades. Acá te van a llegar las solicitudes para entrar a tus clubes, invitaciones y pedidos de amistad.</p>
         </div>
       )}
       <div className="list">
@@ -154,7 +156,7 @@ export function Notifications() {
                   )}
                   {(n.kind === 'join_accepted' || n.kind === 'invite_accepted') && (
                     <button className="btn small" onClick={() => void openGroup(n.data.group_id)}>
-                      Ir al grupo
+                      Ir al club
                     </button>
                   )}
                   {n.kind === 'friend_accepted' && (

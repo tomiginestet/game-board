@@ -1,3 +1,4 @@
+import { Link } from 'react-router-dom'
 import { useMemo, useState } from 'react'
 import { PlayRow } from '../components/GameBits'
 import { MatchRow } from '../components/MatchRow'
@@ -28,16 +29,23 @@ export function History() {
     <div className="page">
       <h1>Historial</h1>
       <div className="chips scroll">
-        <button className={'chip' + (gameId === 'all' ? ' active' : '')} onClick={() => setGameId('all')}>
+        <button className={'chip' + (gameId === 'all' ? ' active' : '')} aria-pressed={gameId === 'all'} onClick={() => setGameId('all')}>
           Todos
         </button>
         {used.map((g) => (
-          <button key={g.id} className={'chip' + (gameId === g.id ? ' active' : '')} onClick={() => setGameId(g.id)}>
+          <button key={g.id} className={'chip' + (gameId === g.id ? ' active' : '')} aria-pressed={gameId === g.id} onClick={() => setGameId(g.id)}>
             {g.emoji} {g.name}
           </button>
         ))}
       </div>
-      {!rows.length && <div className="empty mt">Todavía no hay partidas terminadas.</div>}
+      {!rows.length && (
+        <div className="empty mt">
+          <p>Todavía no hay partidas terminadas. Lo que anoten va a quedar acá, para cuando haya que discutir quién ganó.</p>
+          <Link to="/juegos" className="btn primary">
+            Anotar una partida
+          </Link>
+        </div>
+      )}
       <div className="list mt">
         {rows.slice(0, limit).map((r) =>
           r.k === 'play' ? <PlayRow key={r.p.id} play={r.p} game={gameOrMissing(data, r.p.gameId)} players={players} /> : <MatchRow key={r.m.id} match={r.m} players={players} />,

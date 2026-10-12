@@ -11,7 +11,7 @@ type Sort = 'az' | 'jugados' | 'recientes'
 const SORTS: { id: Sort; name: string }[] = [
   { id: 'az', name: 'A–Z' },
   { id: 'jugados', name: 'Más jugados' },
-  { id: 'recientes', name: 'Recientes del grupo' },
+  { id: 'recientes', name: 'Recientes del club' },
 ]
 
 /** Catálogo: todos los juegos como carátulas, con buscador, categorías y orden. */
@@ -53,7 +53,7 @@ export function Games() {
   if (sort === 'jugados') list.sort((a, b) => (played.get(b.id) ?? 0) - (played.get(a.id) ?? 0))
   if (sort === 'recientes') list.sort((a, b) => (last.get(b.id) ?? 0) - (last.get(a.id) ?? 0))
 
-  const catName = cat === 'all' ? 'Todos los juegos' : cat === 'mine' ? 'Del grupo' : CATEGORIES.find((c) => c.id === cat)?.name
+  const catName = cat === 'all' ? 'Todos los juegos' : cat === 'mine' ? 'Del club' : CATEGORIES.find((c) => c.id === cat)?.name
 
   return (
     <div className="page catalog-page">
@@ -90,7 +90,7 @@ export function Games() {
           Todos
         </button>
         <button className={'chip' + (cat === 'mine' ? ' active' : '')} onClick={() => setParam('cat', 'mine')} aria-pressed={cat === 'mine'}>
-          ⭐ Del grupo
+          ⭐ Del club
         </button>
         {CATEGORIES.filter((c) => games.some((g) => g.category === c.id)).map((c) => (
           <button key={c.id} className={'chip' + (cat === c.id ? ' active' : '')} onClick={() => setParam('cat', c.id)} aria-pressed={cat === c.id}>

@@ -4,10 +4,10 @@ import { Navigate, useNavigate, useParams, useSearchParams } from 'react-router-
 import { Stepper } from '../components/ConfigEditor'
 import { GameBadge } from '../components/GameBits'
 import { OptionsEditor } from '../components/OptionsEditor'
-import { PlayerPicker } from '../components/PlayerPicker'
+import { ChoiceGroup, PlayerPicker } from '../components/PlayerPicker'
 import { defaultConfig } from '../lib/engine'
 import type { GameDef, OptionValue } from '../lib/games/schema'
-import { useGame } from '../lib/hooks'
+import { plural, useGame } from '../lib/hooks'
 import { actions, useData } from '../lib/store'
 import type { Id, PlaySide } from '../lib/types'
 
@@ -91,7 +91,7 @@ function Setup({ game }: { game: GameDef }) {
   const badge = (id: Id) => {
     const i = selected.indexOf(id)
     if (i < 0) return undefined
-    if (grouping === 'teams') return `Eq. ${teamIndex(id) + 1}`
+    if (grouping === 'teams') return `Equipo ${teamIndex(id) + 1}`
     if (grouping === 'solo' && game.mode === 'turns') return `${i + 1}°`
     return undefined
   }
@@ -107,21 +107,37 @@ function Setup({ game }: { game: GameDef }) {
       </header>
 
       {game.sides === 'either' && (
-        <div className="segmented">
-          <button className={grouping === 'solo' ? 'active' : ''} onClick={() => setGrouping('solo')}>
-            <UserIcon /> Cada uno solo
-          </button>
-          <button className={grouping === 'teams' ? 'active' : ''} onClick={() => setGrouping('teams')}>
-            <UsersIcon /> Por equipos
-          </button>
-        </div>
+        <ChoiceGroup
+          className="segmented"
+          label="Cómo se juega"
+          value={grouping}
+          onChange={setGrouping}
+          options={[
+            {
+              value: 'solo',
+              content: (
+                <>
+                  <UserIcon /> Cada uno solo
+                </>
+              ),
+            },
+            {
+              value: 'teams',
+              content: (
+                <>
+                  <UsersIcon /> Por equipos
+                </>
+              ),
+            },
+          ]}
+        />
       )}
 
       <section>
         <h2>
           ¿Quiénes juegan?{' '}
           <span className="muted small">
-            {game.players.min === game.players.max ? `${game.players.min} jugadores` : `de ${game.players.min} a ${game.players.max}`}
+            {game.players.min === game.players.max ? plural(game.players.min, 'jugador', 'jugadores') : `de ${game.players.min} a ${game.players.max}`}
             {game.mode === 'turns' && grouping === 'solo' ? ' · en orden de turno' : ''}
           </span>
         </h2>
@@ -132,7 +148,7 @@ function Setup({ game }: { game: GameDef }) {
         <section className="card">
           <div className="section-head">
             <h2>Equipos</h2>
-            {!fixedTeam && <Stepper value={teamCount} min={2} max={Math.max(2, Math.min(8, selected.length))} onChange={setTeamCount} />}
+            {!fixedTeam && <Stepper value={teamCount} min={2} max={Math.max(2, Math.min(8, selected.length))} onChange={setTeamCount} label="Cantidad de equipos" />}
           </div>
           <div className="teams-grid">
             {Array.from({ length: teamCount }, (_, t) => (
@@ -141,7 +157,13 @@ function Setup({ game }: { game: GameDef }) {
                 {selected
                   .filter((id) => teamIndex(id) === t)
                   .map((id) => (
-                    <button key={id} className="chip" onClick={() => setTeamOf({ ...teamOf, [id]: (teamIndex(id) + 1) % teamCount })} title="Tocá para cambiar de equipo">
+                    <button
+                      key={id}
+                      className="chip"
+                      onClick={() => setTeamOf({ ...teamOf, [id]: (teamIndex(id) + 1) % teamCount })}
+                      title="Tocá para cambiar de equipo"
+                      aria-label={`${nameOf(id)}: pasar al equipo ${((teamIndex(id) + 1) % teamCount) + 1}`}
+                    >
                       {nameOf(id)}
                     </button>
                   ))}
@@ -172,9 +194,11 @@ function Setup({ game }: { game: GameDef }) {
               <PlayIcon weight="fill" /> ¡A jugar!
             </>
           ) : selected.length < minPlayers ? (
-            `Elegí al menos ${minPlayers} jugadores`
+            `Elegí al menos ${plural(minPlayers, 'jugador', 'jugadores')}`
+          ) : !balanced ? (
+            `Armá equipos de ${fixedTeam} jugadores`
           ) : (
-            'Armá los equipos'
+            'Repartí los jugadores en al menos 2 equipos'
           )}
         </button>
       </div>

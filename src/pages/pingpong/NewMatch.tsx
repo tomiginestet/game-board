@@ -1,8 +1,8 @@
 import { DiceFiveIcon, PingPongIcon, ShuffleIcon, UserIcon, UsersIcon } from '@phosphor-icons/react'
-import { useState } from 'react'
+import { useId, useState } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 import { ConfigEditor } from '../../components/ConfigEditor'
-import { PlayerPicker } from '../../components/PlayerPicker'
+import { ChoiceGroup, PlayerPicker } from '../../components/PlayerPicker'
 import { DEFAULT_CONFIG } from '../../lib/pingpong/scoring'
 import { actions, useData } from '../../lib/store'
 import type { Id, MatchConfig, Side } from '../../lib/pingpong/types'
@@ -26,6 +26,7 @@ function coinFlip(): Side {
 export function NewMatch() {
   const data = useData()
   const navigate = useNavigate()
+  const id = useId()
   const [params] = useSearchParams()
   const players = [...data.players].sort((a, b) => a.name.localeCompare(b.name))
   const [selected, setSelected] = useState<Id[]>(() => [params.get('a'), params.get('b')].filter((x): x is Id => !!x && data.players.some((p) => p.id === x)))
@@ -44,7 +45,7 @@ export function NewMatch() {
   const badge = (id: Id) => {
     const i = selected.indexOf(id)
     if (i < 0) return undefined
-    if (!doubles) return i === 0 ? 'Izq' : 'Der'
+    if (!doubles) return i === 0 ? 'Izquierda' : 'Derecha'
     return i < 2 ? 'Equipo 1' : 'Equipo 2'
   }
 
@@ -64,28 +65,33 @@ export function NewMatch() {
     <div className="page">
       <h1>Partido rápido</h1>
 
-      <div className="segmented">
-        {[false, true].map((d) => (
-          <button
-            key={String(d)}
-            className={doubles === d ? 'active' : ''}
-            onClick={() => {
-              setDoubles(d)
-              setSelected((s) => s.slice(0, d ? 4 : 2))
-            }}
-          >
-            {d ? (
+      <ChoiceGroup
+        className="segmented"
+        label="Modalidad"
+        value={doubles}
+        onChange={(d) => {
+          setDoubles(d)
+          setSelected((s) => s.slice(0, d ? 4 : 2))
+        }}
+        options={[
+          {
+            value: false,
+            content: (
+              <>
+                <UserIcon /> Individual
+              </>
+            ),
+          },
+          {
+            value: true,
+            content: (
               <>
                 <UsersIcon /> Dobles
               </>
-            ) : (
-              <>
-                <UserIcon /> Singles
-              </>
-            )}
-          </button>
-        ))}
-      </div>
+            ),
+          },
+        ]}
+      />
 
       <section>
         <h2>{doubles ? '¿Quiénes juegan? (los 2 primeros son un equipo)' : '¿Quiénes juegan?'}</h2>
@@ -110,18 +116,26 @@ export function NewMatch() {
 
       {ready && (
         <section className="card">
-          <h2>¿Quién saca primero?</h2>
-          <div className="chips">
-            <button type="button" className={'chip' + (server === 'random' ? ' active' : '')} onClick={() => setServer('random')}>
-              <DiceFiveIcon className="inline-icon" /> Al azar
-            </button>
-            <button type="button" className={'chip' + (server === 'a' ? ' active' : '')} onClick={() => setServer('a')}>
-              {nameOf(teamA)}
-            </button>
-            <button type="button" className={'chip' + (server === 'b' ? ' active' : '')} onClick={() => setServer('b')}>
-              {nameOf(teamB)}
-            </button>
-          </div>
+          <h2 id={`${id}-server`}>¿Quién saca primero?</h2>
+          <ChoiceGroup
+            className="chips"
+            itemClassName="chip"
+            labelledBy={`${id}-server`}
+            value={server}
+            onChange={setServer}
+            options={[
+              {
+                value: 'random',
+                content: (
+                  <>
+                    <DiceFiveIcon className="inline-icon" /> Al azar
+                  </>
+                ),
+              },
+              { value: 'a', content: nameOf(teamA) },
+              { value: 'b', content: nameOf(teamB) },
+            ]}
+          />
         </section>
       )}
 

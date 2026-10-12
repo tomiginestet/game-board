@@ -1,7 +1,7 @@
 {
   "name": "Game Board",
   "short_name": "Game Board",
-  "description": "Partidas, rankings, torneos y medallas de todos los juegos entre amigos.",
+  "description": "Partidas, torneos y quién manda en cada juego.",
   "start_url": "./",
   "display": "standalone",
   "background_color": "#0d1117",

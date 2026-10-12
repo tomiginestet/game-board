@@ -37,7 +37,7 @@ Deno.serve(async (req) => {
   if (req.method !== 'POST') return json({ error: 'Método no permitido' }, 405)
 
   const apiKey = Deno.env.get('ANTHROPIC_API_KEY')
-  if (!apiKey) return json({ error: 'La generación automática no está configurada (falta la clave de la API).' }, 503)
+  if (!apiKey) return json({ error: 'La IA automática no está disponible ahora. Probá con IA gratis: copiás las instrucciones y las pegás en cualquier chat.' }, 503)
 
   const url = Deno.env.get('SUPABASE_URL')!
   const admin = createClient(url, Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!)
@@ -55,7 +55,7 @@ Deno.serve(async (req) => {
       notes: typeof body?.notes === 'string' ? body.notes.slice(0, 2000) : undefined,
     }
   } catch {
-    return json({ error: 'Pedido inválido' }, 400)
+    return json({ error: 'No pudimos leer el pedido. Recargá la app y probá de nuevo.' }, 400)
   }
   if (!input.name.trim()) return json({ error: 'Falta el nombre del juego.' }, 400)
 
@@ -66,12 +66,12 @@ Deno.serve(async (req) => {
   const { data: monthRows } = await admin.from('ai_usage').select('cost_usd').gte('created_at', monthStart.toISOString())
   const spent = (monthRows ?? []).reduce((sum, r) => sum + Number(r.cost_usd), 0)
   if (spent >= MONTHLY_LIMIT) {
-    return json({ error: `Se llegó al tope de USD ${MONTHLY_LIMIT} de este mes. Usá el modo "copiar y pegar", que es gratis.` }, 429)
+    return json({ error: `Se terminó el cupo de este mes para toda la app. Probá con IA gratis: copiás las instrucciones y las pegás en cualquier chat.` }, 429)
   }
   const dayAgo = new Date(Date.now() - 24 * 3600 * 1000).toISOString()
   const { count } = await admin.from('ai_usage').select('id', { count: 'exact', head: true }).eq('user_id', user.id).gte('created_at', dayAgo)
   if ((count ?? 0) >= DAILY_PER_USER) {
-    return json({ error: `Llegaste a ${DAILY_PER_USER} juegos generados en 24 horas. Probá mañana o usá "copiar y pegar".` }, 429)
+    return json({ error: `Ya armaste ${DAILY_PER_USER} juegos en las últimas 24 horas. Probá mañana o usá IA gratis.` }, 429)
   }
 
   const client = new Anthropic({ apiKey })
@@ -101,14 +101,14 @@ Deno.serve(async (req) => {
       cost_usd: cost,
     })
 
-    if (message.stop_reason === 'refusal') return json({ error: 'La IA no quiso armar esta ficha. Probá con el modo "copiar y pegar".' }, 422)
+    if (message.stop_reason === 'refusal') return json({ error: 'La IA no quiso armar este juego. Probá con IA gratis.' }, 422)
     if (message.stop_reason === 'max_tokens') return json({ error: 'La respuesta quedó cortada. Probá de nuevo con reglas más cortas.' }, 422)
     const text = message.content.map((b) => (b.type === 'text' ? b.text : '')).join('')
     return json({ text, costUsd: Math.round(cost * 10000) / 10000, model: message.model })
   } catch (e) {
-    if (e instanceof Anthropic.RateLimitError) return json({ error: 'La API está saturada. Probá en un rato.' }, 429)
-    if (e instanceof Anthropic.AuthenticationError) return json({ error: 'La clave de la API no es válida.' }, 503)
-    if (e instanceof Anthropic.APIError) return json({ error: `Error de la API (${e.status}).` }, 502)
-    return json({ error: 'No se pudo generar la ficha.' }, 500)
+    if (e instanceof Anthropic.RateLimitError) return json({ error: 'La IA está con mucha demanda. Probá en un rato o usá IA gratis.' }, 429)
+    if (e instanceof Anthropic.AuthenticationError) return json({ error: 'La IA automática no está disponible ahora. Probá con IA gratis.' }, 503)
+    if (e instanceof Anthropic.APIError) return json({ error: 'No pudimos armar el juego. Probá de nuevo en un rato o usá IA gratis.' }, 502)
+    return json({ error: 'No pudimos armar el juego. Probá de nuevo en un rato o usá IA gratis.' }, 500)
   }
 })

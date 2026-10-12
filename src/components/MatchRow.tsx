@@ -5,6 +5,7 @@ import { computeMatch } from '../lib/pingpong/scoring'
 import type { PPMatch as Match, Player, Id } from '../lib/types'
 import { sidePlayers, sideOf, teamName } from '../lib/pingpong/teams'
 import { TeamAvatar } from './Avatar'
+import { ResultTag } from './GameBits'
 
 interface Props {
   match: Match
@@ -59,6 +60,7 @@ export function MatchRow({ match: m, players, eloDelta, showDate = true, perspec
             {state.gamesNeeded > 1 && ` · Juegos ${state.gamesWon.a}-${state.gamesWon.b}`}
           </span>
         )}
+        {(resultClass === ' win' || resultClass === ' loss') && <ResultTag result={resultClass === ' win' ? 'win' : 'loss'} />}
         {finished && games.length > 0 && <span className="mr-detail">{games.map((g) => `${g.a}-${g.b}`).join(', ')}</span>}
         {finished && m.winner === null && <span className="pill">Empate</span>}
         {showDate && <span className="mr-date">{formatDate(m.finishedAt ?? m.startedAt ?? m.createdAt)}</span>}

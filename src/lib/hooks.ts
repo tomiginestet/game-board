@@ -1,4 +1,4 @@
-import { useMemo } from 'react'
+import { useEffect, useMemo } from 'react'
 import { allGames, findGame, missingGame } from './games'
 import type { GameDef } from './games/schema'
 import { computeLeaderboard } from './pingpong/stats'
@@ -54,4 +54,11 @@ export function formatDate(ts: number): string {
 
 export function plural(n: number, one: string, many: string): string {
   return `${n} ${n === 1 ? one : many}`
+}
+
+/** Título de la pestaña del navegador ("Ranking · Game Board"): ayuda a ubicarse y a los lectores de pantalla. */
+export function useDocumentTitle(title?: string) {
+  useEffect(() => {
+    document.title = title ? `${title} · Game Board` : 'Game Board'
+  }, [title])
 }

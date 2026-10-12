@@ -6,6 +6,11 @@ import { formatDate, UNKNOWN_PLAYER } from '../lib/hooks'
 import type { Id, Play, PlaySide, Player } from '../lib/types'
 import { TeamAvatar } from './Avatar'
 
+/** Resultado desde el punto de vista de un jugador: con texto, no sólo con color. */
+export function ResultTag({ result }: { result: 'win' | 'loss' | 'draw' }) {
+  return <span className={'result-tag ' + result}>{result === 'win' ? 'Ganó' : result === 'loss' ? 'Perdió' : 'Empató'}</span>
+}
+
 /** Ícono de un juego: su emoji sobre un cuadrado de su color. */
 export function GameBadge({ game, size = 40 }: { game: Pick<GameDef, 'emoji' | 'color' | 'name'>; size?: number }) {
   return (
@@ -78,6 +83,7 @@ export function PlayRow({ play, game, players, focus, showGame = true }: { play:
           {order.length > 4 && <span className="muted small">+{order.length - 4}</span>}
         </div>
         <div className="mr-meta muted small">
+          {resultClass && <ResultTag result={resultClass.trim() as 'win' | 'loss'} />}
           {showGame && <span>{game.name}</span>}
           {live ? (
             <span className="win-text">

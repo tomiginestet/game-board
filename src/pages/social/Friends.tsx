@@ -3,6 +3,9 @@ import { useCallback, useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Avatar } from '../../components/Avatar'
 import { myFriends, openDuo, removeFriend, respondFriendRequest, searchUsers, sendFriendRequest, userAsPlayer, type Friend, type FoundUser } from '../../lib/social'
+import { friendlyError } from '../../lib/text'
+import { ErrorText } from '../../components/Feedback'
+import { confirmAction } from '../../lib/feedback'
 
 export function Friends() {
   const navigate = useNavigate()
@@ -15,7 +18,7 @@ export function Friends() {
   const load = useCallback(() => {
     myFriends()
       .then(setFriends)
-      .catch((e) => setError(e instanceof Error ? e.message : String(e)))
+      .catch((e) => setError(friendlyError(e)))
   }, [])
   useEffect(load, [load])
 
@@ -27,7 +30,7 @@ export function Friends() {
     const t = setTimeout(() => {
       searchUsers(q)
         .then((r) => !cancelled && setFound(r))
-        .catch(() => {})
+        .catch((e) => !cancelled && setError(friendlyError(e)))
     }, 250)
     return () => {
       cancelled = true
@@ -42,7 +45,7 @@ export function Friends() {
       await fn()
       load()
     } catch (e) {
-      setError(e instanceof Error ? e.message : String(e))
+      setError(friendlyError(e))
     } finally {
       setBusy(null)
     }
@@ -55,11 +58,11 @@ export function Friends() {
   return (
     <div className="page">
       <h1>Amigos</h1>
-      <p className="muted">Sumá amigos por su usuario y jueguen mano a mano. Cada dupla tiene su historial y su ranking; las partidas también cuentan para el ranking global.</p>
+      <p className="muted">Sumá amigos por su usuario y jueguen mano a mano. Cada mano a mano tiene su historial y su ranking; las partidas también cuentan para el ranking global.</p>
 
       <label className="search">
         <MagnifyingGlassIcon />
-        <input className="input" placeholder="Buscar por nombre o @usuario" value={q} onChange={(e) => setQ(e.target.value)} autoCapitalize="none" />
+        <input className="input" placeholder="Buscar por nombre o @usuario" aria-label="Buscar amigos por nombre o usuario" value={q} onChange={(e) => setQ(e.target.value)} autoCapitalize="none" />
       </label>
       {shown.length > 0 && (
         <div className="list">
@@ -80,6 +83,7 @@ export function Friends() {
                 <button
                   className="btn small primary"
                   disabled={busy === u.user_id}
+                  aria-label={`${u.friend_status === 'incoming' ? 'Aceptar' : 'Agregar'} a ${u.display_name}`}
                   onClick={() =>
                     run(u.user_id, async () => {
                       const status = await sendFriendRequest(u.user_id)
@@ -95,7 +99,7 @@ export function Friends() {
         </div>
       )}
       {q.trim().length >= 2 && !shown.length && <p className="muted small">No encontramos a nadie con “{q}”.</p>}
-      {error && <p className="error">{error}</p>}
+      <ErrorText>{error}</ErrorText>
 
       {incoming.length > 0 && (
         <section>
@@ -108,10 +112,10 @@ export function Friends() {
                   <b className="block">{f.display_name}</b>
                   <span className="muted small">@{f.username}</span>
                 </span>
-                <button className="btn small primary" disabled={busy === f.user_id} onClick={() => run(f.user_id, () => respondFriendRequest(f.user_id, true))}>
+                <button className="btn small primary" aria-label={`Aceptar a ${f.display_name}`} disabled={busy === f.user_id} onClick={() => run(f.user_id, () => respondFriendRequest(f.user_id, true))}>
                   <CheckIcon /> Aceptar
                 </button>
-                <button className="tool-btn" aria-label="Rechazar" disabled={busy === f.user_id} onClick={() => run(f.user_id, () => respondFriendRequest(f.user_id, false))}>
+                <button className="tool-btn" aria-label={`Rechazar a ${f.display_name}`} disabled={busy === f.user_id} onClick={() => run(f.user_id, () => respondFriendRequest(f.user_id, false))}>
                   <XIcon />
                 </button>
               </div>
@@ -135,6 +139,7 @@ export function Friends() {
               <button
                 className="btn small primary"
                 disabled={busy === f.user_id}
+                aria-label={`Mano a mano con ${f.display_name}`}
                 onClick={() =>
                   run(f.user_id, async () => {
                     await openDuo(f.user_id)
@@ -146,9 +151,17 @@ export function Friends() {
               </button>
               <button
                 className="tool-btn"
-                aria-label={`Dejar de ser amigo de ${f.display_name}`}
+                aria-label={`Sacar a ${f.display_name} de tus amigos`}
                 disabled={busy === f.user_id}
-                onClick={() => confirm(`¿Sacar a ${f.display_name} de tus amigos? El historial del mano a mano queda guardado.`) && run(f.user_id, () => removeFriend(f.user_id))}
+                onClick={async () => {
+                  const ok = await confirmAction({
+                    title: `¿Sacar a ${f.display_name} de tus amigos?`,
+                    detail: 'El historial del mano a mano queda guardado.',
+                    confirmLabel: 'Sacar de amigos',
+                    danger: true,
+                  })
+                  if (ok) void run(f.user_id, () => removeFriend(f.user_id))
+                }}
               >
                 <UserMinusIcon />
               </button>
@@ -168,7 +181,7 @@ export function Friends() {
                   <b className="block">{f.display_name}</b>
                   <span className="muted small">@{f.username} · esperando respuesta</span>
                 </span>
-                <button className="btn small" disabled={busy === f.user_id} onClick={() => run(f.user_id, () => removeFriend(f.user_id))}>
+                <button className="btn small" aria-label={`Cancelar la solicitud a ${f.display_name}`} disabled={busy === f.user_id} onClick={() => run(f.user_id, () => removeFriend(f.user_id))}>
                   Cancelar
                 </button>
               </div>
