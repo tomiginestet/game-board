@@ -129,7 +129,7 @@ export function glyphArt(glyph: Glyph, color: string, name: string): string {
   // Brillitos de fondo: un par de posiciones elegidas por el nombre, para que niveles distintos no se vean idénticos.
   const spots: [number, number][] = [[34, 34], [86, 34], [29, 50], [91, 52], [31, 74], [89, 76], [44, 26], [76, 26]]
   const bg = [0, 1, 2].map((i) => {
-    const [x, y] = spots[(h >> (i * 3)) % spots.length]
+    const [x, y] = spots[(h >>> (i * 3)) % spots.length]
     return i === 2 ? `<circle cx="${x}" cy="${y}" r="2" fill="${p.lt}"/>` : sparkle(x, y, 3.5 + i, i ? '#fff' : '#FFD43B')
   }).join('')
   const k = FIT[glyph] ?? 1, art = (DRAW[glyph] ?? DRAW.star)(p)

@@ -1,5 +1,6 @@
 import { HouseIcon, RankingIcon, SquaresFourIcon, TrophyIcon, UsersIcon } from '@phosphor-icons/react'
-import { HashRouter, NavLink, Outlet, Route, Routes } from 'react-router-dom'
+import { HashRouter, NavLink, Outlet, Route, Routes, useLocation } from 'react-router-dom'
+import { ErrorBoundary } from './components/ErrorBoundary'
 import { AddGame, EditGame } from './pages/AddGame'
 import { ClubPage } from './pages/ClubPage'
 import { CupDetail } from './pages/CupDetail'
@@ -29,10 +30,14 @@ const NAV = [
 ]
 
 function Layout() {
+  const location = useLocation()
   return (
     <div className="app">
       <main className="content">
-        <Outlet />
+        {/* Se reinicia al cambiar de pantalla. */}
+        <ErrorBoundary key={location.pathname}>
+          <Outlet />
+        </ErrorBoundary>
       </main>
       <nav className="bottom-nav">
         {NAV.map((n) => (

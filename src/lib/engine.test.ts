@@ -251,6 +251,15 @@ describe('catálogo', () => {
         }
   })
 
+  it('los dibujos genéricos andan con cualquier nombre y color', async () => {
+    const { medalSvg } = await import('./medalArt')
+    const { GLYPHS } = await import('./games/schema')
+    for (const glyph of GLYPHS)
+      for (const name of ['Gatillo nervioso', 'Nombre raro', '', 'ñandú 🦤'])
+        for (const color of ['#E03131', '#abc', 'rojo'])
+          expect(medalSvg(name, 2, { glyph, color })).toContain('<svg')
+  })
+
   it('cada medalla tiene su ilustración', async () => {
     const { ART_REGISTRY } = await import('./art')
     const { GLOBAL_FAMILIES } = await import('./medals')
