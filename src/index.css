@@ -636,6 +636,23 @@ svg {
   color: var(--accent);
 }
 
+.title-logo {
+  flex-shrink: 0;
+}
+
+/* Espera con el logo animado (carga de pantallas, IA, sincronización). */
+.brand-loader {
+  display: grid;
+  justify-items: center;
+  gap: 14px;
+  padding: 48px 16px;
+  text-align: center;
+}
+
+.brand-loader p {
+  margin: 0;
+}
+
 .place-medal {
   display: inline-block;
   vertical-align: middle;
