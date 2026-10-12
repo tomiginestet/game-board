@@ -11,7 +11,7 @@ export function AccountCard() {
       <h2>
         <UserCircleIcon className="inline-icon" /> Estás sin cuenta
       </h2>
-      <p className="muted small">Con una cuenta tenés tu usuario, podés estar en varios grupos, buscar grupos y amigos, jugar mano a mano y aparecer en el ranking global.</p>
+      <p className="muted small">Con una cuenta tenés tu usuario, podés estar en varios clubes, buscar clubes y amigos, jugar mano a mano y aparecer en el ranking global.</p>
       <button className="btn primary block" onClick={() => setGuest(false)}>
         Entrar o crear cuenta
       </button>

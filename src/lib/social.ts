@@ -12,7 +12,7 @@ import { activateClub, adoptLocalData, supabase, useSyncState, type Club } from 
 
 function client() {
   const sb = supabase()
-  if (!sb) throw new Error('Las cuentas no están configuradas')
+  if (!sb) throw new Error('Las cuentas no están disponibles en esta versión de la app')
   return sb
 }
 
@@ -196,7 +196,7 @@ export async function createGroup(input: { name: string; description?: string; e
   })
   const groups = await refreshGroups()
   const g = groups.find((x) => x.code === code)
-  if (!g) throw new Error('No se encontró el grupo recién creado')
+  if (!g) throw new Error('No encontramos el club recién creado. Recargá la app y debería aparecer.')
   if (input.importLocal) await adoptLocalData(groupToClub(g))
   else await switchToGroup(g)
   return g

@@ -1,4 +1,4 @@
-import { ArrowRightIcon, LinkIcon, MagnifyingGlassIcon, PlusCircleIcon, SignOutIcon, UserPlusIcon } from '@phosphor-icons/react'
+import { ArrowRightIcon, ArrowLeftIcon, LinkIcon, MagnifyingGlassIcon, PlusCircleIcon, SignOutIcon, SwordIcon, TrophyIcon, UserPlusIcon, UsersThreeIcon } from '@phosphor-icons/react'
 import { useEffect, useState, type ReactNode } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
 import { LoginForm } from '../../components/LoginForm'
@@ -8,6 +8,22 @@ import { linkClub, setGuest, signOut, useAuth, useGuest } from '../../lib/auth'
 import { isProfileComplete, refreshGroups, switchToGroup, useMyGroups, useProfile, watchNotifications } from '../../lib/social'
 import { findClub, normalizeCode, syncAvailable, useSyncState } from '../../lib/sync'
 import { GroupForm, GroupSearch } from './GroupForms'
+
+/** Progreso del alta: barra + texto (no un rótulo arriba del título). */
+function StepProgress({ step, total }: { step: number; total: number }) {
+  return (
+    <div className="step-progress">
+      <span className="step-bars" aria-hidden>
+        {Array.from({ length: total }, (_, i) => (
+          <span key={i} className={i < step ? 'done' : ''} />
+        ))}
+      </span>
+      <span className="muted small">
+        Paso {step} de {total}
+      </span>
+    </div>
+  )
+}
 
 const PENDING_INVITE_KEY = 'game-board-pending-invite'
 const ONBOARDED_KEY = 'game-board-onboarded-v1'
@@ -167,7 +183,7 @@ function Welcome({ inviteCode }: { inviteCode?: string }) {
           ))}
         </div>
         <h1>Game Board</h1>
-        <p className="entry-lead">Tu biblioteca de juegos con amigos: partidas, torneos, rankings y medallas de cualquier juego.</p>
+        <p className="entry-lead">Partidas, torneos y quién manda en cada juego. Rankings y medallas de cualquier juego con tu club.</p>
       </div>
       <div className="entry-body">
         {invitedTo && (
@@ -178,13 +194,22 @@ function Welcome({ inviteCode }: { inviteCode?: string }) {
         <h2>Entrá o creá tu cuenta</h2>
         <LoginForm />
         <ul className="entry-points">
-          <li>👥 Armá tu grupo o pedí unirte a otros</li>
-          <li>⚔️ Jugá mano a mano con tus amigos</li>
-          <li>🏆 Ranking de cada grupo y ranking global</li>
+          <li>
+            <UsersThreeIcon aria-hidden /> Armá tu club o pedí sumarte a otros
+          </li>
+          <li>
+            <SwordIcon aria-hidden /> Jugá mano a mano con tus amigos
+          </li>
+          <li>
+            <TrophyIcon aria-hidden /> Ranking de tu club y ranking global
+          </li>
         </ul>
-        <button className="link-btn small" onClick={() => setGuest(true)}>
-          Usar sin cuenta (sólo en este dispositivo)
-        </button>
+        <div className="guest-option">
+          <button className="link-btn" onClick={() => setGuest(true)}>
+            Usar sin cuenta
+          </button>
+          <p className="muted small">Sin cuenta, todo queda guardado solo en este teléfono.</p>
+        </div>
       </div>
     </div>
   )
@@ -198,9 +223,9 @@ function ProfileSetup() {
   return (
     <div className="entry">
       <div className="entry-body">
-        <p className="eyebrow">Paso 1 de 2</p>
+        <StepProgress step={1} total={2} />
         <h1>¿Cómo te llamamos?</h1>
-        <p className="muted">Así te ven tus amigos en los grupos y en el ranking.</p>
+        <p className="muted">Así te ven tus amigos en el club y en el ranking.</p>
         <ProfileForm initial={initial} email={auth.session?.user.email} submitLabel="Seguir" />
         <button className="link-btn small" onClick={() => void signOut()}>
           <SignOutIcon /> Usar otra cuenta
@@ -212,7 +237,7 @@ function ProfileSetup() {
 
 type Step = 'menu' | 'create' | 'search' | 'link'
 
-/** Primer ingreso sin grupos: crear uno, buscar, entrar con un link o ir a jugar con amigos. */
+/** Primer ingreso sin clubes: crear uno, buscar, entrar con un link o ir a jugar con amigos. */
 function Onboarding({ onSkip }: { onSkip: (to?: string) => void }) {
   const { profile } = useProfile()
   const navigate = useNavigate()
@@ -220,20 +245,20 @@ function Onboarding({ onSkip }: { onSkip: (to?: string) => void }) {
   const [code, setCode] = useState('')
 
   const options: { id: Step | 'friends'; Icon: typeof PlusCircleIcon; title: string; text: string }[] = [
-    { id: 'create', Icon: PlusCircleIcon, title: 'Crear un grupo', text: 'Para tu grupo de amigos, la familia o la oficina. Después invitás a los demás.' },
-    { id: 'search', Icon: MagnifyingGlassIcon, title: 'Buscar un grupo', text: 'Encontrá grupos públicos y pedí unirte: le llega un aviso a quien lo creó.' },
-    { id: 'link', Icon: LinkIcon, title: 'Tengo un link o código', text: 'Si alguien te pasó la invitación a su grupo.' },
+    { id: 'create', Icon: PlusCircleIcon, title: 'Crear un club', text: 'Para tus amigos, la familia o la oficina. Después invitás a los demás.' },
+    { id: 'search', Icon: MagnifyingGlassIcon, title: 'Buscar un club', text: 'Encontrá clubes públicos y pedí sumarte: le llega un aviso a quien lo creó.' },
+    { id: 'link', Icon: LinkIcon, title: 'Tengo un link o código', text: 'Si alguien te pasó la invitación a su club.' },
     { id: 'friends', Icon: UserPlusIcon, title: 'Jugar con amigos', text: 'Buscá a tus amigos por su usuario y jueguen mano a mano.' },
   ]
 
   return (
     <div className="entry">
       <div className="entry-body">
-        <p className="eyebrow">Paso 2 de 2</p>
+        <StepProgress step={2} total={2} />
         {step === 'menu' && (
           <>
             <h1>¡Hola, {profile?.display_name}! {profile?.emoji}</h1>
-            <p className="muted">Las partidas y los rankings son de cada grupo. Podés estar en todos los grupos que quieras.</p>
+            <p className="muted">Las partidas y los rankings son de cada club. Podés estar en todos los clubes que quieras.</p>
             <div className="onboarding-options">
               {options.map((o) => (
                 <button key={o.id} className="card onboarding-option" onClick={() => (o.id === 'friends' ? onSkip('/amigos') : setStep(o.id))}>
@@ -253,7 +278,7 @@ function Onboarding({ onSkip }: { onSkip: (to?: string) => void }) {
         )}
         {step === 'create' && (
           <>
-            <h1>Nuevo grupo</h1>
+            <h1>Nuevo club</h1>
             <GroupForm
               onDone={() => {
                 onSkip('/')
@@ -263,7 +288,7 @@ function Onboarding({ onSkip }: { onSkip: (to?: string) => void }) {
         )}
         {step === 'search' && (
           <>
-            <h1>Buscar grupos</h1>
+            <h1>Buscar clubes</h1>
             <GroupSearch />
           </>
         )}
@@ -277,16 +302,19 @@ function Onboarding({ onSkip }: { onSkip: (to?: string) => void }) {
                 if (code.trim()) navigate(`/unirse/${normalizeCode(code)}`)
               }}
             >
-              <input className="input" value={code} onChange={(e) => setCode(e.target.value)} placeholder="Código o link de invitación" aria-label="Código o link" />
-              <button className="btn primary block mt" disabled={!code.trim()}>
-                Buscar grupo
+              <label className="field">
+                <span className="field-label">Código o link de invitación</span>
+                <input className="input" value={code} onChange={(e) => setCode(e.target.value)} placeholder="Pegalo acá" autoComplete="off" />
+              </label>
+              <button className="btn primary block" disabled={!code.trim()}>
+                Buscar el club
               </button>
             </form>
           </>
         )}
         {step !== 'menu' && (
           <button className="link-btn small mt" onClick={() => setStep('menu')}>
-            ← Volver
+            <ArrowLeftIcon aria-hidden /> Volver
           </button>
         )}
       </div>

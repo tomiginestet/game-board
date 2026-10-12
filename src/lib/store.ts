@@ -285,6 +285,12 @@ const playActions = {
     commit({ ...data, plays: data.plays.filter((p) => p.id !== playId) })
   },
 
+  /** Vuelve a poner una partida borrada (para "Deshacer"). */
+  restorePlay(play: Play) {
+    if (data.plays.some((p) => p.id === play.id)) return
+    commit({ ...data, plays: [...data.plays, play] })
+  },
+
   saveGame(game: GameDef): CustomGame {
     const g: CustomGame = { ...game, id: game.id || uid(), createdAt: (game as CustomGame).createdAt ?? Date.now() }
     const exists = data.games.some((x) => x.id === g.id)
@@ -469,6 +475,12 @@ export const actions = {
 
   deleteMatch(matchId: Id) {
     commit({ ...data, matches: data.matches.filter((m) => m.id !== matchId) })
+  },
+
+  /** Vuelve a poner un partido borrado (para "Deshacer"). */
+  restoreMatch(match: Match) {
+    if (data.matches.some((m) => m.id === match.id)) return
+    commit({ ...data, matches: [...data.matches, match] })
   },
 
   createTournament(name: string, format: TournamentFormat, playerIds: Id[], config: MatchConfig, doubleRound: boolean): Tournament {

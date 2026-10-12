@@ -1,4 +1,4 @@
-import { ArrowRightIcon, InfoIcon, PlayIcon, SparkleIcon, UsersIcon } from '@phosphor-icons/react'
+import { ArrowRightIcon, FireIcon, InfoIcon, PlayIcon, SparkleIcon, UsersIcon } from '@phosphor-icons/react'
 import type { ReactNode } from 'react'
 import { Link } from 'react-router-dom'
 import { categoryName, playersLabel, WEIGHT_NAMES } from '../lib/games'
@@ -13,21 +13,32 @@ function SourcePill({ game }: { game: GameDef }) {
         <SparkleIcon /> IA
       </span>
     )
-  if (game.source === 'custom') return <span className="cc-pill mine">Del grupo</span>
+  if (game.source === 'custom') return <span className="cc-pill mine">Del club</span>
   return null
 }
 
 /** Caja chica para los estantes horizontales del inicio. */
 export function ShelfCard({ game, plays, note }: { game: GameDef; plays?: number; note?: string }) {
   return (
-    <Link to={`/juegos/${game.id}`} className="shelf-card" style={{ ['--gc' as string]: game.color }} aria-label={`${game.name}${plays ? `, ${plural(plays, 'partida', 'partidas')}` : ''}: ver ficha`}>
+    // El nombre está dibujado en la carátula: lo repetimos oculto para que el link se lea igual que se ve.
+    <Link to={`/juegos/${game.id}`} className="shelf-card" style={{ ['--gc' as string]: game.color }}>
       <span className="cc-cover">
         <GameCover game={game} decorative />
         <SourcePill game={game} />
       </span>
+      <span className="sr-only">{game.name}, </span>
       <span className="shelf-meta">
         <UsersIcon aria-hidden /> {playersLabel(game)}
-        {plays ? <b className="shelf-count" title={plural(plays, 'partida', 'partidas')}>· 🔥 {plays}</b> : note ? <span>· {note}</span> : null}
+        {plays ? (
+          <b className="shelf-count">
+            <span aria-hidden>·</span> <FireIcon weight="fill" aria-hidden /> <span className="num">{plays}</span>
+            <span className="sr-only"> {plays === 1 ? 'partida' : 'partidas'}</span>
+          </b>
+        ) : note ? (
+          <span>
+            <span aria-hidden>·</span> {note}
+          </span>
+        ) : null}
       </span>
     </Link>
   )
@@ -60,10 +71,14 @@ export function HeroCard({ game, playTo, plays, index, total }: { game: GameDef;
     <article className="hero-card" style={{ ['--gc' as string]: game.color }} aria-roledescription="diapositiva" aria-label={`${index + 1} de ${total}: ${game.name}`}>
       <GameCover game={game} aspect="landscape" showTitle={false} decorative />
       <div className="hero-info">
-        <span className="hero-kicker">{plays ? `🔥 ${plural(plays, 'partida', 'partidas')} en el grupo` : 'Destacado'}</span>
         <h3 className="hero-name">{game.name}</h3>
         {game.tagline && <p className="hero-tagline">{game.tagline}</p>}
         <div className="hero-chips">
+          {plays ? (
+            <span className="cc-chip hot">
+              <FireIcon weight="fill" aria-hidden /> {plural(plays, 'partida', 'partidas')} en el club
+            </span>
+          ) : null}
           <span className="cc-chip">
             <UsersIcon aria-hidden /> {playersLabel(game, true)}
           </span>
@@ -75,7 +90,7 @@ export function HeroCard({ game, playTo, plays, index, total }: { game: GameDef;
             <PlayIcon weight="fill" /> Jugar
           </Link>
           <Link to={`/juegos/${game.id}`} className="btn hero-ghost">
-            <InfoIcon /> Ver ficha
+            <InfoIcon /> Ver detalles
           </Link>
         </div>
       </div>

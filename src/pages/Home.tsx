@@ -1,7 +1,8 @@
-import { ArrowRightIcon, CaretLeftIcon, CaretRightIcon, GearSixIcon, TrashIcon, TrophyIcon, UsersIcon } from '@phosphor-icons/react'
+import { ArrowRightIcon, CaretLeftIcon, CaretRightIcon, CheckCircleIcon, GearSixIcon, PlusIcon, SparkleIcon, TrashIcon, TrophyIcon, UsersIcon } from '@phosphor-icons/react'
 import { useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { Avatar } from '../components/Avatar'
+import { toast } from '../lib/feedback'
 import { HeroCard, ShelfCard, Shelf } from '../components/GameCard'
 import { GameCover } from '../components/GameCover'
 import { GameBadge, PlayRow } from '../components/GameBits'
@@ -9,14 +10,14 @@ import { PlaceMedal } from '../components/icons'
 import { Logo } from '../components/Logo'
 import { MatchRow } from '../components/MatchRow'
 import { NextMedals } from '../components/NextMedals'
-import { SyncBadge } from '../components/SyncBadge'
 import { cupChampion } from '../lib/cups'
 import { FEATURED, findGame, HERO, pickGames } from '../lib/games'
 import type { Category, GameDef } from '../lib/games/schema'
 import { gameOrMissing, useBoard, useGames, usePlayerMap } from '../lib/hooks'
 import { tournamentChampion } from '../lib/pingpong/stats'
 import { actions, useData } from '../lib/store'
-import { syncAvailable } from '../lib/sync'
+import { syncAvailable, useSyncState } from '../lib/sync'
+import type { Play, PPMatch as Match } from '../lib/types'
 import { playPath } from './GameDetail'
 
 /** Estantes por categoría del inicio. */
@@ -26,11 +27,34 @@ const HOME_SHELVES: { cat: Category; title: string; subtitle: string }[] = [
   { cat: 'mesa', title: 'Juegos de mesa', subtitle: 'Para sacar la caja y quedarse un rato' },
 ]
 
+/** Se recuerda en el dispositivo si ya se cerró la guía de primeros pasos. */
+const FIRST_STEPS_KEY = 'game-board-first-steps-closed'
+function readFlag(key: string) {
+  try {
+    return localStorage.getItem(key) === '1'
+  } catch {
+    return false
+  }
+}
+
+/** Descarta una partida en juego al toque y ofrece deshacerlo (no se pregunta antes). */
+function discardPlay(play: Play, gameName: string) {
+  actions.deletePlay(play.id)
+  toast(`Descartaste la partida de ${gameName}.`, { label: 'Deshacer', run: () => actions.restorePlay(play) })
+}
+
+function discardMatch(match: Match) {
+  actions.deleteMatch(match.id)
+  toast('Descartaste el partido de ping pong.', { label: 'Deshacer', run: () => actions.restoreMatch(match) })
+}
+
 export function Home() {
   const data = useData()
   const board = useBoard()
   const players = usePlayerMap()
   const games = useGames()
+  const sync = useSyncState()
+  const [stepsClosed, setStepsClosed] = useState(() => readFlag(FIRST_STEPS_KEY))
 
   const live = [
     ...data.plays.filter((p) => p.status === 'live' && !p.cupId).map((p) => ({ kind: 'play' as const, at: p.startedAt ?? p.createdAt, p })),
@@ -42,9 +66,9 @@ export function Home() {
     ...data.matches.filter((m) => m.status === 'finished').map((m) => ({ kind: 'match' as const, at: m.finishedAt ?? m.createdAt, m })),
   ]
     .sort((x, y) => y.at - x.at)
-    .slice(0, 6)
+    .slice(0, 5)
 
-  // Cuántas veces y cuándo fue la última vez que el grupo jugó cada juego.
+  // Cuántas veces y cuándo fue la última vez que el club jugó cada juego.
   const playedCount = new Map<string, number>()
   const lastPlayed = new Map<string, number>()
   for (const v of board.views) {
@@ -52,9 +76,9 @@ export function Home() {
     lastPlayed.set(v.gameId, Math.max(lastPlayed.get(v.gameId) ?? 0, v.at))
   }
   const byId = (ids: string[]) => pickGames(data, ids)
-  const continueGames = byId([...lastPlayed.entries()].sort((a, b) => b[1] - a[1]).map(([id]) => id)).slice(0, 10)
+  const againGames = byId([...lastPlayed.entries()].sort((a, b) => b[1] - a[1]).map(([id]) => id)).slice(0, 3)
   const topGames = byId([...playedCount.entries()].sort((a, b) => b[1] - a[1]).map(([id]) => id)).slice(0, 10)
-  // El carrusel: primero los más jugados por el grupo (si hay), después los elegidos.
+  // El carrusel: primero los más jugados por el club (si hay), después los elegidos.
   const hero = byId([...topGames.slice(0, 2).map((g) => g.id), ...HERO]).slice(0, 6)
   const featured = byId(FEATURED)
   const shelfOf = (cat: Category) => games.filter((g) => g.category === cat).sort((a, b) => (playedCount.get(b.id) ?? 0) - (playedCount.get(a.id) ?? 0))
@@ -72,41 +96,121 @@ export function Home() {
     ...data.tournaments.filter((t) => !tournamentChampion(t.id, data)).map((t) => ({ id: t.id, name: t.name, gameId: 'pingpong', to: `/ping-pong/torneos/${t.id}` })),
   ]
 
+  const hasPlayers = data.players.length >= 2
+  const hasPlayed = data.plays.some((p) => p.status === 'finished') || data.matches.some((m) => m.status === 'finished')
+  const showFirstSteps = !stepsClosed && !(hasPlayers && hasPlayed)
+  const closeFirstSteps = () => {
+    setStepsClosed(true)
+    try {
+      localStorage.setItem(FIRST_STEPS_KEY, '1')
+    } catch {
+      // Modo privado: se vuelve a mostrar la próxima vez, no pasa nada.
+    }
+  }
+
   return (
     <div className="page">
-      {/* Con sincronización, el nombre del grupo y los accesos van en la barra de arriba. */}
-      {!syncAvailable && (
-        <header className="home-header">
-          <div className="grow">
-            <h1 className="title-with-icon">
-              <Logo className="title-logo" size={30} /> Game Board
-            </h1>
-            <p className="muted">Partidas, torneos y quién manda en cada juego.</p>
-          </div>
-          <div className="header-tools">
-            <SyncBadge />
-            <Link to="/ajustes" className="tool-btn" aria-label="Ajustes" title="Ajustes y copia de seguridad">
-              <GearSixIcon size={22} />
+      <header className="home-header">
+        <div className="grow">
+          {syncAvailable ? (
+            <>
+              <h1 className="brand-title">¿A qué jugamos hoy?</h1>
+              {sync.club && (
+                <p className="muted">
+                  En <b className="strong">{sync.club.name}</b>
+                </p>
+              )}
+            </>
+          ) : (
+            <>
+              <h1 className="brand-title title-with-icon">
+                <Logo className="title-logo" size={30} /> Game Board
+              </h1>
+              <p className="muted">Partidas, torneos y quién manda en cada juego.</p>
+            </>
+          )}
+        </div>
+        {!syncAvailable && (
+          <Link to="/ajustes" className="tool-btn" aria-label="Ajustes y copia de seguridad">
+            <GearSixIcon size={22} />
+          </Link>
+        )}
+      </header>
+
+      {showFirstSteps ? (
+        <section className="card first-steps" aria-labelledby="first-steps-title">
+          <h2 id="first-steps-title">¡Arranquemos!</h2>
+          <p className="muted">Dos pasos y la primera partida ya está en la tabla.</p>
+          <ol className="steps">
+            <li className={hasPlayers ? 'done' : ''}>
+              {hasPlayers ? <CheckCircleIcon weight="fill" aria-hidden /> : <span className="step-num" aria-hidden>1</span>}
+              <span>
+                Creá a los jugadores del club <span className="sr-only">{hasPlayers ? '(listo)' : '(pendiente)'}</span>
+              </span>
+            </li>
+            <li className={hasPlayed ? 'done' : ''}>
+              {hasPlayed ? <CheckCircleIcon weight="fill" aria-hidden /> : <span className="step-num" aria-hidden>2</span>}
+              <span>
+                Elegí un juego y anotá la primera partida <span className="sr-only">{hasPlayed ? '(listo)' : '(pendiente)'}</span>
+              </span>
+            </li>
+          </ol>
+          {hasPlayers ? (
+            <Link to="/juegos" className="btn primary block">
+              <PlusIcon /> Anotar la primera partida
             </Link>
-          </div>
-        </header>
+          ) : (
+            <Link to="/jugadores" className="btn primary block">
+              <UsersIcon /> Crear jugadores
+            </Link>
+          )}
+          <button className="link-btn small" onClick={closeFirstSteps}>
+            Ya sé cómo es
+          </button>
+        </section>
+      ) : (
+        <section className="quick-start" aria-label="Anotar una partida">
+          <Link to="/juegos" className="btn primary big block">
+            <PlusIcon /> Anotar una partida
+          </Link>
+          {againGames.length > 0 && (
+            <div className="again">
+              <span className="muted small" id="again-label">
+                Jugar de nuevo
+              </span>
+              <ul className="again-list" aria-labelledby="again-label">
+                {againGames.map((g) => (
+                  <li key={g.id}>
+                    <Link to={playPath(g)} className="again-chip">
+                      <GameBadge game={g} size={26} />
+                      <span className="ellipsis">{g.name}</span>
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
+        </section>
       )}
 
       {live.length > 0 && (
-        <section>
-          <h2>En juego</h2>
+        <section aria-labelledby="live-title">
+          <h2 id="live-title">En juego</h2>
           <div className="list">
             {live.map((x) =>
               x.kind === 'play' ? (
                 <div key={x.p.id} className="live-item">
                   <PlayRow play={x.p} game={gameOrMissing(data, x.p.gameId)} players={players} />
-                  <button className="link-btn danger-text small" onClick={() => confirm('¿Descartar esta partida sin terminar?') && actions.deletePlay(x.p.id)}>
-                    <TrashIcon /> Descartar
+                  <button className="btn small ghost-danger" onClick={() => discardPlay(x.p, gameOrMissing(data, x.p.gameId).name)}>
+                    <TrashIcon aria-hidden /> Descartar partida
                   </button>
                 </div>
               ) : (
                 <div key={x.m.id} className="live-item">
                   <MatchRow match={x.m} players={players} />
+                  <button className="btn small ghost-danger" onClick={() => discardMatch(x.m)}>
+                    <TrashIcon aria-hidden /> Descartar partido
+                  </button>
                 </div>
               ),
             )}
@@ -114,18 +218,88 @@ export function Home() {
         </section>
       )}
 
-      <HeroCarousel games={hero} plays={playedCount} />
-
-      {continueGames.length > 0 && (
-        <Shelf title="Seguir jugando" subtitle="Lo último que se jugó en el grupo" to="/juegos?cat=mine">
-          {continueGames.map((g) => (
-            <ShelfCard key={g.id} game={g} plays={playedCount.get(g.id)} />
-          ))}
-        </Shelf>
+      {ranked.length > 0 && (
+        <section aria-labelledby="podium-title">
+          <div className="section-head">
+            <h2 id="podium-title">Podio de gloria</h2>
+            <SeeAll to="/ranking" label="Ver todo el ranking" />
+          </div>
+          <div className="podium">
+            {[ranked[1], ranked[0], ranked[2]].map((s, i) => {
+              const p = s && players.get(s.playerId)
+              return p ? (
+                <Link key={p.id} to={`/jugadores/${p.id}`} className={'podium-spot place-' + [2, 1, 3][i]}>
+                  <span className="podium-medal">
+                    <PlaceMedal place={([2, 1, 3] as const)[i]} />
+                  </span>
+                  <Avatar player={p} size={i === 1 ? 64 : 48} />
+                  <span className="podium-name">{p.name}</span>
+                  <span className="podium-elo">
+                    <SparkleIcon weight="fill" aria-hidden /> <span className="num">{s.gloria}</span> de gloria
+                  </span>
+                  <div className="podium-block" />
+                </Link>
+              ) : (
+                <div key={i} className="podium-spot empty-spot" />
+              )
+            })}
+          </div>
+        </section>
       )}
 
+      {activeCups.length > 0 && (
+        <section aria-labelledby="cups-title">
+          <div className="section-head">
+            <h2 id="cups-title">Torneos en curso</h2>
+            <SeeAll to="/torneos" label="Ver todos los torneos" />
+          </div>
+          <div className="list">
+            {activeCups.map((c) => (
+              <Link key={c.id} to={c.to} className="card cup-row">
+                <GameBadge game={gameOrMissing(data, c.gameId)} size={36} />
+                <span className="grow">
+                  <b>{c.name}</b>
+                  <span className="muted small block">{gameOrMissing(data, c.gameId).name}</span>
+                </span>
+                <TrophyIcon className="muted" aria-hidden />
+              </Link>
+            ))}
+          </div>
+        </section>
+      )}
+
+      <NextMedals />
+
+      {recent.length > 0 ? (
+        <section aria-labelledby="recent-title">
+          <div className="section-head">
+            <h2 id="recent-title">Últimas partidas</h2>
+            <SeeAll to="/historial" label="Ver todo el historial" />
+          </div>
+          <div className="list">
+            {recent.map((x) =>
+              x.kind === 'play' ? (
+                <PlayRow key={x.p.id} play={x.p} game={gameOrMissing(data, x.p.gameId)} players={players} />
+              ) : (
+                <MatchRow key={x.m.id} match={x.m} players={players} />
+              ),
+            )}
+          </div>
+        </section>
+      ) : (
+        !showFirstSteps &&
+        hasPlayers && (
+          <section className="card empty-state" aria-labelledby="recent-title">
+            <h2 id="recent-title">Últimas partidas</h2>
+            <p className="muted">Todavía no anotaron partidas. La primera siempre es la más discutida.</p>
+          </section>
+        )
+      )}
+
+      <HeroCarousel games={hero} plays={playedCount} />
+
       {topGames.length > 2 && (
-        <Shelf title="Lo más jugado del grupo" to="/juegos?orden=jugados">
+        <Shelf title="Lo más jugado del club" to="/juegos?orden=jugados">
           {topGames.map((g, i) => (
             <ShelfCard key={g.id} game={g} note={`#${i + 1}`} />
           ))}
@@ -139,7 +313,7 @@ export function Home() {
       </Shelf>
 
       {custom.length > 0 && (
-        <Shelf title="Hechos por el grupo" to="/juegos?cat=mine">
+        <Shelf title="Hechos por el club" to="/juegos?cat=mine">
           {custom.map((g) => (
             <ShelfCard key={g.id} game={g} plays={playedCount.get(g.id)} />
           ))}
@@ -158,91 +332,16 @@ export function Home() {
       })}
 
       <CatalogCta games={games} />
-
-      {data.players.length < 2 && (
-        <div className="card onboarding">
-          <h3>¡Arranquemos!</h3>
-          <p>Primero creá a los jugadores del grupo. Después elegí un juego y anotá la primera partida.</p>
-          <Link to="/jugadores" className="btn primary">
-            <UsersIcon /> Crear jugadores
-          </Link>
-        </div>
-      )}
-
-      {activeCups.length > 0 && (
-        <section>
-          <div className="section-head">
-            <h2>Torneos en curso</h2>
-            <Link to="/torneos">
-              Ver todos <ArrowRightIcon className="inline-icon" size="1em" />
-            </Link>
-          </div>
-          <div className="list">
-            {activeCups.map((c) => (
-              <Link key={c.id} to={c.to} className="card cup-row">
-                <GameBadge game={gameOrMissing(data, c.gameId)} size={36} />
-                <span className="grow">
-                  <b>{c.name}</b>
-                  <span className="muted small block">{gameOrMissing(data, c.gameId).name}</span>
-                </span>
-                <TrophyIcon className="muted" />
-              </Link>
-            ))}
-          </div>
-        </section>
-      )}
-
-      <NextMedals />
-
-      {ranked.length > 0 && (
-        <section>
-          <div className="section-head">
-            <h2>Podio de gloria</h2>
-            <Link to="/ranking">
-              Ver ranking <ArrowRightIcon className="inline-icon" size="1em" />
-            </Link>
-          </div>
-          <div className="podium">
-            {[ranked[1], ranked[0], ranked[2]].map((s, i) => {
-              const p = s && players.get(s.playerId)
-              return p ? (
-                <Link key={p.id} to={`/jugadores/${p.id}`} className={'podium-spot place-' + [2, 1, 3][i]}>
-                  <span className="podium-medal">
-                    <PlaceMedal place={([2, 1, 3] as const)[i]} />
-                  </span>
-                  <Avatar player={p} size={i === 1 ? 64 : 48} />
-                  <span className="podium-name">{p.name}</span>
-                  <span className="podium-elo">✨ {s.gloria}</span>
-                  <div className="podium-block" />
-                </Link>
-              ) : (
-                <div key={i} className="podium-spot empty-spot" />
-              )
-            })}
-          </div>
-        </section>
-      )}
-
-      {recent.length > 0 && (
-        <section>
-          <div className="section-head">
-            <h2>Últimas partidas</h2>
-            <Link to="/historial">
-              Ver todo <ArrowRightIcon className="inline-icon" size="1em" />
-            </Link>
-          </div>
-          <div className="list">
-            {recent.map((x) =>
-              x.kind === 'play' ? (
-                <PlayRow key={x.p.id} play={x.p} game={gameOrMissing(data, x.p.gameId)} players={players} />
-              ) : (
-                <MatchRow key={x.m.id} match={x.m} players={players} />
-              ),
-            )}
-          </div>
-        </section>
-      )}
     </div>
+  )
+}
+
+/** "Ver todo" de cada sección: mismo texto visible siempre, con destino claro para lectores de pantalla. */
+function SeeAll({ to, label }: { to: string; label: string }) {
+  return (
+    <Link to={to} className="see-all" aria-label={label}>
+      Ver todo <ArrowRightIcon className="inline-icon" size="1em" aria-hidden />
+    </Link>
   )
 }
 
@@ -276,25 +375,36 @@ function HeroCarousel({ games, plays }: { games: GameDef[]; plays: Map<string, n
     if (best !== active) setActive(best)
   }
 
+  // Con el foco en la fila, las flechas del teclado pasan de juego en juego.
+  const onKeyDown = (e: React.KeyboardEvent) => {
+    if (e.target !== e.currentTarget) return
+    if (e.key === 'ArrowRight') go(Math.min(games.length - 1, active + 1))
+    else if (e.key === 'ArrowLeft') go(Math.max(0, active - 1))
+    else return
+    e.preventDefault()
+  }
+
   return (
-    <section className="hero-carousel" aria-roledescription="carrusel" aria-label="Juegos destacados">
-      <div className="hero-track" ref={ref} onScroll={onScroll}>
+    <section className="hero-carousel" aria-roledescription="carrusel" aria-labelledby="hero-title">
+      <h2 id="hero-title">Para jugar hoy</h2>
+      <div className="hero-track" ref={ref} onScroll={onScroll} onKeyDown={onKeyDown} tabIndex={0} aria-label="Juegos para jugar hoy. Usá las flechas para pasar.">
         {games.map((g, i) => (
           <HeroCard key={g.id} game={g} playTo={playPath(g)} plays={plays.get(g.id)} index={i} total={games.length} />
         ))}
       </div>
       {games.length > 1 && (
         <div className="hero-nav">
-          <button className="hero-arrow" onClick={() => go(Math.max(0, active - 1))} disabled={active === 0} aria-label="Anterior">
-            <CaretLeftIcon />
+          <button className="hero-arrow" onClick={() => go(Math.max(0, active - 1))} disabled={active === 0} aria-label="Juego anterior">
+            <CaretLeftIcon aria-hidden />
           </button>
           <div className="hero-dots">
             {games.map((g, i) => (
-              <button key={g.id} className={'hero-dot' + (i === active ? ' active' : '')} onClick={() => go(i)} aria-label={`Ver ${g.name}`} aria-current={i === active} />
+              // Fuera del orden de tabulación: con teclado se pasa con las flechas.
+              <button key={g.id} className={'hero-dot' + (i === active ? ' active' : '')} onClick={() => go(i)} aria-label={`Ver ${g.name}`} aria-current={i === active} tabIndex={-1} />
             ))}
           </div>
-          <button className="hero-arrow" onClick={() => go(Math.min(games.length - 1, active + 1))} disabled={active === games.length - 1} aria-label="Siguiente">
-            <CaretRightIcon />
+          <button className="hero-arrow" onClick={() => go(Math.min(games.length - 1, active + 1))} disabled={active === games.length - 1} aria-label="Juego siguiente">
+            <CaretRightIcon aria-hidden />
           </button>
         </div>
       )}
@@ -313,9 +423,8 @@ function CatalogCta({ games }: { games: GameDef[] }) {
         ))}
       </span>
       <span className="cta-text">
-        <span className="cta-kicker">Catálogo</span>
-        <b>Explorar catálogo completo</b>
-        <span className="cta-count">{games.length} juegos · cartas, mesa, fiesta, videojuegos y más</span>
+        <b>Ver el catálogo completo</b>
+        <span className="cta-count">{games.length} juegos: cartas, mesa, fiesta, videojuegos y más</span>
       </span>
       <span className="cta-arrow" aria-hidden>
         <ArrowRightIcon />

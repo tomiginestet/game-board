@@ -18,7 +18,7 @@ const tierOf = (i: number) => TIERS[Math.min(i, TIERS.length - 1)]
 /**
  * Ficha de una medalla en grande: se abre con una animación y muestra la descripción,
  * qué hay que hacer para ganarla y cuánto falta. Con flechas se recorren los niveles.
- * `mine` es el progreso de un jugador (perfil, fin de partida); `others`, el de todo el grupo (ficha del juego).
+ * `mine` es el progreso de un jugador (perfil, fin de partida); `others`, el de todo el club (ficha del juego).
  */
 export function MedalSheet({
   family,
@@ -40,7 +40,8 @@ export function MedalSheet({
   const last = family.levels.length - 1
   const [level, setLevel] = useState(Math.min(Math.max(initial, 0), last))
   const closeRef = useRef<HTMLButtonElement>(null)
-  const dialogRef = useRef<HTMLDivElement>(null)
+  const dialogRef = useRef<HTMLDialogElement>(null)
+  const bodyRef = useRef<HTMLDivElement>(null)
   const go = (i: number) => {
     setLevel(Math.min(Math.max(i, 0), last))
     setSharing(null)
@@ -68,10 +69,13 @@ export function MedalSheet({
     const prevFocus = document.activeElement as HTMLElement | null
     const prevOverflow = document.body.style.overflow
     document.body.style.overflow = 'hidden'
+    const dialog = dialogRef.current
+    if (dialog && !dialog.open) dialog.showModal()
     // En el festejo se abre sola: el foco va al diálogo para no marcar un botón ni desplazar la ficha.
-    ;(celebrate ? dialogRef.current : closeRef.current)?.focus({ preventScroll: true })
+    ;(celebrate ? bodyRef.current : closeRef.current)?.focus({ preventScroll: true })
     return () => {
       document.body.style.overflow = prevOverflow
+      if (dialog?.open) dialog.close()
       prevFocus?.focus?.()
     }
   }, [])
@@ -99,18 +103,20 @@ export function MedalSheet({
   const closest = others?.filter((o) => o.level < level && o.value > 0).sort((a, b) => b.value - a.value)[0]
 
   return (
-    <div className="sheet-backdrop" onClick={onClose}>
-      <div
-        ref={dialogRef}
-        tabIndex={-1}
-        className="sheet medal-sheet"
-        role="dialog"
-        aria-modal="true"
-        aria-label={`Medalla ${l.name}`}
-        style={{ ['--tier' as string]: tier.main === 'grad' ? '#B197FC' : tier.main, ['--tier-dark' as string]: tier.dark }}
-        onClick={(e) => e.stopPropagation()}
-        onKeyDown={onKey}
-      >
+    // <dialog> modal (como la hoja de clubes): atrapa el foco y el fondo queda inerte.
+    <dialog
+      ref={dialogRef}
+      className="sheet medal-sheet"
+      aria-label={`Medalla ${l.name}`}
+      style={{ ['--tier' as string]: tier.main === 'grad' ? '#B197FC' : tier.main, ['--tier-dark' as string]: tier.dark }}
+      onCancel={(e) => {
+        e.preventDefault()
+        onClose()
+      }}
+      onClick={(e) => e.target === e.currentTarget && onClose()}
+      onKeyDown={onKey}
+    >
+      <div ref={bodyRef} tabIndex={-1} className="sheet-body medal-sheet-body">
         <div className="row-between">
           {celebrate ? (
             <span className="ms-kicker">
@@ -160,7 +166,7 @@ export function MedalSheet({
           <p className="ms-desc">{l.description}</p>
         </div>
 
-        <dl className="ms-facts">
+        <div className="ms-facts">
           <Fact icon={<TargetIcon />} label="Cómo se gana" main={`Llegá a ${family.unit(l.at)}`} sub={family.measures} />
 
           {mine && <Progress who={mine.name} value={mine.value} target={l.at} got={mine.level >= level} unit={family.unit} />}
@@ -168,7 +174,7 @@ export function MedalSheet({
           {others && (
             <Fact
               icon={<CrownIcon />}
-              label="En el grupo"
+              label="En el club"
               main={holders?.length ? names(holders.map((h) => h.name)) : 'Nadie la tiene todavía'}
               sub={
                 <>
@@ -182,7 +188,7 @@ export function MedalSheet({
               }
             />
           )}
-        </dl>
+        </div>
 
         {mine && !locked && !celebrate && (
           <div className="ms-share">
@@ -225,7 +231,7 @@ export function MedalSheet({
           })}
         </ol>
       </div>
-    </div>
+    </dialog>
   )
 }
 
@@ -266,12 +272,13 @@ function Fact({ icon, label, main, sub, tone, children }: { icon: ReactNode; lab
         {icon}
       </span>
       <div className="ms-fact-body">
-        <dt>{label}</dt>
-        <dd>
+        {/* Sin <dl>: el ícono al costado no puede vivir dentro de una lista de definiciones válida. */}
+        <p className="ms-fact-label">{label}</p>
+        <div className="ms-fact-value">
           <span className="ms-fact-main">{main}</span>
           {children}
           {sub && <span className="ms-fact-sub">{sub}</span>}
-        </dd>
+        </div>
       </div>
     </div>
   )

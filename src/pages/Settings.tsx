@@ -3,6 +3,8 @@ import { useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { actions, getData } from '../lib/store'
 import { useSyncState } from '../lib/sync'
+import { confirmAction } from '../lib/feedback'
+import { friendlyError } from '../lib/text'
 
 export function Settings() {
   const fileRef = useRef<HTMLInputElement>(null)
@@ -22,11 +24,17 @@ export function Settings() {
   const importFile = async (file: File) => {
     try {
       const parsed = JSON.parse(await file.text())
-      if (!confirm('Esto reemplaza todos los datos actuales por los del archivo. ¿Seguir?')) return
+      const ok = await confirmAction({
+        title: '¿Reemplazar los datos por los del archivo?',
+        detail: 'Los jugadores, partidas y torneos que hay ahora en este teléfono se cambian por los de la copia.',
+        confirmLabel: 'Reemplazar datos',
+        danger: true,
+      })
+      if (!ok) return
       actions.importData(parsed)
-      setMessage({ kind: 'ok', text: 'Datos importados.' })
+      setMessage({ kind: 'ok', text: 'Listo: los datos de la copia ya están cargados.' })
     } catch (e) {
-      setMessage({ kind: 'error', text: 'No se pudo importar: ' + (e instanceof Error ? e.message : 'archivo inválido') })
+      setMessage({ kind: 'error', text: friendlyError(e) })
     }
   }
 
@@ -40,14 +48,16 @@ export function Settings() {
       <section className="card">
         <h3>Copia de seguridad</h3>
         <p className="muted">
-          Los datos se guardan sólo en este navegador. Exportalos para no perderlos o para pasarlos a otro dispositivo. También podés importar una copia del Ping Pong Club.
+          {inClub
+            ? 'Los datos del club quedan guardados en el club. Igual podés bajar una copia para tenerla a mano.'
+            : 'Sin club, los datos se guardan solo en este teléfono. Bajá una copia para no perderlos o para pasarlos a otro. También podés cargar una copia del Ping Pong Club.'}
         </p>
         <div className="row gap wrap">
           <button className="btn primary" onClick={exportData}>
-            <DownloadSimpleIcon /> Exportar
+            <DownloadSimpleIcon /> Bajar copia
           </button>
           <button className="btn" disabled={inClub} onClick={() => fileRef.current?.click()}>
-            <UploadSimpleIcon /> Importar
+            <UploadSimpleIcon /> Cargar copia
           </button>
           <input
             ref={fileRef}
@@ -61,9 +71,9 @@ export function Settings() {
             }}
           />
         </div>
-        {inClub && <p className="muted small">Mientras estés en un grupo no se puede importar: reemplazaría los datos de todos. Usalo sin grupo (o sin cuenta).</p>}
+        {inClub && <p className="muted small">Mientras estés en un club no se puede cargar una copia: reemplazaría los datos de todos.</p>}
         {message && (
-          <p className={'status-message ' + message.kind}>
+          <p className={'status-message ' + message.kind} role={message.kind === 'error' ? 'alert' : 'status'}>
             {message.kind === 'ok' && <CheckCircleIcon weight="fill" />}
             {message.kind === 'error' && <XCircleIcon weight="fill" />}
             {message.text}
@@ -73,14 +83,20 @@ export function Settings() {
 
       <section className="card">
         <h3>Zona peligrosa</h3>
-        {inClub && <p className="muted small">Mientras estés en un club no se puede borrar todo: afectaría a todos sus miembros.</p>}
+        {inClub && <p className="muted small">Mientras estés en un club no se puede borrar todo: afectaría a todos sus integrantes.</p>}
         <button
           className="btn danger"
           disabled={inClub}
-          onClick={() => {
-            if (confirm('¿Borrar TODOS los jugadores, partidas, torneos y juegos agregados? No se puede deshacer.')) {
+          onClick={async () => {
+            const ok = await confirmAction({
+              title: '¿Borrar todos los datos?',
+              detail: 'Se borran todos los jugadores, partidas, torneos y juegos agregados de este teléfono. No se puede deshacer.',
+              confirmLabel: 'Borrar todo',
+              danger: true,
+            })
+            if (ok) {
               actions.resetAll()
-              setMessage({ kind: 'info', text: 'Datos borrados.' })
+              setMessage({ kind: 'info', text: 'Listo: borramos todos los datos.' })
             }
           }}
         >
