@@ -1,6 +1,7 @@
-import { CaretLeftIcon, CaretRightIcon, ChartBarIcon, CheckCircleIcon, CrownIcon, LockSimpleIcon, TargetIcon, XIcon } from '@phosphor-icons/react'
+import { CaretLeftIcon, CaretRightIcon, ChartBarIcon, CheckCircleIcon, CrownIcon, LockSimpleIcon, ShareNetworkIcon, TargetIcon, XIcon } from '@phosphor-icons/react'
 import { useEffect, useRef, useState, type ReactNode } from 'react'
 import { TIERS } from '../lib/medalArt'
+import { shareMedal } from '../lib/shareMedal'
 import type { MedalFamily } from '../lib/medals'
 import { Medal } from './Medal'
 
@@ -36,7 +37,10 @@ export function MedalSheet({
   const last = family.levels.length - 1
   const [level, setLevel] = useState(Math.min(Math.max(initial, 0), last))
   const closeRef = useRef<HTMLButtonElement>(null)
-  const go = (i: number) => setLevel(Math.min(Math.max(i, 0), last))
+  const go = (i: number) => {
+    setLevel(Math.min(Math.max(i, 0), last))
+    setSharing(null)
+  }
   // Deslizar la medalla con el dedo para pasar de nivel.
   const [drag, setDrag] = useState<{ x0: number; dx: number } | null>(null)
   const swipe = {
@@ -75,6 +79,16 @@ export function MedalSheet({
 
   const l = family.levels[level]
   const tier = tierOf(level)
+  const [sharing, setSharing] = useState<'busy' | 'downloaded' | 'error' | null>(null)
+  const share = async () => {
+    setSharing('busy')
+    try {
+      const r = await shareMedal(family, level, mine?.name)
+      setSharing(r === 'downloaded' ? 'downloaded' : null)
+    } catch {
+      setSharing('error')
+    }
+  }
   const locked = mine ? mine.level < level : others ? !others.some((o) => o.level >= level) : false
   const holders = others?.filter((o) => o.level >= level).sort((a, b) => b.value - a.value)
   const closest = others?.filter((o) => o.level < level && o.value > 0).sort((a, b) => b.value - a.value)[0]
@@ -154,6 +168,16 @@ export function MedalSheet({
             />
           )}
         </dl>
+
+        {mine && !locked && (
+          <div className="ms-share">
+            <button className="btn block" onClick={share} disabled={sharing === 'busy'}>
+              <ShareNetworkIcon /> {sharing === 'busy' ? 'Armando la imagen…' : 'Compartir medalla'}
+            </button>
+            {sharing === 'downloaded' && <p className="muted small">Listo: se descargó la imagen para que la mandes.</p>}
+            {sharing === 'error' && <p className="error small">No se pudo armar la imagen. Probá de nuevo.</p>}
+          </div>
+        )}
 
         <ol className="ms-levels" aria-label="Niveles">
           {family.levels.map((x, i) => {
