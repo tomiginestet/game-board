@@ -1300,6 +1300,7 @@ svg {
 
 /* Ficha de una medalla en grande (MedalSheet). */
 .medal-sheet {
+  outline: none;
   gap: 0;
   padding-inline: 20px;
   overflow-x: hidden;
@@ -1536,6 +1537,11 @@ svg {
   margin: 0;
 }
 
+.ms-note {
+  margin: 8px 0 0;
+  text-align: center;
+}
+
 .ms-levels {
   list-style: none;
   margin: 20px 0 0;
@@ -1565,6 +1571,70 @@ svg {
 .medal-btn:focus-visible {
   outline: 2px solid var(--accent-2);
   outline-offset: 2px;
+}
+
+/* Festejo de una medalla recién ganada. */
+.ms-kicker {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--accent-2);
+  animation: ms-text-in 0.4s ease-out backwards;
+}
+
+.ms-sub {
+  margin-top: -4px;
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.ms-next {
+  display: flex;
+  gap: 8px;
+  position: sticky;
+  bottom: 0;
+  z-index: 1;
+  margin-top: 20px;
+  /* Separa el botón del contenido que pasa por debajo al desplazar. */
+  box-shadow: 0 -12px 16px 4px var(--bg-2);
+  animation: ms-text-in 0.4s 0.9s ease-out backwards;
+}
+
+.ms-burst {
+  position: absolute;
+  inset: 50% auto auto 50%;
+  pointer-events: none;
+}
+
+.ms-burst i {
+  position: absolute;
+  width: 8px;
+  height: 12px;
+  margin: -6px 0 0 -4px;
+  border-radius: 2px;
+  opacity: 0;
+  animation: ms-burst 1.1s cubic-bezier(0.15, 0.7, 0.3, 1) both;
+}
+
+@keyframes ms-burst {
+  0% {
+    opacity: 1;
+    transform: rotate(var(--a)) translateY(0) rotate(0);
+  }
+  70% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+    transform: rotate(var(--a)) translateY(calc(var(--d) * -1)) rotate(var(--r));
+  }
 }
 
 /* Medalla chica que abre su ficha. */

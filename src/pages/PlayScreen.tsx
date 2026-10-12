@@ -16,6 +16,7 @@ import { Link, useNavigate, useParams } from 'react-router-dom'
 import { TeamAvatar } from '../components/Avatar'
 import { GameBadge, sideColor, sideName, sidePlayersOf } from '../components/GameBits'
 import { Medal } from '../components/Medal'
+import { MedalCelebration } from '../components/MedalCelebration'
 import { MedalSheet } from '../components/MedalSheet'
 import { Tally } from '../components/Tally'
 import { computeLive, eliminateOf, isDraw, nextTurn, placesFromScores, roundScore, roundsOf, sidesByPlace, targetOf, type LiveState } from '../lib/engine'
@@ -798,6 +799,7 @@ function Summary({ play, game, live, players }: { play: Play; game: GameDef; liv
   }, [data, play, game, players])
   const [shownUp, setShownUp] = useState<number | null>(null)
   const shown = shownUp !== null ? ups[shownUp] : undefined
+  const fresh = useMemo(() => ups.map(({ player, medal }) => ({ who: player.name, family: medal.family, level: medal.level, value: medal.value })), [ups])
 
   const eventSummary = game.events
     .map((e) => {
@@ -835,6 +837,7 @@ function Summary({ play, game, live, players }: { play: Play; game: GameDef; liv
         </ol>
       </div>
 
+      <MedalCelebration id={play.id} finishedAt={play.finishedAt} medals={fresh} />
       {ups.length > 0 && (
         <section className="card new-achievements">
           <h3>

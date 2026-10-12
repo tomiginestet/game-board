@@ -797,3 +797,64 @@
   flex-direction: column;
   gap: 12px;
 }
+
+/* Inicio: medallas que están por caer. */
+.near-medals {
+  display: flex;
+  flex-direction: column;
+  padding: 4px 0;
+}
+
+.near-medal {
+  display: grid;
+  grid-template-columns: 48px 1fr;
+  align-items: center;
+  gap: 14px;
+  width: 100%;
+  padding: 12px 16px;
+  border: 0;
+  background: none;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.near-medal + .near-medal {
+  border-top: 1px solid var(--border);
+}
+
+.near-medal:hover {
+  background: var(--card-2);
+}
+
+.near-medal:focus-visible {
+  outline: 2px solid var(--accent-2);
+  outline-offset: -2px;
+}
+
+.near-medal-body {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.near-medal-top {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.near-medal-missing {
+  flex: none;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--accent-2);
+  font-variant-numeric: tabular-nums;
+}
+
+.near-medal .medal-bar {
+  margin-top: 6px;
+}
