@@ -37,6 +37,24 @@ export function MedalSheet({
   const [level, setLevel] = useState(Math.min(Math.max(initial, 0), last))
   const closeRef = useRef<HTMLButtonElement>(null)
   const go = (i: number) => setLevel(Math.min(Math.max(i, 0), last))
+  // Deslizar la medalla con el dedo para pasar de nivel.
+  const [drag, setDrag] = useState<{ x0: number; dx: number } | null>(null)
+  const swipe = {
+    onPointerDown: (e: React.PointerEvent) => {
+      if (e.button !== 0 || (e.target as HTMLElement).closest('button')) return
+      e.currentTarget.setPointerCapture(e.pointerId)
+      setDrag({ x0: e.clientX, dx: 0 })
+    },
+    onPointerMove: (e: React.PointerEvent) => drag && setDrag({ ...drag, dx: e.clientX - drag.x0 }),
+    onPointerUp: () => {
+      if (drag && Math.abs(drag.dx) > 50) go(level - Math.sign(drag.dx))
+      setDrag(null)
+    },
+    onPointerCancel: () => setDrag(null),
+  }
+  // En los extremos se resiste, para que se note que no hay más niveles.
+  const edge = drag && ((drag.dx > 0 && level === 0) || (drag.dx < 0 && level === last))
+  const shift = drag ? drag.dx * (edge ? 0.2 : 0.6) : 0
 
   useEffect(() => {
     const prevFocus = document.activeElement as HTMLElement | null
@@ -79,12 +97,16 @@ export function MedalSheet({
           </button>
         </div>
 
-        <div className="ms-stage">
+        <div className={'ms-stage' + (drag ? ' dragging' : '')} {...swipe}>
           <button className="ms-nav" onClick={() => go(level - 1)} disabled={level === 0} aria-label="Nivel anterior">
             <CaretLeftIcon weight="bold" />
           </button>
           {/* La key reinicia la animación de apertura en cada nivel. */}
-          <div key={level} className={'ms-medal-wrap' + (locked ? ' locked' : '')}>
+          <div
+            key={level}
+            className={'ms-medal-wrap' + (locked ? ' locked' : '')}
+            style={shift ? { transform: `translateX(${shift}px) rotate(${shift * 0.05}deg)` } : undefined}
+          >
             <span className="ms-rays" aria-hidden />
             <span className="ms-medal">
               <Medal family={family} level={level} locked={locked} size={168} />
