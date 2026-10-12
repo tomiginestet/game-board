@@ -61,7 +61,7 @@ function clover(k: Kit, w = 0.6, rot = 0) {
   return (
     k.draw(R.map((r) => ({
       d: LEAF, t: `rotate(${r})`, fill: P.green, line: 0.35,
-      inner: k.sh(LEAF, 0, 0, 1, 1, 0, 0.9, P.greenD, 0.45) + `<path d="M-4.8 -6.6L0 -10.4L4.8 -6.6" fill="none" stroke="#EEF3D8" stroke-width="1.1" stroke-linecap="round" stroke-linejoin="round" opacity=".85"/>`,
+      inner: k.sh(LEAF, 0, 0, 1, 1, 0, 0.9, P.greenD, 0.45) + `<path d="M-3.8 -8.4Q0 -11.4 3.8 -8.4" fill="none" stroke="#EEF3D8" stroke-width="1.1" stroke-linecap="round" opacity=".85"/>`,
     })), w) +
     R.map((r) => `<g transform="rotate(${r})">${hair(0, -1, 0.2, -6, 0, -12, 0.55, P.greenD)}${hair(0, -6, -2.6, -8.6, -4.6, -11.4, 0.35, P.greenD)}${hair(0, -6, 2.6, -8.6, 4.6, -11.4, 0.35, P.greenD)}</g>`).join('') +
     `<circle r="1.5" fill="${P.greenD}" stroke="${P.ink}" stroke-width=".35"/>`
@@ -122,38 +122,38 @@ export const GENERALA_NUEVAS_ART: Record<string, (u: number) => string> = {
   'Quintillizos': (u) => {
     const k = kit(u)
     const xs = [36, 48, 60, 72, 84], rots = [-7, 5, -3, 6, -5]
-    const backRim = 'M24.6 60C24.6 52.6 30 51 36 51H84C90 51 95.4 52.6 95.4 60H92C92 55.6 88.6 54.6 84 54.6H36C31.4 54.6 28 55.6 28 60Z'
-    const body = 'M25 62H95C94.4 70 93 79 89.4 84C88 86 86 87 83.4 87H36.6C34 87 32 86 30.6 84C27 79 25.6 70 25 62Z'
-    const rim = roundRect(23.6, 58.4, 96.4, 64, 2.8)
-    let scal = 'M25 63.4L25 60.8'
-    for (let x = 25; x < 95; x += 5) scal += `Q${x + 2.5} 57.4 ${x + 5} 60.8`
-    scal += 'V63.4Z'
+    const backRim = 'M24.6 58C24.6 50.6 30 49 36 49H84C90 49 95.4 50.6 95.4 58H92C92 53.6 88.6 52.6 84 52.6H36C31.4 52.6 28 53.6 28 58Z'
+    const body = 'M25 64H95C94.4 71 93 79.4 89.4 84.4C88 86.4 86 87.4 83.4 87.4H36.6C34 87.4 32 86.4 30.6 84.4C27 79.4 25.6 71 25 64Z'
+    const rim = roundRect(23.6, 60.6, 96.4, 66, 2.7)
+    let scal = 'M25 62L25 59'
+    for (let x = 25; x < 95; x += 5) scal += `Q${x + 2.5} 55.6 ${x + 5} 59`
+    scal += 'V62Z'
     const weave = Array.from({ length: 6 }, (_, j) => {
-      const y = 67 + j * 3.6
+      const y = 69.4 + j * 3.2
       return Array.from({ length: 18 }, (_, i) => `<path d="M${f(24 + i * 4.2 + (j % 2) * 2.1)} ${y}q2.1 -1.7 4.2 0" fill="none" stroke="${P.goldD}" stroke-width=".55"/>`).join('')
-    }).join('') + Array.from({ length: 17 }, (_, i) => `<path d="M${f(27.2 + i * 4.2)} 64V88" stroke="${P.brown}" stroke-width=".35" opacity=".7"/>`).join('')
+    }).join('') + Array.from({ length: 17 }, (_, i) => `<path d="M${f(27.2 + i * 4.2)} 66V88" stroke="${P.brown}" stroke-width=".35" opacity=".7"/>`).join('')
     const pacifier = (x: number, y: number) =>
       `<g transform="translate(${x} ${y})"><path d="M-3.2 -.4C-3.2 -2 3.2 -2 3.2 -.4C3.2 1.4 1.4 1.8 0 1.8C-1.4 1.8 -3.2 1.4 -3.2 -.4Z" fill="${P.sky}" stroke="${P.ink}" stroke-width=".45"/><ellipse cx="-1.2" cy="-.7" rx="1.1" ry=".45" fill="#fff" opacity=".85"/>` +
       `<circle cy="1.3" r="1.6" fill="none" stroke="${P.ink}" stroke-width="1.5"/><circle cy="1.3" r="1.6" fill="none" stroke="${P.gold}" stroke-width=".75"/><circle cx="-.6" cy="-.1" r=".3" fill="${P.goldL}"/></g>`
     const star = (x: number, y: number, r: number) => k.draw([{ d: starPath(x, y, r, r * 0.45, 5), fill: P.gold, inner: k.sh(starPath(x, y, r, r * 0.45, 5), 0, 0, 1, 1, 0, 0.9, P.goldD, 0.4) }], 0.4)
-    const moon = 'M60.6 33.4A4.4 4.4 0 1 0 64.4 40.4A3.6 3.6 0 1 1 60.6 33.4Z'
+    const moon = 'M60.6 31.4A4.4 4.4 0 1 0 64.4 38.4A3.6 3.6 0 1 1 60.6 31.4Z'
     return (
       k.night() +
       [[28, 42, 0.6], [92, 44, 0.7], [34, 30, 0.45], [86, 30, 0.5], [26, 70, 0.4], [95, 72, 0.5]].map(([x, y, r]) => `<circle cx="${x}" cy="${y}" r="${r}" fill="${P.paper}"/>`).join('') +
       k.shade(ellipse(60, 58, 40, 30), k.rad(P.goldL, 0.5, 0.5, 0.5, 0.55, 0), P.goldL, 0.3) +
-      `<path d="M60 17V27.6M44 32.6V38M60 29.2V33.4M76 32.6V38" stroke="${P.paper}" stroke-width=".45"/>` +
-      rod('M43 33.4Q60 26.4 77 33.4', P.goldD, 1.1) + `<circle cx="60" cy="29.4" r="1.1" fill="${P.gold}" stroke="${P.ink}" stroke-width=".4"/>` +
-      star(44, 41, 3.6) + star(76, 41, 3.6) +
+      `<path d="M60 17V25.6M44 30.6V36M60 27.2V31.4M76 30.6V36" stroke="${P.paper}" stroke-width=".45"/>` +
+      rod('M43 31.4Q60 24.4 77 31.4', P.goldD, 1.1) + `<circle cx="60" cy="27.4" r="1.1" fill="${P.gold}" stroke="${P.ink}" stroke-width=".4"/>` +
+      star(44, 39, 3.6) + star(76, 39, 3.6) +
       k.draw([{ d: moon, fill: P.goldL, inner: k.sh(moon, 0, 0, 1, 1, 0, 0.8, P.gold, 0.4) }], 0.4) +
-      k.floor(60, 88, 34, 3, '#000') +
-      k.draw([{ d: backRim, fill: P.goldL, inner: k.sh(backRim, 0, 0, 0, 1, 0, 0.6, P.goldD, 0.4) + Array.from({ length: 16 }, (_, i) => `<path d="M${27 + i * 4.4} 51V60" stroke="${P.goldD}" stroke-width=".4"/>`).join('') }], 0.55) +
-      `<path d="M28 60C28 55.6 31.4 54.6 36 54.6H84C88.6 54.6 92 55.6 92 60Z" fill="${HOLLOW}"/>` +
-      xs.map((x, i) => die(k, x, 55, 6.6, rots[i])).join('') +
-      k.draw([{ d: scal, fill: P.white, inner: k.sh(scal, 0, 0, 1, 0, 0, 0.6, P.blue, 0.3) + Array.from({ length: 14 }, (_, i) => `<circle cx="${27.5 + i * 5}" cy="61.8" r=".5" fill="${P.sky}"/>`).join('') }], 0.45) +
-      xs.map((x, i) => pacifier(f(x - Math.sin((rots[i] * Math.PI) / 180) * 2), 58.2)).join('') +
+      k.floor(60, 88.4, 34, 3, '#000') +
+      k.draw([{ d: backRim, fill: P.goldL, inner: k.sh(backRim, 0, 0, 0, 1, 0, 0.6, P.goldD, 0.4) + Array.from({ length: 16 }, (_, i) => `<path d="M${27 + i * 4.4} 49V58" stroke="${P.goldD}" stroke-width=".4"/>`).join('') }], 0.55) +
+      `<path d="M28 58C28 53.6 31.4 52.6 36 52.6H84C88.6 52.6 92 53.6 92 58Z" fill="${HOLLOW}"/>` +
+      xs.map((x, i) => die(k, x, 53, 6.6, rots[i])).join('') +
+      k.draw([{ d: scal, fill: P.white, inner: k.sh(scal, 0, 0, 1, 0, 0, 0.6, P.blue, 0.3) + Array.from({ length: 14 }, (_, i) => `<circle cx="${27.5 + i * 5}" cy="60.2" r=".5" fill="${P.sky}"/>`).join('') }], 0.45) +
+      xs.map((x, i) => pacifier(f(x - Math.sin((rots[i] * Math.PI) / 180) * 2), 56.4)).join('') +
       k.draw([
         { d: body, fill: P.goldL, inner: weave + k.sh('M60 60H98V90H60Z', 0, 0, 1, 0, 0, 0.8, P.goldD, 0.4) + k.sh('M20 74H100V90H20Z', 0, 0, 0, 1, 0, 0.7, P.brown, 0.35) },
-        { d: rim, fill: P.gold, line: 0.35, inner: k.sh(rim, 0, 0, 1, 0, 0, 0.9, P.goldD, 0.4) + Array.from({ length: 24 }, (_, i) => `<path d="M${f(24.4 + i * 3.1)} 64L${f(26.4 + i * 3.1)} 58.4" stroke="${P.goldD}" stroke-width=".5"/>`).join('') + `<path d="M27 59.6H93" stroke="#fff" stroke-width=".6" opacity=".55"/>` },
+        { d: rim, fill: P.gold, line: 0.35, inner: k.sh(rim, 0, 0, 1, 0, 0, 0.9, P.goldD, 0.4) + Array.from({ length: 24 }, (_, i) => `<path d="M${f(24.4 + i * 3.1)} 66L${f(26.4 + i * 3.1)} 60.6" stroke="${P.goldD}" stroke-width=".5"/>`).join('') + `<path d="M27 61.8H93" stroke="#fff" stroke-width=".6" opacity=".55"/>` },
       ], 0.7) +
       sparkle(90, 54, 1.8, P.goldL) + sparkle(31, 50, 1.4, P.goldL) +
       k.defs()
@@ -205,6 +205,7 @@ export const GENERALA_NUEVAS_ART: Record<string, (u: number) => string> = {
     return (
       k.day() +
       k.sun(cx, cy, 23, 46, 28, false) +
+      k.shade(ellipse(cx, cy, 30, 30), k.rad(P.goldL, 0.5, 0.5, 0.5, 0.7, 0), P.goldL, 0.4) +
       string(59, 21.6, 42, 34, 25.4, 41) + string(61, 21.6, 78, 34, 94.6, 41) +
       `<circle cx="60" cy="21.4" r="1.3" fill="${P.gold}" stroke="${P.ink}" stroke-width=".45"/>` +
       k.floor(58, 94, 20, 2.6) +
@@ -229,7 +230,8 @@ export const GENERALA_NUEVAS_ART: Record<string, (u: number) => string> = {
       rod(`M${cx} ${cy}L73.4 66.6`, P.sky2, 1.7) + `<path d="M${cx + 1} ${cy - 0.6}L72.6 65.4" stroke="#fff" stroke-width=".4" opacity=".7"/>` +
       `<path d="${starPath(cx, cy, 4.8, 2.8, 8)}" fill="${P.gold}" stroke="${P.ink}" stroke-width=".5" stroke-linejoin="round"/><circle cx="${cx}" cy="${cy}" r="2" fill="${P.goldD}" stroke="${P.ink}" stroke-width=".4"/><circle cx="${cx - 0.6}" cy="${cy - 0.6}" r=".7" fill="${P.goldL}"/>` +
       rod('M73.4 66.6L79.2 62.8', P.red, 2.8) + `<path d="M74.6 65L78.4 62.6" stroke="#fff" stroke-width=".5" stroke-linecap="round" opacity=".6"/>` + `<circle cx="73.4" cy="66.6" r="1.3" fill="${P.gold}" stroke="${P.ink}" stroke-width=".45"/>` +
-      sparkle(88, 56, 2.2) + sparkle(30, 62, 1.8) + sparkle(84, 84, 1.4) +
+      hair(82.6, 58.4, 85.8, 61.6, 84.6, 66.4, 0.7) + hair(84.6, 69.4, 81.6, 72.4, 77.4, 72.6, 0.7) +
+      sparkle(88, 50, 2.2) + sparkle(30, 62, 1.8) + sparkle(84, 84, 1.4) +
       k.defs()
     )
   },
@@ -295,7 +297,7 @@ export const GENERALA_NUEVAS_ART: Record<string, (u: number) => string> = {
       `<path d="${lens}" fill="${P.white}"/>` +
       k.clip(lens,
         k.sh(lens, 0, 0, 1, 1, 0, 0.5, P.sky2, 0.4) +
-        [[-1, -1], [1, -1], [-1, 1], [1, 1]].map(([sx, sy]) => `<circle cx="${f(lx + sx * 11)}" cy="${f(ly + sy * 11)}" r="2.5" fill="${P.ink}"/>`).join('') +
+        [[-1, -1], [1, -1], [-1, 1], [1, 1]].map(([sx, sy]) => `<circle cx="${f(lx + sx * 9)}" cy="${f(ly + sy * 9)}" r="2.3" fill="${P.ink}"/><circle cx="${f(lx + sx * 9 - 0.7)}" cy="${f(ly + sy * 9 - 0.7)}" r=".6" fill="${P.mid}"/>`).join('') +
         `<g transform="translate(${lx} ${ly}) scale(.74)">${clover(k, 0.8)}</g>` +
         `<path d="${lens}" fill="${k.lin('#ffffff', 0, 0, 1, 1, 0.55, 0)}"/>`) +
       `<path d="M48.6 47C50.4 42 54.4 38.8 59.4 38.2" fill="none" stroke="#fff" stroke-width="1.7" stroke-linecap="round" opacity=".95"/>` +
@@ -407,15 +409,15 @@ export const GENERALA_NUEVAS_ART: Record<string, (u: number) => string> = {
     const bagTop = 'M49.6 77.2H76.4C78.6 77.2 80 78.6 79.6 81H46.4C46 78.6 47.4 77.2 49.6 77.2Z'
     return (
       k.day() +
-      k.sun(65, 42, 13, 44, 28, false) +
-      `<path d="M41.6 47Q46 30 54.6 34.4" fill="none" stroke="${P.ink}" stroke-width=".7" stroke-dasharray="1.6 1.6" stroke-linecap="round"/>` +
-      `<path d="M71.6 52.6Q75.4 64 65 76.4" fill="none" stroke="${P.ink}" stroke-width=".7" stroke-dasharray="1.6 1.6" stroke-linecap="round"/>` +
+      k.sun(65, 42.6, 14, 44, 28, false) +
+      `<path d="M41.6 47Q45 29 52.6 32.6" fill="none" stroke="${P.ink}" stroke-width=".7" stroke-dasharray="1.6 1.6" stroke-linecap="round"/>` +
+      `<path d="M72.4 54.6Q75.4 65 65 76.4" fill="none" stroke="${P.ink}" stroke-width=".7" stroke-dasharray="1.6 1.6" stroke-linecap="round"/>` +
       k.draw([
         { d: side, fill: P.sky2, inner: k.sh(side, 0, 0, 1, 0, 0.2, 0.9, P.mid, 0.4) },
         { d: front, fill: P.white, inner: windows + k.sh('M28 50H42V112H28Z', 0, 0, 1, 0, 0, 0.5, P.blue, 0.3) + `<path d="M12 55H40" stroke="${P.sky2}" stroke-width=".6"/>` },
         { d: ledge, fill: P.sky1, line: 0.35, inner: k.sh(ledge, 0, 0, 0, 1, 0, 0.7, P.blue, 0.35) },
       ], 0.7) +
-      `<g transform="translate(25.4 45.2) rotate(88) scale(.4)">${cubilete(k, 1.4)}</g>` +
+      `<g transform="translate(25 45.6) rotate(86.4) scale(.43)">${cubilete(k, 1.3)}</g>` +
       k.floor(63, 91, 19, 2.4) +
       k.draw([
         {
@@ -428,8 +430,8 @@ export const GENERALA_NUEVAS_ART: Record<string, (u: number) => string> = {
           inner: `<path d="${ellipse(63, 79.1, 9, 1.5)}" fill="none" stroke="${P.red}" stroke-width="1.1"/><path d="${ellipse(63, 79.1, 3.4, 0.7)}" fill="${P.red}"/>` + k.sh(bagTop, 0, 0, 1, 1, 0, 0.6, P.blue, 0.3),
         },
       ], 0.6) +
-      hair(50.4, 36, 53.6, 31.6, 57.6, 30.4, 0.75) + hair(51.4, 42, 54.2, 38.6, 57, 37.6, 0.6) + hair(76.4, 50, 79.4, 47.6, 80.4, 43.6, 0.75) + hair(73.6, 54.6, 77.4, 53.4, 79, 50.4, 0.6) +
-      die(k, 65, 42, 10.6, 30) +
+      hair(48.8, 35, 52, 30.4, 56, 29, 0.75) + hair(49.6, 41.4, 52.6, 37.6, 55.4, 36.4, 0.6) + hair(78, 51, 81, 48.4, 82, 44.4, 0.75) + hair(75, 56, 78.8, 54.8, 80.4, 51.6, 0.6) +
+      die(k, 65, 42.6, 12, 30) +
       sparkle(36, 34, 2) + sparkle(90, 44, 1.6) + sparkle(88, 70, 1.3) +
       k.defs()
     )
@@ -479,16 +481,16 @@ export const GENERALA_NUEVAS_ART: Record<string, (u: number) => string> = {
       k.shade('M0 0H120V130H0Z', k.rad(P.night, 0.5, 0.45, 0.7, 0, 0.85), P.night, 0.6) +
       `<path d="${opening}" fill="${P.night}"/>` +
       k.clip(opening,
-        k.shade(ellipse(60, 66, 26, 30), k.rad(P.goldL, 0.5, 0.5, 0.5, 0.45, 0), P.goldL, 0.35) +
+        k.shade(ellipse(60, 64, 26, 30), k.rad(P.goldL, 0.5, 0.5, 0.5, 0.32, 0), P.goldL, 0.3) +
         k.draw([
-          { d: 'M20 80H100L104 92H16Z', fill: P.brown, inner: k.sh('M20 80H100L104 92H16Z', 0, 0, 0, 1, 0, 0.7, P.brownD, 0.4) + [40, 48, 56, 64, 72, 80].map((x) => `<path d="M${x} 80L${f(60 + (x - 60) * 1.3)} 92" stroke="${P.brownD}" stroke-width=".45"/>`).join('') },
-          { d: 'M16 92H104V110H16Z', fill: P.brownD, inner: k.sh('M16 92H104V110H16Z', 0, 0, 0, 1, 0, 0.6, P.night, 0.4) },
+          { d: 'M20 78H100L104 88H16Z', fill: P.brown, inner: k.sh('M20 78H100L104 88H16Z', 0, 0, 0, 1, 0, 0.7, P.brownD, 0.4) + [40, 48, 56, 64, 72, 80].map((x) => `<path d="M${x} 78L${f(60 + (x - 60) * 1.3)} 88" stroke="${P.brownD}" stroke-width=".45"/>`).join('') },
+          { d: 'M16 88H104V110H16Z', fill: P.brownD, inner: k.sh('M16 88H104V110H16Z', 0, 0, 0, 1, 0, 0.6, P.night, 0.4) },
         ], 0.5) +
-        k.shade(ellipse(60, 84, 22, 4.4), k.rad(P.goldL, 0.5, 0.5, 0.5, 0.8, 0), P.goldL, 0.5) +
-        [42, 51, 60, 69, 78].map((x) => `<path d="M${x - 2} 92.6Q${x} 90 ${x + 2} 92.6Z" fill="${P.goldL}" stroke="${P.ink}" stroke-width=".35"/>`).join('') +
-        k.floor(60, 81.4, 20, 2, P.night) +
-        die(k, 50, 71.6, 8.8, -12) + die(k, 70, 71.6, 8.8, 12) +
-        rose(43, 87.4, -14) + rose(77.4, 88.6, 194) + rose(58, 89.6, -172, 0.9) +
+        k.shade(ellipse(60, 81, 22, 4), k.rad(P.goldL, 0.5, 0.5, 0.5, 0.8, 0), P.goldL, 0.5) +
+        [42, 51, 60, 69, 78].map((x) => `<path d="M${x - 2} 89.4Q${x} 86.8 ${x + 2} 89.4Z" fill="${P.goldL}" stroke="${P.ink}" stroke-width=".35"/>`).join('') +
+        k.floor(60, 79.4, 20, 2, P.night) +
+        die(k, 50.2, 68.8, 9.4, -12) + die(k, 69.8, 68.8, 9.4, 12) +
+        rose(47.4, 83.6, -14) + rose(72.6, 84.8, 194) + rose(61, 86.2, -168, 0.9) +
         drape(false) + drape(true) +
         k.draw([{ d: valance, fill: P.red, inner: k.sh(valance, 0, 0, 0, 1, 0, 0.8, P.wine, 0.45) + Array.from({ length: 8 }, (_, i) => hair(33.75 + i * 7.5, 31, 33.4 + i * 7.5, 38, 33.75 + i * 7.5, 45, 0.6, P.wine)).join('') }], 0.5) +
         `<path d="${fringe}" fill="none" stroke="${P.gold}" stroke-width="1.2"/>` + tassels) +
@@ -515,11 +517,11 @@ export const GENERALA_NUEVAS_ART: Record<string, (u: number) => string> = {
     const k = kit(u)
     const page = roundRect(-16, -26, 16, 29, 1.2)
     const cover = 'M-16.6 -30.4H16.6V-25H-16.6Z'
-    const entries = ['12', '18', '20', '30', '40', '50', '30']
-    const rows = entries.map((n, i) => {
+    // Siete renglones en lápiz: lo que se anotó a la izquierda y los puntos a la derecha.
+    const rows = Array.from({ length: 7 }, (_, i) => {
       const y = -15.2 + i * 4.8
       return hair(-9, y, -5.6, y - 1.2 + (i % 2) * 0.8, -1.6 + (i % 3), y - 0.2, 0.55, P.mid) +
-        `<text x="12.6" y="${f(y + 0.4)}" ${GEORGIA} font-style="italic" font-size="3.6" fill="${P.mid}" text-anchor="end">${n}</text>`
+        hair(6.4 + (i % 2) * 0.8, y + 0.2, 7.4, y - 1.6, 8.8, y - 0.4, 0.5, P.mid) + hair(9.4, y - 0.2, 10.6 + (i % 3) * 0.3, y - 1.8, 12.6, y - 0.6, 0.5, P.mid)
     }).join('')
     const pencil =
       k.draw([
@@ -600,56 +602,55 @@ export const GENERALA_NUEVAS_ART: Record<string, (u: number) => string> = {
     )
   },
 
-  // Trescientos: la sumadora del club echa la cinta con el total, y arriba descansa la visera verde del contador.
+  // Trescientos puntos: te contratan para hacer el balance del club. La balanza dorada, con un dado en cada platillo
+  // y la visera verde de contador colgada del remate.
   'Contador con visera': (u) => {
     const k = kit(u)
-    const front = 'M39.6 64H80.4L85.4 88H34.6Z'
-    const sideR = 'M80.4 64L84.6 61.4L90.2 85.4L85.4 88Z'
-    const deck = 'M39.6 64L43.4 61.4H84.6L80.4 64Z'
-    const platen = roundRect(38.4, 55.4, 83.6, 61.8, 3.2)
-    const roll = roundRect(45.4, 48.6, 74.6, 56, 3.7)
-    const tape = 'M54.6 56V34.6H65.4V56Z'
-    const curl = roundRect(53, 29.6, 67, 35.4, 2.9)
-    const keys = Array.from({ length: 20 }, (_, i) => {
-      const r = Math.floor(i / 5), c = i % 5, y = 68.4 + r * 4.6, xl = 39.6 - (y - 64) * (5 / 24) + 3.6, xr = 80.4 + (y - 64) * (5 / 24) - 3.6
-      const x = xl + ((xr - xl) * c) / 4, red = i === 19
-      return `<ellipse cx="${f(x)}" cy="${f(y + 0.5)}" rx="2.1" ry="1.5" fill="${P.ink}"/><ellipse cx="${f(x)}" cy="${f(y)}" rx="2" ry="1.4" fill="${red ? P.red : P.white}" stroke="${P.ink}" stroke-width=".35"/><ellipse cx="${f(x - 0.5)}" cy="${f(y - 0.4)}" rx=".8" ry=".4" fill="#fff" opacity=".8"/>`
-    }).join('')
-    const visorBill = 'M-12 0A12 3.8 0 0 0 12 0C13.8 1.4 14.6 3.2 14 4.8C10 11 -10 11 -14 4.8C-14.6 3.2 -13.8 1.4 -12 0Z'
-    const visorBand = 'M-12 0A12 3.8 0 0 1 12 0V-2.4A12 3.8 0 0 0 -12 -2.4Z'
-    const printed = [50.6, 47.2, 43.8].map((y, i) => `<path d="M57 ${y}H${[61.6, 60.4, 62.4][i]}" stroke="${P.mid}" stroke-width=".7"/><path d="M63 ${y}h.9" stroke="${P.mid}" stroke-width=".7"/>`).join('')
+    const column = 'M57.6 44H62.4L63.4 87H56.6Z'
+    const capital = 'M54.6 40.4H65.4L64 44.4H56Z'
+    const plinth = 'M51 87H69L71.4 91.4H48.6Z'
+    const step = 'M45.4 91.4H74.6V97.4H45.4Z'
+    const beam = 'M33 33.2C42 32.4 50 32 56 32.6H64C70 32 78 32.4 87 33.2V36.2C78 35.6 70 35.6 64 36.4H56C50 35.6 42 35.6 33 36.2Z'
+    const pan = (x: number) => `M${f(x - 9.6)} 62.4H${f(x + 9.6)}C${f(x + 9.2)} 67.6 ${f(x + 4.8)} 70.6 ${x} 70.6C${f(x - 4.8)} 70.6 ${f(x - 9.2)} 67.6 ${f(x - 9.6)} 62.4Z`
+    const volute = (x: number, sx: number) =>
+      `<g transform="translate(${x} 34.6) scale(${sx} 1)"><path d="M0 0C-3.4 0 -4.6 -3.2 -2.6 -4.6C-1 -5.6 .8 -4.4 .2 -3" fill="none" stroke="${P.ink}" stroke-width="2"/><path d="M0 0C-3.4 0 -4.6 -3.2 -2.6 -4.6C-1 -5.6 .8 -4.4 .2 -3" fill="none" stroke="${P.gold}" stroke-width=".9"/><circle cx=".2" cy="-3" r=".6" fill="${P.goldL}"/></g>`
+    const chains = (x: number) => `<path d="M${x} 36L${f(x - 8.6)} 62.4M${x} 36L${f(x + 8.6)} 62.4" stroke="${P.ink}" stroke-width=".9"/><path d="M${x} 36L${f(x - 8.6)} 62.4M${x} 36L${f(x + 8.6)} 62.4" stroke="${P.goldL}" stroke-width=".4" stroke-dasharray=".9 .5"/>`
+    const gold = (d: string, inner = '') => ({ d, fill: P.gold, inner: k.sh(d, 0, 0, 1, 0, 0, 0.95, P.goldD, 0.5) + `<path d="${d}" fill="${k.lin(P.goldL, 0, 0, 1, 0, 0.8, 0)}" opacity=".7"/>` + inner })
+    const flutes = [-2.6, -1.3, 0, 1.3, 2.6].map((o) => `<path d="M${f(60 + o * 0.85)} 45V86" stroke="${P.goldD}" stroke-width=".35"/>`).join('')
+    const brim = 'M-7 .4C-6.6 6 4 9.6 10.4 4.4C8.4 2.2 5 1.2 1.6 1.2C-1.6 1.2 -4.6 .8 -7 .4Z'
     return (
       k.day() +
-      k.sun(60, 50, 18, 46, 28, false) +
-      k.shade(ellipse(60, 46, 24, 24), k.rad(P.goldL, 0.5, 0.5, 0.5, 0.7, 0), P.goldL, 0.4) +
-      laurel(46, 100, 27, 92, 25.4, 64, 7) + laurel(74, 100, 93, 92, 94.6, 64, 7, true) +
-      k.floor(61, 89, 28, 3) +
+      k.sun(60, 50, 16, 46) +
+      k.shade(ellipse(60, 50, 24, 24), k.rad(P.goldL, 0.5, 0.5, 0.5, 0.7, 0), P.goldL, 0.4) +
+      laurel(46, 99, 27, 92, 24, 66, 6) + laurel(74, 99, 93, 92, 96, 66, 6, true) +
+      k.floor(60, 97.6, 18, 2.4, P.mid) +
       k.draw([
-        { d: tape, fill: P.white, inner: k.sh(tape, 0, 0, 1, 0, 0, 0.6, P.blue, 0.35) + printed + `<path d="M56.2 41H63.8M56.2 41.9H63.8" stroke="${P.ink}" stroke-width=".4"/>` },
-        { d: curl, fill: P.white, line: 0.35, inner: k.sh(curl, 0, 0, 0, 1, 0, 0.8, P.blue, 0.4) + `<path d="M54.6 31.4H65" stroke="#fff" stroke-width=".7" opacity=".9"/>` },
-      ], 0.55) +
-      `<text x="60" y="39.6" ${GEORGIA} font-weight="700" font-size="4.6" fill="${P.red}" text-anchor="middle">300</text>` +
+        gold(step, `<path d="M45.4 92.8H74.6" stroke="${P.goldL}" stroke-width=".6"/>`),
+        gold(plinth),
+        gold(column, flutes),
+        gold(capital, `<path d="M55.4 42.2H64.6" stroke="${P.goldD}" stroke-width=".4"/>`),
+      ], 0.7) +
+      `<g transform="translate(0 5)">` +
+      chains(34) + chains(86) +
       k.draw([
-        { d: roll, fill: P.white, line: 0.35, inner: k.sh(roll, 0, 0, 0, 1, 0, 0.8, P.blue, 0.4) + `<path d="M47 50.6H73" stroke="#fff" stroke-width=".8" opacity=".9"/>` },
-        { d: sideR, fill: P.night, inner: k.sh(sideR, 0, 0, 1, 0, 0, 0.6, '#0E1533', 0.4) + `<path d="M84 64L88.8 84.6" stroke="${P.goldD}" stroke-width=".5"/>` },
-        { d: front, fill: P.night, line: 0.4, inner: k.sh(front, 0, 0, 1, 0, 0, 0.7, '#0E1533', 0.4) + `<path d="M34 62H52V90H34Z" fill="${k.lin(P.sky2, 0, 0, 1, 0, 0.35, 0)}"/>` + `<path d="M39.4 65.6H80.6M35.2 86.2H84.8" stroke="${P.goldD}" stroke-width=".55"/>` + keys },
-        { d: deck, fill: P.mid, line: 0.35, inner: k.sh(deck, 0, 0, 0, 1, 0, 0.6, P.night, 0.3) },
-        { d: platen, fill: P.night, line: 0.35, inner: k.sh(platen, 0, 0, 0, 1, 0, 0.8, '#0E1533', 0.4) + `<path d="M40.6 57.2H81.4" stroke="${P.sky2}" stroke-width=".7" opacity=".7"/>` },
-      ], 0.75) +
-      `<ellipse cx="37.6" cy="58.6" rx="2.2" ry="3.6" fill="${P.gold}" stroke="${P.ink}" stroke-width=".6"/><ellipse cx="37.2" cy="57.8" rx=".7" ry="1.4" fill="${P.goldL}"/>` +
-      `<ellipse cx="84.4" cy="58.6" rx="2.2" ry="3.6" fill="${P.gold}" stroke="${P.ink}" stroke-width=".6"/><ellipse cx="84" cy="57.8" rx=".7" ry="1.4" fill="${P.goldL}"/>` +
-      `<ellipse cx="60" cy="84.4" rx="5" ry="1.4" fill="${P.gold}" stroke="${P.ink}" stroke-width=".45"/><path d="M56.6 84.4H63.4" stroke="${P.goldD}" stroke-width=".4"/>` +
-      rod('M88 74L94.4 66', P.gold, 1.5) + `<circle cx="94.6" cy="65.6" r="2.3" fill="${P.red}" stroke="${P.ink}" stroke-width=".6"/><circle cx="93.9" cy="64.9" r=".7" fill="#fff" opacity=".8"/>` +
-      `<g transform="translate(60 56.6) rotate(-4) scale(1.08)">` +
-      k.draw([{ d: visorBand, fill: P.greenD, inner: k.sh(visorBand, 0, 0, 1, 0, 0, 0.7, P.night, 0.35) }], 0.5) +
-      `<path d="${visorBill}" fill="${P.green}" opacity=".88"/>` +
-      `<path d="${visorBill}" fill="${k.lin(P.greenD, 0, 0, 1, 1, 0, 0.8)}" opacity=".5"/>` +
-      `<path d="${visorBill}" fill="none" stroke="${P.ink}" stroke-width=".75" stroke-linejoin="round"/>` +
-      `<path d="M-13 4.4C-9 9.8 9 9.8 13 4.4" fill="none" stroke="${P.greenD}" stroke-width=".9"/><path d="M-12.4 4.4C-8.6 9 8.6 9 12.4 4.4" fill="none" stroke="#EEF3D8" stroke-width=".3" stroke-dasharray=".8 .6"/>` +
-      `<path d="M-8 2.6C-4 4.6 0 5 3 4.8" fill="none" stroke="#fff" stroke-width=".8" stroke-linecap="round" opacity=".7"/>` +
-      `<rect x="-1.6" y="-3.6" width="3.2" height="2" rx=".4" fill="${P.gold}" stroke="${P.ink}" stroke-width=".35"/>` +
-      `</g>` +
-      sparkle(32, 36, 2.2) + sparkle(88, 36, 1.8) +
+        gold(beam, `<path d="M36 34.2C46 33.4 52 33.4 56 33.8M64 33.8C68 33.4 74 33.4 84 34.2" fill="none" stroke="${P.goldL}" stroke-width=".6"/>`),
+        gold(pan(34), `<path d="M26 64.6C30 66.4 38 66.4 42 64.6" fill="none" stroke="${P.goldD}" stroke-width=".4"/>`),
+        gold(pan(86), `<path d="M78 64.6C82 66.4 90 66.4 94 64.6" fill="none" stroke="${P.goldD}" stroke-width=".4"/>`),
+      ], 0.7) +
+      `<ellipse cx="34" cy="62.4" rx="9.6" ry="1.4" fill="${P.goldD}" stroke="${P.ink}" stroke-width=".5"/><ellipse cx="86" cy="62.4" rx="9.6" ry="1.4" fill="${P.goldD}" stroke="${P.ink}" stroke-width=".5"/>` +
+      volute(33.4, 1) + volute(86.6, -1) +
+      `<path d="${starPath(60, 34.4, 3.6, 1.6, 8)}" fill="${P.goldL}" stroke="${P.ink}" stroke-width=".4"/><circle cx="60" cy="34.4" r="1.2" fill="${P.red}" stroke="${P.ink}" stroke-width=".3"/>` +
+      `<path d="M58.8 32.4L60 25.4L61.2 32.4Z" fill="${P.gold}" stroke="${P.ink}" stroke-width=".45" stroke-linejoin="round"/><circle cx="60" cy="24.6" r="1.5" fill="${P.gold}" stroke="${P.ink}" stroke-width=".45"/>` +
+      die(k, 34, 56.2, 5.8, 0) + die(k, 86, 56.2, 5.8, 0) +
+      `<g transform="translate(60.6 28.4) rotate(-16) scale(1.3)">` +
+      `<ellipse cx="0" cy="0" rx="6.6" ry="2.2" fill="none" stroke="${P.ink}" stroke-width="2.2"/><ellipse cx="0" cy="0" rx="6.6" ry="2.2" fill="none" stroke="${P.greenD}" stroke-width="1.2"/>` +
+      `<path d="${brim}" fill="${P.green}" opacity=".85"/><path d="${brim}" fill="${k.lin(P.greenD, 0, 0, 1, 1, 0, 0.9)}" opacity=".6"/>` +
+      `<path d="${brim}" fill="none" stroke="${P.ink}" stroke-width=".7" stroke-linejoin="round"/>` +
+      `<path d="M-5.6 1.6C-4.4 5.4 3.6 8 8.8 4.6" fill="none" stroke="#EEF3D8" stroke-width=".4" stroke-dasharray=".9 .7"/>` + hair(-3, 3, 1, 5.6, 6, 5, 0.7, '#fff', 0.7) +
+      `</g></g>` +
+      `<rect x="53.4" y="92.6" width="13.2" height="4" rx=".6" fill="${P.white}" stroke="${P.ink}" stroke-width=".4"/>` +
+      `<text x="60" y="95.9" ${GEORGIA} font-weight="700" font-size="3.6" fill="${P.red}" text-anchor="middle">300</text>` +
+      sparkle(28, 40, 2.2) + sparkle(92, 42, 1.8) + sparkle(74, 24, 1.4) +
       k.defs()
     )
   },

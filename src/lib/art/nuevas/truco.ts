@@ -66,23 +66,25 @@ export const TRUCO_NUEVAS_ART: Record<string, (u: number) => string> = {
     const cloth = Array.from({ length: 12 }, (_, i) => `<path d="M44 ${f(49 + i * 2)}H76" stroke="${P.goldD}" stroke-width=".25" opacity=".55"/>`).join('')
     const ticks = Array.from({ length: 11 }, (_, i) => `<path d="M${f(51 + i * 1.8)} 75.4V${i % 2 ? 76.4 : 77}" stroke="${P.ink}" stroke-width=".3"/>`).join('')
     // El pajarito, mirando a la izquierda, con las patas en (0,0).
-    const birdBody = 'M-6.4 -7.6C-6.4 -12 -2.8 -14.6 1.2 -14.2C6 -13.8 8.6 -10.2 8.2 -6.8C7.8 -3.2 4.6 -1.2 .8 -1.2C-3.4 -1.2 -6.4 -3.6 -6.4 -7.6Z'
-    const birdHead = ellipse(-4.2, -15.2, 4.1, 3.9)
-    const birdTail = 'M6.6 -8.6L14 -12C14.8 -12.2 15.2 -11.4 14.6 -10.8L7.8 -4.8Z'
+    const birdBody = 'M-6.8 -8C-6.8 -12.6 -3 -15 1.4 -14.6C6.2 -14.2 8.8 -10.6 8.2 -6.8C7.6 -3 4.4 -1.2 .6 -1.2C-3.8 -1.2 -6.8 -4 -6.8 -8Z'
+    const birdHead = ellipse(-4, -15.4, 4.6, 4.4)
+    const birdTail = 'M6.6 -8L13.4 -6C14.4 -5.6 14.2 -4.4 13.2 -4.2L6.2 -3.2Z'
+    const birdWing = 'M-1.4 -10.2C1.6 -12.6 6.4 -11.6 7.8 -8.2C6.6 -6.2 2.6 -6 -1.4 -10.2Z'
     const bird =
-      `<g transform="translate(61.4 42.4)">` +
-      `<path d="M-1 -1.6L-1.6 .2M2.2 -1.6L2.6 .2" stroke="${P.ink}" stroke-width=".7" stroke-linecap="round"/>` +
+      `<g transform="translate(63 42.6)">` +
+      `<path d="M-1.2 -1.6L-1.8 .2M2 -1.6L2.4 .2M-3 .3H-.6M1.2 .3H3.4" stroke="${P.ink}" stroke-width=".7" stroke-linecap="round"/>` +
       k.draw([
-        { d: birdTail, fill: P.gold, inner: k.sh(birdTail, 0, 0, 1, 1, 0, 0.9, P.goldD, 0.4) },
-        { d: birdBody, fill: P.gold, inner: k.sh('M0 -16H10V0H0Z', 0, 0, 1, 1, 0, 0.9, P.goldD, 0.45) + `<path d="M-7 -16H-1V0H-7Z" fill="${k.lin('#ffffff', 0, 0, 1, 0, 0.4, 0)}"/>` },
-        { d: birdHead, fill: P.gold, inner: k.sh(birdHead, 0.2, 0, 1, 1, 0, 0.8, P.goldD, 0.4) },
+        { d: birdTail, fill: P.gold, inner: k.sh(birdTail, 0, 0, 1, 1, 0, 0.9, P.goldD, 0.4) + hair(7.4, -5.6, 10.4, -5.4, 13, -4.8, 0.35, P.goldD) },
+        { d: birdBody, fill: P.gold, inner: k.sh('M0 -16H10V0H0Z', 0, 0, 1, 1, 0, 0.85, P.goldD, 0.4) + `<path d="M-7 -16H-1V0H-7Z" fill="${k.lin('#ffffff', 0, 0, 1, 0, 0.45, 0)}"/>` + hair(-4.6, -6.4, -2.6, -4.4, 0, -3.8, 0.4, P.goldD) },
+        { d: birdHead, fill: P.gold, inner: k.sh(birdHead, 0.2, 0, 1, 1, 0, 0.75, P.goldD, 0.35) + `<ellipse cx="-5.6" cy="-17.6" rx="1.4" ry=".8" fill="#fff" opacity=".7" transform="rotate(-30 -5.6 -17.6)"/>` },
       ], 0.5) +
-      `<path d="M-1 -10.4C2 -12.6 6.8 -11 7.8 -7.6C5 -6 1 -6.6 -1 -10.4Z" fill="${P.goldD}" stroke="${P.ink}" stroke-width=".35"/>` +
-      hair(1, -9.4, 4, -9.4, 6.6, -7.8, 0.4, P.ink) +
-      `<path d="M-8 -17L-12.8 -18.6L-8.2 -15Z" fill="${P.goldD}" stroke="${P.ink}" stroke-width=".35" stroke-linejoin="round"/>` +
-      `<path d="M-8.2 -14.4L-12.2 -13.2L-7.8 -12.8Z" fill="${P.goldD}" stroke="${P.ink}" stroke-width=".35" stroke-linejoin="round"/>` +
-      `<circle cx="-4.8" cy="-16.2" r=".8" fill="${P.ink}"/><circle cx="-4.6" cy="-16.5" r=".25" fill="#fff"/>` +
-      `<ellipse cx="-3.4" cy="-13.4" rx="1.3" ry=".8" fill="${P.red}" opacity=".35"/>` +
+      k.draw([{ d: birdWing, fill: P.goldD, inner: k.sh(birdWing, 0, 0, 1, 1, 0, 0.6, P.brownD, 0.3) }], 0.35) +
+      hair(0.6, -9.6, 3.6, -9.8, 6.6, -8.2, 0.35, P.goldL) + hair(1.6, -8.2, 4, -8, 6.2, -7.2, 0.3, P.goldL) +
+      `<path d="M-8.2 -17.4L-13 -18.2L-8.6 -15.4Z" fill="${P.goldD}" stroke="${P.ink}" stroke-width=".35" stroke-linejoin="round"/>` +
+      `<path d="M-8.6 -15.2L-11 -15.6L-8.4 -14.4Z" fill="${P.wine}"/>` +
+      `<path d="M-8.4 -14.6L-12.2 -13.4L-7.8 -13Z" fill="${P.goldD}" stroke="${P.ink}" stroke-width=".35" stroke-linejoin="round"/>` +
+      `<circle cx="-4.8" cy="-16.6" r=".85" fill="${P.ink}"/><circle cx="-4.6" cy="-16.9" r=".28" fill="#fff"/>` +
+      `<ellipse cx="-3.6" cy="-13.4" rx="1.4" ry=".8" fill="${P.red}" opacity=".35"/>` +
       `</g>`
     return (
       k.day() +
@@ -99,7 +101,7 @@ export const TRUCO_NUEVAS_ART: Record<string, (u: number) => string> = {
             `<path d="M42.2 85V61.4C42.2 52.4 49.4 45.8 60 44.2C70.6 45.8 77.8 52.4 77.8 61.4V85" fill="none" stroke="${P.goldL}" stroke-width=".5" opacity=".75"/>`,
         },
       ], 0.75) +
-      k.draw([{ d: grill, fill: P.goldL, inner: cloth + k.sh(grill, 0, 0, 1, 1, 0, 0.8, P.goldD, 0.4) + ribs + k.sh('M45 46H75V52H45Z', 0, 0, 0, 1, 0.7, 0, P.brownD, 0.3) }], 0.5) +
+      k.draw([{ d: grill, fill: P.goldL, inner: cloth + k.sh(grill, 0, 0, 1, 1, 0, 0.55, P.goldD, 0.3) + ribs + k.sh('M45 46H75V52H45Z', 0, 0, 0, 1, 0.5, 0, P.brownD, 0.25) }], 0.5) +
       k.draw([{ d: dial, fill: P.goldL, inner: k.shade(dial, k.rad(P.gold, 0.5, 0.6, 0.6, 0, 0.9), P.goldD, 0.4) + ticks }], 0.45) +
       `<text x="52.2" y="80" ${GEORGIA} font-weight="700" font-size="2.6" fill="${P.ink}" text-anchor="middle">AM</text>` +
       `<path d="M62.4 80.2L64.2 75" stroke="${P.red}" stroke-width=".6" stroke-linecap="round"/>` +
@@ -135,7 +137,7 @@ export const TRUCO_NUEVAS_ART: Record<string, (u: number) => string> = {
     const chest = ellipse(-5.4, -12.4, 7, 10.4)
     const wing = 'M-2 -21C4 -24.4 12 -21.4 14.4 -14C11.6 -10.4 3.6 -11.6 -2 -21Z'
     const spots = [[-8, -15], [-5, -13], [-2, -15.6], [-7, -10], [-3.6, -8.4], [-0.6, -11], [-5.6, -6]]
-      .map(([x, y]) => `<path d="M${x} ${f(y - 1.2)}C${f(x + 0.9)} ${f(y - 0.2)} ${f(x + 0.8)} ${f(y + 0.8)} ${x} ${f(y + 0.8)}C${f(x - 0.8)} ${f(y + 0.8)} ${f(x - 0.9)} ${f(y - 0.2)} ${x} ${f(y - 1.2)}Z" fill="${P.brownD}"/>`).join('')
+      .map(([x, y]) => `<path d="M${f(x - 0.9)} ${f(y - 0.5)}Q${x} ${f(y + 0.3)} ${f(x + 0.9)} ${f(y - 0.5)}Q${f(x + 0.6)} ${f(y + 0.7)} ${x} ${f(y + 0.8)}Q${f(x - 0.6)} ${f(y + 0.7)} ${f(x - 0.9)} ${f(y - 0.5)}Z" fill="${P.brownD}"/>`).join('')
     const crown = 'M-14 -34.6C-14.6 -39.4 -12 -42.4 -8 -42.6C-6.6 -41.4 -4.6 -41.4 -3.2 -42.4C.4 -42 1.4 -38.8 .6 -34.6Z'
     const brim = 'M-19.6 -34C-17 -36.8 2 -37.4 5.4 -34.6C6 -33.6 3.6 -32.6 1 -32.8C-5 -33.4 -12 -33 -17.4 -32.2C-19 -32 -20.2 -33 -19.6 -34Z'
     const scarf = 'M-13 -23.6C-8 -20.4 -1 -20.6 3 -24L4.4 -21.4C0 -17.4 -8.6 -17 -13.6 -20.6Z'
@@ -191,7 +193,7 @@ export const TRUCO_NUEVAS_ART: Record<string, (u: number) => string> = {
   // lugar de la cara del sol de Mayo y entre laureles.
   'Gardel en el Abasto': (u) => {
     const k = kit(u)
-    const cx = 60, cy = 60, R = 24.6
+    const cx = 60, cy = 61.6, R = 24.6
     const pt = (r: number, a: number) => `${f(cx + r * Math.cos(a))} ${f(cy + r * Math.sin(a))}`
     const disc = ellipse(cx, cy, R, R)
     const label = ellipse(cx, cy, 9.8, 9.8)
@@ -208,7 +210,7 @@ export const TRUCO_NUEVAS_ART: Record<string, (u: number) => string> = {
     const band = 'M-9.8 -4.8C-3.4 -3.4 3.4 -3.4 9.8 -4.8L9.7 -1.6C3.4 -.4 -3.4 -.4 -9.7 -1.6Z'
     const bow = 'M-9.6 -4.2L-12.4 -6.2L-12 -1.8L-9.6 -2.6Z'
     const hat =
-      `<g transform="translate(60.6 36.2) rotate(9) scale(1.1)">` +
+      `<g transform="translate(60.6 39) rotate(9) scale(1.02)">` +
       k.cast([brim, crown], 1.4, 1.2) +
       k.draw([
         { d: brim, fill: P.sky2, inner: k.sh(brim, 0, 0, 1, 1, 0, 0.85, P.mid, 0.45) + `<path d="M-15.4 -.6C-15.4 1.4 -8.6 2.8 0 2.8C8.6 2.8 15.4 1.4 15.4 -.6" fill="none" stroke="${P.mid}" stroke-width=".35" stroke-dasharray=".8 .6"/>` + `<path d="M-14 -1.4C-6 -2.8 6 -2.8 14 -1.4" fill="none" stroke="${P.white}" stroke-width=".5" opacity=".8"/>` },
@@ -244,7 +246,7 @@ export const TRUCO_NUEVAS_ART: Record<string, (u: number) => string> = {
       `<path d="${starPath(cx - 4.6, cy + 1.2, 1, 0.42, 5)}${starPath(cx + 4.6, cy + 1.2, 1, 0.42, 5)}" fill="${P.ink}"/>` +
       `<circle cx="${cx}" cy="${cy}" r="1.3" fill="${P.paper}" stroke="${P.ink}" stroke-width=".4"/>` +
       hat +
-      note(34.4, 44, -14) + notes2(80.6, 40, 10) +
+      note(35.4, 47, -14) + notes2(83, 47.4, 10) +
       sparkle(87, 74, 2.2) + sparkle(33, 77, 1.8) +
       k.defs()
     )
@@ -361,9 +363,9 @@ export const TRUCO_NUEVAS_ART: Record<string, (u: number) => string> = {
       `<circle cx="60" cy="45.4" r="2.2" fill="${P.goldL}" stroke="${P.ink}" stroke-width=".55"/><circle cx="59.3" cy="44.7" r=".7" fill="#fff"/>` +
       `<ellipse cx="${bx}" cy="${f(+by + 1)}" rx="2" ry=".7" fill="${P.night}" opacity=".5"/><circle cx="${bx}" cy="${by}" r="1.8" fill="${P.white}" stroke="${P.ink}" stroke-width=".45"/><circle cx="${f(+bx - 0.6)}" cy="${f(+by - 0.6)}" r=".5" fill="#fff"/>` +
       `</g>` +
-      k.draw([{ d: roundRect(48.6, 75.2, 71.4, 80.2, 1.2), fill: P.gold, inner: k.sh(roundRect(48.6, 75.2, 71.4, 80.2, 1.2), 0, 0, 1, 1, 0, 0.9, P.goldD, 0.4) }], 0.4) +
-      `<circle cx="50" cy="77.7" r=".45" fill="${P.goldD}"/><circle cx="70" cy="77.7" r=".45" fill="${P.goldD}"/>` +
-      `<text x="60" y="78.9" ${GEORGIA} font-style="italic" font-size="3.4" fill="${P.ink}" text-anchor="middle">Mar del Plata</text>` +
+      k.draw([{ d: roundRect(48.6, 74, 71.4, 78.6, 1.2), fill: P.gold, inner: k.sh(roundRect(48.6, 74, 71.4, 78.6, 1.2), 0, 0, 1, 1, 0, 0.9, P.goldD, 0.4) }], 0.4) +
+      `<circle cx="50" cy="76.3" r=".45" fill="${P.goldD}"/><circle cx="70" cy="76.3" r=".45" fill="${P.goldD}"/>` +
+      `<text x="60" y="77.5" ${GEORGIA} font-style="italic" font-size="3.4" fill="${P.ink}" text-anchor="middle">Mar del Plata</text>` +
       chip(k, 82, 80.4, 6.4, P.red) + chip(k, 82, 78.2, 6.4, P.night) + chip(k, 82, 76, 6.4, P.red) + chip(k, 82, 73.8, 6.4, P.gold) +
       chip(k, 37, 81.6, 6, P.gold) + chip(k, 37, 79.4, 6, P.red) +
       sparkle(88, 40, 2.2, P.goldL) + sparkle(30, 50, 1.6, P.goldL) + sparkle(74, 32, 1.4, P.goldL) +
@@ -469,17 +471,17 @@ export const TRUCO_NUEVAS_ART: Record<string, (u: number) => string> = {
   // Veinte partidos: una caja entera de fósforos anotando a tu favor, la de los tres patitos, ante el sol de Mayo.
   'Tres Patitos': (u) => {
     const k = kit(u)
-    const front = 'M30 55H68V84H30Z'
-    const strike = 'M30 55L38 47.6H76L68 55Z'
-    const tray = 'M68 56H82.4V84H68Z'
-    const trayEnd = 'M82.4 56L90.4 48.6V76.6L82.4 84Z'
-    const trayTop = 'M68 56H82.4L90.4 48.6H76Z'
-    const matches = Array.from({ length: 7 }, (_, j) => {
-      const jj = 6 - j, dx = f(jj * 1.14), dy = f(-jj * 1.06), y = f(55.4 + dy)
-      return `<path d="M${f(66 + dx)} ${y}H${f(80.4 + dx)}" stroke="${P.goldD}" stroke-width="1.5"/><path d="M${f(66 + dx)} ${f(y - 0.3)}H${f(80.4 + dx)}" stroke="${P.goldL}" stroke-width=".6"/>` +
-        `<ellipse cx="${f(81.8 + dx)}" cy="${y}" rx="2.1" ry="1.3" fill="${P.red}" stroke="${P.ink}" stroke-width=".35"/><ellipse cx="${f(81.2 + dx)}" cy="${f(y - 0.45)}" rx=".75" ry=".35" fill="#fff" opacity=".65"/>`
+    const front = 'M28 60H68V84H28Z'
+    const strike = 'M28 60L38 51H78L68 60Z'
+    const tray = 'M68 61H82V84H68Z'
+    const trayEnd = 'M82 61L92 52V75L82 84Z'
+    const trayTop = 'M68 61H82L92 52H78Z'
+    const matches = Array.from({ length: 9 }, (_, j) => {
+      const jj = 8 - j, dx = f(jj * 1.11), dy = f(-jj * 1), y = f(60.4 + dy)
+      return `<path d="M${f(64 + dx)} ${y}H${f(80 + dx)}" stroke="${P.goldD}" stroke-width="1.5"/><path d="M${f(64 + dx)} ${f(y - 0.3)}H${f(80 + dx)}" stroke="${P.goldL}" stroke-width=".6"/>` +
+        `<ellipse cx="${f(81.4 + dx)}" cy="${y}" rx="2.1" ry="1.3" fill="${P.red}" stroke="${P.ink}" stroke-width=".35"/><ellipse cx="${f(80.8 + dx)}" cy="${f(y - 0.45)}" rx=".75" ry=".35" fill="#fff" opacity=".65"/>`
     }).join('')
-    const grain = Array.from({ length: 46 }, (_, i) => `<circle cx="${f(31 + ((i * 37) % 46) + ((i * 11) % 7) * 0.5)}" cy="${f(48.2 + ((i * 23) % 64) / 10)}" r=".38" fill="${P.goldD}" opacity=".75"/>`).join('')
+    const grain = Array.from({ length: 60 }, (_, i) => `<circle cx="${f(30 + ((i * 37) % 50) + ((i * 11) % 7) * 0.5)}" cy="${f(51.6 + ((i * 23) % 80) / 10)}" r=".38" fill="${P.goldD}" opacity=".75"/>`).join('')
     const duck = (x: number, y: number, s: number) => {
       const bod = 'M-5.4 -3.6C-5.4 -6.4 -2.6 -7.4 .4 -7C2.6 -6.8 4.6 -5.8 5.2 -3.8C5.6 -1.6 3.6 0 .4 0C-2.6 0 -4.6 -.6 -5.4 -2.2L-7.6 -5.6Z'
       const hd = ellipse(3.6, -9.6, 2.9, 2.8)
@@ -494,28 +496,29 @@ export const TRUCO_NUEVAS_ART: Record<string, (u: number) => string> = {
     }
     return (
       k.day() +
-      k.sun(58, 52, 16, 44) +
+      k.sun(58, 54, 16, 44) +
       k.cast([front, strike, trayEnd, tray], 2.4, 2) +
-      k.floor(61, 86, 31, 2.6) +
-      k.draw([{ d: strike, fill: P.brownD, inner: grain + k.sh(strike, 0, 0, 1, 0, 0, 0.6, P.night, 0.3) + `<path d="M31 54.4L38.6 48.2" stroke="${P.goldL}" stroke-width=".4" opacity=".6"/>` }], 0.7) +
+      k.floor(61, 86, 33, 2.6) +
+      k.draw([{ d: strike, fill: P.brownD, inner: grain + k.sh(strike, 0, 0, 1, 0, 0, 0.6, P.night, 0.3) + `<path d="M29 59.4L38.6 51.6" stroke="${P.goldL}" stroke-width=".4" opacity=".6"/>` }], 0.7) +
+      k.draw([{ d: trayTop, fill: P.goldD, inner: matches }], 0.7) +
+      palito(k, 74.4, 60, 70, 39.4, 2.4) + palito(k, 81, 58.6, 80.6, 36.6, 2.4) + palito(k, 86.4, 56, 90, 40.6, 2.4) +
       k.draw([
-        { d: trayTop, fill: P.goldD, inner: matches },
-        { d: trayEnd, fill: P.sky1, inner: k.sh(trayEnd, 0, 0, 1, 0, 0.35, 0.95, P.blue, 0.5) },
-        { d: tray, fill: P.sky1, inner: k.sh(tray, 0, 0, 1, 0, 0, 0.7, P.blue, 0.35) + `<path d="M68 57.4H82.4" stroke="${P.white}" stroke-width=".6"/>` },
+        { d: trayEnd, fill: P.sky2, inner: k.sh(trayEnd, 0, 0, 1, 0, 0.3, 0.95, P.mid, 0.5) },
+        { d: tray, fill: P.sky1, inner: k.sh(tray, 0, 0, 1, 0, 0, 0.7, P.blue, 0.35) + `<path d="M68 62.4H82" stroke="${P.white}" stroke-width=".6"/>` },
       ], 0.7) +
-      `<path d="M68 56H82.4L90.4 48.6" fill="none" stroke="${P.ink}" stroke-width=".5"/>` +
+      `<path d="M68 61H82L92 52" fill="none" stroke="${P.ink}" stroke-width=".5"/>` +
       k.draw([{
         d: front, fill: P.mid,
         inner:
-          `<path d="M32.4 57.4H65.6V81.6H32.4Z" fill="${P.paper}"/>` + `<path d="M33.6 58.6H64.4V80.4H33.6Z" fill="none" stroke="${P.red}" stroke-width=".55"/>` +
-          `<path d="M32.4 75.4Q36.4 73.6 40.4 75.4T48.4 75.4T56.4 75.4T64.4 75.4L65.6 75V81.6H32.4Z" fill="${P.sky}"/>` +
-          `<path d="M32.4 75.4Q36.4 73.6 40.4 75.4T48.4 75.4T56.4 75.4T64.4 75.4" fill="none" stroke="${P.blue}" stroke-width=".5"/>` +
-          k.sh('M58 52H70V86H58Z', 0, 0, 1, 0, 0, 0.6, P.blue, 0.3) + k.sh('M28 52H70V86H28Z', 0, 0, 1, 1, 0, 0.5, P.night, 0.3) +
-          `<path d="M30.8 55.6V83.4" stroke="${P.sky}" stroke-width=".6" opacity=".7"/>`,
+          `<path d="M30.2 62.2H65.8V81.8H30.2Z" fill="${P.paper}"/>` + `<path d="M31.4 63.4H64.6V80.6H31.4Z" fill="none" stroke="${P.red}" stroke-width=".55"/>` +
+          `<path d="M30.2 77.4Q34.2 75.6 38.2 77.4T46.2 77.4T54.2 77.4T62.2 77.4L65.8 76.6V81.8H30.2Z" fill="${P.sky}"/>` +
+          `<path d="M30.2 77.4Q34.2 75.6 38.2 77.4T46.2 77.4T54.2 77.4T62.2 77.4" fill="none" stroke="${P.blue}" stroke-width=".5"/>` +
+          k.sh('M58 52H70V86H58Z', 0, 0, 1, 0, 0, 0.55, P.blue, 0.3) + k.sh('M28 74H70V86H28Z', 0, 0, 0, 1, 0, 0.4, P.mid, 0.25) +
+          `<path d="M28.8 60.6V83.4" stroke="${P.sky}" stroke-width=".6" opacity=".7"/>`,
       }], 0.75) +
-      `<text x="49" y="64" ${GEORGIA} font-style="italic" font-size="4.4" fill="${P.ink}" text-anchor="middle">fósforos</text>` +
-      duck(39.2, 75.4, 0.86) + duck(49.4, 75.4, 0.86) + duck(59.6, 75.4, 0.86) +
-      hair(36.2, 77.6, 39.2, 78.2, 42.2, 77.6, 0.45, P.white) + hair(52, 78.6, 55, 79.2, 58, 78.6, 0.45, P.white) +
+      `<text x="48" y="67.6" ${GEORGIA} font-style="italic" font-size="3.8" fill="${P.ink}" text-anchor="middle">fósforos</text>` +
+      duck(38.4, 77.4, 0.74) + duck(48, 77.4, 0.74) + duck(57.6, 77.4, 0.74) +
+      hair(34.6, 79.4, 37.6, 80, 40.6, 79.4, 0.45, P.white) + hair(50.6, 80.2, 53.6, 80.8, 56.6, 80.2, 0.45, P.white) +
       palito(k, 42, 91.2, 64, 88.4) +
       sparkle(87, 36, 2.4) + sparkle(30, 40, 1.8) +
       k.defs()
@@ -571,16 +574,18 @@ export const TRUCO_NUEVAS_ART: Record<string, (u: number) => string> = {
       stars + cruz +
       `<path d="M0 76Q30 72.6 60 75T120 74V130H0Z" fill="${sil}"/>` + molino +
       `<path d="M0 76Q30 72.6 60 75T120 74" fill="none" stroke="${P.mid}" stroke-width=".5"/>` +
+      [[28, 80.6], [33, 79.4], [37.6, 82], [83, 81.4], [88, 79.6], [92.4, 81]].map(([x, y]) =>
+        hair(x, y, x - 1.4, y - 2.6, x - 2.4, y - 5.2, 0.55, P.mid) + hair(x + 0.6, y, x + 0.8, y - 3, x + 0.4, y - 6, 0.55, P.mid) + hair(x + 1.2, y, x + 2.4, y - 2.4, x + 3.6, y - 4.4, 0.5, P.mid)).join('') +
       k.shade(ellipse(60, 80, 40, 14), k.rad(P.goldD, 0.5, 0.5, 0.5, 0.75, 0), P.goldD, 0.4) +
       k.shade(ellipse(60, 52, 34, 34), k.rad(P.gold, 0.5, 0.5, 0.5, 0.45, 0), P.gold, 0.3) +
       `<path d="${inside}" fill="${P.goldD}"/>` + k.shade(inside, k.rad(P.red, 0.5, 0.4, 0.6, 0, 0.9), P.red, 0.4) +
       alongX(20, 0, -1) + alongX(2, 0, 1) +
       alongZ(-13, t) + alongZ(13, t) +
       alongX(20, 2 * t, 1) + alongX(2, 2 * t, -1) +
-      flame(k, 'translate(60.4 74) scale(.62 .72) translate(-60 -90)') +
+      flame(k, 'translate(60.4 74) scale(.62 .68) translate(-60 -90)') +
       hair(52, 62, 49, 52, 53, 42, 0.7, P.goldL, 0.8) + hair(68, 60, 72, 50, 67.6, 40, 0.6, P.goldL, 0.8) + hair(60.4, 64, 58.6, 54, 61, 46, 0.8, P.white, 0.7) +
       alongZ(-13, 3 * t) + alongZ(13, 3 * t) +
-      [[47, 90.4, 2.2], [53.4, 91.4, 1.6], [70.4, 90.8, 2], [76, 89.6, 1.4], [62, 92, 1.3]].map(([x, y, r]) => `<ellipse cx="${x}" cy="${y}" rx="${r}" ry="${f(r * 0.6)}" fill="${P.goldD}" stroke="${P.ink}" stroke-width=".35"/><ellipse cx="${f(x - r * 0.2)}" cy="${f(y - r * 0.15)}" rx="${f(r * 0.55)}" ry="${f(r * 0.3)}" fill="${P.gold}"/>`).join('') +
+      [[44, 90.6], [50, 92], [58, 92.6], [67, 92.2], [74, 90.8], [79, 89.4]].map(([x, y], i) => `<circle cx="${x}" cy="${y}" r="${i % 2 ? 0.45 : 0.6}" fill="${P.goldL}"/>`).join('') +
       [[46, 30, 0.8], [76, 24, 0.7], [80, 40, 0.6], [42, 44, 0.6], [68, 18.6, 0.5], [54, 20, 0.5], [86, 30, 0.5]].map(([x, y, r]) => `<circle cx="${x}" cy="${y}" r="${r}" fill="${P.goldL}"/>`).join('') +
       hair(44, 50, 41, 44, 43, 38, 0.6, P.goldL) + hair(78, 46, 81, 40, 79, 34, 0.6, P.goldL) +
       k.defs()
