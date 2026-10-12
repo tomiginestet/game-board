@@ -4,7 +4,8 @@ import { Link, useNavigate } from 'react-router-dom'
 import { useAuth } from '../lib/auth'
 import { switchToGroup, useMyGroups, useNotifications, useProfile, userAsPlayer, type MyGroup } from '../lib/social'
 import { syncAvailable, useSyncState } from '../lib/sync'
-import { SyncBadge } from '../pages/ClubPage'
+import { Logo } from './Logo'
+import { SyncBadge } from './SyncBadge'
 import { Avatar } from './Avatar'
 
 /** Barra de arriba con sesión: grupo activo (para cambiar), notificaciones y perfil. */
@@ -22,7 +23,9 @@ export function TopBar() {
   if (!auth.session) {
     return (
       <header className="top-bar">
-        <span className="top-brand grow">🎲 Game Board</span>
+        <span className="top-brand grow title-with-icon">
+          <Logo className="title-logo" size={26} /> Game Board
+        </span>
         <SyncBadge />
         <Link to="/ajustes" className="tool-btn" aria-label="Ajustes">
           <GearSixIcon size={22} />

@@ -1,11 +1,12 @@
 import { ArrowsClockwiseIcon, ArrowsCounterClockwiseIcon, CheckIcon, CloudIcon, CopyIcon, SignInIcon, PlusIcon, ShareNetworkIcon, SignOutIcon, SparkleIcon } from '@phosphor-icons/react'
 import { useEffect, useState } from 'react'
-import { Link, useNavigate, useParams } from 'react-router-dom'
+import { useNavigate, useParams } from 'react-router-dom'
 import { formatDate } from '../lib/hooks'
 import { useData } from '../lib/store'
 import { linkClub } from '../lib/auth'
 import { createClub as createClubRaw, findClub, inviteLink, joinClub as joinClubRaw, leaveClub, syncAvailable, syncNow, useSyncState } from '../lib/sync'
 import { AccountCard } from '../components/AccountCard'
+import { Loader } from '../components/Logo'
 
 // Si hay sesión, el club queda guardado en la cuenta.
 const createClub = (name: string) => createClubRaw(name).then(async (c) => (await linkClub(c.code).catch(() => {}), c))
@@ -18,17 +19,6 @@ const STATUS_TEXT = {
   offline: 'Sin conexión (se sube al volver)',
   error: 'Error al sincronizar',
 } as const
-
-export function SyncBadge() {
-  const sync = useSyncState()
-  if (!syncAvailable) return null
-  return (
-    <Link to="/club" className={'sync-badge ' + sync.status}>
-      <span className="sync-dot" />
-      <span className="ellipsis">{sync.club ? sync.club.name : 'Sincronizar'}</span>
-    </Link>
-  )
-}
 
 export function ClubPage() {
   const sync = useSyncState()
@@ -246,7 +236,7 @@ export function ClubPage() {
         </>
       )}
 
-      {busy && <p className="muted center-text">Sincronizando…</p>}
+      {busy && <Loader text="Sincronizando…" delay={0} size={72} />}
       {error && <p className="error">{error}</p>}
     </div>
   )

@@ -1,4 +1,4 @@
-import { ArrowRightIcon, CaretLeftIcon, CaretRightIcon, GearSixIcon, SquaresFourIcon, TrashIcon, TrophyIcon, UsersIcon } from '@phosphor-icons/react'
+import { ArrowRightIcon, CaretLeftIcon, CaretRightIcon, GearSixIcon, TrashIcon, TrophyIcon, UsersIcon } from '@phosphor-icons/react'
 import { useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { Avatar } from '../components/Avatar'
@@ -6,7 +6,9 @@ import { HeroCard, ShelfCard, Shelf } from '../components/GameCard'
 import { GameCover } from '../components/GameCover'
 import { GameBadge, PlayRow } from '../components/GameBits'
 import { PlaceMedal } from '../components/icons'
+import { Logo } from '../components/Logo'
 import { MatchRow } from '../components/MatchRow'
+import { SyncBadge } from '../components/SyncBadge'
 import { cupChampion } from '../lib/cups'
 import { FEATURED, findGame, HERO, pickGames } from '../lib/games'
 import type { Category, GameDef } from '../lib/games/schema'
@@ -14,7 +16,6 @@ import { gameOrMissing, useBoard, useGames, usePlayerMap } from '../lib/hooks'
 import { tournamentChampion } from '../lib/pingpong/stats'
 import { actions, useData } from '../lib/store'
 import { syncAvailable } from '../lib/sync'
-import { SyncBadge } from './ClubPage'
 import { playPath } from './GameDetail'
 
 /** Estantes por categoría del inicio. */
@@ -77,7 +78,7 @@ export function Home() {
         <header className="home-header">
           <div className="grow">
             <h1 className="title-with-icon">
-              <SquaresFourIcon className="title-icon" weight="duotone" /> Game Board
+              <Logo className="title-logo" size={30} /> Game Board
             </h1>
             <p className="muted">Partidas, torneos y quién manda en cada juego.</p>
           </div>

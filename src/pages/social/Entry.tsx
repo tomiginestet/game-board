@@ -2,6 +2,7 @@ import { ArrowRightIcon, LinkIcon, MagnifyingGlassIcon, PlusCircleIcon, SignOutI
 import { useEffect, useState, type ReactNode } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
 import { LoginForm } from '../../components/LoginForm'
+import { Loader } from '../../components/Logo'
 import { ProfileForm } from '../../components/ProfileForm'
 import { linkClub, setGuest, signOut, useAuth, useGuest } from '../../lib/auth'
 import { isProfileComplete, refreshGroups, switchToGroup, useMyGroups, useProfile, watchNotifications } from '../../lib/social'
@@ -65,10 +66,7 @@ function lastGroup(): string | null {
 function Splash() {
   return (
     <div className="splash">
-      <span className="splash-logo" aria-hidden>
-        🎲
-      </span>
-      <p className="muted">Cargando…</p>
+      <Loader kind="secuencia" text="Cargando…" />
     </div>
   )
 }

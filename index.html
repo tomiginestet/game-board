@@ -16,8 +16,36 @@
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Lilita+One&display=swap" />
     <meta name="description" content="Partidas, rankings, torneos y medallas de todos los juegos con tus amigos." />
     <title>Game Board</title>
+    <style>
+      /* Pantalla de inicio mientras baja la app; main.tsx la saca cuando React ya dibujó. */
+      #splash {
+        position: fixed;
+        inset: 0;
+        z-index: 100;
+        display: grid;
+        place-content: center;
+        justify-items: center;
+        gap: 18px;
+        background: #0d1117;
+        color: #f0f3f8;
+        font: 400 32px 'Lilita One', system-ui, sans-serif;
+        transition: opacity 0.25s ease;
+      }
+      #splash img {
+        width: 120px;
+        height: 120px;
+      }
+      #splash.out {
+        opacity: 0;
+        pointer-events: none;
+      }
+    </style>
   </head>
   <body>
+    <div id="splash" aria-hidden="true">
+      <img src="./logo-secuencia.svg" alt="" />
+      Game Board
+    </div>
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
   </body>
