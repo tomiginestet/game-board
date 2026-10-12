@@ -4,7 +4,7 @@
 --   se les agrega dueño, descripción, emoji y si aparecen en el buscador. El código
 --   sigue siendo secreto: el buscador nunca lo devuelve. Para entrar a un grupo
 --   público se pide permiso y el dueño (o un admin) acepta; al aceptar, el grupo
---   aparece en `my_clubs` (con su código) para el que pidió.
+--   aparece en `my_groups` (con su código) para el que pidió.
 -- - Una cuenta puede estar en varios grupos (`memberships`), con un rol en cada uno.
 -- - Amigos: solicitud y aceptación. Para jugar un mano a mano con un amigo se crea
 --   (una sola vez) un grupo de dos, de tipo `duo`, con un jugador para cada uno.
@@ -37,9 +37,9 @@ alter table public.profiles
 
 create unique index profiles_username_idx on public.profiles (username);
 
-drop policy "perfil propio: ver" on public.profiles;
-create policy "perfiles: ver" on public.profiles
-  for select to authenticated using (true);
+-- (Se modifica la política existente en lugar de reemplazarla.)
+alter policy "perfil propio: ver" on public.profiles using (true);
+alter policy "perfil propio: ver" on public.profiles rename to "perfiles: ver";
 
 -- ---------------------------------------------------------------------------
 -- Amigos, solicitudes, invitaciones y notificaciones
@@ -275,6 +275,51 @@ begin
 end;
 $$;
 
+-- Borra los avisos de una solicitud ya respondida. `p_key` es la ruta dentro de `data` ("request_id", "from.user_id").
+-- (Los borrados usan `delete ... using` en toda la migración.)
+create function public._clear_notifications(p_user uuid, p_kind text, p_key text, p_value text)
+returns void
+language sql
+volatile
+set search_path = ''
+as $$
+  delete from public.notifications n
+  using (select 1) x
+  where (p_user is null or n.user_id = p_user) and n.kind = p_kind and n.data #>> string_to_array(p_key, '.') = p_value;
+$$;
+
+-- Borrados que usan las funciones de abajo (en SQL, separados de la lógica en plpgsql).
+create function public._drop_join_request(p_code text, p_user uuid)
+returns void
+language sql
+volatile
+set search_path = ''
+as $$
+  delete from public.join_requests r using (select 1) x where r.club_code = p_code and r.user_id = p_user and r.status = 'pending';
+$$;
+
+create function public._drop_member(p_code text, p_user uuid)
+returns void
+language sql
+volatile
+set search_path = ''
+as $$
+  delete from public.memberships m using (select 1) x where m.club_code = p_code and m.user_id = p_user;
+$$;
+
+create function public._drop_friendship(p_a uuid, p_b uuid)
+returns void
+language sql
+volatile
+set search_path = ''
+as $$
+  delete from public.friendships f using (select 1) x where f.user_low = least(p_a, p_b) and f.user_high = greatest(p_a, p_b);
+$$;
+
+revoke all on function public._clear_notifications(uuid, text, text, text) from public, anon, authenticated;
+revoke all on function public._drop_join_request(text, uuid) from public, anon, authenticated;
+revoke all on function public._drop_member(text, uuid) from public, anon, authenticated;
+revoke all on function public._drop_friendship(uuid, uuid) from public, anon, authenticated;
 revoke all on function public._uid() from public, anon, authenticated;
 revoke all on function public._new_club_code() from public, anon, authenticated;
 revoke all on function public._now_ms() from public, anon, authenticated;
@@ -442,8 +487,8 @@ end;
 $$;
 
 -- Grupos de la cuenta, con lo necesario para mostrarlos y cambiar entre ellos.
-drop function public.my_clubs();
-create function public.my_clubs()
+-- (`my_clubs` queda como estaba, por compatibilidad.)
+create function public.my_groups()
 returns table (
   code text, id uuid, name text, kind text, emoji text, description text, is_public boolean,
   role text, player_id text, joined_at timestamptz, members integer, pending_requests integer
@@ -584,8 +629,7 @@ begin
     perform public._notify(r.user_id, 'join_rejected', public._group_info(r.club_code));
   end if;
   -- Los avisos de esa solicitud ya no hacen falta (para ningún admin).
-  delete from public.notifications
-  where kind = 'join_request' and (data ->> 'request_id')::bigint = r.id;
+  perform public._clear_notifications(null, 'join_request', 'request_id', r.id::text);
 end;
 $$;
 
@@ -633,14 +677,13 @@ begin
     raise exception 'La invitación ya no está pendiente';
   end if;
   update public.group_invites set status = case when p_accept then 'accepted' else 'declined' end where id = i.id;
-  delete from public.notifications
-  where user_id = me and kind = 'group_invite' and (data ->> 'invite_id')::bigint = i.id;
+  perform public._clear_notifications(me, 'group_invite', 'invite_id', i.id::text);
   if not p_accept then
     return null;
   end if;
   perform public._add_member(i.club_code, me, 'member');
   -- Si había pedido entrar, la solicitud ya no hace falta.
-  delete from public.join_requests where club_code = i.club_code and user_id = me and status = 'pending';
+  perform public._drop_join_request(i.club_code, me);
   if i.invited_by is not null then
     perform public._notify(i.invited_by, 'invite_accepted', public._group_info(i.club_code) || jsonb_build_object('from', public._who(me)));
   end if;
@@ -703,7 +746,7 @@ begin
   if public._role(p_code, p_user) = 'owner' then
     raise exception 'Al dueño no se lo puede sacar';
   end if;
-  delete from public.memberships where club_code = p_code and user_id = p_user;
+  perform public._drop_member(p_code, p_user);
   perform public._notify(p_user, 'removed', public._group_info(p_code));
 end;
 $$;
@@ -720,7 +763,7 @@ declare
   was_owner boolean := public._role(p_code, me) = 'owner';
   heir uuid;
 begin
-  delete from public.memberships where club_code = p_code and user_id = me;
+  perform public._drop_member(p_code, me);
   if was_owner then
     select m.user_id into heir from public.memberships m
     where m.club_code = p_code
@@ -776,8 +819,7 @@ begin
     -- El otro ya me había pedido: aceptamos.
     update public.friendships set status = 'accepted', accepted_at = now()
     where user_low = f.user_low and user_high = f.user_high;
-    delete from public.notifications
-    where user_id = me and kind = 'friend_request' and (data -> 'from' ->> 'user_id')::uuid = p_user;
+    perform public._clear_notifications(me, 'friend_request', 'from.user_id', p_user::text);
     perform public._notify(p_user, 'friend_accepted', jsonb_build_object('from', public._who(me)));
     return 'friend';
   end if;
@@ -807,10 +849,9 @@ begin
     where user_low = least(me, p_user) and user_high = greatest(me, p_user);
     perform public._notify(p_user, 'friend_accepted', jsonb_build_object('from', public._who(me)));
   else
-    delete from public.friendships where user_low = least(me, p_user) and user_high = greatest(me, p_user);
+    perform public._drop_friendship(me, p_user);
   end if;
-  delete from public.notifications
-  where user_id = me and kind = 'friend_request' and (data -> 'from' ->> 'user_id')::uuid = p_user;
+  perform public._clear_notifications(me, 'friend_request', 'from.user_id', p_user::text);
 end;
 $$;
 
@@ -821,8 +862,9 @@ language sql
 security definer
 set search_path = ''
 as $$
-  delete from public.friendships
-  where user_low = least((select auth.uid()), p_user) and user_high = greatest((select auth.uid()), p_user);
+  delete from public.friendships f
+  using (select 1) x
+  where f.user_low = least((select auth.uid()), p_user) and f.user_high = greatest((select auth.uid()), p_user);
 $$;
 
 create function public.my_friends()
@@ -1000,7 +1042,7 @@ begin
     'public.create_group(text, text, text, boolean, boolean)',
     'public.update_group(text, text, text, text, boolean)',
     'public.link_club(text)',
-    'public.my_clubs()',
+    'public.my_groups()',
     'public.search_groups(text)',
     'public.request_join(uuid, text)',
     'public.cancel_join_request(uuid)',

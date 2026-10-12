@@ -143,7 +143,7 @@ export async function refreshGroups(): Promise<MyGroup[]> {
   }
   setGroups({ ...groupsState, userId: uid, loading: true })
   try {
-    const groups = (await rpc<MyGroup[] | null>('my_clubs')) ?? []
+    const groups = (await rpc<MyGroup[] | null>('my_groups')) ?? []
     setGroups({ userId: uid, groups, loading: false })
     return groups
   } catch (e) {
