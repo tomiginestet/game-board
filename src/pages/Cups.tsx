@@ -48,7 +48,7 @@ export function Cups() {
       <div className="section-head">
         <h1>Torneos</h1>
         <Link to="/torneos/nuevo" className="btn primary small">
-          <PlusIcon /> Nuevo
+          <PlusIcon /> Nuevo torneo
         </Link>
       </div>
       {!rows.length && (
@@ -56,7 +56,7 @@ export function Cups() {
           <TrophyIcon size={40} weight="duotone" />
           <p>Todavía no hay torneos. Armá uno de cualquier juego: liga, eliminación, mesas rotativas o partida acumulada.</p>
           <Link to="/torneos/nuevo" className="btn primary">
-            <PlusIcon /> Armar torneo
+            <PlusIcon /> Crear torneo
           </Link>
         </div>
       )}

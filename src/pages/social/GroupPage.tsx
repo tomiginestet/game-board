@@ -46,7 +46,7 @@ import { friendlyError } from '../../lib/text'
 import { ErrorText } from '../../components/Feedback'
 import { confirmAction } from '../../lib/feedback'
 
-const ROLE_NAMES = { owner: 'Dueño', admin: 'Admin', member: 'Integrante' } as const
+const ROLE_NAMES = { owner: 'Admin principal', admin: 'Admin', member: 'Integrante' } as const
 
 export function GroupPage() {
   const auth = useAuth()
@@ -394,7 +394,7 @@ function InviteSection({ group, members }: { group: MyGroup; members: Member[] }
                     .catch((e) => setError(friendlyError(e)))
                 }
               >
-                {member ? 'Ya está' : done ? 'Invitado' : 'Invitar'}
+                {member ? 'Ya está' : done ? 'Invitación enviada' : 'Invitar'}
               </button>
             </div>
           )

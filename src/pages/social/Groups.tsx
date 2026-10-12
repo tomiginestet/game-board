@@ -7,6 +7,7 @@ import { findClub, normalizeCode, useSyncState } from '../../lib/sync'
 import { GroupForm, GroupSearch } from './GroupForms'
 import { friendlyError } from '../../lib/text'
 import { ErrorText } from '../../components/Feedback'
+import { plural } from '../../lib/hooks'
 
 /** Todos tus grupos y mano a mano, para cambiar entre ellos o crear/buscar otros. */
 export function Groups() {
@@ -41,9 +42,9 @@ export function Groups() {
         <b className="block ellipsis">{g.name}</b>
         <span className="muted small">
           {g.kind === 'duo' ? 'Mano a mano' : `${g.members} ${g.members === 1 ? 'integrante' : 'integrantes'} · ${g.is_public ? 'público' : 'privado'}`}
-          {g.role === 'owner' && g.kind === 'group' && ' · sos el dueño'}
+          {g.role === 'owner' && g.kind === 'group' && ' · lo administrás vos'}
         </span>
-        {g.pending_requests > 0 && <span className="pill accent tiny">{g.pending_requests} solicitudes para entrar</span>}
+        {g.pending_requests > 0 && <span className="pill accent tiny">{plural(g.pending_requests, 'solicitud', 'solicitudes')} para entrar</span>}
       </span>
       {g.code === sync.club?.code ? <CheckIcon className="win-text" /> : busy === g.code ? <span className="muted">…</span> : <CaretRightIcon className="muted" />}
     </button>

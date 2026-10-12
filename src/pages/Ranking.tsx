@@ -1,3 +1,4 @@
+import { SparkleIcon } from '@phosphor-icons/react'
 import { useEffect, useMemo, useState } from 'react'
 import { Link, useSearchParams } from 'react-router-dom'
 import { Avatar, TeamAvatar } from '../components/Avatar'
@@ -16,7 +17,7 @@ type Period = 'all' | 'year' | 'month' | 'week'
 const TABS: { id: Tab; name: string; help: string }[] = [
   { id: 'gloria', name: '✨ Gloria', help: 'Puntos por cada partida: más por ganar, por mesas grandes y por juegos largos.' },
   { id: 'wins', name: '🏆 Victorias', help: 'Partidas ganadas sumando todos los juegos.' },
-  { id: 'elo', name: '📈 ELO por juego', help: 'El nivel de cada uno en un juego: sube más si le ganás a alguien mejor.' },
+  { id: 'elo', name: '📈 Elo por juego', help: 'El nivel de cada uno en un juego: sube más si le ganás a alguien mejor.' },
   { id: 'allround', name: '🧰 Todoterreno', help: 'En cuántos juegos distintos ganaste alguna vez.' },
   { id: 'belts', name: '🥊 Cinturones', help: 'Quién tiene el cinturón de cada juego: se lo saca el que le gana.' },
 ]
@@ -92,7 +93,7 @@ function GlobalRanking() {
       </div>
       <div className="segmented small mt">
         {PERIODS.map((p) => (
-          <button key={p.id} className={period === p.id ? 'active' : ''} onClick={() => setPeriod(p.id)}>
+          <button key={p.id} className={period === p.id ? 'active' : ''} aria-pressed={period === p.id} onClick={() => setPeriod(p.id)}>
             {p.name}
           </button>
         ))}
@@ -121,11 +122,18 @@ function GlobalRanking() {
               <span className="muted small block">
                 {tab === 'allround'
                   ? `ganó en ${plural(r.games_won, 'juego', 'juegos')}`
-                  : `${plural(r.played, 'partida', 'partidas')} · ${r.wins} ganadas · ${Math.round((r.wins / Math.max(1, r.played)) * 100)}%`}
+                  : `${plural(r.played, 'partida', 'partidas')} · ${plural(r.wins, 'victoria', 'victorias')} · ${Math.round((r.wins / Math.max(1, r.played)) * 100)}%`}
                 {` · ${plural(r.groups, 'club', 'clubes')}`}
               </span>
             </span>
-            <span className="rank-value">{tab === 'wins' ? r.wins : tab === 'allround' ? r.games_won : `✨ ${r.gloria}`}</span>
+            <span className="rank-value num">
+              {tab === 'wins' ? r.wins : tab === 'allround' ? r.games_won : (
+                <>
+                  <SparkleIcon weight="fill" className="gloria-icon" aria-hidden /> {r.gloria}
+                  <span className="sr-only"> de gloria</span>
+                </>
+              )}
+            </span>
           </div>
         ))}
       </div>
@@ -149,7 +157,7 @@ function GroupRanking() {
     if (tab === 'gloria')
       return all
         .sort((a, b) => b.gloria - a.gloria || b.wins - a.wins)
-        .map((s) => ({ s, value: `✨ ${s.gloria}`, sub: `${plural(s.played, 'partida', 'partidas')} · ${s.wins} ganadas` }))
+        .map((s) => ({ s, value: `${s.gloria}`, sub: `${plural(s.played, 'partida', 'partidas')} · ${plural(s.wins, 'victoria', 'victorias')}` }))
     if (tab === 'wins')
       return all
         .sort((a, b) => b.wins - a.wins || winRate(b) - winRate(a))
@@ -172,14 +180,14 @@ function GroupRanking() {
     <>
       <div className="chips scroll mt">
         {TABS.map((t) => (
-          <button key={t.id} className={'chip' + (tab === t.id ? ' active' : '')} onClick={() => setTab(t.id)}>
+          <button key={t.id} className={'chip' + (tab === t.id ? ' active' : '')} aria-pressed={tab === t.id} onClick={() => setTab(t.id)}>
             {t.name}
           </button>
         ))}
       </div>
       <div className="segmented small mt">
         {PERIODS.map((p) => (
-          <button key={p.id} className={period === p.id ? 'active' : ''} onClick={() => setPeriod(p.id)}>
+          <button key={p.id} className={period === p.id ? 'active' : ''} aria-pressed={period === p.id} onClick={() => setPeriod(p.id)}>
             {p.name}
           </button>
         ))}
@@ -189,14 +197,27 @@ function GroupRanking() {
       {tab === 'elo' && (
         <div className="chips scroll">
           {playedGames.map((g) => (
-            <button key={g.id} className={'chip' + (eloGame === g.id ? ' active' : '')} onClick={() => setGameId(g.id)}>
+            <button key={g.id} className={'chip' + (eloGame === g.id ? ' active' : '')} aria-pressed={eloGame === g.id} onClick={() => setGameId(g.id)}>
               {g.emoji} {g.name}
             </button>
           ))}
         </div>
       )}
 
-      {!board.views.length && <div className="empty">No hay partidas en este período.</div>}
+      {!board.views.length && (
+        <div className="empty">
+          {period === 'all' ? (
+            <>
+              <p>Todavía no hay partidas anotadas. Cuando terminen la primera, acá se arma la tabla.</p>
+              <Link to="/juegos" className="btn primary">
+                Anotar una partida
+              </Link>
+            </>
+          ) : (
+            <p>No hubo partidas en este período. Probá con uno más largo.</p>
+          )}
+        </div>
+      )}
 
       <div className="list ranking">
         {tab === 'elo'
@@ -209,10 +230,10 @@ function GroupRanking() {
                   <span className="grow">
                     <b>{p.name}</b>
                     <span className="muted small block">
-                      {levelFor(s!.elo).name} · {s!.wins}G {s!.losses}P
+                      {levelFor(s!.elo).name} · {plural(s!.wins, 'victoria', 'victorias')}, {plural(s!.losses, 'derrota', 'derrotas')}
                     </span>
                   </span>
-                  <span className="rank-value">
+                  <span className="rank-value num">
                     <LevelIcon icon={levelFor(s!.elo).icon} /> {s!.elo}
                   </span>
                 </Link>
@@ -245,7 +266,10 @@ function GroupRanking() {
                       <b>{p.name}</b>
                       <span className="muted small block">{sub}</span>
                     </span>
-                    <span className="rank-value">{value}</span>
+                    <span className="rank-value num">
+                      {tab === 'gloria' && <SparkleIcon weight="fill" className="gloria-icon" aria-hidden />} {value}
+                      {tab === 'gloria' && <span className="sr-only"> de gloria</span>}
+                    </span>
                   </Link>
                 )
               })}

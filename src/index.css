@@ -2558,3 +2558,4 @@ svg {
   align-items: center;
   gap: 4px;
 }
+.gloria-icon { color: var(--accent-2); }
