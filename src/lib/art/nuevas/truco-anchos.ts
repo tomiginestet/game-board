@@ -2,33 +2,66 @@
 import { f } from '../helpers'
 import { ellipse, hair, kit, laurel, P, roundRect, sparkle, type Kit } from '../kit'
 
-/** Espada del naipe: hoja azul de dos caras, guarnición dorada con volutas, puño rojo encordado y pomo. */
+/** Espada del naipe, con trabajo de grabado: hoja de dos caras con vaceo y aguafuerte, guarnición dorada en capas
+ * con perlas y volutas, gavilán curvo hasta el pomo, puño rojo encordado con alambre dorado y pomo facetado. */
 function sword(k: Kit, s = 1) {
-  const bladeL = 'M0 -41L-4.6 -30V10H0Z'
-  const bladeR = 'M0 -41L4.6 -30V10H0Z'
-  const blade = 'M0 -41L4.6 -30V10H-4.6V-30Z'
+  const w = (n: number) => f(n / s)
+  const blade = 'M0 -41L4.6 -30V7H-4.6V-30Z'
+  const bladeL = 'M0 -41L-4.6 -30V7H0Z'
+  const bladeR = 'M0 -41L4.6 -30V7H0Z'
+  const fuller = 'M-.9 -30H.9V0H-.9Z'
+  const ricasso = 'M-5.2 3.6H5.2V8.4H-5.2Z'
   const guard =
-    'M0 9C6 9 13 8 18.6 6.2C22.4 5 25.6 6.6 24.8 9.8C24.2 12.4 21 12.8 19.8 11.2C18 14 12 15.8 0 15.8' +
-    'C-12 15.8 -18 14 -19.8 11.2C-21 12.8 -24.2 12.4 -24.8 9.8C-25.6 6.6 -22.4 5 -18.6 6.2C-13 8 -6 9 0 9Z'
-  const grip = 'M-3.4 15.8H3.4L3 31H-3Z'
-  const pommel = ellipse(0, 34.6, 4.8, 4.2)
+    'M0 8.4C6 8.4 13 7.4 18.6 5.6C22.4 4.4 25.8 6 25 9.4C24.4 12 21.2 12.4 20 10.8C18 13.8 12 15.6 0 15.6' +
+    'C-12 15.6 -18 13.8 -20 10.8C-21.2 12.4 -24.4 12 -25 9.4C-25.8 6 -22.4 4.4 -18.6 5.6C-13 7.4 -6 8.4 0 8.4Z'
+  const band = 'M-17 9.6C-10 11.2 10 11.2 17 9.6L16.4 12.2C10 13.6 -10 13.6 -16.4 12.2Z'
+  const boss = ellipse(0, 12, 4.2, 4.2)
+  const grip = 'M-3.4 15.6H3.4L3 31.4H-3Z'
+  const pommel = 'M0 31C3.6 31 6 33 6 35.6C6 38.4 3.6 40.2 0 40.2C-3.6 40.2 -6 38.4 -6 35.6C-6 33 -3.6 31 0 31Z'
+  const finial = 'M-1.6 40H1.6L1 42.6H-1Z'
+  const bow = 'M20.4 11.6C24 18 20 27 6 33.4'
+  const leaf = (x: number, y: number, r: number, sc: number) =>
+    `<path d="M0 0C1.4 -2.4 4.6 -3 6.4 -.8C4.6 1 1.8 1.6 0 0Z" transform="translate(${x} ${y}) rotate(${r}) scale(${sc})" fill="${P.gold}" stroke="${P.ink}" stroke-width="${w(0.35)}"/>`
   const curl = (x: number, sgn: number) =>
-    `<g transform="translate(${x} 13.6) scale(${sgn} 1)"><path d="M0 0C3.6 0 5.6 3 4.4 5.6C3.2 8 -.4 7.6 -.6 5.2C-.8 3.6 1 2.8 2 3.8" fill="none" stroke="${P.ink}" stroke-width="2.4" stroke-linecap="round"/><path d="M0 0C3.6 0 5.6 3 4.4 5.6C3.2 8 -.4 7.6 -.6 5.2C-.8 3.6 1 2.8 2 3.8" fill="none" stroke="${P.gold}" stroke-width="1.1" stroke-linecap="round"/></g>`
+    `<g transform="translate(${x} 13.4) scale(${sgn} 1)"><path d="M0 0C3.6 0 5.6 3 4.4 5.6C3.2 8 -.4 7.6 -.6 5.2C-.8 3.6 1 2.8 2 3.8" fill="none" stroke="${P.ink}" stroke-width="2.4" stroke-linecap="round"/>` +
+    `<path d="M0 0C3.6 0 5.6 3 4.4 5.6C3.2 8 -.4 7.6 -.6 5.2C-.8 3.6 1 2.8 2 3.8" fill="none" stroke="${P.gold}" stroke-width="1.1" stroke-linecap="round"/><circle cx="2" cy="3.8" r=".7" fill="${P.goldL}"/></g>`
+  const beads = Array.from({ length: 9 }, (_, i) => {
+    const x = -14 + i * 3.5
+    return `<circle cx="${f(x)}" cy="${f(10.6 + Math.pow(x / 17, 2) * -0.9 + 0.6)}" r=".55" fill="${P.goldL}" stroke="${P.goldD}" stroke-width=".2"/>`
+  }).join('')
+  const wire = Array.from({ length: 7 }, (_, i) => `<path d="M-3.4 ${f(16.4 + i * 2.2)}L3.4 ${f(18.4 + i * 2.2)}" stroke="${P.ink}" stroke-width=".9"/><path d="M-3.4 ${f(16.4 + i * 2.2)}L3.4 ${f(18.4 + i * 2.2)}" stroke="${P.gold}" stroke-width=".45"/>`).join('')
+  const etch =
+    `<g opacity=".85">` + hair(-2.6, -2, -1.2, -6, -2.6, -10, 0.45, P.mid) + hair(2.6, -2, 1.2, -6, 2.6, -10, 0.45, P.mid) +
+    hair(-2.4, -12, -0.4, -15, -2.2, -18.6, 0.4, P.mid) + hair(2.4, -12, 0.4, -15, 2.2, -18.6, 0.4, P.mid) + `</g>` +
+    `<circle cx="0" cy="-5" r="1.5" fill="${P.gold}" stroke="${P.goldD}" stroke-width=".3"/>` +
+    Array.from({ length: 8 }, (_, i) => { const a = (i / 8) * Math.PI * 2; return `<path d="M${f(Math.cos(a) * 1.8)} ${f(-5 + Math.sin(a) * 1.8)}L${f(Math.cos(a) * 2.8)} ${f(-5 + Math.sin(a) * 2.8)}" stroke="${P.goldD}" stroke-width=".35"/>` }).join('')
   return (
     `<g transform="scale(${s})">` +
+    `<path d="${bow}" fill="none" stroke="${P.ink}" stroke-width="${w(3.2)}" stroke-linecap="round"/><path d="${bow}" fill="none" stroke="${P.gold}" stroke-width="${w(1.8)}" stroke-linecap="round"/><path d="${bow}" fill="none" stroke="${P.goldL}" stroke-width="${w(0.5)}" stroke-linecap="round" transform="translate(-.5 -.4)"/>` +
     k.draw([
       { d: blade, fill: P.sky },
-      { d: guard, fill: P.gold, line: 0.35, inner: k.sh(guard, 0, 0, 0, 1, 0, 0.9, P.goldD, 0.45) + `<path d="M-22 8.4C-12 10.6 12 10.6 22 8.4" fill="none" stroke="${P.goldL}" stroke-width=".8" opacity=".8"/>` },
-      { d: grip, fill: P.red, inner: k.sh(grip, 0, 0, 1, 0, 0, 0.9, P.wine, 0.45) + Array.from({ length: 6 }, (_, i) => `<path d="M-3.6 ${f(17.4 + i * 2.5)}L3.6 ${f(19.4 + i * 2.5)}" stroke="${P.wine}" stroke-width=".7"/>`).join('') },
-      { d: pommel, fill: P.gold, inner: k.sh(pommel, 0, 0, 1, 1, 0, 0.9, P.goldD, 0.45) },
+      { d: grip, fill: P.red, inner: k.sh(grip, 0, 0, 1, 0, 0, 0.9, P.wine, 0.45) },
+      { d: pommel, fill: P.gold, line: 0.3, inner: k.sh(pommel, 0, 0, 1, 1, 0, 0.95, P.goldD, 0.5) + `<path d="M0 31V40.2M-4.4 32.6C-2 35 -2 36.4 -4.6 38.6M4.4 32.6C2 35 2 36.4 4.6 38.6" fill="none" stroke="${P.goldD}" stroke-width=".45"/>` },
+      { d: finial, fill: P.gold },
+      { d: guard, fill: P.gold, line: 0.35, inner: k.sh(guard, 0, 0, 0, 1, 0, 0.95, P.goldD, 0.5) + `<path d="M-22 8C-12 10 12 10 22 8" fill="none" stroke="${P.goldL}" stroke-width=".9" opacity=".9"/>` },
+      { d: ricasso, fill: P.gold, inner: k.sh(ricasso, 0, 0, 1, 0, 0, 0.9, P.goldD, 0.45) + `<path d="M-5.2 5.4H5.2M-5.2 6.8H5.2" stroke="${P.goldD}" stroke-width=".35"/>` },
     ], 0.85 / s) +
     `<path d="${bladeL}" fill="${P.white}"/>` +
     `<path d="${bladeR}" fill="${P.sky}"/>` + k.clip(bladeR, k.sh(bladeR, 0, 0, 1, 0, 0.2, 0.9, P.blue, 0.4)) +
-    `<path d="${blade}" fill="none" stroke="${P.ink}" stroke-width="${f(0.5 / s)}" stroke-linejoin="round"/>` +
-    hair(0, -37, 0.3, -14, 0, 8, 0.9, P.mid) + hair(-2.6, -28, -2.8, -12, -2.6, 6, 0.6, '#fff') +
-    curl(-17, -1) + curl(17, 1) +
-    `<circle cx="0" cy="12.4" r="2.6" fill="${P.red}" stroke="${P.ink}" stroke-width=".5"/><circle cx="-.7" cy="11.7" r=".7" fill="#fff"/>` +
-    `<circle cx="0" cy="34.6" r="1.8" fill="${P.red}" stroke="${P.ink}" stroke-width=".4"/>` +
+    k.clip(bladeL, k.sh(bladeL, 0, 0, 0, 1, 0, 0.35, P.sky2, 0.3)) +
+    `<path d="${fuller}" fill="${P.mid}" opacity=".55"/><path d="M-1.4 -30V0" stroke="#fff" stroke-width=".5"/>` +
+    `<path d="${blade}" fill="none" stroke="${P.ink}" stroke-width="${w(0.5)}" stroke-linejoin="round"/>` +
+    hair(-3, -27, -3.2, -12, -3, 4, 0.6, '#fff') + etch +
+    `<path d="M0 -41L-1.4 -36.6M0 -41L1.4 -36.6" stroke="#fff" stroke-width=".4"/>` +
+    `<path d="${band}" fill="${P.goldL}" opacity=".7"/>` + beads +
+    curl(-17.4, -1) + curl(17.4, 1) +
+    leaf(-19, 15.4, 110, 0.9) + leaf(-15.6, 16.2, 80, 0.75) + leaf(15.6, 16.2, 100, 0.75) +
+    k.draw([{ d: boss, fill: P.gold, inner: k.sh(boss, 0, 0, 1, 1, 0, 0.9, P.goldD, 0.45) }], 0.4 / s) +
+    `<circle cx="0" cy="12" r="2.5" fill="${P.red}" stroke="${P.ink}" stroke-width=".45"/><path d="M-1.6 11.2A1.8 1.8 0 0 1 .8 10" fill="none" stroke="#fff" stroke-width=".6" stroke-linecap="round"/>` +
+    Array.from({ length: 8 }, (_, i) => { const a = (i / 8) * Math.PI * 2; return `<circle cx="${f(Math.cos(a) * 3.4)}" cy="${f(12 + Math.sin(a) * 3.4)}" r=".42" fill="${P.goldL}" stroke="${P.goldD}" stroke-width=".15"/>` }).join('') +
+    wire + `<path d="M-3.6 15.6H3.6V17H-3.6ZM-3.2 30H3.2V31.4H-3.2Z" fill="${P.gold}" stroke="${P.ink}" stroke-width=".35"/>` +
+    `<circle cx="0" cy="35.6" r="2" fill="${P.red}" stroke="${P.ink}" stroke-width=".4"/><circle cx="-.6" cy="35" r=".5" fill="#fff"/>` +
+    `<path d="M-1.4 -33L-.6 -35.6" stroke="#fff" stroke-width=".5" stroke-linecap="round"/>` +
     `</g>`
   )
 }
@@ -138,6 +171,7 @@ export const TRUCO_ANCHOS_NUEVAS_ART: Record<string, (u: number) => string> = {
     const ribbonBack = 'M55 44.6C59 43 63 41.8 66 42.4L66 47C63 46.4 59 47.6 55 49.2Z'
     const ribbonFront = 'M42 56.4C48 55.2 56 51.8 66 47V51.8C56 56.6 48 60 42 61.2Z'
     const tailL = 'M42 56.4C38 57.2 35 58.6 32 60.6L35.4 62.2L32.6 65.6C36 64 39 62.2 42 61.2Z'
+    const rid = k.id('rib')
     const tailR = 'M66 42.4C70 41.4 74 40.4 78.4 37.6L76.4 41.6L80.2 43.6C76 45.6 70 46.6 66 47Z'
     return (
       k.day() +
@@ -146,8 +180,10 @@ export const TRUCO_ANCHOS_NUEVAS_ART: Record<string, (u: number) => string> = {
       laurel(52, 99, 30, 90, 27, 62, 8) + laurel(68, 99, 90, 90, 93, 62, 8, true) +
       k.draw([{ d: ribbonBack, fill: P.sky1, inner: k.sh(ribbonBack, 0, 0, 0, 1, 0.3, 0.9, P.blue, 0.4) }], 0.5) +
       `<g transform="translate(60 57.4) scale(1.12)">` + k.cast(['M0 -41L4.6 -30V10H-4.6V-30Z'], 2.2, 2) + sword(k, 1) + `</g>` +
-      k.draw([{ d: ribbonFront, fill: P.white, inner: k.sh(ribbonFront, 0, 0, 0, 1, 0, 0.7, P.blue, 0.35) + `<path d="M46 57.4C52 55.4 58 52.6 64.4 50.2" fill="none" stroke="${P.red}" stroke-width=".8"/>` }], 0.55) +
-      k.draw([{ d: tailL, fill: P.white, inner: k.sh(tailL, 0, 0, 0, 1, 0.2, 0.8, P.blue, 0.35) }, { d: tailR, fill: P.white, inner: k.sh(tailR, 0, 0, 0, 1, 0.2, 0.8, P.blue, 0.35) }], 0.5) +
+      k.draw([{ d: ribbonFront, fill: P.white, inner: k.sh(ribbonFront, 0, 0, 0, 1, 0, 0.75, P.blue, 0.35) + `<path d="M42 57.6C48 56.4 56 53 66 48.2M42 60C48 58.8 56 55.4 66 50.6" fill="none" stroke="${P.red}" stroke-width=".35"/>` }], 0.55) +
+      `<path id="${rid}" d="M43.6 59.6C49 58.4 56 55.2 64.8 50.8" fill="none"/>` +
+      `<text font-family="Georgia, serif" font-style="italic" font-size="3.3" fill="${P.ink}"><textPath href="#${rid}" startOffset="50%" text-anchor="middle">vale cuatro</textPath></text>` +
+      k.draw([{ d: tailL, fill: P.sky1, inner: k.sh(tailL, 0, 0, 0, 1, 0.2, 0.9, P.blue, 0.4) + hair(41, 57.4, 37, 59.6, 34, 62, 0.4, P.blue) }, { d: tailR, fill: P.sky1, inner: k.sh(tailR, 0, 0, 0, 1, 0.2, 0.9, P.blue, 0.4) + hair(67, 44, 72, 42.4, 77, 40, 0.4, P.blue) }], 0.5) +
       sparkle(60, 12, 3.6, '#fff') + sparkle(34, 40, 2.2) + sparkle(87, 72, 1.8) +
       k.defs()
     )

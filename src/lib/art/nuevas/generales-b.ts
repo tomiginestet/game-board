@@ -1,6 +1,6 @@
 // Medallas generales redibujadas (ver el kit en ../kit.ts): Habitué, Todoterreno y Mesa larga.
 import { f } from '../helpers'
-import { card, die, ellipse, flame, hair, kit, MEEPLE, meeple, P, roundRect, sparkle, starPath } from '../kit'
+import { card, die, ellipse, flame, hair, kit, P, roundRect, sparkle, starPath } from '../kit'
 
 const GEORGIA = 'font-family="Georgia, serif"'
 
@@ -79,29 +79,28 @@ export const GENERALES_B_NUEVAS_ART: Record<string, (u: number) => string> = {
     )
   },
 
-  // Cincuenta partidas: ya tenés copia de la llave (y el ojo de la llave es un meeple).
+  // Cincuenta partidas: ya tenés copia de la llave (con la casita calada en el ojo).
   'Llave de la casa': (u) => {
     const k = kit(u)
     const shaft = 'M-2.4 -8H2.4V27H-2.4Z'
     const bit = 'M2.2 15.6H9.4V19.4H6.8V22.2H9.4V27H2.2Z'
     const collar = roundRect(-4.2, -9.6, 4.2, -5.6, 1.2)
-    const gold = (d: string, line = 0) => ({ d, fill: P.gold, line, inner: k.sh(d, 0, 0, 1, 1, 0, 0.95, P.goldD, 0.4) + `<path d="${d}" fill="${k.lin('#ffffff', 0, 0, 1, 0, 0.45, 0)}"/>` })
+    const bow = 'M0 -33.6C3.4 -33.6 5 -31 5 -29C8 -29.6 10.6 -27 10.6 -24C10.6 -21 8 -18.6 5 -19.2C5 -16.6 3 -10 0 -10C-3 -10 -5 -16.6 -5 -19.2C-8 -18.6 -10.6 -21 -10.6 -24C-10.6 -27 -8 -29.6 -5 -29C-5 -31 -3.4 -33.6 0 -33.6Z'
+    const house = 'M-3.8 -18.6V-23.4L0 -26.8L3.8 -23.4V-18.6Z'
+    const gold = (d: string, line = 0) => ({ d, fill: P.gold, line, inner: k.sh(d, 0, 0, 1, 1, 0, 0.95, P.goldD, 0.45) + `<path d="${d}" fill="${k.lin('#ffffff', 0, 0, 1, 0, 0.45, 0)}"/>` })
     const tag = 'M0 0L4.4 -3H18C19 -3 19.6 -2.4 19.6 -1.4V8.4C19.6 9.4 19 10 18 10H4.4Z'
     return (
       k.day() +
       k.sun(60, 58, 18, 44, 28, false) +
-      `<g transform="translate(58 62) rotate(-38)">` +
-      k.cast([shaft, bit], 1.6, 1.6) +
-      k.draw([gold(shaft), gold(bit), gold(collar, 0.35)], 0.7) +
-      `<g transform="translate(0 -20) scale(.5)">` +
-      k.draw([gold(MEEPLE)], 1.3) +
-      `<path d="${ellipse(0, -16.8, 4.6, 4.6)}" fill="${P.sky1}" stroke="${P.ink}" stroke-width="1.2"/>` +
-      hair(-6, 6, -4.6, 11, -6.6, 17, 1.1, P.goldD) + hair(6, 6, 4.6, 11, 6.6, 17, 1.1, P.goldD) +
+      `<g transform="translate(58 63) rotate(-38) scale(1.06)">` +
+      k.cast([shaft, bit, bow], 1.6, 1.6) +
+      k.draw([gold(shaft), gold(bit), gold(collar, 0.35), gold(bow, 0.35)], 0.7) +
+      `<path d="${house}" fill="${P.sky1}" stroke="${P.ink}" stroke-width=".6" stroke-linejoin="round"/><rect x="-1" y="-21.6" width="2" height="3" fill="${P.goldD}"/>` +
+      `<circle cx="0" cy="-30.8" r="1.2" fill="${P.sky1}" stroke="${P.ink}" stroke-width=".5"/>` +
+      hair(-7.6, -26.6, -6.4, -24, -7.6, -21.4, 0.5, P.goldD) + hair(7.6, -26.6, 6.4, -24, 7.6, -21.4, 0.5, P.goldD) +
+      `<path d="M-1.2 -4V24" stroke="${P.goldL}" stroke-width=".6"/><path d="M-2.4 -2H2.4M-2.4 0H2.4" stroke="${P.goldD}" stroke-width=".35"/>` +
       `</g>` +
-      `<path d="M-1.2 -4V24" stroke="${P.goldL}" stroke-width=".6"/>` +
-      `</g>` +
-      `<circle cx="47.6" cy="44" r="4.6" fill="none" stroke="${P.ink}" stroke-width="2.4"/><circle cx="47.6" cy="44" r="4.6" fill="none" stroke="${P.white}" stroke-width="1.1"/>` +
-      `<path d="M44.4 47.4C42 54 40 58 37.4 62" fill="none" stroke="${P.ink}" stroke-width=".6"/>` +
+      `<path d="M41.4 40.6C37 46 36 54 34 60" fill="none" stroke="${P.ink}" stroke-width=".6"/>` +
       `<g transform="translate(30 62) rotate(70)">` +
       k.draw([{ d: tag, fill: P.white, inner: k.sh('M12 -4H20V11H12Z', 0, 0, 1, 0, 0, 0.7, P.blue, 0.3) }], 0.5) +
       `<circle cx="6" cy="3.5" r="1" fill="${P.paper}" stroke="${P.ink}" stroke-width=".4"/>` +
@@ -131,7 +130,7 @@ export const GENERALES_B_NUEVAS_ART: Record<string, (u: number) => string> = {
       ], 0.75) +
       `<text x="60" y="45" ${GEORGIA} font-weight="700" font-size="3.5" letter-spacing=".35" fill="${P.paper}" text-anchor="middle">PATRIMONIO</text>` +
       `<text x="60" y="79.6" ${GEORGIA} font-style="italic" font-size="4" fill="${P.paper}" text-anchor="middle">del grupo</text>` +
-      meeple(k, 60, 61, 0.42, P.gold, { shade: P.goldD }) +
+      k.draw([{ d: starPath(60, 61, 9.4, 4, 5), fill: P.gold, inner: k.sh(starPath(60, 61, 9.4, 4, 5), 0, 0, 1, 1, 0, 0.9, P.goldD, 0.45) }], 0.55) + `<path d="${starPath(60, 61, 5.4, 2.3, 5)}" fill="none" stroke="${P.goldL}" stroke-width=".5"/>` +
       hair(46, 72, 50, 74.6, 54, 74, 0.6, P.goldL) + hair(74, 72, 70, 74.6, 66, 74, 0.6, P.goldL) +
       `<circle cx="36.4" cy="60" r="1.3" fill="${P.goldL}" stroke="${P.ink}" stroke-width=".4"/><circle cx="83.6" cy="60" r="1.3" fill="${P.goldL}" stroke="${P.ink}" stroke-width=".4"/>` +
       `<path d="M24 30C34 28 38 36 46 34C52 33 54 28 58 30" fill="none" stroke="${P.greenD}" stroke-width=".7"/>` +
@@ -140,7 +139,7 @@ export const GENERALES_B_NUEVAS_ART: Record<string, (u: number) => string> = {
     )
   },
 
-  // Doscientas cincuenta: ya sos parte del sillón (el almohadón es un meeple).
+  // Doscientas cincuenta: ya sos parte del sillón. El hueco que dejaste, las pantuflas y el control.
   'Mueble de living': (u) => {
     const k = kit(u)
     const back = 'M34 66C32 44 38 34 60 34C82 34 88 44 86 66Z'
@@ -151,19 +150,23 @@ export const GENERALES_B_NUEVAS_ART: Record<string, (u: number) => string> = {
     const velvet = (d: string, line = 0) => ({ d, fill: P.green, line, inner: k.sh(d, 0, 0, 1, 1, 0, 0.9, P.greenD, 0.45) + `<path d="${d}" fill="${k.lin('#ffffff', 0, 0, 1, 0, 0.25, 0)}"/>` })
     const tufts = [[46, 44], [60, 42], [74, 44], [53, 53], [67, 53]].map(([x, y]) => `<circle cx="${x}" cy="${y}" r=".9" fill="${P.greenD}" stroke="${P.ink}" stroke-width=".25"/>`).join('') +
       hair(46, 44, 49.6, 48.6, 53, 53, 0.4, P.greenD) + hair(60, 42, 56.6, 47.6, 53, 53, 0.4, P.greenD) + hair(60, 42, 63.4, 47.6, 67, 53, 0.4, P.greenD) + hair(74, 44, 70.4, 48.6, 67, 53, 0.4, P.greenD)
+    const dent = k.shade(ellipse(60, 52, 13, 15), k.rad(P.greenD, 0.5, 0.5, 0.5, 0.9, 0), P.greenD, 0.45) + k.shade(ellipse(60, 74, 15, 4.4), k.rad(P.greenD, 0.5, 0.5, 0.5, 0.95, 0), P.greenD, 0.5)
+    const slipper = (x: number, y: number, r: number) => {
+      const d = 'M-7 1.6C-7.4 -1.4 -4 -3 0 -3C5 -3 8 -1.6 8 .8C8 2.6 5 3.4 0 3.4C-4 3.4 -6.8 3 -7 1.6Z'
+      return `<g transform="translate(${x} ${y}) rotate(${r})">` + k.draw([{ d, fill: P.red, inner: k.sh(d, 0, 0, 1, 1, 0, 0.8, P.wine, 0.4) + `<path d="M-6 .4C-3 -2.4 2 -2.6 4 -.6C2 1.4 -3 1.6 -6 .4Z" fill="${P.wine}" opacity=".5"/>` }], 0.45) + `<circle cx="-4.4" cy="-1.6" r="1.8" fill="${P.white}" stroke="${P.ink}" stroke-width=".35"/></g>`
+    }
     const remote = roundRect(-2, -6.6, 2, 6.6, 1)
     return (
       k.day() +
-      k.stage(60, 60, 33) +
-      k.floor(60, 97, 32, 2.8) +
+      k.stage(60, 58, 33) +
+      k.floor(60, 96, 32, 2.6) +
       `<path d="M31 94L30 98.6M89 94L90 98.6" stroke="${P.ink}" stroke-width="2.6" stroke-linecap="round"/><path d="M31 94L30.4 97.8M89 94L89.6 97.8" stroke="${P.brown}" stroke-width="1.2" stroke-linecap="round"/>` +
-      k.draw([velvet(back, 0.4)], 0.75) + tufts +
-      k.draw([velvet(seat, 0.4)], 0.75) +
-      k.floor(61, 73.4, 12, 1.8, P.greenD) +
-      meeple(k, 60, 60.4, 0.5, P.sky, { rot: -7 }) +
+      k.draw([velvet(back, 0.4)], 0.75) + tufts + k.clip(back, dent) +
+      k.draw([velvet(seat, 0.4)], 0.75) + k.clip(seat, k.shade(ellipse(60, 72, 16, 5), k.rad(P.greenD, 0.5, 0.5, 0.5, 0.95, 0), P.greenD, 0.5)) +
+      hair(47, 72.6, 53, 75.4, 59, 75.6, 0.5, P.greenD) + hair(61, 75.6, 67, 75.4, 73, 72.6, 0.5, P.greenD) +
       k.draw([velvet(armL, 0.4), velvet(armR, 0.4), { d: skirt, fill: P.greenD, inner: k.sh(skirt, 0, 0, 1, 0, 0, 0.6, P.night, 0.3) }], 0.75) +
       `<g transform="translate(88 60) rotate(70)">` + k.draw([{ d: remote, fill: P.night }], 0.4) + `<circle cx="0" cy="-3.6" r=".8" fill="${P.red}"/><circle cx="-.8" cy="0" r=".45" fill="${P.sky2}"/><circle cx=".8" cy="0" r=".45" fill="${P.sky2}"/><circle cx="-.8" cy="2.2" r=".45" fill="${P.sky2}"/><circle cx=".8" cy="2.2" r=".45" fill="${P.sky2}"/></g>` +
-      sparkle(32, 40, 2) + sparkle(88, 40, 1.6) +
+      slipper(51, 94.4, -8) + slipper(66, 95.4, 6) +
       k.defs()
     )
   },
@@ -231,7 +234,7 @@ export const GENERALES_B_NUEVAS_ART: Record<string, (u: number) => string> = {
       ], 0.6) +
       `<path d="M-20 0L${f(-20 + 30 * Math.cos((-128 * Math.PI) / 180))} ${f(30 * Math.sin((-128 * Math.PI) / 180))}" stroke="${P.blue}" stroke-width=".4"/>` +
       `<g transform="translate(-20 0) rotate(-82) translate(17.6 0) rotate(82)">${die(k, 0, 0, 4.4, 8)}</g>` +
-      `<g transform="translate(20 0) rotate(-62) translate(13 0) rotate(62)">${meeple(k, 0, -3, 0.26, P.white, { shade: P.blue })}</g>` +
+      `<g transform="translate(20 0) rotate(-62)"><path d="M13 0C14 -2 16 -2 17 0C18 2 20 2 21 0C22 -2 24 -2 25 0" fill="none" stroke="${P.ink}" stroke-width="2.2" stroke-linecap="round"/><path d="M13 0C14 -2 16 -2 17 0C18 2 20 2 21 0C22 -2 24 -2 25 0" fill="none" stroke="${P.white}" stroke-width="1" stroke-linecap="round"/></g>` +
       `<g transform="translate(20 0) rotate(-102) translate(13 0) rotate(102)">${card(k, 0, 5.2, -6, 'h', 0.56)}</g>` +
       k.draw([{ d: handle, fill: P.red, inner: k.sh(handle, 0, 0, 0, 1, 0, 0.85, P.wine, 0.45) + `<path d="M-21 -4.2H19" stroke="#fff" stroke-width=".9" stroke-linecap="round" opacity=".45"/>` }], 0.75) +
       `<path d="${roundRect(-5, -5, 5, 5, 1.6)}" fill="${P.white}" stroke="${P.ink}" stroke-width=".4"/><path d="${cross}" fill="${P.red}"/>` +
@@ -242,40 +245,41 @@ export const GENERALES_B_NUEVAS_ART: Record<string, (u: number) => string> = {
     )
   },
 
-  // Cinco juegos: tocás todos los instrumentos a la vez.
+  // Cinco juegos: tocás todos los instrumentos a la vez. El bombo con su platillo y la armónica.
   'Hombre orquesta': (u) => {
     const k = kit(u)
-    const drum = ellipse(0, 6, 12.4, 12.4)
-    const cymbal = 'M-12 -30.6C-6 -33.8 6 -33.8 12 -30.6C6 -29.2 -6 -29.2 -12 -30.6Z'
-    const harmonica = roundRect(-6, -14.6, 6, -11, 0.8)
+    const drum = ellipse(60, 70, 19, 19), head = ellipse(60, 70, 14.6, 14.6)
+    const cymbal = 'M44 37.6C50 34.4 62 34.4 68 37.6C62 39 50 39 44 37.6Z'
+    const harmonica = roundRect(25, 46, 39, 50.4, 1)
+    const zig = Array.from({ length: 12 }, (_, i) => {
+      const a = (i / 12) * Math.PI * 2, b = ((i + 0.5) / 12) * Math.PI * 2
+      return `${i ? 'L' : 'M'}${f(60 + Math.cos(a) * 16.8)} ${f(70 + Math.sin(a) * 16.8)}L${f(60 + Math.cos(b) * 14.6)} ${f(70 + Math.sin(b) * 14.6)}`
+    }).join('') + 'Z'
     const note = (x: number, y: number, r: number) =>
       `<g transform="translate(${x} ${y}) rotate(${r})"><ellipse cx="0" cy="0" rx="2" ry="1.5" transform="rotate(-20)" fill="${P.ink}"/><path d="M1.8 -.4V-8.6C3.6 -7.6 5 -6.4 4.4 -4.4" fill="none" stroke="${P.ink}" stroke-width=".7" stroke-linecap="round"/></g>`
-    const zig = Array.from({ length: 10 }, (_, i) => {
-      const a = (i / 10) * Math.PI * 2, b = ((i + 0.5) / 10) * Math.PI * 2
-      return `${i ? 'L' : 'M'}${f(Math.cos(a) * 10.4)} ${f(6 + Math.sin(a) * 10.4)}L${f(Math.cos(b) * 7.4)} ${f(6 + Math.sin(b) * 7.4)}`
-    }).join('') + 'Z'
-    const over =
-      k.draw([
-        { d: drum, fill: P.red, inner: k.sh(drum, 0, 0, 1, 1, 0, 0.8, P.wine, 0.4) },
-        { d: ellipse(0, 6, 9.4, 9.4), fill: P.white, inner: k.sh(ellipse(0, 6, 9.4, 9.4), 0, 0, 1, 1, 0, 0.6, P.blue, 0.3) },
-      ], 0.9) +
-      `<path d="${zig}" fill="none" stroke="${P.goldD}" stroke-width=".55" stroke-linejoin="round"/>` +
-      `<path d="${starPath(0, 6, 4.4, 1.9, 5)}" fill="${P.gold}" stroke="${P.ink}" stroke-width=".45"/>` +
-      `<path d="M-14 -9.6L-8 -3M14 -9.6L8 -3" stroke="${P.brownD}" stroke-width="1.4" stroke-linecap="round"/>` +
-      k.draw([
-        { d: cymbal, fill: P.gold, inner: k.sh(cymbal, 0, 0, 1, 0, 0, 0.9, P.goldD, 0.4) },
-        { d: harmonica, fill: P.white, inner: k.sh(harmonica, 0, 0, 0, 1, 0, 0.8, P.blue, 0.4) },
-      ], 0.8) +
-      `<path d="M0 -30V-27" stroke="${P.ink}" stroke-width="1.6"/>` +
-      Array.from({ length: 5 }, (_, i) => `<rect x="${-4.8 + i * 2.1}" y="-13.6" width="1.3" height="1.6" fill="${P.ink}"/>`).join('') +
-      `<path d="M22 -3L30 -17" stroke="${P.ink}" stroke-width="2.6" stroke-linecap="round"/><path d="M22 -3L30 -17" stroke="${P.brown}" stroke-width="1.3" stroke-linecap="round"/><circle cx="30.6" cy="-18.4" r="3" fill="${P.white}" stroke="${P.ink}" stroke-width="1"/>`
+    const rod = (d: string) => `<path d="${d}" fill="none" stroke="${P.ink}" stroke-width="2.4" stroke-linecap="round"/><path d="${d}" fill="none" stroke="${P.white}" stroke-width="1.1" stroke-linecap="round"/>`
+    const mallet = (t: string) => `<g transform="${t}"><path d="M0 0V-18" stroke="${P.ink}" stroke-width="2.4" stroke-linecap="round"/><path d="M0 0V-18" stroke="${P.brown}" stroke-width="1.1" stroke-linecap="round"/>` + k.draw([{ d: ellipse(0, -20, 3, 3), fill: P.white, inner: k.sh(ellipse(0, -20, 3, 3), 0, 0, 1, 1, 0, 0.8, P.blue, 0.4) }], 0.45) + `</g>`
     return (
       k.day() +
       k.stage(60, 60, 33) +
-      k.floor(61, 94, 18, 2.6) +
-      meeple(k, 60, 66, 0.84, P.sky, { over }) +
-      note(32, 44, -10) + note(88, 48, 12) + note(36, 70, 8) + note(84, 76, -6) +
-      sparkle(80, 30, 2) +
+      k.floor(61, 92, 20, 2.6) +
+      rod('M60 51V38.4') + rod('M41.6 62C36 58 33 54 32 50.4') +
+      mallet('translate(80 86) rotate(30)') +
+      k.cast([drum], 2.4, 2.4) +
+      k.draw([
+        { d: drum, fill: P.red, inner: k.sh(drum, 0, 0, 1, 1, 0, 0.85, P.wine, 0.45) },
+        { d: head, fill: P.white, inner: k.sh(head, 0, 0, 1, 1, 0, 0.6, P.blue, 0.3) },
+      ], 0.9) +
+      `<path d="${zig}" fill="none" stroke="${P.gold}" stroke-width=".7" stroke-linejoin="round"/>` +
+      `<path d="${starPath(60, 70, 7.4, 3.1, 5)}" fill="${P.gold}" stroke="${P.ink}" stroke-width=".6"/>` +
+      k.draw([
+        { d: cymbal, fill: P.gold, inner: k.sh(cymbal, 0, 0, 1, 0, 0, 0.9, P.goldD, 0.45) + `<path d="M47 37.2C52 36 60 36 65 37.2" fill="none" stroke="${P.goldL}" stroke-width=".5"/>` },
+        { d: harmonica, fill: P.white, inner: k.sh(harmonica, 0, 0, 0, 1, 0, 0.8, P.blue, 0.4) },
+      ], 0.7) +
+      `<circle cx="56" cy="36.2" r="1.2" fill="${P.goldD}" stroke="${P.ink}" stroke-width=".35"/>` +
+      Array.from({ length: 5 }, (_, i) => `<rect x="${f(26.4 + i * 2.5)}" y="47.2" width="1.4" height="1.8" fill="${P.ink}"/>`).join('') +
+      note(38, 36, -10) + note(84, 44, 12) + note(82, 62, -6) +
+      sparkle(36, 76, 1.8) +
       k.defs()
     )
   },
@@ -308,7 +312,6 @@ export const GENERALES_B_NUEVAS_ART: Record<string, (u: number) => string> = {
       k.draw([{ d: leaning, fill: P.gold, line: 0.35, inner: k.sh('M0 -44H5V1H0Z', 0, 0, 1, 0, 0, 0.8, P.goldD, 0.4) + `<path d="M-3.6 -38H3.6M-3.6 -36.6H3.6M-3.6 -5.6H3.6M-3.6 -4.2H3.6" stroke="${P.ink}" stroke-width=".4"/>` }], 0.55) +
       `<text x="0" y="-21" ${GEORGIA} font-style="italic" font-size="3.6" fill="${P.ink}" text-anchor="middle" transform="rotate(-90 0 -21)">Índice</text>` +
       `</g>` +
-      meeple(k, 28.6, 75.6, 0.24, P.gold, { shade: P.goldD }) +
       sparkle(86, 34, 2.2) + sparkle(34, 32, 1.6) +
       k.defs()
     )

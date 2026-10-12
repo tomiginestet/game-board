@@ -1,7 +1,7 @@
 // Medallas generales redibujadas (ver el kit en ../kit.ts): Matagigantes, Campeón, Todos para uno y la
 // familia genérica de cada juego (Debut soñado → Leyenda viviente).
 import { f } from '../helpers'
-import { ellipse, hair, kit, meeple, P, roundRect, sparkle, starPath, taper, type Kit } from '../kit'
+import { chessPiece, ellipse, hair, KING, kit, P, roundRect, sparkle, starPath, taper, type Kit } from '../kit'
 
 const GEORGIA = 'font-family="Georgia, serif"'
 
@@ -22,9 +22,6 @@ function trophy(k: Kit) {
   )
 }
 
-/** Capa roja de superhéroe para colgar detrás de un meeple. */
-const CAPE = 'M-7 -10.5C-17 -8 -24 10 -28 26L28 26C24 10 17 -8 7 -10.5Z'
-
 export const GENERALES_C_NUEVAS_ART: Record<string, (u: number) => string> = {
   // ── Matagigantes ───────────────────────────────────────────────────
 
@@ -32,12 +29,9 @@ export const GENERALES_C_NUEVAS_ART: Record<string, (u: number) => string> = {
   'La gomera': (u) => {
     const k = kit(u)
     const wood = (d: string) => ({ d, fill: P.brown, inner: k.sh(d, 0, 0, 1, 0, 0, 0.9, P.brownD, 0.45) })
-    const giantFace =
-      `<path d="M-5.6 -20L-1.6 -18.4M5.6 -20L1.6 -18.4" stroke="${P.ink}" stroke-width="1" stroke-linecap="round"/>` +
-      `<circle cx="-3.4" cy="-16.4" r="1" fill="${P.ink}"/><circle cx="3.4" cy="-16.4" r="1" fill="${P.ink}"/><path d="M-2.6 -12.4Q0 -13.6 2.6 -12.4" fill="none" stroke="${P.ink}" stroke-width=".8" stroke-linecap="round"/>`
     return (
       k.day() +
-      meeple(k, 76, 66, 1.42, P.sky2, { shade: P.blue, over: giantFace }) +
+      chessPiece(k, KING, 78, 66, 1.55, P.sky2, { rings: [-5.6, 10.6, 16, 20.8] }) +
       `<path d="M0 0H120V130H0Z" fill="${P.paper}" opacity=".28"/>` +
       `<path d="M46 58Q56 26 72 34" fill="none" stroke="${P.goldD}" stroke-width=".9" stroke-dasharray="1.6 1.8" stroke-linecap="round"/>` +
       `<g transform="translate(44 64) scale(1.35) translate(-42 -82)">` +
@@ -312,23 +306,25 @@ export const GENERALES_C_NUEVAS_ART: Record<string, (u: number) => string> = {
     )
   },
 
-  // Quince victorias en equipo: tienen traje y todo.
+  // Quince victorias en equipo: tienen traje y todo. El escudo con tres estrellas y la capa.
   'Los Increíbles': (u) => {
     const k = kit(u)
     const burst = starPath(60, 56, 40, 28, 14, -90)
-    const hero = (x: number, y: number, s: number) =>
-      meeple(k, x, y, s, P.sky, {
-        under: k.draw([{ d: CAPE, fill: P.red, inner: k.sh(CAPE, 0, 0, 1, 0, 0, 0.8, P.wine, 0.4) + hair(-10, -4, -15, 8, -18, 22, 0.7, P.wine) + hair(10, -4, 15, 8, 18, 22, 0.7, P.wine) }], 0.75 / s),
-        over:
-          `<path d="M-8.6 -19.6C-4 -21.4 4 -21.4 8.6 -19.6L8 -15.6C4 -14.4 -4 -14.4 -8 -15.6Z" fill="${P.ink}"/><ellipse cx="-3.6" cy="-17.6" rx="1.7" ry="1.2" fill="${P.white}"/><ellipse cx="3.6" cy="-17.6" rx="1.7" ry="1.2" fill="${P.white}"/>` +
-          `<path d="M-2.4 -12.4Q0 -11 2.4 -12.4" fill="none" stroke="${P.ink}" stroke-width=".8" stroke-linecap="round"/>` +
-          `<circle cx="0" cy="-3" r="4.4" fill="${P.gold}" stroke="${P.ink}" stroke-width=".8"/><path d="${starPath(0, -2.9, 2.6, 1.1, 5)}" fill="${P.red}"/>`,
-      })
+    const cape = 'M42 40C38 56 34 74 30 94C40 90 46 94 52 90C56 94 64 94 68 90C74 94 80 90 90 94C86 74 82 56 78 40Z'
+    const emblem = 'M60 34C68 36 76 38 78 42C78 56 72 66 60 74C48 66 42 56 42 42C44 38 52 36 60 34Z'
+    const inner = 'M60 38.6C66 40.2 72 41.8 73.6 44.6C73.4 55.6 68.6 63.6 60 69.4C51.4 63.6 46.6 55.6 46.4 44.6C48 41.8 54 40.2 60 38.6Z'
     return (
       k.day() +
       `<path d="${burst}" fill="${P.goldL}"/>` + k.shade(burst, k.rad(P.gold, 0.5, 0.5, 0.5, 0.9, 0.2), P.goldD, 0.4) +
-      k.floor(60, 92, 30, 2.6) +
-      hero(39, 70, 0.5) + hero(81, 70, 0.5) + hero(60, 64, 0.72) +
+      k.draw([{ d: cape, fill: P.red, inner: k.sh(cape, 0, 0, 1, 0, 0, 0.85, P.wine, 0.45) + hair(46, 46, 42, 70, 38, 90, 0.8, P.wine) + hair(60, 48, 60, 72, 60, 92, 0.8, P.wine) + hair(74, 46, 78, 70, 82, 90, 0.8, P.wine) + `<path d="M40 44H50V96H40Z" fill="${k.lin('#ffffff', 0, 0, 1, 0, 0.25, 0)}"/>` }], 0.8) +
+      k.cast([emblem], 2.2, 2.2) +
+      k.draw([
+        { d: emblem, fill: P.gold, inner: k.sh(emblem, 0, 0, 1, 1, 0, 0.95, P.goldD, 0.5) },
+        { d: inner, fill: P.night, inner: k.sh(inner, 0, 0, 1, 1, 0, 0.6, '#0E1533', 0.4) },
+      ], 0.8) +
+      k.draw([{ d: starPath(60, 53, 9, 3.8, 5), fill: P.red, inner: k.sh(starPath(60, 53, 9, 3.8, 5), 0, 0, 1, 1, 0, 0.8, P.wine, 0.4) }], 0.55) +
+      [[52, 44.6], [60, 42.4], [68, 44.6]].map(([x, y]) => `<path d="${starPath(x, y, 1.9, 0.8, 5)}" fill="${P.goldL}"/>`).join('') +
+      `<path d="M46 42C48 39.6 53 38 58 37.4" fill="none" stroke="#fff" stroke-width="1" stroke-linecap="round" opacity=".8"/>` +
       sparkle(30, 40, 2.2) + sparkle(90, 44, 2) +
       k.defs()
     )
@@ -336,7 +332,7 @@ export const GENERALES_C_NUEVAS_ART: Record<string, (u: number) => string> = {
 
   // ── Especialista (de cada juego) ───────────────────────────────────
 
-  // La primera victoria en este juego: saludo al público.
+  // La primera victoria en este juego: la galera y el bastón en el escenario, y las rosas del público.
   'Debut soñado': (u) => {
     const k = kit(u)
     const curtain = (flip: boolean) => {
@@ -344,21 +340,29 @@ export const GENERALES_C_NUEVAS_ART: Record<string, (u: number) => string> = {
       return `<g${flip ? ' transform="translate(120 0) scale(-1 1)"' : ''}>` + k.draw([{ d, fill: P.red, inner: k.sh(d, 0, 0, 1, 0, 0, 0.8, P.wine, 0.45) + hair(28, 6, 27, 50, 24, 102, 0.9, P.wine) + hair(36, 8, 34, 52, 29, 102, 0.9, P.wine) + hair(32, 8, 30.6, 52, 26.4, 102, 0.6, P.goldL, 0.5) }], 0.6) + `</g>`
     }
     const valance = 'M0 0H120V20Q112 26 104 20Q96 26 88 20Q80 26 72 20Q64 26 56 20Q48 26 40 20Q32 26 24 20Q16 26 8 20Q4 24 0 21Z'
-    const floor = 'M10 84H110V112H10Z'
+    const floor = 'M10 82H110V112H10Z'
+    const crown = 'M-9 0V-17C-9 -19.4 9 -19.4 9 -17V0Z'
+    const brim = 'M-14 0C-14 -2.6 14 -2.6 14 0C14 2.4 -14 2.4 -14 0Z'
     const rose = (x: number, y: number, r: number) => `<g transform="translate(${x} ${y}) rotate(${r})"><path d="M0 0H9" stroke="${P.greenD}" stroke-width=".8"/><path d="M3 0C4 -1.6 6 -1.6 6 0C6 1.6 4 1.6 3 0Z" fill="${P.green}"/><circle cx="0" cy="0" r="2.1" fill="${P.red}" stroke="${P.ink}" stroke-width=".4"/><path d="M-1 -.4Q0 -1.2 1 -.2" fill="none" stroke="${P.wine}" stroke-width=".4"/></g>`
     return (
       `<rect width="120" height="130" fill="${P.night}"/>` +
-      k.shade('M48 0H72L100 90H20Z', k.lin(P.goldL, 0, 0, 0, 1, 0.5, 0.08), P.goldL, 0.45) +
-      k.draw([{ d: floor, fill: P.brown, inner: k.sh(floor, 0, 0, 0, 1, 0, 0.8, P.brownD, 0.4) + `<path d="M10 90H110M10 97H110" stroke="${P.brownD}" stroke-width=".5"/>` }], 0.5) +
-      k.shade(ellipse(60, 86, 24, 4.4), k.rad(P.goldL, 0.5, 0.5, 0.5, 0.7, 0), P.goldL, 0.5) +
-      k.floor(61, 86, 12, 2, P.night) +
-      meeple(k, 60, 62, 0.66, P.sky) +
-      hair(76, 36, 80, 33, 84, 34, 0.7, P.goldL) + hair(77, 41, 81.4, 40, 85, 42, 0.7, P.goldL) +
-      rose(42, 89, -20) + rose(74, 91, 160) +
+      k.shade('M46 0H74L100 88H20Z', k.lin(P.goldL, 0, 0, 0, 1, 0.5, 0.08), P.goldL, 0.45) +
+      k.draw([{ d: floor, fill: P.brown, inner: k.sh(floor, 0, 0, 0, 1, 0, 0.8, P.brownD, 0.4) + `<path d="M10 88H110M10 95H110" stroke="${P.brownD}" stroke-width=".5"/>` }], 0.5) +
+      k.shade(ellipse(60, 84, 26, 4.6), k.rad(P.goldL, 0.5, 0.5, 0.5, 0.75, 0), P.goldL, 0.5) +
+      k.floor(61, 84.4, 16, 2.2, P.night) +
+      `<path d="M72 84L84 46" stroke="${P.ink}" stroke-width="3" stroke-linecap="round"/><path d="M72 84L84 46" stroke="${P.night}" stroke-width="1.6" stroke-linecap="round"/><path d="M84 46L85.2 42.4" stroke="${P.ink}" stroke-width="3.4" stroke-linecap="round"/><path d="M84 46L85.2 42.4" stroke="${P.gold}" stroke-width="2" stroke-linecap="round"/>` +
+      `<g transform="translate(57 81) rotate(-6) scale(1.3)">` +
+      k.draw([
+        { d: crown, fill: P.night, inner: k.sh(crown, 0, 0, 1, 0, 0, 0.8, '#0E1533', 0.4) + `<path d="M-9 -6H9V-3H-9Z" fill="${P.red}"/><path d="M-6.4 -16V-7" stroke="${P.sky2}" stroke-width=".7" opacity=".7"/>` },
+        { d: brim, fill: P.night, inner: `<path d="M-12 -.6C-6 -1.8 6 -1.8 12 -.6" fill="none" stroke="${P.sky2}" stroke-width=".4"/>` },
+      ], 0.6) +
+      `</g>` +
+      rose(40, 88, -20) + rose(78, 90, 160) +
+      hair(46, 58, 41, 54, 38, 50, 0.6, P.goldL) + hair(76, 58, 80, 54, 82, 50, 0.6, P.goldL) +
       curtain(false) + curtain(true) +
       k.draw([{ d: valance, fill: P.red, inner: k.sh(valance, 0, 0, 0, 1, 0, 0.8, P.wine, 0.4) }], 0.6) +
       `<path d="M0 18.6Q4 22.4 8 18.6Q16 25.4 24 18.6Q32 25.4 40 18.6Q48 25.4 56 18.6Q64 25.4 72 18.6Q80 25.4 88 18.6Q96 25.4 104 18.6Q112 25.4 120 18.6" fill="none" stroke="${P.gold}" stroke-width="1.2"/>` +
-      sparkle(60, 30, 2.2, P.goldL) +
+      sparkle(60, 34, 2.4, P.goldL) +
       k.defs()
     )
   },
@@ -393,24 +397,25 @@ export const GENERALES_C_NUEVAS_ART: Record<string, (u: number) => string> = {
     )
   },
 
-  // Quince ganadas: te consultan las dudas de reglas.
+  // Quince ganadas: te consultan las dudas de reglas. La lupa sobre el artículo del reglamento.
   'Especialista': (u) => {
     const k = kit(u)
     const lens = ellipse(54, 56, 16, 16)
     const bubble = 'M72 38C72 32.6 77 30 82.6 30C88.2 30 92 33 92 38C92 43 88 46 82.6 46C81 46 79.4 45.6 78.2 45L73.6 47.6L74.8 43.2C73 42 72 40 72 38Z'
+    const book = 'M30 86L54 78L76 86L52 94Z'
     return (
       k.day() +
       k.stage(60, 60, 34) +
-      k.floor(51, 88.6, 9, 1.6) +
-      meeple(k, 50, 79.6, 0.34, P.sky) +
+      k.floor(54, 92, 24, 2.4) +
+      k.draw([{ d: book, fill: P.white, inner: Array.from({ length: 5 }, (_, i) => `<path d="M${36 + i * 3.2} ${84.6 - i * 1.06}L${57 + i * 3.2} ${91.6 - i * 1.06}" stroke="${P.sky2}" stroke-width=".5"/>`).join('') + `<path d="M54 78V94" stroke="${P.mid}" stroke-width=".6"/>` + k.sh(book, 0, 0, 1, 1, 0, 0.5, P.blue, 0.3) }], 0.6) +
       `<path d="M65.4 67.4L84 90" stroke="${P.ink}" stroke-width="6.4" stroke-linecap="round"/><path d="M65.4 67.4L84 90" stroke="${P.brown}" stroke-width="4.4" stroke-linecap="round"/><path d="M66.4 67.2L83 87.6" stroke="${P.goldL}" stroke-width=".8" stroke-linecap="round" opacity=".6"/>` +
-      `<path d="M64.6 66.4L68.6 71.2" stroke="${P.ink}" stroke-width="6.8" stroke-linecap="butt"/><path d="M64.6 66.4L68.6 71.2" stroke="${P.gold}" stroke-width="5" stroke-linecap="butt"/>` +
-      `<path d="${lens}" fill="${P.sky1}"/>` +
-      k.clip(lens, meeple(k, 50, 74, 0.86, P.sky) + `<path d="${lens}" fill="${k.lin('#ffffff', 0, 0, 1, 1, 0.45, 0)}"/>`) +
+      `<path d="M64.6 66.4L68.6 71.2" stroke="${P.ink}" stroke-width="6.8"/><path d="M64.6 66.4L68.6 71.2" stroke="${P.gold}" stroke-width="5"/>` +
+      `<path d="${lens}" fill="${P.white}"/>` +
+      k.clip(lens, Array.from({ length: 7 }, (_, i) => `<path d="M38 ${f(46 + i * 4.4)}H${i % 3 === 2 ? 60 : 70}" stroke="${P.sky2}" stroke-width="1.6" stroke-linecap="round"/>`).join('') + `<text x="54" y="62.4" font-family="Georgia, serif" font-weight="700" font-size="14" fill="${P.ink}" text-anchor="middle">§</text>` + `<path d="${lens}" fill="${k.lin(P.sky, 0, 0, 1, 1, 0.1, 0.45)}"/>`) +
       `<path d="M44 50C46 46 50 44 54 44" fill="none" stroke="#fff" stroke-width="1.6" stroke-linecap="round" opacity=".9"/>` +
-      `<path d="${lens}" fill="none" stroke="${P.ink}" stroke-width="5"/><path d="${lens}" fill="none" stroke="${P.gold}" stroke-width="3.2"/><path d="${ellipse(54, 56, 16, 16)}" fill="none" stroke="${P.goldD}" stroke-width=".6" transform="translate(.5 .6)"/>` +
+      `<path d="${lens}" fill="none" stroke="${P.ink}" stroke-width="5"/><path d="${lens}" fill="none" stroke="${P.gold}" stroke-width="3.2"/><path d="${lens}" fill="none" stroke="${P.goldD}" stroke-width=".6" transform="translate(.5 .6)"/>` +
       k.draw([{ d: bubble, fill: P.white, inner: k.sh(bubble, 0, 0, 1, 1, 0, 0.6, P.blue, 0.3) }], 0.5) +
-      `<text x="82.4" y="41.6" ${GEORGIA} font-weight="700" font-size="11" fill="${P.ink}" text-anchor="middle">?</text>` +
+      `<text x="82.4" y="41.6" font-family="Georgia, serif" font-weight="700" font-size="11" fill="${P.ink}" text-anchor="middle">?</text>` +
       k.defs()
     )
   },
@@ -449,27 +454,35 @@ export const GENERALES_C_NUEVAS_ART: Record<string, (u: number) => string> = {
     )
   },
 
-  // Sesenta ganadas: te hacen una estatua en la plaza (con paloma incluida).
+  // Sesenta ganadas: te hacen una estatua en la plaza. El brazo de mármol con la copa (y la paloma).
   'Leyenda viviente': (u) => {
     const k = kit(u)
-    const cornice = 'M40 68H80V72.6H40Z'
-    const shaft = 'M44 72.6H76V96H44Z'
+    const cornice = 'M40 70H80V74.6H40Z'
+    const shaft = 'M44 74.6H76V96H44Z'
     const base = 'M38 96H82V101H38Z'
     const stone = (d: string) => ({ d, fill: P.white, inner: k.sh(d, 0, 0, 1, 0, 0, 0.8, P.blue, 0.4) })
-    const plaque = 'M50.6 79.6H69.4V88.6H50.6Z'
+    const plaque = 'M50.6 80.6H69.4V89.6H50.6Z'
+    const arm = 'M54.6 66C55 59 55.4 53 55.2 50H64.8C64.6 53 65 59 65.4 66Z'
+    const fist = 'M52.6 51.6C51.4 46 52.4 41.6 56 40.4H64C67.6 41.6 68.6 46 67.4 51.6Z'
+    const cup = 'M50.6 22H69.4V27C69.4 33.6 65.4 37.6 60 37.6C54.6 37.6 50.6 33.6 50.6 27Z'
+    const stem = 'M58 37.4H62V41H58Z'
     const pigeon = 'M-5 0C-5 -3 -2 -4.6 1.6 -4.2C2.4 -6.6 5.4 -7 6.4 -4.6L8.4 -4L6.6 -3.2C6.6 0 4.6 2.6 1 2.8C-1 3 -3 2.6 -5 0L-9 -1L-5 -2Z'
+    const marble = (d: string, line = 0) => ({ d, fill: P.sky1, line, inner: k.sh(d, 0, 0, 1, 0, 0, 0.85, P.mid, 0.45) + `<path d="${d}" fill="${k.lin('#ffffff', 0, 0, 1, 0, 0.5, 0)}"/>` })
     return (
       k.day() +
-      k.sun(60, 50, 16, 40, 28, false) +
+      k.sun(60, 46, 16, 42, 28, false) +
       k.floor(60, 101.4, 28, 2.4) +
       k.draw([stone(base), stone(shaft), stone(cornice)], 0.7) +
-      `<path d="M48 72.6V96M72 72.6V96" stroke="${P.sky2}" stroke-width=".6"/>` +
+      `<path d="M48 74.6V96M72 74.6V96" stroke="${P.sky2}" stroke-width=".6"/>` +
       k.draw([{ d: plaque, fill: P.gold, inner: k.sh(plaque, 0, 0, 1, 1, 0, 0.9, P.goldD, 0.4) }], 0.4) +
-      `<text x="60" y="85.6" ${GEORGIA} font-style="italic" font-size="4.6" fill="${P.ink}" text-anchor="middle">Leyenda</text>` +
-      meeple(k, 60, 49, 0.7, P.sky2, { shade: P.mid }) +
-      `<path d="M47.6 33.6C50 31 53.4 30 56.4 30.6M63.6 30.6C66.6 30 70 31 72.4 33.6" fill="none" stroke="${P.green}" stroke-width="1.6" stroke-linecap="round"/>` +
-      `<g transform="translate(61 27.4)">` + k.draw([{ d: pigeon, fill: P.sky2, inner: k.sh(pigeon, 0, 0, 1, 1, 0, 0.8, P.mid, 0.4) + `<path d="M1.6 -4C2.4 -2.6 4 -2.2 5.6 -2.6" fill="none" stroke="${P.green}" stroke-width=".8"/>` }], 0.45) + `<circle cx="4.4" cy="-5" r=".5" fill="${P.ink}"/><path d="M0 2.8V4.6M2 2.6V4.6" stroke="${P.red}" stroke-width=".5"/></g>` +
-      `<path d="M60 35.6Q59.4 38.6 60.2 41" fill="none" stroke="${P.white}" stroke-width=".9" stroke-linecap="round" opacity=".9"/>` +
+      `<text x="60" y="86.6" font-family="Georgia, serif" font-style="italic" font-size="4.6" fill="${P.ink}" text-anchor="middle">Leyenda</text>` +
+      `<g transform="translate(0 4.6)">` +
+      k.draw([marble(arm), marble(stem), marble(cup, 0.35), marble(fist, 0.35)], 0.7) +
+      `<path d="M55.4 44.6H64.6M55.2 47.8H64.8M57.6 40.6V44.6M60.6 40.4V44.6M63.4 40.6V44.6" stroke="${P.mid}" stroke-width=".45"/>` +
+      `<path d="M50.6 24.6C46 24.6 45.6 31 51 31.4M69.4 24.6C74 24.6 74.4 31 69 31.4" fill="none" stroke="${P.ink}" stroke-width="2.2"/><path d="M50.6 24.6C46 24.6 45.6 31 51 31.4M69.4 24.6C74 24.6 74.4 31 69 31.4" fill="none" stroke="${P.sky1}" stroke-width="1"/>` +
+      `<path d="M53 26V33M57 28V35" stroke="#fff" stroke-width=".7" opacity=".7"/>` +
+      `<g transform="translate(64.4 21.4)">` + k.draw([{ d: pigeon, fill: P.sky2, inner: k.sh(pigeon, 0, 0, 1, 1, 0, 0.8, P.mid, 0.4) + `<path d="M1.6 -4C2.4 -2.6 4 -2.2 5.6 -2.6" fill="none" stroke="${P.green}" stroke-width=".8"/>` }], 0.45) + `<circle cx="4.4" cy="-5" r=".5" fill="${P.ink}"/><path d="M0 2.8V4.6M2 2.6V4.6" stroke="${P.red}" stroke-width=".5"/></g>` +
+      `</g>` +
       sparkle(86, 34, 2) + sparkle(34, 40, 1.6) +
       k.defs()
     )

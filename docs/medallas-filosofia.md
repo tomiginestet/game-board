@@ -21,6 +21,13 @@ degradé hecho grano encima (`shade`). Nada de brillos de plástico ni de 3D.
 **Un fondo que enmarca.** El sol de Mayo o una gloria de rayos (`sun`), un escenario celeste (`stage`) o la noche
 (`night`). Algunas medallas suman un texto en cursiva, como los rótulos de las estampillas ("¡fiu!").
 
+**Pocos elementos, mucho detalle.** Un protagonista y como mucho uno o dos acompañantes. Cada elemento puede tener
+ornamento, textura y varias capas de sombra, pero la medalla no se llena de cosas. Las medallas de los niveles
+altos llevan más trabajo de grabado (volutas, texturas, remates, brillos), no más objetos.
+
+**Nada de meeple.** El muñequito de juego parece un hombre de jengibre: no se usa. Los jugadores se representan
+con objetos (una ficha, un sombrero, un anillo, una pieza de ajedrez, una mano).
+
 **Humor en el objeto.** El chiste está en lo que se elige dibujar (la camiseta colgada con aureola, el puño que le
 pega al dado, el rey del tablero con los rivales tirados), no en caras de historieta. A las personas reales no se
 las dibuja: aparecen por sus símbolos.

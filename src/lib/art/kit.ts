@@ -268,3 +268,26 @@ export function laurel(x0: number, y0: number, cx: number, cy: number, x1: numbe
   }
   return out
 }
+
+/** Peón de ajedrez con la base en y=8 (antes de escalar). */
+export const PAWN =
+  'M-6 8H6C6 6 5 5 3.6 4.6L2.4 -.6C3.8 -1.2 4 -3 2.6 -3.6C3.6 -4.6 3.8 -6.6 2.6 -7.8A3.6 3.6 0 1 0 -2.6 -7.8C-3.8 -6.6 -3.6 -4.6 -2.6 -3.6C-4 -3 -3.8 -1.2 -2.4 -.6L-3.6 4.6C-5 5 -6 6 -6 8Z'
+
+/** Rey de ajedrez con la base en y=26 y la cruz arriba (antes de escalar). */
+export const KING =
+  'M-14 26H14C14 23 12.6 21.4 10.4 20.8L9 16C11.8 15 11.8 11.4 9 10.6L6 -5.6C8.8 -6.6 8.8 -10.2 6 -10.8C7.6 -12.6 7.6 -16.2 5 -17.6L5.6 -19.6H1.6V-23.4H5V-26.6H1.6V-30.6H-1.6V-26.6H-5V-23.4H-1.6V-19.6H-5.6L-5 -17.6' +
+  'C-7.6 -16.2 -7.6 -12.6 -6 -10.8C-8.8 -10.2 -8.8 -6.6 -6 -5.6L-9 10.6C-11.8 11.4 -11.8 15 -9 16L-10.4 20.8C-12.6 21.4 -14 23 -14 26Z'
+
+/** Pieza de ajedrez entintada (PAWN o KING) centrada en (x,y), con su volumen y sus anillos torneados. */
+export function chessPiece(k: Kit, d: string, x: number, y: number, s: number, fill: string, o: { rot?: number; shade?: string; rings?: number[] } = {}) {
+  const dark = o.shade ?? P.blue
+  return (
+    `<g transform="translate(${x} ${y}) rotate(${o.rot ?? 0}) scale(${s})">` +
+    k.draw([{
+      d, fill,
+      inner: k.sh('M1 -34H16V28H1Z', 0, 0, 1, 0, 0, 0.85, dark, 0.4) + `<path d="M-16 -34H-3V28H-16Z" fill="${k.lin('#ffffff', 0, 0, 1, 0, 0.45, 0)}"/>` +
+        (o.rings ?? []).map((ry) => `<path d="M-12 ${ry}H12" stroke="${dark}" stroke-width="${f(0.6 / s)}" opacity=".8"/>`).join(''),
+    }], f(0.75 / s)) +
+    `</g>`
+  )
+}
