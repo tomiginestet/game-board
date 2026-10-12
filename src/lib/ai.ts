@@ -17,11 +17,11 @@ export function extractJson(text: string): unknown {
   const body = fenced ? fenced[1] : text
   const start = body.indexOf('{')
   const end = body.lastIndexOf('}')
-  if (start < 0 || end <= start) throw new Error('No encontré un objeto JSON en la respuesta.')
+  if (start < 0 || end <= start) throw new Error('No encontramos los datos del juego en la respuesta. Copiá la respuesta entera del chat y pegala de nuevo.')
   try {
     return JSON.parse(body.slice(start, end + 1))
-  } catch (e) {
-    throw new Error(`El JSON no se pudo leer: ${(e as Error).message}`)
+  } catch {
+    throw new Error('La respuesta está incompleta o mal armada. Pedile al chat que la mande entera de nuevo.')
   }
 }
 
@@ -54,7 +54,7 @@ const arr = <T = unknown>(x: unknown): T[] => (Array.isArray(x) ? (x as T[]) : [
  * tira un error; lo que se puede corregir se corrige y se avisa.
  */
 export function checkGame(raw: unknown, opts: { source?: GameDef['source']; keepId?: boolean } = {}): Checked {
-  if (!raw || typeof raw !== 'object') throw new Error('La ficha tiene que ser un objeto.')
+  if (!raw || typeof raw !== 'object') throw new Error('No pudimos leer los datos del juego. Revisá que hayas pegado la respuesta entera.')
   const r = raw as Record<string, unknown>
   const warnings: string[] = []
   const name = str(r.name).trim()
@@ -62,7 +62,7 @@ export function checkGame(raw: unknown, opts: { source?: GameDef['source']; keep
 
   let mode = str(r.mode) as GameDef['mode']
   if (!MODES.includes(mode) || mode === 'rally') {
-    warnings.push(`Modo "${mode}" desconocido: uso "result".`)
+    warnings.push(`No reconocimos cómo se anota${mode ? ` (“${mode}”)` : ''}: lo dejamos como resultado final.`)
     mode = 'result'
   }
   let sides = str(r.sides) as GameDef['sides']
@@ -135,7 +135,7 @@ export function checkGame(raw: unknown, opts: { source?: GameDef['source']; keep
   for (const a of arr<Record<string, unknown>>(r.awards)) {
     const metric = a.metric as Metric
     if (!metric || typeof metric !== 'object' || !metricOk(metric)) {
-      warnings.push(`Saqué el premio "${str(a.name)}": mide algo que no existe en la ficha.`)
+      warnings.push(`Sacamos la medalla “${str(a.name)}”: mide algo que el juego no registra.`)
       continue
     }
     const levels = arr<Record<string, unknown>>(a.levels)
@@ -167,7 +167,7 @@ export function checkGame(raw: unknown, opts: { source?: GameDef['source']; keep
   const scoring = (r.scoring && typeof r.scoring === 'object' ? r.scoring : {}) as GameDef['scoring']
   for (const key of ['targetOption', 'roundsOption', 'eliminateOption'] as const) {
     if (scoring[key] && !options.some((o) => o.id === scoring[key])) {
-      warnings.push(`La opción "${scoring[key]}" no existe; la ignoro.`)
+      warnings.push(`La opción “${scoring[key]}” no existe en el juego: la dejamos de lado.`)
       delete scoring[key]
     }
   }

@@ -2559,3 +2559,10 @@ svg {
   gap: 4px;
 }
 .gloria-icon { color: var(--accent-2); }
+
+/* Etiqueta visible de un campo o de un grupo de opciones. */
+.field-label {
+  font-weight: 600;
+  font-size: 14px;
+  color: var(--muted);
+}

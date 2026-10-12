@@ -1,6 +1,7 @@
 import { ArrowLeftIcon, ArrowSquareOutIcon, CheckIcon, ClipboardTextIcon, CopyIcon, HandIcon, MagicWandIcon, PencilSimpleIcon, SparkleIcon } from '@phosphor-icons/react'
-import { useEffect, useState } from 'react'
+import { useEffect, useId, useState } from 'react'
 import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom'
+import { ErrorText } from '../components/Feedback'
 import { GameBadge } from '../components/GameBits'
 import { blankGame, GameEditor } from '../components/GameEditor'
 import { Loader } from '../components/Logo'
@@ -11,6 +12,7 @@ import { findGame } from '../lib/games'
 import type { GameDef } from '../lib/games/schema'
 import { actions, useData } from '../lib/store'
 import { syncAvailable } from '../lib/sync'
+import { friendlyError } from '../lib/text'
 import { MODE_NAMES } from './GameDetail'
 
 const MONTHLY_LIMIT = 10
@@ -29,7 +31,7 @@ export function AddGame() {
   const [rules, setRules] = useState('')
   const [way, setWay] = useState<Way>(source ? 'manual' : 'paste')
   const [draft, setDraft] = useState<Checked | null>(null)
-  const [editing, setEditing] = useState<GameDef | null>(source ? { ...source, id: '', name: `${source.name} (a mi manera)`, source: 'custom' } : null)
+  const [editing, setEditing] = useState<GameDef | null>(source ? { ...source, id: '', name: `${source.name} (a nuestra manera)`, source: 'custom' } : null)
 
   const save = (g: GameDef) => {
     const saved = actions.saveGame(g)
@@ -54,7 +56,7 @@ export function AddGame() {
         <button className="back link-btn" onClick={() => setDraft(null)}>
           <ArrowLeftIcon /> Volver
         </button>
-        <h1>¿Te sirve esta ficha?</h1>
+        <h1>¿Te sirve así el juego?</h1>
         <GamePreview game={draft.game} />
         {draft.warnings.length > 0 && (
           <div className="card warn">
@@ -71,7 +73,7 @@ export function AddGame() {
             <PencilSimpleIcon /> Retocar
           </button>
           <button className="btn primary big grow" onClick={() => save(draft.game)}>
-            <CheckIcon /> Agregar a la biblioteca
+            <CheckIcon /> Agregar al catálogo
           </button>
         </div>
       </div>
@@ -85,7 +87,7 @@ export function AddGame() {
         <ArrowLeftIcon /> Juegos
       </Link>
       <h1>Agregar un juego</h1>
-      <p className="muted">La app arma la ficha del juego: cómo se anota, qué eventos registrar, modos de torneo y medallas propias.</p>
+      <p className="muted">La app arma los detalles del juego: cómo se anota, qué eventos registrar, modos de torneo y medallas propias.</p>
 
       <div className="field">
         <label htmlFor="gname">Nombre del juego</label>
@@ -97,17 +99,20 @@ export function AddGame() {
       </div>
       <div className="field">
         <label htmlFor="grules">Reglas (opcional, pegalas si las tenés)</label>
-        <textarea id="grules" className="input" rows={5} value={rules} onChange={(e) => setRules(e.target.value)} placeholder="Pegá el reglamento o un resumen. Con reglas, la ficha sale mucho mejor." />
+        <textarea id="grules" className="input" rows={5} value={rules} onChange={(e) => setRules(e.target.value)} placeholder="Ej.: Se reparten 3 cartas a cada uno…" aria-describedby="grules-hint" />
+        <p id="grules-hint" className="hint">
+          Pegá el reglamento o un resumen: con reglas, el juego sale mucho mejor.
+        </p>
       </div>
 
-      <div className="segmented">
-        <button className={way === 'paste' ? 'active' : ''} onClick={() => setWay('paste')}>
+      <div className="segmented" role="group" aria-label="Cómo armar el juego">
+        <button className={way === 'paste' ? 'active' : ''} aria-pressed={way === 'paste'} onClick={() => setWay('paste')}>
           <ClipboardTextIcon /> IA gratis
         </button>
-        <button className={way === 'api' ? 'active' : ''} onClick={() => setWay('api')}>
+        <button className={way === 'api' ? 'active' : ''} aria-pressed={way === 'api'} onClick={() => setWay('api')}>
           <MagicWandIcon /> IA automática
         </button>
-        <button className={way === 'manual' ? 'active' : ''} onClick={() => setWay('manual')}>
+        <button className={way === 'manual' ? 'active' : ''} aria-pressed={way === 'manual'} onClick={() => setWay('manual')}>
           <HandIcon /> A mano
         </button>
       </div>
@@ -116,7 +121,7 @@ export function AddGame() {
       {way === 'api' && <ApiFlow input={input} onDraft={setDraft} />}
       {way === 'manual' && (
         <section className="card">
-          <p>Armá la ficha con un formulario. Si no te querés complicar, alcanza con el nombre, la cantidad de jugadores y “Resultado final”: el juego ya tiene ranking, torneos y medallas genéricas.</p>
+          <p>Armá el juego con un formulario. Si no te querés complicar, alcanza con el nombre, la cantidad de jugadores y “Resultado final”: el juego ya tiene ranking, torneos y medallas genéricas.</p>
           <button className="btn primary block" disabled={!name.trim()} onClick={() => setEditing({ ...blankGame(name.trim()) })}>
             <PencilSimpleIcon /> Empezar
           </button>
@@ -130,6 +135,7 @@ function PasteFlow({ input, onDraft }: { input: { name: string; notes: string; r
   const [copied, setCopied] = useState(false)
   const [answer, setAnswer] = useState('')
   const [error, setError] = useState('')
+  const answerId = useId()
   const copy = async () => {
     await navigator.clipboard?.writeText(promptForChat(input))
     setCopied(true)
@@ -151,11 +157,11 @@ function PasteFlow({ input, onDraft }: { input: { name: string; notes: string; r
           </a>
         </li>
         <li>
-          Copiá la respuesta entera y pegala acá:
-          <textarea className="input mt code-area" rows={6} value={answer} onChange={(e) => setAnswer(e.target.value)} placeholder='{ "id": "...", "name": "..." }' />
+          <label htmlFor={answerId}>Copiá la respuesta entera y pegala acá:</label>
+          <textarea id={answerId} className="input mt code-area" rows={6} value={answer} onChange={(e) => setAnswer(e.target.value)} placeholder="Ej.: ¡Listo! Acá tenés el juego…" />
         </li>
       </ol>
-      {error && <p className="error">{error}</p>}
+      <ErrorText>{error}</ErrorText>
       <button
         className="btn primary block"
         disabled={!answer.trim()}
@@ -164,11 +170,11 @@ function PasteFlow({ input, onDraft }: { input: { name: string; notes: string; r
             setError('')
             onDraft(parseGameResponse(answer))
           } catch (e) {
-            setError((e as Error).message)
+            setError(friendlyError(e))
           }
         }}
       >
-        <SparkleIcon /> Ver la ficha
+        <SparkleIcon /> Ver el juego
       </button>
     </section>
   )
@@ -186,11 +192,11 @@ function ApiFlow({ input, onDraft }: { input: { name: string; notes: string; rul
       .catch(() => setSpent(null))
   }, [auth.session])
 
-  if (!syncAvailable) return <div className="card">La generación automática no está configurada en esta instalación.</div>
+  if (!syncAvailable) return <div className="card">La IA automática no está disponible en esta versión de la app.</div>
   if (!auth.session)
     return (
       <div className="card">
-        <p>Para usar la IA automática hay que iniciar sesión (así se controla el gasto).</p>
+        <p>Para usar la IA automática hay que iniciar sesión (así cuidamos el cupo de toda la app).</p>
         <Link to="/club" className="btn primary">
           Iniciar sesión
         </Link>
@@ -203,7 +209,7 @@ function ApiFlow({ input, onDraft }: { input: { name: string; notes: string; rul
     try {
       onDraft(await generateWithApi(input))
     } catch (e) {
-      setError((e as Error).message)
+      setError(friendlyError(e))
     } finally {
       setBusy(false)
     }
@@ -212,19 +218,19 @@ function ApiFlow({ input, onDraft }: { input: { name: string; notes: string; rul
   return (
     <section className="card">
       <p className="muted small">
-        Usa la API de Claude con un tope de USD {MONTHLY_LIMIT} por mes para toda la app. Cada juego cuesta unos centavos.
-        {spent !== null && ` Este mes se usaron USD ${spent.toFixed(2)}.`}
+        La arma Claude por vos. Hay un cupo mensual para toda la app y cada juego usa muy poco.
+        {spent !== null && ` Este mes se usó el ${Math.min(100, Math.round((spent / MONTHLY_LIMIT) * 100))}% del cupo.`}
       </p>
       <button className="btn primary big block" disabled={busy || !input.name.trim()} onClick={generate}>
-        <MagicWandIcon /> {busy ? 'Pensando el juego… (puede tardar un minuto)' : 'Generar ficha'}
+        <MagicWandIcon /> {busy ? 'Pensando el juego…' : 'Armar el juego'}
       </button>
       {busy && <Loader kind="secuencia" text="Puede tardar un minuto." delay={0} size={88} />}
-      {error && <p className="error">{error}</p>}
+      <ErrorText>{error}</ErrorText>
     </section>
   )
 }
 
-/** Vista previa de una ficha antes de guardarla. */
+/** Vista previa de un juego antes de guardarlo. */
 export function GamePreview({ game }: { game: GameDef }) {
   return (
     <div className="game-preview">
@@ -288,7 +294,7 @@ export function GamePreview({ game }: { game: GameDef }) {
   )
 }
 
-/** Editar un juego agregado por el grupo. */
+/** Editar un juego agregado por el club. */
 export function EditGame() {
   const { id } = useParams()
   const data = useData()
@@ -300,7 +306,7 @@ export function EditGame() {
       <Link to={`/juegos/${game.id}`} className="back">
         <ArrowLeftIcon /> {game.name}
       </Link>
-      <h1>Editar ficha</h1>
+      <h1>Editar juego</h1>
       <GameEditor
         initial={game}
         onSave={(g) => {
