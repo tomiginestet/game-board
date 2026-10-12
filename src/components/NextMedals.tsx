@@ -1,4 +1,6 @@
+import { ArrowRightIcon } from '@phosphor-icons/react'
 import { useMemo, useState } from 'react'
+import { Link } from 'react-router-dom'
 import { findGame } from '../lib/games'
 import { useBoard, useLeaderboard, usePlayerMap } from '../lib/hooks'
 import { closestFirst, gameMedals, globalMedals, type MedalProgress } from '../lib/medals'
@@ -63,7 +65,12 @@ export function NextMedals() {
 
   return (
     <section>
-      <h2>{mine ? 'Tus próximas medallas' : 'Medallas a la vista'}</h2>
+      <div className="section-head">
+        <h2>{mine ? 'Tus próximas medallas' : 'Medallas a la vista'}</h2>
+        <Link to="/medallas">
+          Vitrina <ArrowRightIcon className="inline-icon" size="1em" />
+        </Link>
+      </div>
       <div className="card near-medals">
         {list.map((x) => {
           const { family, level, next, value, ratio } = x.progress
