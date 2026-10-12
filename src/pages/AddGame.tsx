@@ -3,6 +3,7 @@ import { useEffect, useState } from 'react'
 import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom'
 import { GameBadge } from '../components/GameBits'
 import { blankGame, GameEditor } from '../components/GameEditor'
+import { Loader } from '../components/Logo'
 import { Medal } from '../components/Medal'
 import { generateWithApi, parseGameResponse, promptForChat, type Checked } from '../lib/ai'
 import { aiSpentThisMonth, useAuth } from '../lib/auth'
@@ -217,6 +218,7 @@ function ApiFlow({ input, onDraft }: { input: { name: string; notes: string; rul
       <button className="btn primary big block" disabled={busy || !input.name.trim()} onClick={generate}>
         <MagicWandIcon /> {busy ? 'Pensando el juego… (puede tardar un minuto)' : 'Generar ficha'}
       </button>
+      {busy && <Loader kind="secuencia" text="Puede tardar un minuto." delay={0} size={88} />}
       {error && <p className="error">{error}</p>}
     </section>
   )
