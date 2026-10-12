@@ -9,6 +9,7 @@ import { MedalsSection } from '../components/MedalsSection'
 import { PlayerForm } from '../components/PlayerForm'
 import { Sparkline } from '../components/Sparkline'
 import { claimPlayer, useAuth } from '../lib/auth'
+import { refreshGroups } from '../lib/social'
 import { gameOrMissing, plural, useBoard, useLeaderboard, usePlayerMap } from '../lib/hooks'
 import { gameMedals, globalMedals } from '../lib/medals'
 import { involves } from '../lib/pingpong/teams'
@@ -67,6 +68,7 @@ export function PlayerDetail() {
     if (!sync.club) return
     try {
       await claimPlayer(sync.club.code, player.id)
+      void refreshGroups().catch(() => {})
       setClaimMsg('¡Listo! Este jugador quedó asociado a tu cuenta.')
     } catch (e) {
       setClaimMsg((e as Error).message)

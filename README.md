@@ -6,6 +6,21 @@ de datos) que el [Ping Pong Club](https://github.com/tomiginestet/ping-pong-web-
 
 ## Qué hace
 
+- **Catálogo tipo Steam / Game Pass**: carátulas generadas para cada juego (dibujo por categoría, color y emoji del juego;
+  los juegos del grupo pueden usar una imagen propia con `cover`), carrusel de destacados, estantes por categoría y
+  un catálogo completo con buscador, filtros y orden.
+- **Cuentas, grupos y amigos**:
+  - al entrar: cuenta (Google o link por mail), perfil con @usuario y un onboarding para crear un grupo, buscar uno,
+    entrar con un link o ir a buscar amigos. También se puede usar sin cuenta, como antes;
+  - una cuenta puede estar en **varios grupos** y cambiar entre ellos desde la barra de arriba (los datos de cada grupo
+    quedan guardados en el dispositivo, así el cambio es instantáneo);
+  - grupos **públicos** (aparecen en el buscador; se pide permiso para entrar y le llega una notificación al dueño y
+    a los admins) o **privados** (invitación a un usuario o link);
+  - roles: dueño, admins (aceptan solicitudes, sacan gente) e integrantes (invitan);
+  - **amigos** por @usuario y **mano a mano**: cada dupla es un grupo de dos con su historial;
+  - **notificaciones** (solicitudes, invitaciones, amistades) en tiempo real;
+  - **ranking de cada grupo** (el de siempre) y **ranking global** (todas las cuentas, todos los grupos).
+
 - **Biblioteca de juegos**: vienen 45 de fábrica (truco, Catán, buraco, Skull King, El Impostor, Pistas cruzadas,
   ta-te-ti, chinchón, generala, La Podrida, TEG, Código Secreto, Dixit, Carcassonne, ¡Aventureros al tren!,
   Mario Kart, EA FC, Among Us…) y se pueden **agregar más**:
@@ -32,7 +47,10 @@ de datos) que el [Ping Pong Club](https://github.com/tomiginestet/ping-pong-web-
 
 ## Datos y Ping Pong Club
 
-Las dos apps comparten el proyecto de Supabase. En la tabla `entities`, los tipos `player`, `match` y `tournament`
+Las dos apps comparten el proyecto de Supabase. Los grupos son los mismos clubes (con dueño, descripción, emoji y
+visibilidad); amigos, solicitudes, invitaciones, notificaciones y el ranking global están en
+`supabase/migrations/20261013000000_groups_social.sql`. El código de un grupo sigue siendo secreto: el buscador nunca
+lo devuelve y sólo llega a quien entra (por link, invitación aceptada o solicitud aceptada). En la tabla `entities`, los tipos `player`, `match` y `tournament`
 son los del Ping Pong Club (las dos apps los leen y escriben con el mismo formato) y Game Board agrega `play`
 (partida de cualquier juego), `cup` (torneo) y `game` (juego agregado por el grupo). `pull_changes` sigue
 devolviendo sólo lo de ping pong; Game Board usa `pull_changes_all`. Ver `supabase/migrations/`.

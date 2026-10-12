@@ -133,6 +133,15 @@ export function GameEditor({ initial, onSave, onCancel, saveLabel = 'Guardar jue
           <input type="color" className="color-input" value={/^#[0-9a-f]{6}$/i.test(g.color) ? g.color : '#7048E8'} onChange={(e) => set({ color: e.target.value })} aria-label="Color" />
         </div>
         <input className="input mt" value={g.tagline} onChange={(e) => set({ tagline: e.target.value })} placeholder="Una frase con gracia" />
+        <input
+          className="input mt"
+          type="url"
+          inputMode="url"
+          value={g.cover ?? ''}
+          onChange={(e) => set({ cover: e.target.value.trim() || undefined })}
+          placeholder="Imagen de carátula: link https://… (opcional)"
+          aria-label="Link a la imagen de carátula (opcional)"
+        />
         <div className="field mt">
           <label>Categoría</label>
           <div className="chips">

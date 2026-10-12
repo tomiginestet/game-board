@@ -1,0 +1,804 @@
+/* ==========================================================================
+   Catálogo estilo tienda: carátulas (GameCover), carrusel del inicio,
+   estantes horizontales, grilla del catálogo y banner de la ficha.
+   ========================================================================== */
+
+/* ---------- Carátula ---------- */
+
+.gcover {
+  --ts: 13cqi;
+  position: relative;
+  display: block;
+  width: 100%;
+  aspect-ratio: 3 / 4;
+  overflow: hidden;
+  border-radius: inherit;
+  background: var(--card-2);
+  container-type: inline-size;
+  isolation: isolate;
+  color: #fff;
+}
+
+.gcover-landscape {
+  aspect-ratio: 16 / 9;
+}
+
+.gcover-art,
+.gcover > img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+.gcover > img {
+  object-fit: cover;
+}
+
+.gcover.has-img:not(.no-title)::after {
+  content: '';
+  position: absolute;
+  inset: 45% 0 0;
+  background: linear-gradient(to bottom, transparent, rgba(5, 7, 12, 0.9));
+  z-index: 1;
+  pointer-events: none;
+}
+
+.gcover-emoji {
+  position: absolute;
+  z-index: 1;
+  font-size: 38cqi;
+  line-height: 1;
+  font-family: 'Apple Color Emoji', 'Segoe UI Emoji', 'Noto Color Emoji', sans-serif;
+  transform: translate(-50%, -50%) rotate(var(--tilt, 0deg));
+  filter: drop-shadow(0 0 5cqi color-mix(in srgb, var(--glow, #fff) 70%, transparent)) drop-shadow(0 2.5cqi 3cqi rgba(0, 0, 0, 0.55));
+  transition: scale 0.25s ease;
+  pointer-events: none;
+  user-select: none;
+}
+
+.gcover-landscape .gcover-emoji {
+  font-size: 22cqi;
+  filter: drop-shadow(0 0 3cqi color-mix(in srgb, var(--glow, #fff) 70%, transparent)) drop-shadow(0 1.5cqi 2cqi rgba(0, 0, 0, 0.55));
+}
+
+.gcover-title {
+  position: absolute;
+  z-index: 2;
+  left: 8cqi;
+  right: 8cqi;
+  bottom: 7cqi;
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  font-size: var(--ts);
+  font-weight: 900;
+  line-height: 0.98;
+  letter-spacing: -0.02em;
+  text-transform: uppercase;
+  text-wrap: balance;
+  overflow-wrap: break-word;
+  text-shadow:
+    0 0.15em 0.4em rgba(0, 0, 0, 0.6),
+    0 0 1px rgba(0, 0, 0, 0.8);
+}
+
+.gcover-title.long {
+  -webkit-line-clamp: 4;
+}
+
+.gcover-landscape .gcover-title {
+  font-size: calc(var(--ts) * 0.6);
+  left: 5cqi;
+  right: 40cqi;
+  bottom: 5cqi;
+}
+
+/* ---------- Piezas comunes de las tarjetas ---------- */
+
+.cc-cover {
+  position: relative;
+  display: block;
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow:
+    0 6px 18px rgba(0, 0, 0, 0.35),
+    0 0 0 1px rgba(255, 255, 255, 0.06);
+  transition:
+    transform 0.2s ease,
+    box-shadow 0.2s ease;
+}
+
+.cc-pill {
+  position: absolute;
+  z-index: 3;
+  top: 6px;
+  left: 6px;
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  padding: 2px 7px;
+  border-radius: 999px;
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  color: #fff;
+  background: rgba(10, 12, 18, 0.72);
+  backdrop-filter: blur(4px);
+  border: 1px solid rgba(255, 255, 255, 0.18);
+}
+
+.cc-pill.ai {
+  color: #e5d9ff;
+  border-color: rgba(180, 150, 255, 0.5);
+}
+
+.cc-pill.mine {
+  color: var(--accent-2);
+  border-color: rgba(255, 180, 0, 0.45);
+}
+
+.cc-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  max-width: 100%;
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: var(--text);
+  font-size: 11.5px;
+  font-weight: 700;
+  line-height: 1.5;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.cc-chip.hot {
+  background: rgba(255, 107, 53, 0.16);
+  border-color: rgba(255, 107, 53, 0.35);
+  color: #ffb08f;
+}
+
+.cc-chip.ai {
+  background: rgba(150, 120, 255, 0.16);
+  border-color: rgba(150, 120, 255, 0.4);
+  color: #e0d6ff;
+}
+
+/* Foco y hover compartidos: la tarjeta "se levanta" y el emoji crece. */
+.shelf-card,
+.catalog-card,
+.catalog-cta {
+  -webkit-tap-highlight-color: transparent;
+}
+
+.shelf-card:focus-visible,
+.catalog-card:focus-visible,
+.catalog-cta:focus-visible,
+.hero-card .btn:focus-visible,
+.hero-arrow:focus-visible,
+.hero-dot:focus-visible,
+.shelf-all:focus-visible {
+  outline: 3px solid var(--accent-2);
+  outline-offset: 3px;
+  border-radius: 12px;
+}
+
+@media (hover: hover) {
+  .shelf-card:hover .cc-cover,
+  .catalog-card:hover .cc-cover {
+    transform: translateY(-4px);
+    box-shadow:
+      0 14px 28px rgba(0, 0, 0, 0.5),
+      0 0 0 2px color-mix(in srgb, var(--gc, #fff) 70%, white);
+  }
+
+  .shelf-card:hover .gcover-emoji,
+  .catalog-card:hover .gcover-emoji {
+    scale: 1.08;
+  }
+}
+
+.shelf-card:active .cc-cover,
+.catalog-card:active .cc-cover {
+  transform: scale(0.97);
+}
+
+/* ---------- Carrusel del inicio ---------- */
+
+.hero-carousel {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.hero-track {
+  display: flex;
+  gap: 12px;
+  margin: 0 -16px;
+  padding: 2px 16px 6px;
+  overflow-x: auto;
+  overscroll-behavior-x: contain;
+  scroll-snap-type: x mandatory;
+  scroll-padding-inline: 16px;
+  scrollbar-width: none;
+}
+
+.hero-track::-webkit-scrollbar,
+.shelf-row::-webkit-scrollbar {
+  display: none;
+}
+
+.hero-card {
+  position: relative;
+  flex: 0 0 calc(100% - 28px);
+  scroll-snap-align: center;
+  display: flex;
+  flex-direction: column;
+  border-radius: 20px;
+  overflow: hidden;
+  background:
+    radial-gradient(120% 60% at 20% 100%, color-mix(in srgb, var(--gc) 30%, transparent), transparent 70%),
+    linear-gradient(to bottom, color-mix(in srgb, var(--gc) 26%, #0a0d14), #0b0e15);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.45);
+}
+
+.hero-card > .gcover {
+  border-radius: 0;
+  -webkit-mask-image: linear-gradient(to bottom, #000 70%, transparent);
+  mask-image: linear-gradient(to bottom, #000 70%, transparent);
+}
+
+.hero-info {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-top: -44px;
+  padding: 0 16px 16px;
+  min-width: 0;
+}
+
+.hero-kicker {
+  align-self: flex-start;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--accent-2);
+  text-shadow: 0 1px 4px rgba(0, 0, 0, 0.8);
+}
+
+.hero-name {
+  margin: 0;
+  font-size: 26px;
+  font-weight: 900;
+  line-height: 1.05;
+  letter-spacing: -0.02em;
+  text-shadow: 0 2px 10px rgba(0, 0, 0, 0.6);
+  overflow-wrap: anywhere;
+}
+
+.hero-tagline {
+  margin: 0;
+  color: #d5dbe6;
+  font-size: 14px;
+  line-height: 1.35;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.hero-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 2px;
+}
+
+.hero-actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+.hero-actions .btn {
+  flex: 1;
+  padding: 11px 12px;
+  white-space: nowrap;
+}
+
+.hero-actions .btn.primary {
+  flex: 1.4;
+}
+
+.btn.hero-ghost {
+  background: rgba(255, 255, 255, 0.1);
+  border-color: rgba(255, 255, 255, 0.18);
+  backdrop-filter: blur(6px);
+}
+
+@media (hover: hover) {
+  .btn.hero-ghost:hover:not(:disabled) {
+    background: rgba(255, 255, 255, 0.16);
+    border-color: rgba(255, 255, 255, 0.3);
+  }
+}
+
+/* En pantallas anchas: el texto va encima del banner, como en las tiendas. */
+@media (min-width: 560px) {
+  .hero-card {
+    flex-basis: calc(100% - 56px);
+    aspect-ratio: 16 / 9;
+  }
+
+  .hero-card > .gcover {
+    position: absolute;
+    inset: 0;
+    height: 100%;
+    aspect-ratio: auto;
+    -webkit-mask-image: none;
+    mask-image: none;
+  }
+
+  .hero-card::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+    background:
+      linear-gradient(to right, rgba(6, 8, 13, 0.88) 0%, rgba(6, 8, 13, 0.55) 45%, transparent 70%),
+      linear-gradient(to top, rgba(6, 8, 13, 0.7), transparent 50%);
+    pointer-events: none;
+  }
+
+  .hero-info {
+    margin-top: auto;
+    max-width: 62%;
+    padding: 22px;
+  }
+
+  .hero-name {
+    font-size: 32px;
+  }
+}
+
+.hero-nav {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+}
+
+.hero-dots {
+  display: flex;
+  gap: 2px;
+}
+
+.hero-dot {
+  width: 24px;
+  height: 24px;
+  padding: 0;
+  border: none;
+  background: none;
+  cursor: pointer;
+  position: relative;
+}
+
+.hero-dot::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 7px;
+  height: 7px;
+  border-radius: 999px;
+  background: var(--border);
+  transform: translate(-50%, -50%);
+  transition:
+    width 0.2s ease,
+    background-color 0.2s ease;
+}
+
+.hero-dot.active::before {
+  width: 20px;
+  background: var(--accent);
+}
+
+.hero-arrow {
+  display: grid;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  border-radius: 999px;
+  border: 1px solid var(--border);
+  background: var(--bg-2);
+  color: var(--text);
+  cursor: pointer;
+}
+
+.hero-arrow:disabled {
+  opacity: 0.35;
+  cursor: default;
+}
+
+/* ---------- Estantes ---------- */
+
+.shelf {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.shelf-head {
+  display: flex;
+  align-items: flex-end;
+  gap: 12px;
+  margin-bottom: 10px;
+}
+
+.shelf-head h2 {
+  margin: 0;
+}
+
+.shelf-head p {
+  margin: 2px 0 0;
+}
+
+.shelf-all {
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 6px 2px;
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.shelf-row {
+  display: flex;
+  gap: 12px;
+  margin: 0 -16px;
+  padding: 4px 16px 10px;
+  overflow-x: auto;
+  overscroll-behavior-x: contain;
+  scroll-snap-type: x proximity;
+  scroll-padding-inline: 16px;
+  scrollbar-width: none;
+}
+
+.shelf-card {
+  flex: 0 0 128px;
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+  min-width: 0;
+  color: var(--text);
+  scroll-snap-align: start;
+}
+
+.shelf-meta {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  min-width: 0;
+  padding: 0 2px;
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 600;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.shelf-meta svg {
+  flex-shrink: 0;
+}
+
+.shelf-count {
+  color: #ffb08f;
+  font-weight: 700;
+}
+
+@media (min-width: 560px) {
+  .shelf-card {
+    flex-basis: 148px;
+  }
+}
+
+/* ---------- Entrada al catálogo ---------- */
+
+.catalog-cta {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-height: 132px;
+  padding: 18px;
+  border-radius: 20px;
+  overflow: hidden;
+  color: var(--text);
+  background:
+    radial-gradient(90% 140% at 100% 0%, rgba(255, 107, 53, 0.35), transparent 60%),
+    linear-gradient(135deg, #1d2433, #121722);
+  border: 1px solid rgba(255, 255, 255, 0.09);
+  box-shadow: 0 10px 26px rgba(0, 0, 0, 0.35);
+  transition:
+    transform 0.2s ease,
+    border-color 0.2s ease;
+}
+
+.cta-collage {
+  position: absolute;
+  top: -18px;
+  right: -30px;
+  bottom: -18px;
+  width: 70%;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  transform: rotate(-10deg);
+  opacity: 0.95;
+  -webkit-mask-image: linear-gradient(to right, transparent, #000 45%);
+  mask-image: linear-gradient(to right, transparent, #000 45%);
+  pointer-events: none;
+}
+
+.cta-collage .gcover {
+  flex: 0 0 72px;
+  width: 72px;
+  border-radius: 8px;
+  box-shadow: 0 6px 14px rgba(0, 0, 0, 0.5);
+}
+
+.cta-collage .gcover:nth-child(even) {
+  transform: translateY(26px);
+}
+
+.cta-text {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  max-width: 62%;
+  text-shadow: 0 1px 8px rgba(0, 0, 0, 0.7);
+}
+
+.cta-kicker {
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--accent);
+}
+
+.cta-text b {
+  font-size: 20px;
+  font-weight: 900;
+  line-height: 1.1;
+}
+
+.cta-count {
+  color: #c7cfdc;
+  font-size: 13px;
+}
+
+.cta-arrow {
+  position: relative;
+  z-index: 1;
+  margin-left: auto;
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+  width: 40px;
+  height: 40px;
+  border-radius: 999px;
+  background: var(--accent-fill);
+  color: #fff;
+  box-shadow: 0 6px 16px rgba(201, 68, 18, 0.5);
+}
+
+@media (hover: hover) {
+  .catalog-cta:hover {
+    border-color: rgba(255, 107, 53, 0.5);
+    transform: translateY(-2px);
+  }
+}
+
+/* ---------- Catálogo completo ---------- */
+
+.catalog-sub {
+  margin: 2px 0 0;
+}
+
+.catalog-tools {
+  display: flex;
+  gap: 8px;
+}
+
+.catalog-tools .search {
+  flex: 1;
+  min-width: 0;
+}
+
+.catalog-sort {
+  flex-shrink: 0;
+  display: block;
+}
+
+.catalog-sort select {
+  width: auto;
+  max-width: 44vw;
+  padding-right: 28px;
+  cursor: pointer;
+}
+
+.catalog-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  gap: 18px 12px;
+}
+
+@media (max-width: 380px) {
+  .catalog-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+.catalog-card {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-width: 0;
+  color: var(--text);
+}
+
+.cc-body {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+  padding: 0 2px;
+}
+
+.cc-name {
+  font-size: 14.5px;
+  font-weight: 800;
+  line-height: 1.2;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.cc-tagline {
+  color: var(--muted);
+  font-size: 12.5px;
+  line-height: 1.35;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  min-height: 2.7em;
+}
+
+.cc-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin-top: 2px;
+}
+
+/* ---------- Ficha del juego: banner ---------- */
+
+.gd-hero {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  margin: 0 -16px;
+  background: linear-gradient(to bottom, color-mix(in srgb, var(--gc) 22%, var(--bg)), var(--bg));
+}
+
+.gd-hero-cover {
+  border-radius: 0;
+  -webkit-mask-image: linear-gradient(to bottom, #000 65%, transparent);
+  mask-image: linear-gradient(to bottom, #000 65%, transparent);
+}
+
+.gd-hero-info {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-top: -56px;
+  padding: 0 16px;
+  min-width: 0;
+}
+
+.gd-hero-kicker {
+  align-self: flex-start;
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--accent-2);
+  text-shadow: 0 1px 6px rgba(0, 0, 0, 0.9);
+}
+
+.gd-hero h1 {
+  margin: 0;
+  font-size: 32px;
+  font-weight: 900;
+  line-height: 1.05;
+  letter-spacing: -0.02em;
+  text-shadow: 0 2px 12px rgba(0, 0, 0, 0.6);
+  overflow-wrap: anywhere;
+}
+
+.gd-hero-tagline {
+  margin: 0;
+  color: #d5dbe6;
+  font-size: 15px;
+}
+
+.gd-hero-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 4px;
+}
+
+.gd-hero-chips .cc-chip {
+  font-size: 12.5px;
+  padding: 3px 10px;
+}
+
+@media (min-width: 700px) {
+  .gd-hero {
+    margin: 0;
+    border-radius: 20px;
+    overflow: hidden;
+  }
+
+  .gd-hero-info {
+    padding: 0 20px 20px;
+  }
+}
+
+/* ---------- Menos movimiento ---------- */
+
+@media (prefers-reduced-motion: reduce) {
+  .gcover-emoji,
+  .cc-cover,
+  .catalog-cta,
+  .hero-dot::before {
+    transition: none;
+  }
+
+  .shelf-card:hover .cc-cover,
+  .catalog-card:hover .cc-cover,
+  .catalog-cta:hover,
+  .shelf-card:active .cc-cover,
+  .catalog-card:active .cc-cover {
+    transform: none;
+  }
+
+  .shelf-card:hover .gcover-emoji,
+  .catalog-card:hover .gcover-emoji {
+    scale: none;
+  }
+
+  .hero-track,
+  .shelf-row {
+    scroll-behavior: auto;
+  }
+}

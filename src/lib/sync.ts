@@ -1,7 +1,7 @@
 import { createClient, type RealtimeChannel, type SupabaseClient } from '@supabase/supabase-js'
 import { useSyncExternalStore } from 'react'
 import { entityKey, KINDS, listOf, type EntityChange, type EntityKind, type RemoteEntity } from './diff'
-import { applyRemote, EMPTY, getData, onLocalChanges, replaceAllFromRemote } from './store'
+import { applyRemote, copyCurrentTo, EMPTY, getData, hasScope, onLocalChanges, replaceAllFromRemote, switchScope } from './store'
 
 /**
  * Sincronización con Supabase (la misma base y los mismos clubes que el Ping Pong Club).
@@ -11,11 +11,18 @@ import { applyRemote, EMPTY, getData, onLocalChanges, replaceAllFromRemote } fro
  * otros dispositivos se bajan al abrir la app, al recibir un aviso en tiempo
  * real, al volver a la pestaña y cada cierto tiempo. Por cada jugador/partido/
  * torneo gana la versión más reciente.
+ *
+ * Con cuenta, se puede estar en varios grupos (clubes): hay uno activo y los
+ * datos (y la cola de cambios) de cada uno se guardan aparte en el dispositivo,
+ * así cambiar de grupo es instantáneo.
  */
 
 const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL as string | undefined
 const SUPABASE_KEY = import.meta.env.VITE_SUPABASE_KEY as string | undefined
-const SYNC_KEY = 'game-board-sync-v1'
+/** Formato viejo (un solo club). Se migra solo al formato por grupo. */
+const LEGACY_SYNC_KEY = 'game-board-sync-v1'
+const ACTIVE_KEY = 'game-board-active-club-v1'
+const clubSyncKey = (code: string) => `game-board-sync-v1:${code}`
 const PULL_INTERVAL_MS = 30_000
 /** Margen al pedir cambios, por transacciones que confirman fuera de orden. */
 const PULL_OVERLAP_MS = 15_000
@@ -37,6 +44,9 @@ export function supabase(): SupabaseClient | null {
 export interface Club {
   code: string
   name: string
+  /** `duo`: mano a mano con un amigo. */
+  kind?: 'group' | 'duo'
+  emoji?: string
 }
 
 interface OutboxItem {
@@ -65,26 +75,52 @@ export interface SyncState {
   error?: string
 }
 
-function loadPersisted(): Persisted {
+function readJSON<T>(key: string): T | undefined {
   try {
-    const raw = localStorage.getItem(SYNC_KEY)
-    if (raw) {
-      const p = JSON.parse(raw) as Persisted
-      return { versions: p.versions ?? {}, outbox: p.outbox ?? {}, club: p.club, cursor: p.cursor }
-    }
+    const raw = localStorage.getItem(key)
+    return raw ? (JSON.parse(raw) as T) : undefined
   } catch {
-    // ignorar
+    return undefined
   }
-  return { versions: {}, outbox: {} }
+}
+
+function loadClubState(club: Club): Persisted {
+  const p = readJSON<Partial<Persisted>>(clubSyncKey(club.code))
+  return { club, versions: p?.versions ?? {}, outbox: p?.outbox ?? {}, cursor: p?.cursor }
+}
+
+function loadPersisted(): Persisted {
+  // Migración del formato de un solo club: sus datos pasan a guardarse como los de ese grupo.
+  const legacy = readJSON<Persisted>(LEGACY_SYNC_KEY)
+  if (legacy) {
+    try {
+      if (legacy.club) {
+        localStorage.setItem(clubSyncKey(legacy.club.code), JSON.stringify({ versions: legacy.versions ?? {}, outbox: legacy.outbox ?? {}, cursor: legacy.cursor }))
+        localStorage.setItem(ACTIVE_KEY, JSON.stringify(legacy.club))
+        if (!hasScope(legacy.club.code)) copyCurrentTo(legacy.club.code)
+      }
+      localStorage.removeItem(LEGACY_SYNC_KEY)
+    } catch {
+      // ignorar
+    }
+  }
+  const active = readJSON<Club>(ACTIVE_KEY)
+  return active?.code ? loadClubState(active) : { versions: {}, outbox: {} }
 }
 
 let persisted = loadPersisted()
+switchScope(persisted.club?.code ?? null)
 let state: SyncState = { club: persisted.club, status: persisted.club ? 'syncing' : 'off', pending: Object.keys(persisted.outbox).length }
 const listeners = new Set<() => void>()
 
 function save() {
   try {
-    localStorage.setItem(SYNC_KEY, JSON.stringify(persisted))
+    if (persisted.club) {
+      localStorage.setItem(clubSyncKey(persisted.club.code), JSON.stringify({ versions: persisted.versions, outbox: persisted.outbox, cursor: persisted.cursor }))
+      localStorage.setItem(ACTIVE_KEY, JSON.stringify(persisted.club))
+    } else {
+      localStorage.removeItem(ACTIVE_KEY)
+    }
   } catch {
     // ignorar
   }
@@ -132,6 +168,7 @@ function allLocalEntities(): { kind: EntityKind; id: string }[] {
 let pushTimer: ReturnType<typeof setTimeout> | undefined
 let pushing: Promise<void> | null = null
 let pulling: Promise<void> | null = null
+let pullingCode: string | undefined
 let channel: RealtimeChannel | null = null
 
 function schedulePush(delay = 400) {
@@ -167,6 +204,8 @@ async function push(): Promise<void> {
         })
         const { error } = await sb.rpc('push_changes', { p_code: club.code, p_items: payload })
         if (error) throw error
+        // Se cambió de grupo mientras subíamos: la cola de este grupo se limpia la próxima vez.
+        if (persisted.club?.code !== club.code) return
         for (const it of chunk) {
           const key = entityKey(it.kind, it.id)
           // Sólo se saca de la cola si no hubo otro cambio mientras subíamos.
@@ -197,7 +236,12 @@ async function pull(full = false): Promise<void> {
   const sb = getClient()
   const club = persisted.club
   if (!sb || !club) return
-  if (pulling) return pulling
+  if (pulling) {
+    if (pullingCode === club.code) return pulling
+    await pulling.catch(() => {})
+    if (persisted.club?.code !== club.code) return
+  }
+  pullingCode = club.code
   pulling = (async () => {
     setState({ status: 'syncing' })
     try {
@@ -262,13 +306,20 @@ export async function createClub(name: string): Promise<Club> {
   const { data, error } = await sb.rpc('create_club', { p_name: name })
   if (error) throw new Error(describeError(error))
   const club: Club = { code: String(data), name: name.trim() }
-  persisted = { club, versions: persisted.versions, outbox: {}, cursor: undefined }
-  // Todo lo que ya hay en este dispositivo pasa a ser parte del club.
+  await adoptLocalData(club)
+  return club
+}
+
+/** Pasa los datos que se están mostrando (los de este dispositivo) a un grupo recién creado. */
+export async function adoptLocalData(club: Club): Promise<void> {
+  disconnectRealtime()
+  copyCurrentTo(club.code)
+  switchScope(club.code)
+  persisted = { club, versions: {}, outbox: {}, cursor: undefined }
   enqueue(allLocalEntities())
   connectRealtime()
   await push()
   await pull(true)
-  return club
 }
 
 /** Busca un club por código. Devuelve su nombre o `null` si no existe. */
@@ -282,8 +333,8 @@ export async function findClub(code: string): Promise<string | null> {
 
 /**
  * Se une a un club existente.
- * - `replace`: descarta los datos locales y usa los del club.
- * - `merge`: suma los datos locales a los del club.
+ * - `replace`: usa sólo los datos del club.
+ * - `merge`: suma los datos que se están mostrando (los de este dispositivo) a los del club.
  */
 export async function joinClub(code: string, mode: 'replace' | 'merge'): Promise<Club> {
   const normalized = normalizeCode(code)
@@ -291,31 +342,71 @@ export async function joinClub(code: string, mode: 'replace' | 'merge'): Promise
   if (!name) throw new Error('No existe un club con ese código')
   const club: Club = { code: normalized, name }
   if (mode === 'replace') {
-    persisted = { club, versions: {}, outbox: {}, cursor: undefined }
-    replaceAllFromRemote(EMPTY)
-  } else {
-    persisted = { club, versions: {}, outbox: {}, cursor: undefined }
+    await activateClub(club)
+    return club
   }
+  disconnectRealtime()
+  copyCurrentTo(club.code)
+  switchScope(club.code)
+  persisted = { club, versions: {}, outbox: {}, cursor: undefined }
   save()
   setState({})
   // Bajar primero: si hay datos locales más viejos que los del club, gana el club.
   await pull(true)
-  if (mode === 'merge') {
-    const pendingLocal = allLocalEntities().filter((e) => !(entityKey(e.kind, e.id) in persisted.versions))
-    enqueue(pendingLocal)
-    await push()
-  }
+  const pendingLocal = allLocalEntities().filter((e) => !(entityKey(e.kind, e.id) in persisted.versions))
+  enqueue(pendingLocal)
+  await push()
   connectRealtime()
   return club
 }
 
-/** Deja de sincronizar. Los datos quedan guardados en este dispositivo. */
-export function leaveClub() {
+/**
+ * Deja este grupo como el activo. Lo pendiente del grupo anterior queda en su cola
+ * (se sube al volver a él). Si el grupo ya estaba guardado en el dispositivo, se ve al instante.
+ */
+export async function activateClub(club: Club): Promise<void> {
+  if (persisted.club?.code === club.code) {
+    if (persisted.club.name !== club.name || persisted.club.emoji !== club.emoji || persisted.club.kind !== club.kind) {
+      persisted = { ...persisted, club: { ...persisted.club, ...club } }
+      save()
+      setState({})
+    }
+    return
+  }
+  if (persisted.club && Object.keys(persisted.outbox).length) await push().catch(() => {})
+  disconnectRealtime()
+  clearTimeout(pushTimer)
+  persisted = loadClubState(club)
+  if (!hasScope(club.code)) {
+    // Primera vez en este dispositivo: arranca vacío y baja todo.
+    persisted.versions = {}
+    persisted.cursor = undefined
+    switchScope(club.code)
+    replaceAllFromRemote(EMPTY)
+  } else {
+    switchScope(club.code)
+  }
+  save()
+  setState({ status: 'syncing', lastSync: undefined, error: undefined })
+  connectRealtime()
+  await pull(!persisted.cursor)
+  await push()
+}
+
+/** Deja de usar grupos en este dispositivo y vuelve a los datos locales (los de sin cuenta). */
+export function deactivateClub() {
   disconnectRealtime()
   clearTimeout(pushTimer)
   persisted = { versions: {}, outbox: {} }
   save()
+  switchScope(null)
   setState({ status: 'off', error: undefined, lastSync: undefined })
+}
+
+/** Deja de sincronizar. Los datos del club quedan guardados en este dispositivo, como datos locales. */
+export function leaveClub() {
+  copyCurrentTo(null)
+  deactivateClub()
 }
 
 /** Acepta el código o un link de invitación entero (de Game Board o del Ping Pong Club). */
@@ -324,11 +415,11 @@ export function normalizeCode(code: string): string {
   return (fromLink ?? code).trim().toLowerCase().replace(/[^a-z0-9]/g, '')
 }
 
-/** Cambia a otro club: primero sube lo pendiente del actual y después baja todo el otro. */
-export async function switchClub(code: string): Promise<Club> {
-  await push()
-  if (Object.keys(persisted.outbox).length) throw new Error('Hay cambios sin subir en este club. Probá de nuevo con conexión.')
-  return joinClub(code, 'replace')
+/** Cambia a otro club de la cuenta. */
+export async function switchClub(code: string, name?: string): Promise<Club> {
+  const club: Club = { code, name: name ?? (await findClub(code)) ?? code }
+  await activateClub(club)
+  return club
 }
 
 export function inviteLink(code: string): string {

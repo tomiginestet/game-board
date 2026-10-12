@@ -1,0 +1,180 @@
+import { ArrowLeftIcon, CaretRightIcon, CheckIcon, MagnifyingGlassIcon, PlusIcon, SignInIcon, SwordIcon, UserPlusIcon } from '@phosphor-icons/react'
+import { useEffect, useState } from 'react'
+import { Link, useNavigate, useParams } from 'react-router-dom'
+import { linkClub } from '../../lib/auth'
+import { refreshGroups, switchToGroup, useMyGroups, type MyGroup } from '../../lib/social'
+import { findClub, normalizeCode, useSyncState } from '../../lib/sync'
+import { GroupForm, GroupSearch } from './GroupForms'
+
+/** Todos tus grupos y mano a mano, para cambiar entre ellos o crear/buscar otros. */
+export function Groups() {
+  const { groups } = useMyGroups()
+  const sync = useSyncState()
+  const navigate = useNavigate()
+  const [busy, setBusy] = useState<string | null>(null)
+  const [error, setError] = useState('')
+  const regular = (groups ?? []).filter((g) => g.kind === 'group')
+  const duos = (groups ?? []).filter((g) => g.kind === 'duo')
+
+  const open = async (g: MyGroup) => {
+    if (g.code === sync.club?.code) return navigate('/grupo')
+    setBusy(g.code)
+    setError('')
+    try {
+      await switchToGroup(g)
+      navigate('/grupo')
+    } catch (e) {
+      setError(e instanceof Error ? e.message : String(e))
+    } finally {
+      setBusy(null)
+    }
+  }
+
+  const card = (g: MyGroup) => (
+    <button key={g.code} className={'card group-row' + (g.code === sync.club?.code ? ' current' : '')} disabled={!!busy} onClick={() => open(g)}>
+      <span className="group-emoji" aria-hidden>
+        {g.emoji ?? (g.kind === 'duo' ? '⚔️' : '🎲')}
+      </span>
+      <span className="grow">
+        <b className="block ellipsis">{g.name}</b>
+        <span className="muted small">
+          {g.kind === 'duo' ? 'Mano a mano' : `${g.members} ${g.members === 1 ? 'integrante' : 'integrantes'} · ${g.is_public ? 'público' : 'privado'}`}
+          {g.role === 'owner' && g.kind === 'group' && ' · sos el dueño'}
+        </span>
+        {g.pending_requests > 0 && <span className="pill accent tiny">{g.pending_requests} solicitudes para entrar</span>}
+      </span>
+      {g.code === sync.club?.code ? <CheckIcon className="win-text" /> : busy === g.code ? <span className="muted">…</span> : <CaretRightIcon className="muted" />}
+    </button>
+  )
+
+  return (
+    <div className="page">
+      <div className="section-head">
+        <h1>Grupos</h1>
+      </div>
+      <p className="muted">Cada grupo tiene sus jugadores, partidas, torneos y ranking. Podés estar en varios y cambiar cuando quieras.</p>
+      <div className="row gap wrap">
+        <Link to="/grupos/nuevo" className="btn primary">
+          <PlusIcon /> Crear grupo
+        </Link>
+        <Link to="/grupos/buscar" className="btn">
+          <MagnifyingGlassIcon /> Buscar grupos
+        </Link>
+        <Link to="/amigos" className="btn">
+          <UserPlusIcon /> Amigos
+        </Link>
+      </div>
+      {error && <p className="error">{error}</p>}
+
+      <section>
+        <h2>Tus grupos</h2>
+        {groups === undefined && <p className="muted">Cargando…</p>}
+        {groups && !regular.length && <div className="empty">Todavía no estás en ningún grupo. Creá uno o buscá uno para sumarte.</div>}
+        <div className="list">{regular.map(card)}</div>
+      </section>
+
+      <section>
+        <div className="section-head">
+          <h2>
+            <SwordIcon className="inline-icon" /> Mano a mano
+          </h2>
+          <Link to="/amigos">Jugar con un amigo</Link>
+        </div>
+        {groups && !duos.length && <div className="empty">Agregá amigos y jueguen mano a mano: cada dupla tiene su propio historial.</div>}
+        <div className="list">{duos.map(card)}</div>
+      </section>
+    </div>
+  )
+}
+
+export function NewGroupPage() {
+  const navigate = useNavigate()
+  return (
+    <div className="page">
+      <Link to="/grupos" className="back">
+        <ArrowLeftIcon /> Grupos
+      </Link>
+      <h1>Nuevo grupo</h1>
+      <GroupForm onDone={() => navigate('/grupo')} />
+    </div>
+  )
+}
+
+export function SearchGroupsPage() {
+  const navigate = useNavigate()
+  const { groups } = useMyGroups()
+  return (
+    <div className="page">
+      <Link to="/grupos" className="back">
+        <ArrowLeftIcon /> Grupos
+      </Link>
+      <h1>Buscar grupos</h1>
+      <p className="muted">Grupos públicos. Al pedir unirte le llega un aviso al dueño; cuando te acepte, el grupo aparece en tu lista.</p>
+      <GroupSearch
+        onOpenMine={(id) => {
+          const g = groups?.find((x) => x.id === id)
+          if (g) void switchToGroup(g).then(() => navigate('/grupo'))
+        }}
+      />
+    </div>
+  )
+}
+
+/** Link de invitación con sesión: se suma el grupo a la cuenta. */
+export function JoinByLink() {
+  const { code: raw } = useParams()
+  const code = normalizeCode(raw ?? '')
+  const navigate = useNavigate()
+  const { groups } = useMyGroups()
+  const [name, setName] = useState<string | null | undefined>(undefined)
+  const [busy, setBusy] = useState(false)
+  const [error, setError] = useState('')
+  const mine = groups?.find((g) => g.code === code)
+
+  useEffect(() => {
+    let cancelled = false
+    findClub(code)
+      .then((n) => !cancelled && setName(n))
+      .catch(() => !cancelled && setName(null))
+    return () => {
+      cancelled = true
+    }
+  }, [code])
+
+  const join = async () => {
+    setBusy(true)
+    setError('')
+    try {
+      if (!mine) await linkClub(code)
+      const list = await refreshGroups()
+      const g = list.find((x) => x.code === code)
+      if (g) await switchToGroup(g)
+      navigate('/grupo#yo')
+    } catch (e) {
+      setError(e instanceof Error ? e.message : String(e))
+    } finally {
+      setBusy(false)
+    }
+  }
+
+  return (
+    <div className="page">
+      <h1>Invitación</h1>
+      {name === undefined && <p className="muted">Buscando el grupo…</p>}
+      {name === null && <div className="card warn">El link no corresponde a ningún grupo. Revisá que esté completo.</div>}
+      {name && (
+        <section className="card highlight">
+          <h2>{mine ? `Ya sos parte de “${name}”` : `Te invitaron a “${name}”`}</h2>
+          <p className="muted">Vas a ver los jugadores, partidas y el ranking del grupo, y vas a poder cargar partidas.</p>
+          <button className="btn primary big block" disabled={busy} onClick={join}>
+            <SignInIcon /> {mine ? 'Ir al grupo' : 'Unirme al grupo'}
+          </button>
+        </section>
+      )}
+      {error && <p className="error">{error}</p>}
+      <Link to="/" className="back mt">
+        <ArrowLeftIcon /> Inicio
+      </Link>
+    </div>
+  )
+}
