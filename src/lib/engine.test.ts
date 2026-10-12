@@ -182,7 +182,7 @@ describe('estadísticas y medallas', () => {
     const fam = (unit: (n: number) => string) => ({ unit })
     expect(missingLabel(GLOBAL_FAMILIES[0], 3)).toBe('Faltan 3 victorias')
     expect(missingLabel(GLOBAL_FAMILIES[0], 1)).toBe('Falta 1 victoria')
-    expect(missingLabel(fam((n) => `+${n} de ELO`), 55)).toBe('Faltan 55 de ELO')
+    expect(missingLabel(fam((n) => `+${n} de Elo`), 55)).toBe('Faltan 55 de Elo')
     expect(missingLabel(fam((n) => `ganó por ${n}`), 3)).toBe('Faltan 3')
     expect(missingLabel(fam((n) => `de ${n} abajo`), 2)).toBe('Faltan 2')
   })

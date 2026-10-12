@@ -78,7 +78,7 @@ function CupView({ cup, game }: { cup: Cup; game: GameDef }) {
       {champion !== undefined && (
         <div className="champion-banner">
           <CrownIcon weight="fill" size={36} />
-          <span className="muted small">Campeón</span>
+          <span className="muted small">Ganó el torneo</span>
           <TeamAvatar team={entrantTeam(champion)} size={56} />
           <span className="champion-name">{entrantName(champion)}</span>
         </div>

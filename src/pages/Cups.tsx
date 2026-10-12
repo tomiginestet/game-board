@@ -71,7 +71,7 @@ export function Cups() {
               </span>
               {r.champion && (
                 <span className="small block win-text">
-                  <CheckCircleIcon className="inline-icon" /> Campeón: {r.champion}
+                  <CheckCircleIcon className="inline-icon" aria-hidden /> Ganó: {r.champion}
                 </span>
               )}
             </span>

@@ -11,7 +11,7 @@ export function Sparkline({ values, color = 'var(--accent)', height = 56 }: { va
   const area = `${line} L${w},${h} L0,${h} Z`
   const [lx, ly] = pts[pts.length - 1]
   return (
-    <svg className="sparkline" viewBox={`0 0 ${w} ${h}`} preserveAspectRatio="none" role="img" aria-label={`ELO: de ${values[0]} a ${values[values.length - 1]}`}>
+    <svg className="sparkline" viewBox={`0 0 ${w} ${h}`} preserveAspectRatio="none" role="img" aria-label={`Elo: de ${values[0]} a ${values[values.length - 1]}`}>
       <path d={area} fill={color} opacity={0.15} />
       <path d={line} fill="none" stroke={color} strokeWidth={2.5} vectorEffect="non-scaling-stroke" strokeLinejoin="round" />
       <circle cx={lx} cy={ly} r={4} fill={color} vectorEffect="non-scaling-stroke" />

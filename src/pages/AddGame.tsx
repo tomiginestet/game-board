@@ -147,7 +147,7 @@ function PasteFlow({ input, onDraft }: { input: { name: string; notes: string; r
       <ol>
         <li>
           <button className="btn primary" disabled={!input.name.trim()} onClick={copy}>
-            {copied ? <CheckIcon /> : <CopyIcon />} {copied ? 'Pedido copiado' : 'Copiar el pedido'}
+            {copied ? <CheckIcon /> : <CopyIcon />} {copied ? 'Instrucciones copiadas' : 'Copiar las instrucciones'}
           </button>
         </li>
         <li>

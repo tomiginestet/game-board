@@ -49,7 +49,7 @@ export function TournamentDetail() {
           <TrophyIcon className="big-icon gold" weight="duotone" />
           <Avatar player={champion} size={72} />
           <div>
-            <div className="muted small">Campeón</div>
+            <div className="muted small">Ganó el torneo</div>
             <strong className="champion-name">{champion.name}</strong>
           </div>
         </div>

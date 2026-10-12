@@ -311,7 +311,7 @@ function disconnectRealtime() {
 
 export async function createClub(name: string): Promise<Club> {
   const sb = getClient()
-  if (!sb) throw new Error('Sincronización no configurada')
+  if (!sb) throw new Error('Los clubes compartidos no están disponibles en esta versión de la app')
   const { data, error } = await sb.rpc('create_club', { p_name: name })
   if (error) throw new Error(describeError(error))
   const club: Club = { code: String(data), name: name.trim() }
@@ -334,7 +334,7 @@ export async function adoptLocalData(club: Club): Promise<void> {
 /** Busca un club por código. Devuelve su nombre o `null` si no existe. */
 export async function findClub(code: string): Promise<string | null> {
   const sb = getClient()
-  if (!sb) throw new Error('Sincronización no configurada')
+  if (!sb) throw new Error('Los clubes compartidos no están disponibles en esta versión de la app')
   const { data, error } = await sb.rpc('get_club', { p_code: normalizeCode(code) })
   if (error) throw new Error(describeError(error))
   return (data as string | null) ?? null
