@@ -1,36 +1,6 @@
 // Medallas generales redibujadas (ver el kit en ../kit.ts): Victorias y Racha.
 import { f } from '../helpers'
-import { along, card, die, ellipse, hair, kit, MEEPLE, P, roundRect, sparkle, starPath, taper, type Kit } from '../kit'
-
-/** Meeple entintado centrado en (x,y). `under` va detrás (capas, capas de aura) y `over` encima, en coordenadas del meeple. */
-function meeple(k: Kit, x: number, y: number, s: number, fill: string, o: { shade?: string; under?: string; over?: string; rot?: number } = {}) {
-  const dark = o.shade ?? P.mid
-  return (
-    `<g transform="translate(${x} ${y}) rotate(${o.rot ?? 0}) scale(${s})">` +
-    (o.under ?? '') +
-    k.draw(
-      [{
-        d: MEEPLE, fill,
-        inner:
-          k.sh('M2 -30H30V30H2Z', 0, 0, 1, 0, 0, 0.75, dark) + k.sh('M-30 14H30V30H-30Z', 0, 0, 0, 1, 0, 0.6, dark, 0.3) +
-          `<path d="M-30 -30H-2V30H-30Z" fill="${k.lin('#ffffff', 0, 0, 1, 0, 0.28, 0)}"/>` +
-          `<ellipse cx="-4.4" cy="-21.6" rx="2.4" ry="1.4" fill="#fff" opacity=".9" transform="rotate(-35 -4.4 -21.6)"/>`,
-      }],
-      f(0.75 / s),
-    ) +
-    hair(-6, 6, -4.6, 11, -6.6, 17, 0.6, dark) + hair(6, 6, 4.6, 11, 6.6, 17, 0.6, dark) +
-    (o.over ?? '') +
-    `</g>`
-  )
-}
-
-/** Llama de tres capas (rojo, naranja, dorado) desde una forma base. */
-const FLAME = 'M60 18C66 30 80 32 82 46C86 40 85 34 84 30C92 38 95 52 92 64C88 80 76 90 60 90C44 90 32 80 28 64C25 52 28 42 34 36C34 42 36 46 40 48C40 36 50 28 60 18Z'
-function flame(k: Kit, t: string) {
-  const layer = (s: number, dy: number, fill: string, grain: string) =>
-    `<g transform="translate(60 ${90 + dy}) scale(${s}) translate(-60 -90)"><path d="${FLAME}" fill="${fill}"/>${k.shade(FLAME, k.lin(grain, 0, 0, 0, 1, 0, 0.8), grain, 0.3)}</g>`
-  return `<g transform="${t}">` + k.draw([{ d: FLAME, fill: P.red, inner: k.sh(FLAME, 0, 0, 1, 1, 0, 0.7, P.wine) }], 0.7) + layer(0.78, 0, P.goldD, P.red) + layer(0.56, 0, P.gold, P.goldD) + layer(0.32, 0, P.goldL, P.gold) + `</g>`
-}
+import { along, card, die, ellipse, flame, hair, kit, MEEPLE, meeple, P, roundRect, sparkle, starPath, taper } from '../kit'
 
 export const GENERALES_NUEVAS_ART: Record<string, (u: number) => string> = {
   // ── Victorias ──────────────────────────────────────────────────────
