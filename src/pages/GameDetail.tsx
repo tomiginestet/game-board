@@ -128,13 +128,13 @@ function GameView({ game }: { game: GameDef }) {
       <header className="gd-hero">
         <GameCover game={game} aspect="landscape" showTitle={false} className="gd-hero-cover" />
         <div className="gd-hero-info">
-          <span className="gd-hero-kicker">
-            {CATEGORIES.find((c) => c.id === game.category)?.emoji} {CATEGORIES.find((c) => c.id === game.category)?.name}
-            {game.source === 'custom' && ' · Del club'}
-          </span>
           <h1>{game.name}</h1>
           {game.tagline && <p className="gd-hero-tagline">{game.tagline}</p>}
           <div className="gd-hero-chips">
+            <span className="cc-chip">
+              <span aria-hidden>{CATEGORIES.find((c) => c.id === game.category)?.emoji}</span> {CATEGORIES.find((c) => c.id === game.category)?.name}
+            </span>
+            {game.source === 'custom' && <span className="cc-chip">Del club</span>}
             <span className="cc-chip">
               <UsersIcon aria-hidden /> {playersLabel(game, true)}
             </span>

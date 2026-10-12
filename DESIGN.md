@@ -17,11 +17,37 @@ colors:
   win: "#22c55e"
   loss: "#f87171"
   loss-fill: "#c81e1e"
+  text-soft: "#d5dbe6"
+  accent-soft: "#ffb08f"
+  info: "#60a5fa"
+  ai-soft: "#e5d9ff"
+  on-fill: "#ffffff"
+  ink: "#000000"
   logo-orange: "#ff6b35"
   logo-blue: "#4c8dff"
   logo-green: "#22c55e"
   logo-violet: "#b98cff"
 typography:
+  score:
+    fontFamily: "system-ui, -apple-system, Segoe UI, Roboto, sans-serif"
+    fontSize: "72px"
+    fontWeight: 900
+    lineHeight: 1
+  score-sm:
+    fontFamily: "system-ui, -apple-system, Segoe UI, Roboto, sans-serif"
+    fontSize: "56px"
+    fontWeight: 900
+    lineHeight: 1
+  mono:
+    fontFamily: "ui-monospace, SFMono-Regular, SF Mono, Menlo, monospace"
+    fontSize: "14px"
+    fontWeight: 600
+    lineHeight: 1.4
+  display:
+    fontFamily: "Lilita One, system-ui, sans-serif"
+    fontSize: "44px"
+    fontWeight: 400
+    lineHeight: 1
   brand:
     fontFamily: "Lilita One, system-ui, sans-serif"
     fontSize: "32px"
@@ -32,16 +58,31 @@ typography:
     fontSize: "28px"
     fontWeight: 800
     lineHeight: 1.2
+  title:
+    fontFamily: "system-ui, -apple-system, Segoe UI, Roboto, sans-serif"
+    fontSize: "24px"
+    fontWeight: 800
+    lineHeight: 1.2
   h2:
     fontFamily: "system-ui, -apple-system, Segoe UI, Roboto, sans-serif"
-    fontSize: "19px"
+    fontSize: "20px"
     fontWeight: 700
     lineHeight: 1.2
+  lead:
+    fontFamily: "system-ui, -apple-system, Segoe UI, Roboto, sans-serif"
+    fontSize: "18px"
+    fontWeight: 600
+    lineHeight: 1.3
   body:
     fontFamily: "system-ui, -apple-system, Segoe UI, Roboto, sans-serif"
     fontSize: "16px"
     fontWeight: 400
     lineHeight: 1.45
+  secondary:
+    fontFamily: "system-ui, -apple-system, Segoe UI, Roboto, sans-serif"
+    fontSize: "14px"
+    fontWeight: 400
+    lineHeight: 1.4
   small:
     fontFamily: "system-ui, -apple-system, Segoe UI, Roboto, sans-serif"
     fontSize: "13px"
@@ -53,9 +94,12 @@ typography:
     fontWeight: 600
     lineHeight: 1.3
 rounded:
-  sm: "10px"
-  md: "12px"
+  xs: "4px"
+  sm: "8px"
+  md: "10px"
+  control: "12px"
   card: "16px"
+  hero: "20px"
   sheet: "22px"
   pill: "999px"
 spacing:
@@ -66,7 +110,7 @@ components:
   button-primary:
     backgroundColor: "{colors.accent-fill}"
     textColor: "#ffffff"
-    rounded: "{rounded.md}"
+    rounded: "{rounded.control}"
     padding: "10px 16px"
     height: "44px"
   button-primary-hover:
@@ -74,12 +118,12 @@ components:
   button-secondary:
     backgroundColor: "{colors.card-2}"
     textColor: "{colors.text}"
-    rounded: "{rounded.md}"
+    rounded: "{rounded.control}"
     height: "44px"
   button-danger-fill:
     backgroundColor: "{colors.loss-fill}"
     textColor: "#ffffff"
-    rounded: "{rounded.md}"
+    rounded: "{rounded.control}"
     height: "44px"
   card:
     backgroundColor: "{colors.card}"
@@ -88,7 +132,7 @@ components:
   input:
     backgroundColor: "{colors.bg-2}"
     textColor: "{colors.text}"
-    rounded: "{rounded.md}"
+    rounded: "{rounded.control}"
     padding: "12px 14px"
   chip:
     backgroundColor: "{colors.card}"
@@ -125,7 +169,7 @@ Tema oscuro único (`color-scheme: dark`), elegido por el uso: juntadas con poca
 - Escala fija en px, sin tamaños menores a **12px**. Números comparables con `.num` (`tabular-nums`).
 
 ### Hierarchy
-brand 32 · h1 28/800 · h2 19/700 · h3 16 · cuerpo 16 · small 13 · label 12/600.
+display 44 (marca) · brand 32 · h1 28/800 · title 24 · h2 20/700 · lead 18 · cuerpo 16 · secundario 14 · small 13 · label 12/600. El marcador de ping pong usa tamaños fluidos propios (pantalla completa).
 
 ## Layout
 Columna única de hasta 680px, 16px de margen lateral, 20px entre secciones. Barra de navegación fija abajo (64px). Las filas horizontales (carrusel, estantes) se salen del margen a propósito para insinuar que se desplazan; con mouse muestran una barra fina.
@@ -134,7 +178,7 @@ Columna única de hasta 680px, 16px de margen lateral, 20px entre secciones. Bar
 Profundidad por escalones de superficie, no por sombras. Sombras sólo en lo que flota: avisos y diálogos (`0 8px 24px` / `0 16px 48px`, negras).
 
 ## Shapes
-Botones e inputs 12px, tarjetas 16px, carátulas y hero 20px, hojas y diálogos 22px, chips y píldoras redondas.
+Escala: 4 · 8 · 10 · 12 (botones e inputs) · 16 (tarjetas y filas) · 20 (carátulas y hero) · 22 (hojas y diálogos) · píldora.
 
 ## Components
 
@@ -143,6 +187,12 @@ Alto mínimo **44px** (40px en `.btn.small`). Primario naranja relleno; secundar
 
 ### Chips
 "Jugar de nuevo" en el inicio: píldora de 44px con el ícono del juego.
+
+### Selección
+- **Opciones chicas** (chip, control segmentado): elegida = relleno naranja con texto blanco.
+- **Opciones grandes** (emoji, formato de torneo, jugador, fila de lista): elegida = borde de 2px + tinte del 12%. El grosor es la pista que no depende del color. En el selector de jugadores el color es el del jugador (`--sel`).
+- **Colores**: anillo doble alrededor del círculo elegido.
+- Siempre con `aria-pressed` o `aria-checked`.
 
 ### Cards / Containers
 `.card`: fondo `card`, borde `border`, radio 16px, padding 16px. Nunca tarjetas dentro de tarjetas.
@@ -171,7 +221,7 @@ Cuatro cuadraditos (naranja, azul, verde, violeta; dorado para el ganador) anima
 
 ### Don't:
 - Rótulos chiquitos en mayúsculas arriba de los títulos (kickers/eyebrows).
-- Bordes laterales gruesos de color para indicar estado.
+- Bordes laterales gruesos de color (para estado o para identificar jugadores: se tiñe la superficie).
 - Texto menor a 12px, objetivos táctiles menores a 44px.
 - `window.confirm/alert/prompt`.
 - Mostrar errores técnicos o en inglés.

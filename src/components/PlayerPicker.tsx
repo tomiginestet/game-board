@@ -34,7 +34,7 @@ export function PlayerPicker({ players, selected, onToggle, badge, label = 'Juga
             className={'picker-item' + (isSel ? ' active' : '')}
             aria-pressed={isSel}
             onClick={() => onToggle(p.id)}
-            style={isSel ? { borderColor: p.color } : undefined}
+            style={isSel ? { ['--sel' as string]: p.color } : undefined}
           >
             <Avatar player={p} size={44} />
             <span className="picker-name">{p.name}</span>

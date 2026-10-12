@@ -20,6 +20,12 @@
   /* Voz de marca: títulos principales, logo y celebraciones. La interfaz usa la fuente del sistema. */
   --font-brand: 'Lilita One', system-ui, sans-serif;
   --font-ui: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  /* Texto secundario sobre imágenes y oscuros profundos; tonos suaves de acento, info e IA. */
+  --text-soft: #d5dbe6;
+  --accent-soft: #ffb08f;
+  --info: #60a5fa;
+  --ai-soft: #e5d9ff;
+  --on-fill: #ffffff;
   --radius: 16px;
   --nav-h: 64px;
   color-scheme: dark;
@@ -67,7 +73,7 @@ h1 {
 }
 
 h2 {
-  font-size: 19px;
+  font-size: 20px;
   font-weight: 700;
 }
 
@@ -131,7 +137,7 @@ textarea {
   padding: 12px 16px;
   border-radius: 12px;
   background: var(--accent-fill);
-  color: #fff;
+  color: var(--on-fill);
   font-weight: 700;
   transform: translateY(-200%);
 }
@@ -156,6 +162,7 @@ textarea {
 .row {
   display: flex;
   align-items: center;
+  gap: 8px;
 }
 
 .row.gap {
@@ -298,7 +305,7 @@ section > .section-head {
   left: 28%;
   right: 28%;
   height: 3px;
-  border-radius: 0 0 3px 3px;
+  border-radius: 0 0 4px 4px;
   background: var(--accent);
 }
 
@@ -322,7 +329,7 @@ section > .section-head {
   a.card:hover,
   .rank-row:hover,
   .match-row:hover {
-    border-color: #3d4a60;
+    border-color: var(--border-strong);
   }
 }
 
@@ -364,7 +371,7 @@ section > .section-head {
 
 @media (hover: hover) {
   .btn:hover:not(:disabled) {
-    border-color: #3d4a60;
+    border-color: var(--border-strong);
   }
 
   .btn.primary:hover:not(:disabled) {
@@ -379,7 +386,7 @@ section > .section-head {
 .btn.primary {
   background: var(--accent-fill);
   border-color: transparent;
-  color: #fff;
+  color: var(--on-fill);
 }
 
 /* Deshabilitado sólido (no translúcido): legible aunque haya contenido detrás. */
@@ -400,7 +407,7 @@ section > .section-head {
 .btn.big {
   padding: 15px 20px;
   font-size: 16px;
-  border-radius: 14px;
+  border-radius: var(--radius);
 }
 
 .btn.small {
@@ -435,7 +442,7 @@ section > .section-head {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  color: #fff;
+  color: var(--on-fill);
   width: 44px;
   height: 44px;
   border-radius: 12px;
@@ -473,7 +480,7 @@ section > .section-head {
 .field {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 6px;
   margin-bottom: 18px;
 }
 
@@ -533,7 +540,7 @@ section > .section-head {
 .chip.active {
   background: var(--accent-fill);
   border-color: var(--accent-fill);
-  color: #fff;
+  color: var(--on-fill);
 }
 
 .stepper {
@@ -586,7 +593,7 @@ section > .section-head {
   width: 24px;
   height: 24px;
   border-radius: 50%;
-  background: #fff;
+  background: var(--on-fill);
   transition: transform 0.2s;
 }
 
@@ -734,7 +741,7 @@ svg {
 }
 
 .streak-cold {
-  color: #60a5fa;
+  color: var(--info);
 }
 
 .live-dot {
@@ -907,7 +914,7 @@ svg {
 
 .steps li.done svg {
   color: var(--win);
-  font-size: 26px;
+  font-size: 28px;
   flex-shrink: 0;
 }
 
@@ -984,7 +991,7 @@ svg {
 }
 
 .podium-medal {
-  font-size: 30px;
+  font-size: 32px;
   line-height: 1;
 }
 
@@ -1056,7 +1063,7 @@ svg {
   padding: 12px 14px;
   background: var(--card);
   border: 1px solid var(--border);
-  border-radius: 14px;
+  border-radius: var(--radius);
   color: var(--text);
 }
 
@@ -1131,7 +1138,7 @@ svg {
 .mr-meta {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 4px 10px;
   font-size: 12px;
   color: var(--muted);
   flex-wrap: wrap;
@@ -1153,12 +1160,6 @@ svg {
   gap: 12px;
 }
 
-.player-form {
-  display: flex;
-  flex-direction: column;
-  gap: 14px;
-}
-
 .player-form-top {
   display: flex;
   align-items: center;
@@ -1173,16 +1174,25 @@ svg {
 
 .emoji-btn {
   aspect-ratio: 1;
-  font-size: 22px;
+  font-size: 24px;
   border-radius: 10px;
   border: 1px solid transparent;
   background: var(--bg-2);
   cursor: pointer;
 }
 
-.emoji-btn.active {
-  border-color: var(--accent);
-  background: rgba(255, 107, 53, 0.15);
+/* Un solo "elegido" para opciones grandes (emoji, formato, jugador, fila): borde naranja grueso
+   (el grosor es la pista que no depende del color) y un tinte suave. Las opciones chicas
+   (chip, segmentado) van rellenas. */
+.emoji-btn.active,
+.format-opt.active,
+.pick-row.active,
+.picker-item.active,
+.sheet-row.active {
+  /* --sel permite usar el color del jugador en el selector de jugadores. */
+  border-color: var(--sel, var(--accent));
+  box-shadow: inset 0 0 0 1px var(--sel, var(--accent));
+  background: color-mix(in srgb, var(--sel, var(--accent)) 12%, var(--card));
 }
 
 .color-row {
@@ -1200,8 +1210,7 @@ svg {
 }
 
 .color-dot.active {
-  border-color: #fff;
-  transform: scale(1.1);
+  border-color: var(--on-fill);
 }
 
 .picker {
@@ -1217,16 +1226,13 @@ svg {
   align-items: center;
   gap: 6px;
   padding: 12px 6px;
-  border-radius: 14px;
+  border-radius: var(--radius);
   border: 2px solid var(--border);
   background: var(--card);
   cursor: pointer;
   min-width: 0;
 }
 
-.picker-item.active {
-  background: var(--card-2);
-}
 
 .picker-name {
   font-weight: 600;
@@ -1276,9 +1282,8 @@ svg {
   gap: 8px;
   padding: 20px 16px;
   border-radius: var(--radius);
-  background: var(--card);
-  border: 1px solid var(--border);
-  border-top: 4px solid var(--player-color);
+  background: linear-gradient(180deg, color-mix(in srgb, var(--player-color) 18%, var(--card)), var(--card) 60%);
+  border: 1px solid color-mix(in srgb, var(--player-color) 35%, var(--border));
 }
 
 .profile-edit {
@@ -1388,7 +1393,7 @@ svg {
   padding: 12px 4px;
   background: var(--card);
   border: 1px solid var(--border);
-  border-radius: 14px;
+  border-radius: var(--radius);
 }
 
 .stat-value {
@@ -1447,7 +1452,7 @@ svg {
   text-align: center;
   gap: 3px;
   padding: 12px 10px;
-  border-radius: 14px;
+  border-radius: var(--radius);
   background: var(--bg-2);
   border: 1px dashed var(--border);
   color: var(--text);
@@ -1468,10 +1473,8 @@ svg {
 }
 
 .medal-family {
-  font-size: 12px;
-  font-weight: 800;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
+  font-size: 14px;
+  font-weight: 700;
   color: var(--muted);
 }
 
@@ -1582,7 +1585,7 @@ svg {
   display: block;
   line-height: 0;
   filter: drop-shadow(0 10px 18px rgb(0 0 0 / 45%));
-  animation: ms-open 0.85s cubic-bezier(0.2, 0.8, 0.25, 1.15) both;
+  animation: ms-open 0.85s cubic-bezier(0.16, 1, 0.3, 1) both;
 }
 
 /* Brillo que cruza la medalla, recortado con la forma del hexágono. */
@@ -1634,7 +1637,7 @@ svg {
 
 .ms-text h2 {
   margin: 0;
-  font-size: 26px;
+  font-size: 28px;
   letter-spacing: -0.01em;
   text-wrap: balance;
 }
@@ -1655,7 +1658,7 @@ svg {
   max-width: 34ch;
   margin: 0;
   color: var(--muted);
-  font-size: 15px;
+  font-size: 16px;
   line-height: 1.5;
   text-wrap: balance;
 }
@@ -1716,7 +1719,7 @@ svg {
   align-items: baseline;
   justify-content: space-between;
   gap: 12px;
-  font-size: 17px;
+  font-size: 18px;
   font-weight: 700;
   line-height: 1.3;
 }
@@ -1787,14 +1790,14 @@ svg {
 }
 
 /* Festejo de una medalla recién ganada. */
+/* El festejo habla con la voz de la marca (no es un rótulo chiquito en mayúsculas). */
 .ms-kicker {
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  font-size: 12px;
-  font-weight: 800;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
+  font-family: var(--font-brand);
+  font-size: 18px;
+  font-weight: 400;
   color: var(--accent-2);
   animation: ms-text-in 0.4s ease-out backwards;
 }
@@ -1831,7 +1834,7 @@ svg {
   width: 8px;
   height: 12px;
   margin: -6px 0 0 -4px;
-  border-radius: 2px;
+  border-radius: 4px;
   opacity: 0;
   animation: ms-burst 1.1s cubic-bezier(0.15, 0.7, 0.3, 1) both;
 }
@@ -1957,7 +1960,7 @@ svg {
   padding: 10px 14px;
   background: var(--card);
   border: 1px solid var(--border);
-  border-radius: 14px;
+  border-radius: var(--radius);
   color: var(--text);
 }
 
@@ -2011,17 +2014,13 @@ svg {
   align-items: center;
   gap: 4px;
   padding: 14px 10px;
-  border-radius: 14px;
+  border-radius: var(--radius);
   border: 2px solid var(--border);
   background: var(--bg-2);
   cursor: pointer;
   text-align: center;
 }
 
-.format-opt.active {
-  border-color: var(--accent);
-  background: rgba(255, 107, 53, 0.1);
-}
 
 .format-opt .muted {
   line-height: 1.35;
@@ -2047,7 +2046,7 @@ svg {
 
 .champion-name {
   display: block;
-  font-size: 22px;
+  font-size: 24px;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -2055,7 +2054,7 @@ svg {
 
 .table-wrap {
   overflow-x: auto;
-  border-radius: 14px;
+  border-radius: var(--radius);
   border: 1px solid var(--border);
 }
 
@@ -2249,8 +2248,8 @@ svg {
 }
 
 .sb-info strong {
-  font-size: 15px;
-  color: #fff;
+  font-size: 16px;
+  color: var(--on-fill);
 }
 
 .sb-games-strip {
@@ -2298,7 +2297,7 @@ svg {
   margin: 0;
   padding: 70px 12px 20px;
   cursor: pointer;
-  color: #fff;
+  color: var(--on-fill);
   background: radial-gradient(circle at 50% 60%, color-mix(in srgb, var(--pc) 55%, #000), color-mix(in srgb, var(--pc) 22%, #000));
   overflow: hidden;
   touch-action: manipulation;
@@ -2355,7 +2354,7 @@ svg {
 
 @keyframes pop {
   0% {
-    transform: scale(1.25);
+    transform: scale(1.18);
   }
   100% {
     transform: scale(1);
@@ -2375,7 +2374,7 @@ svg {
 }
 
 .game-dot.won {
-  background: #fff;
+  background: var(--on-fill);
 }
 
 .ch-tags {
@@ -2420,7 +2419,7 @@ svg {
   flex-direction: column;
   align-items: center;
   padding: 8px 16px;
-  border-radius: 14px;
+  border-radius: var(--radius);
   background: rgba(0, 0, 0, 0.6);
   font-size: 13px;
   text-align: center;
@@ -2486,7 +2485,7 @@ svg {
 }
 
 .game-final {
-  font-size: 40px;
+  font-size: 44px;
   font-weight: 900;
   font-variant-numeric: tabular-nums;
 }
@@ -2696,8 +2695,10 @@ svg {
   white-space: nowrap;
 }
 
+.warn,
 .card.warn {
   border-color: var(--accent-2);
+  background: color-mix(in srgb, var(--accent-2) 8%, var(--card));
 }
 
 .card.highlight {
@@ -2718,7 +2719,7 @@ svg {
   grid-template-columns: 1fr 1fr;
   padding: 4px;
   gap: 4px;
-  border-radius: 14px;
+  border-radius: var(--radius);
   background: var(--card);
   border: 1px solid var(--border);
 }
@@ -2735,7 +2736,7 @@ svg {
 
 .segmented button.active {
   background: var(--accent-fill);
-  color: #fff;
+  color: var(--on-fill);
 }
 
 .teams-preview b {
@@ -2855,7 +2856,7 @@ svg {
   width: min(100%, 480px);
   padding: 6px 6px 6px 16px;
   min-height: 52px;
-  border-radius: 14px;
+  border-radius: var(--radius);
   background: var(--card-2);
   border: 1px solid var(--border-strong);
   box-shadow: 0 8px 24px rgba(0, 0, 0, 0.45);
@@ -2910,7 +2911,7 @@ svg {
 .btn.danger-fill {
   background: var(--loss-fill);
   border-color: transparent;
-  color: #fff;
+  color: var(--on-fill);
 }
 
 @media (prefers-reduced-motion: reduce) {
