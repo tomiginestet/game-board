@@ -858,3 +858,94 @@
 .near-medal .medal-bar {
   margin-top: 6px;
 }
+
+/* Vitrina de medallas */
+.vitrina-head {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+
+.vitrina-head h1,
+.vitrina-head p {
+  margin: 0;
+}
+
+.vitrina-count {
+  color: var(--accent-2);
+}
+
+.vitrina {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(104px, 1fr));
+  gap: 8px;
+}
+
+.vitrina-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  min-width: 0;
+  padding: 12px 6px 10px;
+  border-radius: 14px;
+  border: 1px solid var(--border);
+  background: var(--bg-2);
+  color: var(--text);
+  font: inherit;
+  text-align: center;
+  cursor: pointer;
+  transition: transform 0.15s;
+}
+
+.vitrina-item:hover {
+  transform: translateY(-2px);
+}
+
+.vitrina-item:focus-visible {
+  outline: 2px solid var(--accent-2);
+  outline-offset: 2px;
+}
+
+.vitrina-item.won {
+  background: color-mix(in srgb, var(--accent-2) 6%, var(--bg-2));
+  border-color: color-mix(in srgb, var(--accent-2) 35%, transparent);
+}
+
+.vitrina-name {
+  margin-top: 2px;
+  font-size: 13px;
+  font-weight: 700;
+  line-height: 1.2;
+}
+
+.vitrina-sub {
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 11.5px;
+  color: var(--muted);
+}
+
+.vitrina-item:not(.won) .vitrina-name {
+  color: var(--muted);
+}
+
+.vitrina-levels {
+  display: flex;
+  gap: 3px;
+  margin-top: 4px;
+}
+
+.vitrina-levels i {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--border);
+}
+
+.vitrina-levels i.on {
+  background: var(--accent-2);
+}

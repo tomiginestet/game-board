@@ -1,4 +1,4 @@
-import { ArrowLeftIcon, BookOpenIcon, CopyIcon, PencilSimpleIcon, PlayIcon, SparkleIcon, TrashIcon, TrophyIcon, UsersIcon } from '@phosphor-icons/react'
+import { ArrowLeftIcon, ArrowRightIcon, BookOpenIcon, CopyIcon, PencilSimpleIcon, PlayIcon, SparkleIcon, TrashIcon, TrophyIcon, UsersIcon } from '@phosphor-icons/react'
 import { useMemo, useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 import { Avatar, TeamAvatar } from '../components/Avatar'
@@ -186,7 +186,12 @@ function GameView({ game }: { game: GameDef }) {
       )}
 
       <section>
-        <h2>Medallas de {game.name}</h2>
+        <div className="section-head">
+          <h2>Medallas de {game.name}</h2>
+          <Link to={`/medallas?juego=${game.id}`}>
+            Vitrina <ArrowRightIcon className="inline-icon" size="1em" />
+          </Link>
+        </div>
         <p className="muted small">Tocá una medalla para verla en grande y saber cómo se gana.</p>
         <div className="award-list">
           {leaders.map(({ fam, best }, k) => {
