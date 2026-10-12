@@ -8,6 +8,7 @@ import { GameBadge, PlayRow } from '../components/GameBits'
 import { PlaceMedal } from '../components/icons'
 import { Logo } from '../components/Logo'
 import { MatchRow } from '../components/MatchRow'
+import { NextMedals } from '../components/NextMedals'
 import { SyncBadge } from '../components/SyncBadge'
 import { cupChampion } from '../lib/cups'
 import { FEATURED, findGame, HERO, pickGames } from '../lib/games'
@@ -190,6 +191,8 @@ export function Home() {
           </div>
         </section>
       )}
+
+      <NextMedals />
 
       {ranked.length > 0 && (
         <section>
