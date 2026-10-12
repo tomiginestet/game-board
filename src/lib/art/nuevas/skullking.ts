@@ -357,25 +357,27 @@ export const SKULLKING_NUEVAS_ART: Record<string, (u: number) => string> = {
     const L = walk(45, 95, -99, [[27, -6], [12, -12], [9, -80], [7, -120], [5, -150]])
     const R = walk(75, 95, -81, [[27, 6], [12, 12], [9, 80], [7, 120], [5, 150]])
     const head = 'M42.6 96C40 88 40.6 81.4 44.6 77.6C41.6 71.4 40.6 62.6 43.4 55.6C46.4 48.2 52.6 45 60 45C67.4 45 73.6 48.2 76.6 55.6C79.4 62.6 78.4 71.4 75.4 77.6C79.4 81.4 80 88 77.4 96Z'
+    const DEEP = '#3A0F1B'
     const tent = (pts: Pt[]) => {
       const d = strand(pts, 11, 1.4)
-      return { d, fill: P.red, inner: k.sh(d, 0, 0, 1, 0, 0, 0.85, P.wine, 0.45) + k.sh(FULL, 0, 0, 0, 1, 0, 0.5, P.wine, 0.3) }
+      return { d, fill: P.wine, inner: k.sh(d, 0, 0, 1, 0, 0, 0.85, DEEP, 0.5) + k.sh(FULL, 0, 0, 0, 1, 0, 0.6, DEEP, 0.35) }
     }
     const shine = (pts: Pt[], side: number) => {
       let s = ''
       for (let i = 3; i < pts.length - 12; i += 6) {
         const a = beside(pts, i, 2.7, side), b = beside(pts, i + 5, 2.5, side)
-        s += hair(a.x, a.y, (a.x + b.x) / 2, (a.y + b.y) / 2, b.x, b.y, 0.5, '#fff', 0.55)
+        s += hair(a.x, a.y, (a.x + b.x) / 2, (a.y + b.y) / 2, b.x, b.y, 0.55, P.red, 0.9)
       }
       return s
     }
     const eye = (x: number) =>
-      `<ellipse cx="${x}" cy="83" rx="4.4" ry="3.4" fill="${P.goldL}" stroke="${P.ink}" stroke-width=".6"/><ellipse cx="${x}" cy="83" rx="3" ry="2.8" fill="${P.gold}"/>` +
+      `<ellipse cx="${x}" cy="83" rx="4.4" ry="3.4" fill="${P.goldL}" stroke="${P.ink}" stroke-width=".6"/><ellipse cx="${x}" cy="83" rx="3" ry="2.8" fill="${P.gold}"/>` + k.shade(ellipse(x, 83, 5, 5), k.rad(P.goldL, 0.5, 0.5, 0.5, 0.6, 0), P.goldL, 0.4) +
       k.clip(ellipse(x, 83, 3, 2.8), k.sh(ellipse(x, 83, 3, 2.8), 0, 0, 0, 1, 0, 0.9, P.goldD, 0.4)) +
-      `<path d="M${x} 80.4C${x + 0.9} 81.8 ${x + 0.9} 84.2 ${x} 85.6C${x - 0.9} 84.2 ${x - 0.9} 81.8 ${x} 80.4Z" fill="${P.night}"/><circle cx="${x - 1.4}" cy="81.8" r=".6" fill="#fff"/>`
+      `<path d="M${x} 80.4C${x + 0.9} 81.8 ${x + 0.9} 84.2 ${x} 85.6C${x - 0.9} 84.2 ${x - 0.9} 81.8 ${x} 80.4Z" fill="${P.night}"/>` +
+      `<path d="M${x - 4.8} 82.2C${x - 3} 79 ${x + 3} 79 ${x + 4.8} 82.2C${x + 2} 80.8 ${x - 2} 80.8 ${x - 4.8} 82.2Z" fill="${DEEP}" stroke="${P.ink}" stroke-width=".5"/>`
     const moon = ellipse(60, 44, 26, 26)
     const spots = ([[53, 58, 1.7], [66, 57, 1.3], [60, 62.4, 1], [49.6, 65, 1.2], [70.6, 64.6, 1.4], [56.6, 52.4, 0.9], [46.6, 71, 0.9], [73.4, 70.4, 1]] as const)
-      .map(([x, y, r]) => `<circle cx="${x}" cy="${y}" r="${r}" fill="${P.wine}" opacity=".75"/><circle cx="${x}" cy="${y}" r="${f(r + 0.7)}" fill="none" stroke="${P.wine}" stroke-width=".3" opacity=".6"/>`).join('')
+      .map(([x, y, r]) => `<circle cx="${x}" cy="${y}" r="${r}" fill="${DEEP}" opacity=".8"/><circle cx="${x}" cy="${y}" r="${f(r + 0.7)}" fill="none" stroke="${P.red}" stroke-width=".3" opacity=".7"/>`).join('')
     return (
       k.night() +
       stars([[26, 60], [94, 58], [90, 26], [30, 28], [24, 76], [97, 74]]) +
@@ -386,12 +388,12 @@ export const SKULLKING_NUEVAS_ART: Record<string, (u: number) => string> = {
       shine(L, 1) + shine(R, -1) +
       suckers(L, 11, 1.4, -1, 4, 3, 1.7) + suckers(R, 11, 1.4, 1, 4, 3, 1.7) +
       k.draw([{
-        d: head, fill: P.red,
+        d: head, fill: P.wine,
         inner:
-          k.sh('M62 44C76 54 82 72 78 96H90V44Z', 0, 0, 1, 0, 0, 0.85, P.wine, 0.45) + k.sh('M34 84H86V96H34Z', 0, 0, 0, 1, 0, 0.7, P.wine, 0.35) +
-          `<path d="M38 44H51V96H38Z" fill="${k.lin('#ffffff', 0, 0, 1, 0, 0.3, 0)}"/>` + spots +
+          k.sh('M62 44C76 54 82 72 78 96H90V44Z', 0, 0, 1, 0, 0, 0.85, DEEP, 0.5) + k.sh('M34 84H86V96H34Z', 0, 0, 0, 1, 0, 0.7, DEEP, 0.4) +
+          `<path d="M38 44H51V96H38Z" fill="${k.lin(P.red, 0, 0, 1, 0, 0.7, 0)}"/>` + spots +
           hair(49, 54, 52.6, 50.4, 57, 49, 0.7, '#fff', 0.7) + hair(44.6, 70, 44.6, 63, 47, 57, 0.5, '#fff', 0.5) +
-          hair(46, 76.6, 53, 74.6, 60, 75.6, 0.55, P.wine) + hair(60, 75.6, 67, 74.6, 74, 76.6, 0.55, P.wine) + hair(50, 69, 60, 67, 70, 69, 0.4, P.wine) + hair(54, 89, 60, 90.6, 66, 89, 0.5, P.wine),
+          hair(46, 76.6, 53, 74.6, 60, 75.6, 0.55, DEEP) + hair(60, 75.6, 67, 74.6, 74, 76.6, 0.55, DEEP) + hair(50, 69, 60, 67, 70, 69, 0.4, DEEP) + hair(54, 89, 60, 90.6, 66, 89, 0.5, DEEP),
       }], 0.75) +
       `<path d="M44.6 79.4C47 77.4 52 77.2 56.6 80.4M75.4 79.4C73 77.4 68 77.2 63.4 80.4" fill="none" stroke="${P.ink}" stroke-width="1.6" stroke-linecap="round"/>` +
       eye(50.6) + eye(69.4) +
