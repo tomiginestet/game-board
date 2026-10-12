@@ -2,9 +2,10 @@ import { useState } from 'react'
 import { TIERS } from '../lib/medalArt'
 import { totalLevels, unlockedCount, type MedalProgress } from '../lib/medals'
 import { Medal } from './Medal'
+import { MedalSheet } from './MedalSheet'
 
-/** Medallas de un perfil: una por familia (la del nivel más alto) y, al tocarla, todos sus niveles. */
-export function MedalsSection({ title, list }: { title: string; list: MedalProgress[] }) {
+/** Medallas de un perfil: una por familia (la del nivel más alto) y, al tocarla, su ficha en grande con todos los niveles. */
+export function MedalsSection({ title, list, playerName }: { title: string; list: MedalProgress[]; playerName?: string }) {
   const [openId, setOpenId] = useState<string | null>(null)
   const keyOf = (p: MedalProgress) => p.family.id + ':' + p.family.name
   const open = list.find((p) => keyOf(p) === openId)
@@ -25,9 +26,9 @@ export function MedalsSection({ title, list }: { title: string; list: MedalProgr
             <button
               key={k}
               type="button"
-              className={'medal-tile' + (level >= 0 ? ' unlocked' : '') + (openId === k ? ' open' : '')}
-              aria-expanded={openId === k}
-              onClick={() => setOpenId(openId === k ? null : k)}
+              className={'medal-tile' + (level >= 0 ? ' unlocked' : '')}
+              aria-haspopup="dialog"
+              onClick={() => setOpenId(k)}
             >
               <span className="medal-family">{family.name}</span>
               <Medal family={family} level={Math.max(level, 0)} locked={level < 0} />
@@ -44,31 +45,12 @@ export function MedalsSection({ title, list }: { title: string; list: MedalProgr
       </div>
 
       {open && (
-        <div className="card medal-ladder">
-          <div className="medal-ladder-head">
-            <h3>{open.family.name}</h3>
-            <p className="muted small">
-              {open.family.measures}. Tenés {open.family.unit(open.value)}.
-            </p>
-          </div>
-          <ol>
-            {open.family.levels.map((l, i) => {
-              const got = i <= open.level
-              return (
-                <li key={l.name} className={got ? 'got' : ''}>
-                  <Medal family={open.family} level={i} locked={!got} size={56} />
-                  <div>
-                    <span className="medal-at">
-                      {TIERS[i].name} · {open.family.unit(l.at)}
-                    </span>
-                    <b>{l.name}</b>
-                    <span className="muted small">{l.description}</span>
-                  </div>
-                </li>
-              )
-            })}
-          </ol>
-        </div>
+        <MedalSheet
+          family={open.family}
+          level={open.next ? open.level + 1 : open.level}
+          mine={{ name: playerName, value: open.value, level: open.level }}
+          onClose={() => setOpenId(null)}
+        />
       )}
     </section>
   )
