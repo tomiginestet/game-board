@@ -22,3 +22,6 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# Videos grabados de la animación (npm run promo)
+promo/*.mp4

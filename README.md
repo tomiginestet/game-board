@@ -75,6 +75,7 @@ npm test          # motor de partidas, torneos, estadísticas, fichas y catálog
 npm run lint
 npm run build
 npm run medals -- salida.png [módulo...]   # hoja con las ilustraciones de medallas (src/lib/art)
+npm run promo -- [salida.mp4] [fps]         # video promocional 9:16 (promo/; vista previa en /promo/index.html)
 ```
 
 Variables: `VITE_SUPABASE_URL` y `VITE_SUPABASE_KEY` (ver `.env.example`). Sin ellas la app funciona sólo con datos locales.

@@ -11,7 +11,8 @@
     "test": "vitest run",
     "build:ai": "node scripts/build-ai-function.mjs",
     "medals": "node scripts/preview-medals.mjs",
-    "logo": "node scripts/build-logo.mjs"
+    "logo": "node scripts/build-logo.mjs",
+    "promo": "node scripts/render-promo.mjs"
   },
   "dependencies": {
     "@phosphor-icons/react": "^2.1.10",
