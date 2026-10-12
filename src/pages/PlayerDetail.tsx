@@ -2,6 +2,7 @@ import { ArrowLeftIcon, PencilSimpleIcon, TrashIcon, UserCircleCheckIcon } from 
 import { useState } from 'react'
 import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom'
 import { Avatar } from '../components/Avatar'
+import { ErrorText } from '../components/Feedback'
 import { GameBadge, PlayRow } from '../components/GameBits'
 import { LevelIcon } from '../components/icons'
 import { MatchRow } from '../components/MatchRow'
@@ -9,6 +10,7 @@ import { MedalsSection } from '../components/MedalsSection'
 import { PlayerForm } from '../components/PlayerForm'
 import { Sparkline } from '../components/Sparkline'
 import { claimPlayer, useAuth } from '../lib/auth'
+import { confirmAction, toast } from '../lib/feedback'
 import { refreshGroups } from '../lib/social'
 import { gameOrMissing, plural, useBoard, useLeaderboard, usePlayerMap } from '../lib/hooks'
 import { gameMedals, globalMedals } from '../lib/medals'
@@ -16,6 +18,8 @@ import { involves } from '../lib/pingpong/teams'
 import { globalStatsOf, levelFor, winRate } from '../lib/stats'
 import { actions, useData } from '../lib/store'
 import { useSyncState } from '../lib/sync'
+import { friendlyError } from '../lib/text'
+import { WinLoss } from './GameDetail'
 
 export function PlayerDetail() {
   const { id } = useParams()
@@ -29,6 +33,7 @@ export function PlayerDetail() {
   const sync = useSyncState()
   const [editing, setEditing] = useState(false)
   const [claimMsg, setClaimMsg] = useState<string | null>(null)
+  const [claimError, setClaimError] = useState('')
   const player = data.players.find((p) => p.id === id)
 
   const s = player ? globalStatsOf(board, player.id) : undefined
@@ -66,13 +71,23 @@ export function PlayerDetail() {
 
   const claim = async () => {
     if (!sync.club) return
+    setClaimMsg(null)
+    setClaimError('')
     try {
       await claimPlayer(sync.club.code, player.id)
       void refreshGroups().catch(() => {})
       setClaimMsg('¡Listo! Este jugador quedó asociado a tu cuenta.')
     } catch (e) {
-      setClaimMsg((e as Error).message)
+      setClaimError(friendlyError(e))
     }
+  }
+
+  // Quien ya jugó no se puede borrar (el botón ni aparece); si cambió algo mientras se confirmaba, se avisa en vez de fallar callado.
+  const remove = async () => {
+    const ok = await confirmAction({ title: `¿Borrar a ${player.name}?`, detail: 'No se puede deshacer.', confirmLabel: 'Borrar jugador', danger: true })
+    if (!ok) return
+    if (actions.deletePlayer(player.id)) navigate('/jugadores')
+    else toast(`No se puede borrar a ${player.name}: tiene partidas o torneos.`)
   }
 
   return (
@@ -107,7 +122,7 @@ export function PlayerDetail() {
 
       <div className="stat-grid">
         <Stat label="Partidas" value={s.played} />
-        <Stat label="Ganadas" value={s.wins} />
+        <Stat label="Victorias" value={s.wins} />
         <Stat label="Efectividad" value={`${Math.round(winRate(s) * 100)}%`} />
         <Stat label="Juegos" value={`${s.gamesWon}/${s.gamesPlayed}`} hint="ganados / jugados" />
         <Stat label="Torneos" value={s.cupsWon} />
@@ -140,7 +155,12 @@ export function PlayerDetail() {
                   <span className="muted small block">
                     {game.mode === 'coop'
                       ? `${plural(gs.coopWins, 'victoria', 'victorias')} en equipo de ${gs.played}`
-                      : `${gs.wins}G ${gs.losses}P${gs.draws ? ` ${gs.draws}E` : ''} · ${Math.round(winRate(gs) * 100)}%${gs.cupsWon ? ` · ${plural(gs.cupsWon, 'torneo', 'torneos')}` : ''}`}
+                      : (
+                        <>
+                          <WinLoss wins={gs.wins} losses={gs.losses} draws={gs.draws} rate={winRate(gs)} />
+                          {gs.cupsWon ? ` · ${plural(gs.cupsWon, 'torneo', 'torneos')}` : ''}
+                        </>
+                      )}
                   </span>
                 </div>
                 {game.mode !== 'coop' && (
@@ -176,17 +196,17 @@ export function PlayerDetail() {
           <button className="btn block" onClick={claim}>
             <UserCircleCheckIcon /> Este jugador soy yo
           </button>
-          {claimMsg && <p className="small mt">{claimMsg}</p>}
+          {claimMsg && (
+            <p className="small mt" role="status">
+              {claimMsg}
+            </p>
+          )}
+          <ErrorText>{claimError}</ErrorText>
         </div>
       )}
 
       {!hasPlayed && (
-        <button
-          className="btn danger block mt"
-          onClick={() => {
-            if (confirm(`¿Borrar a ${player.name}?`) && actions.deletePlayer(player.id)) navigate('/jugadores')
-          }}
-        >
+        <button className="btn danger block mt" onClick={remove}>
           <TrashIcon /> Borrar jugador
         </button>
       )}

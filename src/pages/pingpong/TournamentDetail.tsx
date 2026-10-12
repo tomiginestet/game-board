@@ -2,6 +2,7 @@ import { ArrowLeftIcon, PingPongIcon, PlayIcon, TrashIcon, TrophyIcon } from '@p
 import { Link, useNavigate, useParams } from 'react-router-dom'
 import { Avatar } from '../../components/Avatar'
 import { MatchRow } from '../../components/MatchRow'
+import { confirmAction } from '../../lib/feedback'
 import { UNKNOWN_PLAYER, usePlayerMap } from '../../lib/hooks'
 import { computeMatch, describeConfig } from '../../lib/pingpong/scoring'
 import { bracketRounds, leagueStandings, tournamentChampion, type BracketSlot } from '../../lib/pingpong/stats'
@@ -58,11 +59,16 @@ export function TournamentDetail() {
 
       <button
         className="btn danger"
-        onClick={() => {
-          if (confirm(`¿Borrar el torneo "${t.name}" y todos sus partidos?`)) {
-            actions.deleteTournament(t.id)
-            navigate('/torneos')
-          }
+        onClick={async () => {
+          const ok = await confirmAction({
+            title: `¿Borrar el torneo “${t.name}”?`,
+            detail: 'Se borran también todos sus partidos. No se puede deshacer.',
+            confirmLabel: 'Borrar torneo',
+            danger: true,
+          })
+          if (!ok) return
+          actions.deleteTournament(t.id)
+          navigate('/torneos')
         }}
       >
         <TrashIcon /> Borrar torneo
@@ -98,12 +104,24 @@ function League({ t, matches, players }: { t: Tournament; matches: Match[]; play
               <tr>
                 <th>#</th>
                 <th className="left">Jugador</th>
-                <th title="Partidos jugados">PJ</th>
-                <th title="Ganados">G</th>
-                <th title="Empatados">E</th>
-                <th title="Perdidos">P</th>
-                <th title="Diferencia de juegos">DJ</th>
-                <th title="Puntos">Pts</th>
+                <th>
+                  <abbr title="Partidos jugados">PJ</abbr>
+                </th>
+                <th>
+                  <abbr title="Victorias">V</abbr>
+                </th>
+                <th>
+                  <abbr title="Empates">E</abbr>
+                </th>
+                <th>
+                  <abbr title="Derrotas">D</abbr>
+                </th>
+                <th>
+                  <abbr title="Diferencia de juegos">DJ</abbr>
+                </th>
+                <th>
+                  <abbr title="Puntos">Pts</abbr>
+                </th>
               </tr>
             </thead>
             <tbody>
@@ -181,7 +199,7 @@ function BracketCard({ t, slot, players }: { t: Tournament; slot: BracketSlot; p
     return m.playerA === id ? state.gamesWon.a : m.playerB === id ? state.gamesWon.b : ''
   }
   const line = (id: Id | null | undefined) => {
-    if (id === null) return <div className="bk-line bye">— libre —</div>
+    if (id === null) return <div className="bk-line bye">Libre</div>
     if (id === undefined) return <div className="bk-line tbd">Por definir</div>
     const p = players.get(id) ?? UNKNOWN_PLAYER
     return (

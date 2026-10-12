@@ -2587,3 +2587,37 @@ svg {
     0 0 0 2px var(--bg),
     0 0 0 4px var(--text);
 }
+
+/* Los overlays del marcador son <dialog> modales que ocupan toda la pantalla. */
+dialog.overlay {
+  position: fixed;
+  width: 100%;
+  height: 100%;
+  max-width: none;
+  max-height: none;
+  margin: 0;
+  border: 0;
+  color: inherit;
+}
+
+dialog.overlay::backdrop {
+  background: transparent;
+}
+
+.standings abbr[title],
+.rank-row abbr[title],
+.game-stats abbr[title],
+abbr.wl {
+  text-decoration: none;
+  cursor: help;
+}
+
+.btn.danger:disabled {
+  background: transparent;
+  border-color: var(--border);
+  color: var(--muted);
+}
+
+.input[aria-invalid='true'] {
+  border-color: var(--loss);
+}

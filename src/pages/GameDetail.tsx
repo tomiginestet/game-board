@@ -7,6 +7,7 @@ import { PlayRow } from '../components/GameBits'
 import { LevelIcon } from '../components/icons'
 import { MatchRow } from '../components/MatchRow'
 import { Medal } from '../components/Medal'
+import { confirmAction } from '../lib/feedback'
 import { isBuiltin, playersLabel, WEIGHT_NAMES } from '../lib/games'
 import { CATEGORIES, CUP_FORMATS, type GameDef, type PlayMode } from '../lib/games/schema'
 import { formatDate, plural, UNKNOWN_PLAYER, useBoard, useGame, useLeaderboard, usePlayerMap } from '../lib/hooks'
@@ -41,6 +42,25 @@ export function GameDetail() {
     )
   }
   return <GameView key={game.id} game={game} />
+}
+
+/** "3 V 2 D 1 E · 50%" con las abreviaturas explicadas. */
+export function WinLoss({ wins, losses, draws, rate }: { wins: number; losses: number; draws: number; rate: number }) {
+  return (
+    <>
+      {wins}
+      <abbr title="Victorias">V</abbr> {losses}
+      <abbr title="Derrotas">D</abbr>
+      {draws ? (
+        <>
+          {' '}
+          {draws}
+          <abbr title="Empates">E</abbr>
+        </>
+      ) : null}{' '}
+      · {Math.round(rate * 100)}%
+    </>
+  )
 }
 
 function GameView({ game }: { game: GameDef }) {
@@ -87,10 +107,12 @@ function GameView({ game }: { game: GameDef }) {
       ? [...data.matches].sort((a, b) => (b.finishedAt ?? b.createdAt) - (a.finishedAt ?? a.createdAt)).slice(0, 5)
       : []
 
-  const remove = () => {
-    if (!confirm(`¿Borrar ${game.name} de la biblioteca?`)) return
-    if (actions.deleteGame(game.id)) navigate('/juegos')
-    else alert('No se puede borrar: tiene partidas o torneos. Borralos primero.')
+  // Un juego con partidas o torneos no se puede borrar: se explica antes de preguntar nada.
+  const inUse = data.plays.some((p) => p.gameId === game.id) || data.cups.some((c) => c.gameId === game.id)
+  const remove = async () => {
+    if (inUse) return
+    const ok = await confirmAction({ title: `¿Borrar ${game.name} del catálogo?`, detail: 'No se puede deshacer.', confirmLabel: 'Borrar juego', danger: true })
+    if (ok && actions.deleteGame(game.id)) navigate('/juegos')
   }
 
   return (
@@ -115,7 +137,7 @@ function GameView({ game }: { game: GameDef }) {
             {game.mode !== 'coop' && <span className="cc-chip">{WEIGHT_NAMES[game.weight]}</span>}
             {game.source === 'ai' && (
               <span className="cc-chip ai">
-                <SparkleIcon aria-hidden /> Ficha hecha con IA
+                <SparkleIcon aria-hidden /> Juego armado con IA
               </span>
             )}
             {playCount > 0 && <span className="cc-chip hot">{plural(playCount, 'partida', 'partidas')}</span>}
@@ -165,7 +187,7 @@ function GameView({ game }: { game: GameDef }) {
                     <span className="muted small block">
                       {coop
                         ? `${plural(s.coopWins, 'victoria', 'victorias')} de ${s.played}`
-                        : `${s.wins}G ${s.losses}P${s.draws ? ` ${s.draws}E` : ''} · ${Math.round(winRate(s) * 100)}%`}
+                        : <WinLoss wins={s.wins} losses={s.losses} draws={s.draws} rate={winRate(s)} />}
                     </span>
                   </span>
                   {!coop && (
@@ -249,17 +271,22 @@ function GameView({ game }: { game: GameDef }) {
               </>
             ) : (
               <>
-                <PencilSimpleIcon /> Editar ficha
+                <PencilSimpleIcon /> Editar juego
               </>
             )}
           </Link>
         )}
         {!builtin && (
-          <button className="btn danger" onClick={remove}>
+          <button className="btn danger" onClick={remove} disabled={inUse} aria-describedby={inUse ? 'gd-delete-hint' : undefined}>
             <TrashIcon /> Borrar
           </button>
         )}
       </div>
+      {!builtin && inUse && (
+        <p id="gd-delete-hint" className="hint mt">
+          Para borrarlo, primero borrá sus partidas y torneos.
+        </p>
+      )}
     </div>
   )
 }

@@ -11,13 +11,15 @@ import {
   SkipForwardIcon,
   TrashIcon,
 } from '@phosphor-icons/react'
-import { useMemo, useState } from 'react'
+import { useId, useMemo, useRef, useState, type FormEvent } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 import { TeamAvatar } from '../components/Avatar'
+import { ErrorText } from '../components/Feedback'
 import { GameBadge, sideColor, sideName, sidePlayersOf } from '../components/GameBits'
 import { Medal } from '../components/Medal'
 import { Tally } from '../components/Tally'
 import { computeLive, eliminateOf, isDraw, nextTurn, placesFromScores, roundScore, roundsOf, sidesByPlace, targetOf, type LiveState } from '../lib/engine'
+import { confirmAction, toast, useModal } from '../lib/feedback'
 import type { EventDef, GameDef } from '../lib/games/schema'
 import { formatDate, gameOrMissing, usePlayerMap } from '../lib/hooks'
 import { TIERS } from '../lib/medalArt'
@@ -59,14 +61,22 @@ function PlayView({ play, game }: { play: Play; game: GameDef }) {
   const backTo = play.cupId ? `/torneos/${play.cupId}` : '/'
   const finished = play.status === 'finished'
 
-  const discard = () => {
-    if (!confirm(play.cupId ? '¿Borrar lo anotado en esta partida del torneo?' : '¿Descartar esta partida?')) return
+  const discard = async () => {
     if (play.cupId) {
-      actions.patchPlay(play.id, { log: [], status: 'pending', result: undefined, finishedAt: undefined, startedAt: undefined })
-    } else {
-      actions.deletePlay(play.id)
-      navigate('/')
+      // Lo anotado de una partida de torneo no se puede recuperar: se pregunta antes.
+      const ok = await confirmAction({
+        title: '¿Borrar lo anotado en esta partida del torneo?',
+        detail: 'La partida sigue en el torneo, lista para jugarse de nuevo. Lo anotado no se puede recuperar.',
+        confirmLabel: 'Borrar lo anotado',
+        danger: true,
+      })
+      if (ok) actions.patchPlay(play.id, { log: [], status: 'pending', result: undefined, finishedAt: undefined, startedAt: undefined })
+      return
     }
+    const removed = play
+    actions.deletePlay(play.id)
+    navigate('/')
+    toast('Descartaste la partida.', { label: 'Deshacer', run: () => actions.restorePlay(removed) })
   }
 
   return (
@@ -101,6 +111,7 @@ function PlayView({ play, game }: { play: Play; game: GameDef }) {
         <FinishForm play={play} game={game} live={live} players={players} onCancel={() => setFinishing(false)} />
       ) : (
         <>
+          {(game.mode === 'counter' || game.mode === 'rounds' || game.mode === 'turns') && <ScoreAnnouncer play={play} live={live} players={players} />}
           {game.mode === 'counter' && <CounterBoard play={play} game={game} live={live} players={players} />}
           {game.mode === 'rounds' && <RoundsBoard play={play} game={game} live={live} players={players} />}
           {game.mode === 'turns' && <TurnsBoard play={play} game={game} live={live} players={players} />}
@@ -136,12 +147,82 @@ function describePlay(game: GameDef, play: Play, live: LiveState): string {
   return parts.join(' · ')
 }
 
+/** Anuncia el marcador a los lectores de pantalla cada vez que cambia ("Ana 7, Beto 5"). */
+function ScoreAnnouncer({ play, live, players }: { play: Play; live: LiveState; players: Map<Id, Player> }) {
+  const text = play.log.length ? play.sides.map((side, i) => `${sideName(side, players)} ${live.scores[i]}`).join(', ') : ''
+  return (
+    <p className="sr-only" aria-live="polite">
+      {text}
+    </p>
+  )
+}
+
 /** Pide los puntos de un evento que los define en el momento (falta envido, bonus). */
-function askPoints(e: EventDef, suggestion?: number): number | null {
-  const raw = prompt(`¿Cuántos puntos vale "${e.name}"?`, suggestion !== undefined ? String(suggestion) : '')
-  if (raw === null) return null
-  const n = Number(raw.replace(',', '.'))
-  return isFinite(n) ? n : null
+function PointsDialog({ event, suggestion, onSubmit, onCancel }: { event: EventDef; suggestion?: number; onSubmit: (points: number) => void; onCancel: () => void }) {
+  const ref = useRef<HTMLDialogElement>(null)
+  useModal(ref)
+  const id = useId()
+  const [raw, setRaw] = useState(suggestion !== undefined ? String(suggestion) : '')
+  const [error, setError] = useState('')
+
+  const submit = (e: FormEvent) => {
+    e.preventDefault()
+    const text = raw.trim().replace(',', '.')
+    const n = Number(text)
+    if (!text || !isFinite(n)) {
+      setError('Escribí un número, por ejemplo 3.')
+      return
+    }
+    onSubmit(n)
+  }
+
+  return (
+    <dialog
+      ref={ref}
+      className="confirm-dialog"
+      aria-labelledby={`${id}-title`}
+      onCancel={(e) => {
+        e.preventDefault()
+        onCancel()
+      }}
+      onClick={(e) => e.target === e.currentTarget && onCancel()}
+    >
+      <form className="confirm-body" onSubmit={submit} noValidate>
+        <h2 id={`${id}-title`}>
+          {event.emoji} ¿Cuántos puntos vale “{event.name}”?
+        </h2>
+        <div className="field">
+          <label htmlFor={`${id}-input`}>Puntos</label>
+          <input
+            id={`${id}-input`}
+            className="input"
+            type="text"
+            inputMode="numeric"
+            autoComplete="off"
+            value={raw}
+            onChange={(e) => {
+              setRaw(e.target.value)
+              setError('')
+            }}
+            onFocus={(e) => e.target.select()}
+            aria-invalid={error ? true : undefined}
+            aria-describedby={error ? `${id}-error` : undefined}
+          />
+          <div id={`${id}-error`}>
+            <ErrorText>{error}</ErrorText>
+          </div>
+        </div>
+        <div className="confirm-actions">
+          <button type="button" className="btn" onClick={onCancel}>
+            Cancelar
+          </button>
+          <button type="submit" className="btn primary">
+            Anotar puntos
+          </button>
+        </div>
+      </form>
+    </dialog>
+  )
 }
 
 // ---------------------------------------------------------------------------
@@ -155,6 +236,7 @@ function CounterBoard({ play, game, live, players }: { play: Play; game: GameDef
   const globals = game.events.filter((e) => e.global)
   const two = play.sides.length === 2
   const leader = Math.max(...live.scores)
+  const [asking, setAsking] = useState<{ s: number; e: EventDef; suggestion?: number } | null>(null)
 
   const tap = (s: number, e?: EventDef) => {
     vibrate()
@@ -162,15 +244,24 @@ function CounterBoard({ play, game, live, players }: { play: Play; game: GameDef
     if (e.type === 'holder') return actions.log(play.id, { k: 'ev', s, e: e.id, n: 1 })
     if (e.askPoints) {
       const suggestion = target !== undefined ? Math.max(1, target - leader) : undefined
-      const p = askPoints(e, e.id.toLowerCase().includes('falta') ? suggestion : undefined)
-      if (p === null) return
-      return actions.log(play.id, { k: 'ev', s, e: e.id, n: 1, p })
+      return setAsking({ s, e, suggestion: e.id.toLowerCase().includes('falta') ? suggestion : undefined })
     }
     actions.log(play.id, { k: 'ev', s, e: e.id, n: 1 })
   }
 
   return (
     <>
+      {asking && (
+        <PointsDialog
+          event={asking.e}
+          suggestion={asking.suggestion}
+          onCancel={() => setAsking(null)}
+          onSubmit={(p) => {
+            actions.log(play.id, { k: 'ev', s: asking.s, e: asking.e.id, n: 1, p })
+            setAsking(null)
+          }}
+        />
+      )}
       <div className={'counter-board' + (two ? ' two' : '')}>
         {play.sides.map((side, s) => {
           const color = sideColor(side, players)
@@ -320,6 +411,7 @@ function RoundForm({ play, game, live, players, onDone }: { play: Play; game: Ga
   const events = game.events.filter((e) => !e.global)
   const [ev, setEv] = useState<Record<string, number[]>>(() => Object.fromEntries(events.map((e) => [e.id, new Array(n).fill(0)])))
   const [asked, setAsked] = useState<Record<string, number>[]>(() => Array.from({ length: n }, () => ({})))
+  const [asking, setAsking] = useState<{ e: EventDef; i: number } | null>(null)
 
   const scoreOf = (i: number) =>
     roundScore(
@@ -333,15 +425,17 @@ function RoundForm({ play, game, live, players, onDone }: { play: Play; game: Ga
   const active = play.sides.map((_, i) => !live.eliminated[i])
 
   const bump = (e: EventDef, i: number, d: number) => {
-    const cur = ev[e.id][i]
-    const next = Math.max(0, cur + d)
-    if (e.askPoints && d > 0) {
-      const p = askPoints(e)
-      if (p === null) return
-      setAsked(asked.map((a, k) => (k === i ? { ...a, [e.id]: (a[e.id] ?? 0) + p } : a)))
-    }
+    // Los que valen lo que se diga en el momento piden los puntos antes de sumar.
+    if (e.askPoints && d > 0) return setAsking({ e, i })
+    const next = Math.max(0, ev[e.id][i] + d)
     if (e.askPoints && d < 0 && next === 0) setAsked(asked.map((a, k) => (k === i ? { ...a, [e.id]: 0 } : a)))
     setEv({ ...ev, [e.id]: ev[e.id].map((v, k) => (k === i ? next : v)) })
+  }
+
+  const addAsked = (e: EventDef, i: number, p: number) => {
+    setAsked(asked.map((a, k) => (k === i ? { ...a, [e.id]: (a[e.id] ?? 0) + p } : a)))
+    setEv({ ...ev, [e.id]: ev[e.id].map((v, k) => (k === i ? v + 1 : v)) })
+    setAsking(null)
   }
 
   const save = () => {
@@ -370,6 +464,7 @@ function RoundForm({ play, game, live, players, onDone }: { play: Play; game: Ga
 
   return (
     <div className="card round-form">
+      {asking && <PointsDialog event={asking.e} onCancel={() => setAsking(null)} onSubmit={(p) => addAsked(asking.e, asking.i, p)} />}
       <h3>{game.scoring.roundLabels?.[roundIndex] ?? `Mano ${roundIndex + 1}`}</h3>
       {play.sides.map((side, i) =>
         !active[i] ? null : (
@@ -398,11 +493,11 @@ function RoundForm({ play, game, live, players, onDone }: { play: Play; game: Ga
                       {e.points && !e.askPoints ? <span className="muted small"> {e.points > 0 ? `+${e.points}` : e.points}</span> : null}
                     </span>
                     <span className="stepper">
-                      <button type="button" onClick={() => bump(e, i, -1)} disabled={!ev[e.id][i]} aria-label="Menos">
+                      <button type="button" onClick={() => bump(e, i, -1)} disabled={!ev[e.id][i]} aria-label={`Restar uno a ${e.name} (${sideName(side, players)})`}>
                         <MinusIcon />
                       </button>
                       <span className="stepper-value">{ev[e.id][i]}</span>
-                      <button type="button" onClick={() => bump(e, i, 1)} aria-label="Más">
+                      <button type="button" onClick={() => bump(e, i, 1)} aria-label={`Sumar uno a ${e.name} (${sideName(side, players)})`}>
                         <PlusIcon />
                       </button>
                     </span>
@@ -505,11 +600,16 @@ function TurnsBoard({ play, game, live, players }: { play: Play; game: GameDef; 
                   </span>
                   <span className="stepper">
                     {/* Lo oculto no se deshabilita en 0: si no, se notaría si alguien ya tiene alguno. */}
-                    <button type="button" onClick={() => actions.log(play.id, { k: 'ev', s: i, e: e.id, n: -1 })} disabled={!e.hidden && !live.counts[e.id][i]} aria-label="Menos">
+                    <button
+                      type="button"
+                      onClick={() => actions.log(play.id, { k: 'ev', s: i, e: e.id, n: -1 })}
+                      disabled={!e.hidden && !live.counts[e.id][i]}
+                      aria-label={`Restar uno a ${e.name} (${sideName(side, players)})`}
+                    >
                       <MinusIcon />
                     </button>
                     <span className="stepper-value">{e.hidden ? <LockSimpleIcon aria-label="Oculto" /> : live.counts[e.id][i]}</span>
-                    <button type="button" onClick={() => actions.log(play.id, { k: 'ev', s: i, e: e.id, n: 1 })} aria-label="Más">
+                    <button type="button" onClick={() => actions.log(play.id, { k: 'ev', s: i, e: e.id, n: 1 })} aria-label={`Sumar uno a ${e.name} (${sideName(side, players)})`}>
                       <PlusIcon />
                     </button>
                   </span>
@@ -648,7 +748,7 @@ function FinishForm({ play, game, live, players, onCancel }: { play: Play; game:
           <div className="chips">
             {roles.map((r) => (
               <button key={r} className={'chip' + (winnerRole === r ? ' active' : '')} onClick={() => setWinnerRole(r)}>
-                {r === roles[0] ? '🕵️' : '👥'} {r === roles[0] ? `Ganó ${r.toLowerCase()}` : `Ganaron los ${r.toLowerCase()}s`}
+                {r === roles[0] ? '🕵️' : '👥'} Ganó el bando {r.toLowerCase()}
               </button>
             ))}
           </div>
@@ -812,7 +912,7 @@ function Summary({ play, game, live, players }: { play: Play; game: GameDef; liv
     <div className="summary">
       <div className="card summary-hero">
         {coop !== undefined ? (
-          <h2>{coop ? '🎉 ¡Ganaron todos!' : '😵 Ganó el juego'}</h2>
+          <h2>{coop ? '🎉 ¡Ganaron todos!' : '😵 Perdieron contra el juego'}</h2>
         ) : draw ? (
           <h2>🤝 Empate</h2>
         ) : (
@@ -905,10 +1005,11 @@ function Summary({ play, game, live, players }: { play: Play; game: GameDef; liv
         <button
           className="link-btn danger-text small center-block"
           onClick={() => {
-            if (confirm('¿Borrar esta partida del historial?')) {
-              actions.deletePlay(play.id)
-              navigate('/')
-            }
+            // Se puede recuperar mientras dure el aviso: se borra sin preguntar y se ofrece deshacer.
+            const removed = play
+            actions.deletePlay(play.id)
+            navigate('/')
+            toast('Borraste la partida.', { label: 'Deshacer', run: () => actions.restorePlay(removed) })
           }}
         >
           <TrashIcon /> Borrar partida
