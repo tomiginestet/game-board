@@ -1307,6 +1307,9 @@ svg {
 }
 
 .ms-stage {
+  touch-action: pan-y;
+  user-select: none;
+  cursor: grab;
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -1331,6 +1334,14 @@ svg {
 .ms-nav:disabled {
   opacity: 0.3;
   cursor: default;
+}
+
+.ms-stage.dragging {
+  cursor: grabbing;
+}
+
+.ms-stage:not(.dragging) .ms-medal-wrap {
+  transition: transform 0.25s ease-out;
 }
 
 .ms-medal-wrap {
