@@ -340,15 +340,16 @@ export const TRUCO_NUEVAS_ART: Record<string, (u: number) => string> = {
       [[30, 34], [90, 30], [26, 76], [94, 78], [40, 22], [80, 22], [34, 92]].map(([x, y], i) => `<circle cx="${x}" cy="${y}" r="${i % 2 ? 0.5 : 0.7}" fill="${P.paper}"/>`).join('') +
       k.shade(ellipse(60, 54, 40, 30), k.rad(P.goldL, 0.5, 0.5, 0.5, 0.35, 0), P.goldL, 0.3) +
       k.floor(61, 82, 38, 5, '#000') +
+      `<g transform="translate(60 58) scale(.94) translate(-60 -58)">` +
       k.draw([
-        { d: wall, fill: P.brown, inner: k.sh(wall, 0, 0, 1, 0, 0, 0.95, P.brownD, 0.45) + `<path d="M24 60H42V70H24Z" fill="${k.lin(P.goldL, 0, 0, 1, 0, 0.4, 0)}"/>` + `<path d="M${cx - 35} ${cy + 4}A35 ${f(35 * q)} 0 0 0 ${cx + 35} ${cy + 4}" fill="none" stroke="${P.goldL}" stroke-width=".5" opacity=".7"/>` },
+        { d: wall, fill: P.brown, inner: k.sh(wall, 0, 0, 1, 0, 0, 0.95, P.brownD, 0.45) + `<path d="M24 60H42V70H24Z" fill="${k.lin(P.goldL, 0, 0, 1, 0, 0.4, 0)}"/>` + hair(27, 61.6, 60, 92.4, 93, 61.6, 0.45, P.brownD) + hair(30, 63.4, 60, 93.6, 90, 63.4, 0.35, P.brownD) + hair(26, 59.6, 60, 90.6, 94, 59.6, 0.3, P.goldL) + `<path d="M${cx - 35} ${cy + 4}A35 ${f(35 * q)} 0 0 0 ${cx + 35} ${cy + 4}" fill="none" stroke="${P.goldL}" stroke-width=".5" opacity=".7"/>` },
         { d: E(35), fill: P.brown, inner: `<path d="${E(32.4)}" fill="${P.brownD}"/>` + k.sh(E(35), 0, 0, 1, 1, 0, 0.8, P.brownD, 0.4) },
       ], 0.8) +
       `<path d="${E(31.6)}" fill="${P.sky1}" stroke="${P.ink}" stroke-width=".6"/>` + k.shade(E(31.6), k.lin(P.blue, 0, 0, 1, 1, 0.2, 0.8), P.blue, 0.35) +
       deflect +
       numbers + pockets +
       `<path d="${E(27)}" fill="none" stroke="${P.ink}" stroke-width=".55"/><path d="${E(17.2)}" fill="none" stroke="${P.ink}" stroke-width=".55"/>` +
-      k.shade(`${E(27)} ${E(17.2)}`, k.lin(P.night, 0, 0, 1, 1, 0, 0.7), P.night, 0.3) +
+      k.shade(`${E(27)} ${E(17.2)}`, k.lin(P.night, 0, 0, 1, 1, 0, 0.45), P.night, 0.2) +
       k.draw([{ d: cone, fill: P.gold, inner: k.shade(cone, k.rad(P.goldD, 0.6, 0.65, 0.6, 0.1, 0.95), P.goldD, 0.45) + `<path d="${E(9.4, -0.6)}" fill="${P.goldL}" stroke="${P.goldD}" stroke-width=".4"/>` }], 0.5) +
       Array.from({ length: 8 }, (_, i) => {
         const a = (i / 8) * Math.PI * 2 + 0.4
@@ -359,6 +360,10 @@ export const TRUCO_NUEVAS_ART: Record<string, (u: number) => string> = {
       k.draw([{ d: spindle, fill: P.gold, inner: k.sh(spindle, 0, 0, 1, 0, 0, 0.9, P.goldD, 0.4) }], 0.45) +
       `<circle cx="60" cy="45.4" r="2.2" fill="${P.goldL}" stroke="${P.ink}" stroke-width=".55"/><circle cx="59.3" cy="44.7" r=".7" fill="#fff"/>` +
       `<ellipse cx="${bx}" cy="${f(+by + 1)}" rx="2" ry=".7" fill="${P.night}" opacity=".5"/><circle cx="${bx}" cy="${by}" r="1.8" fill="${P.white}" stroke="${P.ink}" stroke-width=".45"/><circle cx="${f(+bx - 0.6)}" cy="${f(+by - 0.6)}" r=".5" fill="#fff"/>` +
+      `</g>` +
+      k.draw([{ d: roundRect(48.6, 75.2, 71.4, 80.2, 1.2), fill: P.gold, inner: k.sh(roundRect(48.6, 75.2, 71.4, 80.2, 1.2), 0, 0, 1, 1, 0, 0.9, P.goldD, 0.4) }], 0.4) +
+      `<circle cx="50" cy="77.7" r=".45" fill="${P.goldD}"/><circle cx="70" cy="77.7" r=".45" fill="${P.goldD}"/>` +
+      `<text x="60" y="78.9" ${GEORGIA} font-style="italic" font-size="3.4" fill="${P.ink}" text-anchor="middle">Mar del Plata</text>` +
       chip(k, 82, 80.4, 6.4, P.red) + chip(k, 82, 78.2, 6.4, P.night) + chip(k, 82, 76, 6.4, P.red) + chip(k, 82, 73.8, 6.4, P.gold) +
       chip(k, 37, 81.6, 6, P.gold) + chip(k, 37, 79.4, 6, P.red) +
       sparkle(88, 40, 2.2, P.goldL) + sparkle(30, 50, 1.6, P.goldL) + sparkle(74, 32, 1.4, P.goldL) +

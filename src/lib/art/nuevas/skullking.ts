@@ -1,6 +1,6 @@
 // Medallas de Skull King, redibujadas (ver el kit en ../kit.ts).
 import { f } from '../helpers'
-import { along, ellipse, hair, kit, P, roundRect, sparkle, starPath, taper, type Kit } from '../kit'
+import { along, ellipse, hair, kit, P, roundRect, sparkle, starPath, type Kit } from '../kit'
 
 const GEORGIA = 'font-family="Georgia, serif"'
 /** Verde agua de la cola de sirena. */
@@ -28,6 +28,22 @@ function crests(y: number, amp: number, n: number, x0 = -4, x1 = 124, c: string 
   for (let i = 0; i < n; i++) {
     const a = x0 + i * wd
     s += hair(a + wd * 0.08, y + 0.6, a + wd * 0.25, y - amp + 0.9, a + wd * 0.44, y + 0.2, w, c)
+  }
+  return s
+}
+
+/** Mar entintado: banda ondulada con sombra hacia abajo y brillos en las crestas. */
+function water(k: Kit, y: number, amp: number, n: number, fill: string, dark: string, crest: string, op = 1, x0 = -4, x1 = 124) {
+  const d = sea(y, amp, n, x0, x1)
+  return `<path d="${d}" fill="${fill}"${op < 1 ? ` opacity="${op}"` : ''}/>` + k.sh(d, 0, 0, 0, 1, 0, 0.9, dark, 0.45) + crests(y, amp, n, x0, x1, crest)
+}
+
+/** Rayitas de oleaje (grabado) en filas, entre x0 y x1 desde la fila y0, cada `dy`. */
+function swell(x0: number, x1: number, y0: number, rows: number, dy: number, c: string = P.white, w = 0.5) {
+  let s = ''
+  for (let r = 0; r < rows; r++) {
+    const y = y0 + r * dy, off = r % 2 ? 7 : 0
+    for (let x = x0 + off; x < x1 - 8; x += 15) s += hair(x, y, x + 4, y - 1.3, x + 8, y, w * (1 - r * 0.08), c)
   }
   return s
 }
@@ -62,38 +78,87 @@ function strand(pts: Pt[], w0: number, w1: number) {
   return `M${L.join('L')}A${r} ${r} 0 0 0 ${R[R.length - 1]}L${R.reverse().join('L')}Z`
 }
 
-/** Calavera de frente con el centro del cráneo en (0,0); va de y=-14 a y=14.6. */
+/** Punto del costado de un camino: `side` 1 es la izquierda del avance (el adentro de una curva horaria), a `frac` del medio ancho. */
+function beside(pts: Pt[], i: number, half: number, side: number) {
+  const n = pts.length - 1, [x, y] = pts[i], [ax, ay] = pts[Math.max(0, i - 1)], [bx, by] = pts[Math.min(n, i + 1)]
+  const dx = bx - ax, dy = by - ay, len = Math.hypot(dx, dy) || 1
+  return { x: x - (dy / len) * half * side, y: y + (dx / len) * half * side, a: (Math.atan2(dy, dx) * 180) / Math.PI }
+}
+
+/** Ventosas sobre un tentáculo hecho con `strand`, en dos filas del lado `side`. */
+function suckers(pts: Pt[], w0: number, w1: number, side: number, from: number, every: number, r0: number) {
+  let s = ''
+  const n = pts.length - 1
+  for (let i = from; i < n - 2; i += every) {
+    const t = i / n, half = (w0 + (w1 - w0) * Math.pow(t, 0.85)) / 2, r = Math.max(0.4, r0 * (1 - t * 0.78))
+    const q = beside(pts, i, half * 0.6, side)
+    s += `<g transform="translate(${f(q.x)} ${f(q.y)}) rotate(${f(q.a)})"><ellipse rx="${f(r)}" ry="${f(r * 0.82)}" fill="${P.skin}" stroke="${P.wine}" stroke-width=".35"/><ellipse rx="${f(r * 0.45)}" ry="${f(r * 0.36)}" fill="${P.red}" opacity=".55"/></g>`
+  }
+  return s
+}
+
+/** Calavera de frente con el centro del cráneo en (0,0); va de y=-14 a y=14.6. `patch` le tapa el ojo derecho. */
 const SKULL = 'M0 -14C8.4 -14 13.6 -8.2 13.6 -1C13.6 3.6 11.8 6.6 9.4 8.2L9.2 11.6C9.2 13.4 8 14.6 6.4 14.6H-6.4C-8 14.6 -9.2 13.4 -9.2 11.6L-9.4 8.2C-11.8 6.6 -13.6 3.6 -13.6 -1C-13.6 -8.2 -8.4 -14 0 -14Z'
-function skull(k: Kit, extra = '', w = 0.7) {
+function skull(k: Kit, extra = '', w = 0.7, goldTooth = false) {
   const eye = 'M-9 .4C-9 -2.4 -7 -3.6 -4.9 -3.6C-2.6 -3.6 -1.3 -2 -1.3 .4C-1.3 3 -3 4.6 -5 4.6C-7.3 4.6 -9 2.8 -9 .4Z'
   return (
     k.draw([{
       d: SKULL, fill: P.white,
       inner:
         k.sh('M3 -16H16V16H3Z', 0, 0, 1, 0, 0, 0.85) + k.sh('M-16 6H16V16H-16Z', 0, 0, 0, 1, 0, 0.6, P.blue, 0.3) +
-        `<ellipse cx="-6" cy="-8.6" rx="4" ry="2.2" fill="#fff" transform="rotate(-30 -6 -8.6)"/>` + extra,
+        k.shade(ellipse(-9.4, 5.6, 3, 2.4), k.rad(P.blue, 0.5, 0.5, 0.5, 0.6, 0), P.blue, 0.3) + k.shade(ellipse(9.4, 5.6, 3, 2.4), k.rad(P.blue, 0.5, 0.5, 0.5, 0.8, 0), P.blue, 0.3) +
+        `<ellipse cx="-6.4" cy="-9" rx="3.6" ry="1.9" fill="#fff" transform="rotate(-30 -6.4 -9)"/>` +
+        hair(-11.6, 4.6, -10, 6.6, -8, 7.4, 0.45, P.blue) + hair(11.6, 4.6, 10, 6.6, 8, 7.4, 0.5) + hair(9.4, -9.6, 11.2, -6.6, 11.8, -3, 0.45, P.blue) +
+        hair(-12.4, -3, -11.6, -6, -10.2, -8.6, 0.35, P.sky2) + extra,
     }], w) +
     `<path d="${eye}" fill="${P.night}"/><path d="${eye}" fill="${P.night}" transform="scale(-1 1)"/>` +
+    `<path d="M-6.8 -1.6Q-5.6 -2.6 -4.2 -2.2" fill="none" stroke="${P.mid}" stroke-width=".5" stroke-linecap="round"/><path d="M3.6 -2.2Q5 -2.6 6.2 -1.6" fill="none" stroke="${P.mid}" stroke-width=".5" stroke-linecap="round"/>` +
     `<path d="M0 5.4C.8 5.4 1.9 7.6 1.9 8.4C1.9 9 1.2 9.2 0 8.6C-1.2 9.2 -1.9 9 -1.9 8.4C-1.9 7.6 -.8 5.4 0 5.4Z" fill="${P.night}"/>` +
+    (goldTooth ? `<rect x="1.3" y="11" width="2.2" height="2.8" rx=".4" fill="${P.gold}" stroke="${P.goldD}" stroke-width=".25"/><path d="M1.7 11.6V12.8" stroke="#fff" stroke-width=".35"/>` : '') +
     `<path d="M-6.6 11.4Q0 12.6 6.6 11.4" fill="none" stroke="${P.ink}" stroke-width=".55" stroke-linecap="round"/>` +
     `<path d="M-3.6 10.4V13.6M-1.2 10.8V14.2M1.2 10.8V14.2M3.6 10.4V13.6" stroke="${P.ink}" stroke-width=".45" stroke-linecap="round"/>`
   )
 }
 
-/** Corona de cinco puntas con la base en (0,0) y la punta más alta en y=-15.4. */
-const CROWN = 'M-10.6 0L-12.6 -11L-7.6 -5.8L-5.6 -13.6L-2.4 -6.6L0 -15.4L2.4 -6.6L5.6 -13.6L7.6 -5.8L12.6 -11L10.6 0Z'
-function crown(k: Kit, w = 0.6) {
-  const tips: Pt[] = [[-12.6, -11], [-5.6, -13.6], [0, -15.4], [5.6, -13.6], [12.6, -11]]
+/** Hueso blanco centrado en (x,y), de largo `len`, girado `rot` grados. */
+function bone(k: Kit, x: number, y: number, rot: number, len: number) {
+  const h = len / 2
+  const knob = (cx: number, cy: number) => ({ d: ellipse(cx, cy, 2.5, 2.5), fill: P.white, inner: k.sh(ellipse(cx, cy, 2.5, 2.5), 0, 0, 0, 1, 0, 0.8, P.blue, 0.35) })
   return (
-    tips.map(([x, y]) => `<circle cx="${x}" cy="${y}" r="1.5" fill="${P.goldL}" stroke="${P.ink}" stroke-width=".5"/>`).join('') +
+    `<g transform="translate(${x} ${y}) rotate(${rot})">` +
+    k.draw([
+      knob(-h, -1.9), knob(-h, 1.9), knob(h, -1.9), knob(h, 1.9),
+      { d: roundRect(-h, -1.8, h, 1.8, 1.8), fill: P.white, inner: k.sh(`M${-h - 3} 0H${h + 3}V3H${-h - 3}Z`, 0, 0, 0, 1, 0, 0.8, P.blue, 0.35) },
+    ], 0.55) +
+    hair(-h + 3, -0.8, 0, -1.2, h - 3, -0.8, 0.5, '#fff') +
+    `</g>`
+  )
+}
+
+/** Corona de cinco puntas con la base en (0,0) y la punta más alta en y=-15.4. `rich` le suma terciopelo, perlas y grabado. */
+const CROWN = 'M-10.6 0L-12.6 -11L-7.6 -5.8L-5.6 -13.6L-2.4 -6.6L0 -15.4L2.4 -6.6L5.6 -13.6L7.6 -5.8L12.6 -11L10.6 0Z'
+function crown(k: Kit, w = 0.6, rich = false) {
+  const tips: Pt[] = [[-12.6, -11], [-5.6, -13.6], [0, -15.4], [5.6, -13.6], [12.6, -11]]
+  const cap = 'M-10 -4C-10.4 -11.6 -5.6 -14.2 0 -14.2C5.6 -14.2 10.4 -11.6 10 -4Z'
+  const scroll = (x: number, sg: number) => `<path d="M${x} -1.2C${f(x + sg * 0.2)} -3.2 ${f(x + sg * 2)} -3.4 ${f(x + sg * 2.2)} -2C${f(x + sg * 2.3)} -1 ${f(x + sg * 1.2)} -.8 ${f(x + sg * 1.1)} -1.6" fill="none" stroke="${P.goldD}" stroke-width=".35" stroke-linecap="round"/>`
+  return (
+    (rich ? k.draw([{ d: cap, fill: P.red, inner: k.sh(cap, 0, 0, 1, 1, 0, 0.9, P.wine, 0.45) + hair(-6, -6, -5, -10, -2, -12.4, 0.4, '#fff', 0.5) + hair(2, -5, 2.6, -9, 4.6, -11.6, 0.4, P.wine) }], w) : '') +
+    tips.map(([x, y]) => `<circle cx="${x}" cy="${y}" r="1.5" fill="${P.goldL}" stroke="${P.ink}" stroke-width=".5"/>` + (rich ? `<circle cx="${f(x - 0.5)}" cy="${f(y - 0.5)}" r=".45" fill="#fff"/>` : '')).join('') +
     k.draw([{
       d: CROWN, fill: P.gold,
       inner:
         k.sh(CROWN, 0, 0, 1, 1, 0, 0.95, P.goldD, 0.45) + `<path d="M-14 -16H-3V1H-14Z" fill="${k.lin('#ffffff', 0, 0, 1, 0, 0.45, 0)}"/>` +
-        `<path d="M-11.3 -4.2H11.3" stroke="${P.goldD}" stroke-width=".7"/>`,
+        `<path d="M-11.3 -4.2H11.3" stroke="${P.goldD}" stroke-width=".7"/>` +
+        (rich
+          ? hair(-11.6, -9.4, -10.6, -7, -10.2, -4.8, 0.45, '#fff') + hair(-5, -11.6, -4.6, -8.6, -4.6, -5, 0.45, '#fff') + hair(0.4, -13, 0.6, -9.6, 0.4, -5, 0.4, P.goldL) +
+            hair(6.4, -11, 6.4, -8, 6, -5, 0.45, P.goldD) + hair(11.6, -9, 10.8, -6.8, 10.2, -4.8, 0.45, P.goldD) +
+            `<path d="M-11 -4.9H11" stroke="${P.goldL}" stroke-width=".4"/>` + scroll(-9.4, 1) + scroll(-3.4, -1) + scroll(3.4, 1) + scroll(9.4, -1)
+          : ''),
     }], w) +
+    (rich ? [-9.6, -7.2, -4.6, 4.6, 7.2, 9.6].map((x) => `<circle cx="${x}" cy="-4.6" r=".5" fill="${P.white}" stroke="${P.goldD}" stroke-width=".2"/>`).join('') : '') +
     `<path d="M0 -4.2L1.6 -2.1L0 0L-1.6 -2.1Z" fill="${P.red}" stroke="${P.ink}" stroke-width=".35" transform="translate(0 -.1)"/>` +
-    `<circle cx="-6" cy="-2.1" r="1.05" fill="${P.sky}" stroke="${P.ink}" stroke-width=".3"/><circle cx="6" cy="-2.1" r="1.05" fill="${P.sky}" stroke="${P.ink}" stroke-width=".3"/>`
+    `<circle cx="-6" cy="-2.1" r="1.05" fill="${P.sky}" stroke="${P.ink}" stroke-width=".3"/><circle cx="6" cy="-2.1" r="1.05" fill="${P.sky}" stroke="${P.ink}" stroke-width=".3"/>` +
+    (rich ? `<path d="M-.6 -3.2L-.1 -2.6" stroke="#fff" stroke-width=".35"/><path d="${starPath(0, -9.4, 1.7, 0.6, 4)}" fill="${P.red}" stroke="${P.ink}" stroke-width=".25"/><circle cx="-5.6" cy="-8.6" r=".7" fill="${P.sky}" stroke="${P.ink}" stroke-width=".2"/><circle cx="5.6" cy="-8.6" r=".7" fill="${P.sky}" stroke="${P.ink}" stroke-width=".2"/>` : '')
   )
 }
 
@@ -110,25 +175,35 @@ function coin(k: Kit, x: number, y: number, r: number, rot = 0, sq = 1) {
   )
 }
 
-/** Galeón de costado, con la proa a la izquierda y la línea de flotación en y≈6. `ghost` le rompe las velas. */
+/** Galeón de costado, con la proa a la izquierda y la línea de flotación en y≈6. `ghost` le rompe y emparcha las velas. */
 function ship(k: Kit, ghost = false) {
   const hull = 'M-33 -5Q-10 1 17 -1L18 -9H31L32 -7L30 1Q26 11 10 11H-14Q-27 10 -33 -5Z'
   const masts: [number, number, number][] = [[-14, -1, -38], [2, 0, -46], [22, -9, -34]]
-  const sail = (x: number, y0: number, y1: number, w: number) => {
+  const S: [number, number, number, number, number][] = [[-14, -35, -22, 8, 2.6], [-14, -20, -6, 10, 4], [2, -43, -29, 9.4, 2.4], [2, -27, -7, 12, 4.6], [22, -31, -15, 7, 3]]
+  const sail = ([x, y0, y1, w, torn]: [number, number, number, number, number]) => {
     const b = (y1 - y0) * 0.22
-    if (!ghost) return `M${f(x - w)} ${y0}Q${x} ${f(y0 + b * 0.5)} ${f(x + w)} ${y0}Q${f(x + w + 2)} ${f((y0 + y1) / 2)} ${f(x + w)} ${y1}Q${x} ${f(y1 + b)} ${f(x - w)} ${y1}Q${f(x - w + 2)} ${f((y0 + y1) / 2)} ${f(x - w)} ${y0}Z`
-    const jag = [0.15, 0.32, 0.5, 0.68, 0.85].map((t, i) => `L${f(x + w - t * 2 * w)} ${f(y1 + b * 0.6 - (i % 2 ? 3.4 : -0.4))}`).join('')
-    return `M${f(x - w)} ${y0}Q${x} ${f(y0 + b * 0.5)} ${f(x + w)} ${y0}Q${f(x + w + 2)} ${f((y0 + y1) / 2)} ${f(x + w)} ${y1}${jag}L${f(x - w)} ${f(y1 - 2)}Q${f(x - w + 2)} ${f((y0 + y1) / 2)} ${f(x - w)} ${y0}Z`
+    const top = `M${f(x - w)} ${y0}Q${x} ${f(y0 + b * 0.5)} ${f(x + w)} ${y0}Q${f(x + w + 2)} ${f((y0 + y1) / 2)} ${f(x + w)} ${y1}`
+    if (!ghost) return top + `Q${x} ${f(y1 + b)} ${f(x - w)} ${y1}Q${f(x - w + 2)} ${f((y0 + y1) / 2)} ${f(x - w)} ${y0}Z`
+    const jag = [0.12, 0.26, 0.4, 0.55, 0.7, 0.85].map((t, i) => `L${f(x + w - t * 2 * w)} ${f(y1 + b * 0.7 - (i % 2 ? torn : -0.3))}`).join('')
+    return top + `${jag}L${f(x - w)} ${f(y1 - 1.6)}Q${f(x - w + 2)} ${f((y0 + y1) / 2)} ${f(x - w)} ${y0}Z`
   }
-  const sails = [sail(-14, -35, -22, 8), sail(-14, -20, -6, 10), sail(2, -43, -29, 9.4), sail(2, -27, -7, 12), sail(22, -31, -15, 7)]
-  const flag = 'M2 -46H11.6Q10.6 -44 12 -42Q8 -41.4 2 -41.6Z'
-  const sailFill = ghost ? P.sky1 : P.white
-  const holes = ghost ? [ellipse(-11, -14, 2.4, 1.8), ellipse(5.6, -18, 3, 2.2), ellipse(-1, -36, 1.8, 1.4), ellipse(20, -24, 1.6, 2.2)] : []
+  const flag = ghost ? 'M2 -46H11.6L9.6 -44.6L12 -43.4L9 -42.2L10.4 -41.2Q6 -41.4 2 -41.6Z' : 'M2 -46H11.6Q10.6 -44 12 -42Q8 -41.4 2 -41.6Z'
+  const holes = ghost ? [ellipse(-10.6, -13, 1.8, 1.3), ellipse(6.4, -17, 2, 1.5), ellipse(20.6, -24, 1.1, 1.5)] : []
+  const patches = ghost ? `<rect x="-4" y="-22" width="3.6" height="3.2" fill="${P.white}" stroke="${P.blue}" stroke-width=".3" stroke-dasharray=".6 .5" transform="rotate(-6 -2 -20)"/><rect x="-17.6" y="-31" width="3" height="2.6" fill="${P.white}" stroke="${P.blue}" stroke-width=".3" stroke-dasharray=".6 .5"/>` : ''
+  const seams = S.map(([x, y0, y1, w]) => [-0.35, 0.35].map((s) => hair(x + w * s, y0 + 1, x + w * s * 1.2, (y0 + y1) / 2, x + w * s, y1, 0.4, ghost ? P.blue : P.sky2)).join('')).join('')
+  const shrouds = masts.map(([x, y0, y1]) => {
+    const top = y1 + 6
+    return `<path d="M${x - 5} ${y0 + 1}L${x} ${top}L${x + 5} ${y0 + 1}" fill="none" stroke="${P.ink}" stroke-width=".35"/>` +
+      [0.25, 0.5, 0.75].map((t) => `<path d="M${f(x - 5 * (1 - t))} ${f(y0 + 1 + (top - y0 - 1) * t)}H${f(x + 5 * (1 - t))}" stroke="${P.ink}" stroke-width=".25"/>`).join('')
+  }).join('')
+  const glow = ghost ? P.goldL : P.night
   return (
-    `<path d="M-31 -5L-46 -13M-46 -13L-14 -38L2 -46L22 -34L31 -9" fill="none" stroke="${P.ink}" stroke-width=".45"/>` +
+    `<path d="M-31 -5L-43 -12M-43 -12L-14 -38L2 -46L22 -34L31 -9" fill="none" stroke="${P.ink}" stroke-width=".4"/>` +
+    shrouds +
     masts.map(([x, y0, y1]) => `<path d="M${x} ${y0}V${y1}" stroke="${P.ink}" stroke-width="2.2"/><path d="M${x} ${y0}V${y1}" stroke="${ghost ? P.sky2 : P.brown}" stroke-width="1"/>`).join('') +
     `<path d="M-23 -35H-5M-24 -20H-4M-8 -43H12M-11 -27H15M14 -31H30" stroke="${P.ink}" stroke-width="1"/>` +
-    k.draw(sails.map((d) => ({ d, fill: sailFill, inner: k.sh('M-30 -50H40V0H-30Z', 0, 0, 1, 1, 0, 0.75, ghost ? P.blue : P.sky2, 0.4) + holes.map((h) => `<path d="${h}" fill="${P.mid}" stroke="${P.ink}" stroke-width=".3"/>`).join('') })), 0.5) +
+    k.draw(S.map((p) => ({ d: sail(p), fill: ghost ? P.sky1 : P.white, inner: k.sh('M-30 -50H40V0H-30Z', 0, 0, 1, 1, 0, 0.75, ghost ? P.blue : P.sky2, 0.4) + holes.map((h) => `<path d="${h}" fill="${P.mid}" opacity=".8"/>`).join('') })), 0.5) +
+    seams + patches +
     k.draw([{ d: flag, fill: P.night }], 0.4) +
     `<circle cx="6.4" cy="-44" r="1.1" fill="${P.paper}"/><path d="M4.6 -42.2L8.2 -45.8M4.6 -45.8L8.2 -42.2" stroke="${P.paper}" stroke-width=".45"/>` +
     k.draw([{
@@ -136,338 +211,380 @@ function ship(k: Kit, ghost = false) {
       inner:
         k.sh(hull, 0, 0, 0, 1, 0, 0.95, ghost ? P.mid : P.brownD, 0.45) +
         `<path d="M-30 -1.6Q-8 4 30 -1.8" fill="none" stroke="${ghost ? P.sky1 : P.gold}" stroke-width="1"/>` +
-        [-20, -11, -2, 7].map((x) => `<rect x="${x}" y="2.4" width="2.6" height="2.2" fill="${P.night}"/>`).join('') +
-        `<rect x="21" y="-7.4" width="2" height="2.4" fill="${ghost ? P.goldL : P.night}"/><rect x="25.4" y="-7.4" width="2" height="2.4" fill="${ghost ? P.goldL : P.night}"/>`,
+        hair(-26, 4, -6, 9, 22, 6, 0.5, ghost ? P.blue : P.brownD) + hair(-20, 7, 0, 11, 20, 9, 0.45, ghost ? P.blue : P.brownD) +
+        [-20, -11, -2, 7].map((x) => `<rect x="${x}" y="2.4" width="2.6" height="2.2" fill="${glow}"/>`).join('') +
+        `<rect x="21" y="-7.4" width="2" height="2.4" fill="${glow}"/><rect x="25.4" y="-7.4" width="2" height="2.4" fill="${glow}"/>`,
     }], 0.55)
   )
 }
 
-/** Silueta de meeple con la pierna derecha cortada en un muñón (para la pata de palo). */
-const PEG_MEEPLE =
-  'M0 -26C5.4 -26 9.6 -21.9 9.6 -16.8C9.6 -14.1 8.5 -11.9 6.8 -10.5C11.8 -10.2 16.6 -9.6 20 -8.2C24.2 -6.6 24.2 .4 20 1.6C17 2.5 14.2 2.8 12 3.8' +
-  'C13 8 14.8 11.4 15.4 14.2C15.9 16.8 13.8 18 10.6 18C7.8 18 5 17.2 3.4 15.8C2.4 15 1.2 14.6 0 14.6' +
-  'C-3 14.6 -5.4 20.4 -7 26L-17 26C-20.2 26 -21.8 23.4 -20 20.2C-17.4 15.6 -13.4 9.8 -12 3.8C-14.2 2.8 -17 2.5 -20 1.6C-24.2 .4 -24.2 -6.6 -20 -8.2' +
-  'C-16.6 -9.6 -11.8 -10.2 -6.8 -10.5C-8.5 -11.9 -9.6 -14.1 -9.6 -16.8C-9.6 -21.9 -5.4 -26 0 -26Z'
-const MEEPLE_D =
-  'M0 -26C5.4 -26 9.6 -21.9 9.6 -16.8C9.6 -14.1 8.5 -11.9 6.8 -10.5C11.8 -10.2 16.6 -9.6 20 -8.2C24.2 -6.6 24.2 .4 20 1.6C17 2.5 14.2 2.8 12 3.8C13.4 9.8 17.4 15.6 20 20.2C21.8 23.4 20.2 26 17 26L7 26C5.4 20.4 3 14.6 0 14.6' +
-  'C-3 14.6 -5.4 20.4 -7 26L-17 26C-20.2 26 -21.8 23.4 -20 20.2C-17.4 15.6 -13.4 9.8 -12 3.8C-14.2 2.8 -17 2.5 -20 1.6C-24.2 .4 -24.2 -6.6 -20 -8.2C-16.6 -9.6 -11.8 -10.2 -6.8 -10.5C-8.5 -11.9 -9.6 -14.1 -9.6 -16.8C-9.6 -21.9 -5.4 -26 0 -26Z'
+/** Gota de agua blanca. */
+const drop = (x: number, y: number, r: number, s: number) =>
+  `<path d="M0 -2.6C1 -1.2 1.6 -.2 1.6 .8C1.6 1.8 .8 2.4 0 2.4C-.8 2.4 -1.6 1.8 -1.6 .8C-1.6 -.2 -1 -1.2 0 -2.6Z" transform="translate(${x} ${y}) rotate(${r}) scale(${s})" fill="${P.white}" stroke="${P.ink}" stroke-width="${f(0.4 / s)}"/>`
 
-/** Meeple pirata (camiseta a rayas, pañuelo con lunares, parche y arito), en coordenadas del meeple. */
-function pirate(k: Kit, d: string, peg: boolean, s: number) {
-  const bandana = 'M-9.9 -16.4C-10.8 -23.8 -5.8 -27.6 0 -27.6C5.8 -27.6 10.8 -23.8 9.9 -16.4C4 -19.8 -4 -19.8 -9.9 -16.4Z'
-  const tails = 'M8.4 -18.4C11.8 -19 15.4 -21.4 17.8 -24C17.8 -20.4 15.8 -17.4 12.4 -16.2C14.8 -15.6 16.6 -13.6 17.6 -10.8C14.6 -11.6 11.4 -12.6 8.8 -14.8Z'
-  const patch = 'M1.4 -17.6C1.4 -18.8 6 -18.8 6 -17.6V-15C6 -13 4.8 -12 3.7 -12C2.6 -12 1.4 -13 1.4 -15Z'
-  const stripes = Array.from({ length: 7 }, (_, i) => `<path d="M-26 ${f(-5.4 + i * 4.8)}H26V${f(-3 + i * 4.8)}H-26Z" fill="${P.white}"/>`).join('')
-  const dots = ([[-5.6, -22.4], [-1, -25], [3.8, -23.6], [7, -20.2], [-7.8, -19], [.6, -21], [-3.8, -19.8], [5, -20.4]] as Pt[])
-    .map(([x, y]) => `<circle cx="${x}" cy="${y}" r=".75" fill="${P.white}"/>`).join('')
-  const peggy = taper(10.4, 15.6, 10.6, 21, 11, 25.6, 4.6, 3.2)
+/** Burbuja. */
+const bubble = (x: number, y: number, r: number) =>
+  `<circle cx="${x}" cy="${y}" r="${r}" fill="${P.white}" fill-opacity=".3" stroke="${P.white}" stroke-width=".5"/><circle cx="${f(x - r * 0.35)}" cy="${f(y - r * 0.35)}" r="${f(r * 0.28)}" fill="#fff"/>`
+
+/** Estrellitas de un cielo de noche. */
+const stars = (pts: number[][]) => pts.map(([x, y], i) => `<circle cx="${x}" cy="${y}" r="${i % 2 ? 0.5 : 0.7}" fill="${P.paper}"/>`).join('')
+
+/** Pata de palo torneada: punta de bronce en (0,0), caña con anillos y cuja de cuero arriba (hasta y≈-60). */
+function pegLeg(k: Kit) {
+  const N = 34, L: string[] = [], R: string[] = []
+  const bump = (t: number, at: number, h: number, wd = 0.045) => h * Math.exp(-(((t - at) / wd) ** 2))
+  for (let i = 0; i <= N; i++) {
+    const t = i / N, y = -4.6 - 33 * t, w = 2.6 + 1.7 * t + bump(t, 0.34, 1.6) + bump(t, 0.7, 1.7) + bump(t, 1, 1.5, 0.07)
+    L.push(`${f(-w)} ${f(y)}`)
+    R.push(`${f(w)} ${f(y)}`)
+  }
+  const shaft = `M${L.join('L')}L${R.reverse().join('L')}Z`
+  const ferrule = 'M-2.9 -5.4H2.9L2.6 -1C2.5 -.2 1.6 .4 0 .4C-1.6 .4 -2.5 -.2 -2.6 -1Z'
+  const cup = 'M-6.2 -37C-8.6 -43 -10.6 -51 -11.2 -58.6C-6 -60.4 6 -60.4 11.2 -58.6C10.6 -51 8.6 -43 6.2 -37C2 -35.8 -2 -35.8 -6.2 -37Z'
+  const rim = ellipse(0, -58.8, 11.2, 2.6)
+  const strap = (y: number, hw: number) => `M${-hw} ${f(y - 1.6)}Q0 ${f(y)} ${hw} ${f(y - 1.6)}L${f(hw + 0.3)} ${f(y + 1.2)}Q0 ${f(y + 2.8)} ${f(-hw - 0.3)} ${f(y + 1.2)}Z`
+  const buckle = (x: number, y: number) => `<rect x="${f(x - 1.6)}" y="${f(y - 1.9)}" width="3.2" height="3.6" rx=".5" fill="none" stroke="${P.ink}" stroke-width="1.3"/><rect x="${f(x - 1.6)}" y="${f(y - 1.9)}" width="3.2" height="3.6" rx=".5" fill="none" stroke="${P.gold}" stroke-width=".6"/><path d="M${x} ${f(y - 1.9)}V${f(y + 1.7)}" stroke="${P.ink}" stroke-width=".4"/>`
   return (
-    (peg ? k.draw([{ d: peggy, fill: P.brown, inner: k.sh(peggy, 0, 0, 1, 0, 0, 0.9, P.brownD, 0.45) + hair(9.8, 18, 10.1, 21, 10.4, 24.4, 0.4, P.goldL) }], f(0.7 / s)) +
-      `<path d="M8.6 23.4H13.4" stroke="${P.ink}" stroke-width="1.6"/><path d="M8.6 23.4H13.4" stroke="${P.sky2}" stroke-width=".7"/>` : '') +
-    k.draw([{
-      d, fill: P.sky,
-      inner:
-        stripes + k.sh('M2 -30H30V30H2Z', 0, 0, 1, 0, 0, 0.75, P.mid) + k.sh('M-30 14H30V30H-30Z', 0, 0, 0, 1, 0, 0.6, P.mid, 0.3) +
-        `<path d="M-30 -30H-2V30H-30Z" fill="${k.lin('#ffffff', 0, 0, 1, 0, 0.28, 0)}"/>`,
-    }], f(0.75 / s)) +
-    hair(-6, 6, -4.6, 11, -6.6, 17, 0.6, P.mid) + (peg ? '' : hair(6, 6, 4.6, 11, 6.6, 17, 0.6, P.mid)) +
     k.draw([
-      { d: tails, fill: P.red, inner: k.sh(tails, 0, 0, 1, 1, 0, 0.9, P.wine, 0.4) },
-      { d: bandana, fill: P.red, inner: dots + k.sh(bandana, 0, 0, 1, 1, 0, 0.85, P.wine, 0.4) + `<path d="M-8 -21C-6.6 -24.6 -3.6 -26.2 -.6 -26.4" fill="none" stroke="#fff" stroke-width=".8" stroke-linecap="round" opacity=".5"/>` },
-    ], f(0.65 / s)) +
-    `<circle cx="9.6" cy="-17.4" r="1.9" fill="${P.red}" stroke="${P.ink}" stroke-width=".5"/>` +
-    `<path d="M-9.4 -17.8L1.8 -16.4M5.8 -15.8L9.6 -14.2" stroke="${P.night}" stroke-width=".8" stroke-linecap="round"/>` +
-    `<path d="${patch}" fill="${P.night}" stroke="${P.ink}" stroke-width=".4"/><path d="M2.4 -16.6Q3.4 -17.4 4.6 -16.8" fill="none" stroke="${P.sky2}" stroke-width=".4" stroke-linecap="round"/>` +
-    `<ellipse cx="-3.8" cy="-14.6" rx=".95" ry="1.25" fill="${P.ink}"/>` + hair(-6, -17, -3.8, -17.8, -1.6, -16.6, 0.6) +
-    hair(-1.4, -10.6, 1.4, -9.8, 3.4, -11, 0.55) +
-    `<circle cx="-9.2" cy="-11.4" r="1.7" fill="none" stroke="${P.ink}" stroke-width="1.3"/><circle cx="-9.2" cy="-11.4" r="1.7" fill="none" stroke="${P.gold}" stroke-width=".6"/>`
+      { d: shaft, fill: P.brown, line: 0.3, inner: k.sh('M1 -40H8V0H1Z', 0, 0, 1, 0, 0, 0.95, P.brownD, 0.5) + `<path d="M-8 -40H-1.2V0H-8Z" fill="${k.lin(P.goldL, 0, 0, 1, 0, 0.6, 0)}"/>` + hair(-1.6, -8, -1.2, -16, -1.8, -22, 0.4, P.brownD) + hair(1, -24, 1.6, -30, 1, -35, 0.4, P.brownD) + hair(0.6, -7, 1, -10, 0.6, -14, 0.35, P.brownD) + `<path d="M-6 -16.2H6M-6 -27.7H6" stroke="${P.brownD}" stroke-width=".4"/>` + hair(-2.6, -17.4, -2.8, -16.4, -2.6, -15.2, 0.5, '#fff', 0.8) + hair(-3, -29, -3.2, -28, -3, -26.6, 0.5, '#fff', 0.8) },
+      { d: ferrule, fill: P.gold, inner: k.sh(ferrule, 0, 0, 1, 0, 0, 0.95, P.goldD, 0.45) + `<path d="M-2.8 -3.8H2.8" stroke="${P.goldD}" stroke-width=".45"/><path d="M-1.6 -5V-1" stroke="#fff" stroke-width=".5" opacity=".8"/>` },
+      {
+        d: cup, fill: P.brownD,
+        inner:
+          k.sh('M2 -62H14V-34H2Z', 0, 0, 1, 0, 0, 0.9, P.night, 0.45) + `<path d="M-12 -62H-4V-34H-12Z" fill="${k.lin(P.brown, 0, 0, 1, 0, 0.8, 0)}"/>` +
+          `<path d="M-6.6 -38.6C-8.4 -44 -9.8 -51 -10.2 -57M6.6 -38.6C8.4 -44 9.8 -51 10.2 -57" fill="none" stroke="${P.goldL}" stroke-width=".4" stroke-dasharray=".9 .8" opacity=".8"/>` +
+          hair(-4, -40, -5, -48, -5.4, -56, 0.4, P.brown),
+      },
+    ], 0.7) +
+    k.draw([
+      { d: strap(-44.4, 8.2), fill: P.wine, inner: k.sh(strap(-44.4, 8.2), 0, 0, 1, 0, 0, 0.8, P.night, 0.4) },
+      { d: strap(-52.6, 9.8), fill: P.wine, inner: k.sh(strap(-52.6, 9.8), 0, 0, 1, 0, 0, 0.8, P.night, 0.4) },
+    ], 0.45) +
+    buckle(2.8, -43.6) + buckle(3.2, -51.8) +
+    k.draw([{ d: rim, fill: P.red, inner: `<path d="${ellipse(0, -58.6, 9.4, 1.7)}" fill="${P.wine}"/>` + [-5, 0, 5].map((x) => `<circle cx="${x}" cy="-58.6" r=".45" fill="${P.goldL}"/>`).join('') }], 0.5) +
+    `<path d="M-10.6 -59.8Q0 -62.4 10.6 -59.8" fill="none" stroke="${P.brown}" stroke-width=".5"/>`
   )
-}
-
-/** Bocanada de humo blanca, centrada en (x,y). */
-function puff(k: Kit, x: number, y: number, s: number) {
-  const d = 'M-9 2C-11 2 -12 0 -10.6 -1.6C-11 -4.6 -7.6 -6 -5.6 -4.4C-4.6 -7.6 0 -8.2 1.6 -5.2C3.6 -7 7.4 -5.6 7 -2.6C9.6 -2.4 10.2 1.6 7.6 2Z'
-  return `<g transform="translate(${x} ${y}) scale(${s})">` + k.draw([{ d, fill: P.white, inner: k.sh(d, 0, 0, 1, 1, 0, 0.7, P.sky2, 0.45) }], f(0.45 / s)) + `</g>`
-}
-
-/** Corazoncito entintado. */
-function heart(k: Kit, x: number, y: number, s: number, r = 0) {
-  const d = 'M0 2.6C-3.4 .4 -3.6 -2.6 -1.6 -2.8C-.8 -2.8 -.2 -2.4 0 -1.6C.2 -2.4 .8 -2.8 1.6 -2.8C3.6 -2.6 3.4 .4 0 2.6Z'
-  return `<g transform="translate(${x} ${y}) rotate(${r}) scale(${s})">` + k.draw([{ d, fill: P.red, inner: k.sh(d, 0, 0, 1, 1, 0, 0.8, P.wine, 0.4) }], f(0.4 / s)) + `</g>`
 }
 
 export const SKULLKING_NUEVAS_ART: Record<string, (u: number) => string> = {
   // ── Cazador de reyes ───────────────────────────────────────────────
 
-  // La primera sirena: el Skull King se hunde con la corona torcida y un beso de rouge en la frente.
+  // La primera sirena: el Skull King se hunde con la corona torcida y un beso de rouge en la frente; la cola ya se zambulle.
   'Beso de sirena': (u) => {
     const k = kit(u)
     const lips = 'M-4.6 -.2C-3.6 -2 -1.6 -2.6 0 -1.2C1.6 -2.6 3.6 -2 4.6 -.2C2.8 .3 -2.8 .3 -4.6 -.2ZM-4.4 .5C-3 3 3 3 4.4 .5C2.6 1.1 -2.6 1.1 -4.4 .5Z'
     const kiss =
-      `<g transform="translate(5.8 -7.2) rotate(16) scale(1.15)"><path d="${lips}" fill="${P.red}"/>` + k.shade(lips, k.lin(P.wine, 0, 0, 1, 1, 0, 0.9), P.wine, 0.3) +
-      [-2.8, -1, 1, 2.8].map((x) => hair(x, -1.4, x + 0.2, 0.4, x, 2.2, 0.32, P.white)).join('') + `</g>`
-    const tail = taper(81, 78, 81.4, 69, 88, 61, 6.8, 2.6)
+      `<g transform="translate(-2.6 -8) rotate(-14) scale(1.45)"><path d="${lips}" fill="${P.red}"/>` + k.shade(lips, k.lin(P.wine, 0, 0, 1, 1, 0, 0.9), P.wine, 0.3) +
+      [-3, -1.5, 0, 1.5, 3].map((x) => hair(x, -1.6, x + 0.15, 0.4, x, 2.4, 0.26, P.white)).join('') + `</g>`
     const fin = 'M0 1.6C-1.4 -1.6 -5 -4.8 -10 -5.8C-8.6 -2.4 -6.4 0 -2.6 2.8H2.6C6.4 0 8.6 -2.4 10 -5.8C5 -4.8 1.4 -1.6 0 1.6Z'
-    const drop = (x: number, y: number, r: number, s: number) => `<path d="M0 -2.6C1 -1.2 1.6 -.2 1.6 .8C1.6 1.8 .8 2.4 0 2.4C-.8 2.4 -1.6 1.8 -1.6 .8C-1.6 -.2 -1 -1.2 0 -2.6Z" transform="translate(${x} ${y}) rotate(${r}) scale(${s})" fill="${P.white}" stroke="${P.ink}" stroke-width="${f(0.4 / s)}"/>`
+    const stem = 'M-2.4 8C-2.6 5 -2 3 -1.2 1.6H1.2C2 3 2.6 5 2.4 8Z'
     return (
       k.day() +
-      `<path d="${sea(76, 2.6, 5)}" fill="${P.sky}"/>` + k.sh(sea(76, 2.6, 5), 0, 0, 0, 1, 0, 0.9, P.mid, 0.45) +
-      `<g transform="translate(57 57) rotate(-12) scale(1.25)">` +
-      skull(k, kiss) +
-      `<g transform="translate(-1.4 -11.4) rotate(18)">${crown(k, 0.5)}</g>` +
+      k.sun(58, 56, 19, 47, 28, false) +
+      water(k, 78, 2.6, 5, P.sky, P.mid, P.white) +
+      `<g transform="translate(57 62) rotate(-8) scale(1.6)">` +
+      skull(k, kiss + hair(4.6, -13, 6, -10, 5.2, -7.4, 0.35, P.blue), 0.5) +
+      `<g transform="translate(3 -11.6) rotate(22) scale(.86)">${crown(k, 0.5, true)}</g>` +
       `</g>` +
-      `<path d="${sea(77, 2.2, 4, -6, 126)}" fill="${P.sky}" opacity=".72"/>` + crests(77, 2.2, 4, -6, 126) +
-      hair(36, 82, 42, 80.6, 48, 82, 0.5, P.white) + hair(64, 83, 70, 81.8, 74, 83.4, 0.5, P.white) +
-      `<path d="${ellipse(81.4, 77.4, 6.6, 1.6)}" fill="${P.white}" stroke="${P.ink}" stroke-width=".45"/>` +
-      k.draw([{
-        d: tail, fill: TEAL,
-        inner: k.sh(tail, 0, 0, 1, 0, 0, 0.9, TEAL_D, 0.45) + [0.3, 0.52, 0.74].map((t) => {
-          const x = 81 + (88 - 81) * t * t, y = 78 - 17 * t
-          return `<path d="M${f(x - 2)} ${f(y - 0.6)}Q${f(x)} ${f(y + 1.4)} ${f(x + 2)} ${f(y - 0.8)}" fill="none" stroke="${TEAL_D}" stroke-width=".4"/>`
-        }).join(''),
-      }], 0.55) +
-      `<g transform="translate(88.4 60.6) rotate(41)">` +
-      k.draw([{ d: fin, fill: TEAL, inner: k.sh(fin, 0, 0, 1, 1, 0, 0.8, TEAL_D, 0.4) + hair(-1, 0, -4, -2.6, -7.6, -4.4, 0.4, TEAL_D) + hair(1, 0, 4, -2.6, 7.6, -4.4, 0.4, TEAL_D) }], 0.5) +
+      water(k, 80, 2.2, 4, P.sky, P.mid, P.white, 0.78, -6, 126) +
+      swell(26, 100, 87, 2, 5.4) +
+      `<path d="${ellipse(57, 80.2, 17, 2)}" fill="none" stroke="${P.white}" stroke-width="1" stroke-dasharray="3 2"/>` +
+      `<g transform="translate(88 75) rotate(26) scale(1.05)">` +
+      k.draw([
+        { d: stem, fill: TEAL, inner: k.sh(stem, 0, 0, 1, 0, 0, 0.9, TEAL_D, 0.4) },
+        { d: fin, fill: TEAL, inner: k.sh(fin, 0, 0, 1, 1, 0, 0.8, TEAL_D, 0.4) + hair(-1, 0, -4, -2.6, -7.6, -4.4, 0.4, TEAL_D) + hair(-1.4, 1, -4.4, -0.6, -7, -1.4, 0.35, TEAL_D) + hair(1, 0, 4, -2.6, 7.6, -4.4, 0.4, TEAL_D) + hair(1.4, 1, 4.4, -0.6, 7, -1.4, 0.35, TEAL_D) + hair(-8, -5, -5, -3.6, -2, -1.4, 0.5, '#fff', 0.6) },
+      ], 0.5) +
       `</g>` +
-      drop(94, 66, 30, 1) + drop(96.4, 58, 60, 0.8) + drop(78, 66, -30, 0.8) +
-      heart(k, 79, 40, 1.15, 12) + heart(k, 86.6, 31.6, 0.8, -10) +
-      sparkle(32, 40, 2) + sparkle(36, 64, 1.4) +
+      `<path d="${ellipse(87, 80.4, 6, 1.4)}" fill="${P.white}" stroke="${P.ink}" stroke-width=".45"/>` +
+      drop(94.6, 72, 30, 0.9) + drop(80, 72, -30, 0.8) + drop(91, 66.4, 10, 0.6) +
+      sparkle(86, 36, 2.4) + sparkle(31, 48, 1.6) +
       k.defs()
     )
   },
 
-  // Tres reyes: en el fondo del mar ya hay dos coronas y cae la tercera.
+  // Tres reyes: una corona más baja al fondo del mar, con la luz de arriba y la estela de burbujas.
   'Corona al agua': (u) => {
     const k = kit(u)
-    const sand = 'M-4 88C14 82 30 86 46 85C62 84 78 80 96 84C106 86 114 84 124 82V130H-4Z'
-    const weed = (x: number, h: number, s: number) => strand(walk(x, 98, -90, [[h * 0.34, 34 * s], [h * 0.36, -48 * s], [h * 0.3, 36 * s]]), 3.4, 1.1)
-    const weeds = [weed(30, 40, 1), weed(35, 30, -1), weed(88, 36, -1), weed(92, 26, 1)]
-    const bubble = (x: number, y: number, r: number) => `<circle cx="${x}" cy="${y}" r="${r}" fill="${P.white}" fill-opacity=".35" stroke="${P.white}" stroke-width=".5"/><circle cx="${f(x - r * 0.35)}" cy="${f(y - r * 0.35)}" r="${f(r * 0.28)}" fill="#fff"/>`
-    const star = starPath(0, 0, 3.6, 1.6, 5)
+    const sand = 'M-4 90C14 85 30 88 46 87C62 86 78 83 96 86C106 88 114 86 124 84V130H-4Z'
+    const weed = (x: number, h: number, s: number) => strand(walk(x, 101, -90, [[h * 0.34, 34 * s], [h * 0.36, -48 * s], [h * 0.3, 36 * s]]), 3.8, 1.1)
+    const weeds = [weed(28, 44, 1), weed(33, 30, -1), weed(91, 40, -1), weed(95, 28, 1)]
     return (
       `<rect width="120" height="130" fill="${P.sky}"/>` +
       k.shade(FULL, k.lin(P.mid, 0, 0, 0, 1, 0, 0.95), P.mid, 0.5) +
-      k.shade('M44 0H56L46 98H22Z', k.lin(P.white, 0, 0, 0, 1, 0.6, 0), P.white, 0.3) +
-      k.shade('M64 0H72L88 98H70Z', k.lin(P.white, 0, 0, 0, 1, 0.5, 0), P.white, 0.3) +
+      k.shade('M38 0H52L42 100H14Z', k.lin(P.white, 0, 0, 0, 1, 0.6, 0), P.white, 0.3) +
+      k.shade('M64 0H74L94 100H72Z', k.lin(P.white, 0, 0, 0, 1, 0.55, 0), P.white, 0.3) +
+      k.shade('M54 0H62L66 80H48Z', k.lin(P.white, 0, 0, 0, 1, 0.5, 0), P.white, 0.25) +
+      k.shade(ellipse(60, 54, 34, 26), k.rad(P.white, 0.5, 0.5, 0.5, 0.8, 0), P.white, 0.45) +
       k.draw(weeds.map((d) => ({ d, fill: P.green, inner: k.sh('M60 0H120V130H60Z', 0, 0, 1, 0, 0, 0.6, P.greenD, 0.4) + k.sh(FULL, 0, 0, 0, 1, 0.6, 0, P.greenD, 0.3) })), 0.5) +
       k.draw([{ d: sand, fill: P.goldL, inner: k.sh(sand, 0, 0, 0, 1, 0, 0.8, P.goldD, 0.35) }], 0.6) +
-      hair(30, 92, 40, 90.4, 50, 91.6, 0.5, P.goldD) + hair(62, 89, 72, 87.4, 82, 88.6, 0.5, P.goldD) + hair(50, 97, 58, 95.6, 66, 96.8, 0.45, P.goldD) +
-      k.floor(44, 88.4, 10, 1.6, P.goldD) + k.floor(77, 87.4, 10, 1.6, P.goldD) +
-      `<g transform="translate(43.6 88.4) rotate(-22) scale(.8)">${crown(k, 0.7)}</g>` +
-      `<g transform="translate(77 87.4) rotate(16) scale(.8)">${crown(k, 0.7)}</g>` +
-      `<g transform="translate(91 94) rotate(14)">` + k.draw([{ d: star, fill: P.red, inner: k.sh(star, 0, 0, 1, 1, 0, 0.8, P.wine, 0.4) }], 0.4) + `</g>` +
-      hair(54, 30, 53.6, 36, 54.4, 42, 0.5, P.white) + hair(66, 28, 66.4, 34, 65.6, 40, 0.5, P.white) +
-      `<g transform="translate(60 62) rotate(12) scale(1.45)">${crown(k, 0.5)}</g>` +
-      bubble(58, 32, 2) + bubble(63, 25, 1.4) + bubble(56.4, 21, 1) + bubble(68, 37, 1.2) + bubble(37, 56, 1.4) + bubble(34, 48, 0.9) +
+      hair(30, 94, 40, 92.4, 50, 93.6, 0.5, P.goldD) + hair(64, 91, 74, 89.4, 84, 90.6, 0.5, P.goldD) + hair(46, 99, 54, 97.6, 62, 98.8, 0.45, P.goldD) +
+      k.floor(61, 90, 22, 2.4, P.goldD) +
+      hair(46, 20, 45.6, 26, 46.4, 32, 0.6, P.white) + hair(74, 20, 74.4, 26, 73.6, 32, 0.6, P.white) + hair(60, 16, 60.2, 21, 60, 26, 0.5, P.white) +
+      `<g transform="translate(60.6 74) rotate(8) scale(2.15)">${crown(k, 0.36, true)}</g>` +
+      bubble(64, 33, 2.2) + bubble(57.6, 26, 1.6) + bubble(63.4, 19.4, 1.1) + bubble(36, 60, 1.5) + bubble(33, 51, 1) + bubble(86, 46, 1.3) +
+      sparkle(32, 40, 2) + sparkle(90, 64, 1.6) +
       k.defs()
     )
   },
 
-  // Ocho reyes: el kraken asoma de la tormenta con una corona enroscada en el tentáculo.
+  // Ocho reyes: el kraken coronado sale de la tormenta, con un galeón en el tentáculo.
   'Leviatán': (u) => {
     const k = kit(u)
-    const main = walk(68, 98, -96, [[22, -12], [14, 34], [10, 56], [12, 110], [10, 150]])
-    const back1 = walk(34, 92, -84, [[16, -16], [10, -60], [7, -110]])
-    const back2 = walk(93, 90, -98, [[14, 18], [9, 70], [6, 110]])
-    const suck = (pts: Pt[], side: number, from: number, to: number, every: number, r0: number) => {
+    const L = walk(38, 96, -102, [[16, 4], [14, 26], [10, 70], [9, 130], [6, 150]])
+    const R = walk(82, 96, -78, [[16, -4], [14, -26], [10, -70], [9, -130], [6, -150]])
+    const head = 'M39 94C36 72 45 52 60 52C75 52 84 72 81 94Z'
+    const tent = (pts: Pt[]) => {
+      const d = strand(pts, 11, 1.6)
+      return { d, fill: P.red, inner: k.sh(d, 0, 0, 1, 0, 0, 0.85, P.wine, 0.45) + k.sh(FULL, 0, 0, 0, 1, 0, 0.5, P.wine, 0.3) }
+    }
+    const ridge = (pts: Pt[], side: number) => {
       let s = ''
-      for (let i = from; i < Math.min(to, pts.length - 1); i += every) {
-        const [x, y] = pts[i], [bx, by] = pts[i + 1], dx = bx - x, dy = by - y, len = Math.hypot(dx, dy) || 1
-        const t = i / pts.length, r = r0 * (1 - t * 0.7), off = 4.4 * (1 - t * 0.75) * side
-        s += `<circle cx="${f(x - (dy / len) * off)}" cy="${f(y + (dx / len) * off)}" r="${f(r)}" fill="${P.skin}" stroke="${P.wine}" stroke-width=".35"/>`
+      for (let i = 4; i < pts.length - 10; i += 5) {
+        const a = beside(pts, i, 2.6, -side), b = beside(pts, i + 4, 2.8, -side)
+        s += hair(a.x, a.y, (a.x + b.x) / 2 + side * 0.4, (a.y + b.y) / 2, b.x, b.y, 0.45, side > 0 ? '#fff' : P.wine, side > 0 ? 0.55 : 0.8)
       }
       return s
     }
-    const tent = (pts: Pt[], w0: number, w1: number, fill: string, dark: string) => {
-      const d = strand(pts, w0, w1)
-      return { d, fill, inner: k.sh(d, 0, 0, 1, 0, 0, 0.85, dark, 0.45) }
-    }
-    const tip = main[main.length - 1]
-    const moon = ellipse(42, 38, 14, 14)
+    const eye = (x: number) =>
+      `<ellipse cx="${x}" cy="75" rx="4.6" ry="3.6" fill="${P.goldL}" stroke="${P.ink}" stroke-width=".6"/><ellipse cx="${x}" cy="75" rx="3.2" ry="3" fill="${P.gold}"/>` +
+      `<path d="M${x} 72.2C${x + 1} 73.6 ${x + 1} 76.4 ${x} 77.8C${x - 1} 76.4 ${x - 1} 73.6 ${x} 72.2Z" fill="${P.night}"/><circle cx="${x - 1.5}" cy="73.8" r=".65" fill="#fff"/>`
+    const tipR = R[R.length - 15]
+    const moon = ellipse(60, 44, 25, 25)
     return (
       k.night() +
-      [[30, 56], [90, 30], [80, 52], [96, 64], [52, 24], [70, 22]].map(([x, y], i) => `<circle cx="${x}" cy="${y}" r="${i % 2 ? 0.5 : 0.7}" fill="${P.paper}"/>`).join('') +
-      `<path d="${moon}" fill="${P.paper}"/>` + k.shade(moon, k.rad(P.goldL, 0.4, 0.4, 0.7, 0, 0.8), P.goldL, 0.3) +
-      k.draw([tent(back1, 7, 1.6, P.wine, P.night), tent(back2, 6.4, 1.6, P.wine, P.night)], 0.5) +
-      `<path d="${sea(84, 3, 5)}" fill="${P.mid}"/>` + k.sh(sea(84, 3, 5), 0, 0, 0, 1, 0, 0.95, P.night, 0.5) + crests(84, 3, 5, -4, 124, P.sky2, 0.55) +
-      `<g transform="translate(36 78) rotate(-16) scale(.3)">${ship(k)}</g>` +
-      k.draw([tent(main, 13, 2, P.red, P.wine)], 0.75) +
-      suck(main, 1, 6, 60, 4, 1.6) +
-      `<g transform="translate(${f(tip[0] - 4)} ${f(tip[1] + 1)}) rotate(-8) scale(.82)">${crown(k, 0.6)}</g>` +
-      `<path d="${sea(90, 2.4, 4, -6, 126)}" fill="${P.mid}"/>` + k.sh(sea(90, 2.4, 4, -6, 126), 0, 0, 0, 1, 0, 0.9, P.night, 0.5) + crests(90, 2.4, 4, -6, 126, P.sky, 0.6) +
-      `<path d="${ellipse(68, 90, 9, 1.8)}" fill="${P.white}" stroke="${P.ink}" stroke-width=".4"/>` +
-      sparkle(88, 40, 2.2, P.goldL) + sparkle(26, 70, 1.4, P.paper) +
+      stars([[26, 56], [94, 54], [88, 26], [32, 30], [22, 74], [98, 72]]) +
+      `<path d="${moon}" fill="${P.paper}"/>` + k.shade(moon, k.rad(P.goldL, 0.4, 0.4, 0.7, 0, 0.85), P.goldL, 0.3) +
+      `<path d="${ellipse(60, 44, 27, 27)}" fill="none" stroke="${P.goldL}" stroke-width=".5" stroke-dasharray=".01 1.6" stroke-linecap="round"/>` +
+      water(k, 88, 2.6, 5, P.mid, P.night, P.sky2) +
+      `<g transform="translate(${f(tipR[0] + 2)} ${f(tipR[1] + 3)}) rotate(16) scale(.3)">${ship(k)}</g>` +
+      k.draw([tent(L), tent(R)], 0.65) +
+      ridge(L, 1) + ridge(R, -1) +
+      suckers(L, 11, 1.6, 1, 5, 3, 1.6) + suckers(R, 11, 1.6, -1, 5, 3, 1.6) +
+      k.draw([{
+        d: head, fill: P.red,
+        inner:
+          k.sh('M62 50C76 58 84 74 80 96H92V50Z', 0, 0, 1, 0, 0, 0.85, P.wine, 0.45) + k.sh('M34 82H86V96H34Z', 0, 0, 0, 1, 0, 0.7, P.wine, 0.35) +
+          `<path d="M36 50H50V96H36Z" fill="${k.lin('#ffffff', 0, 0, 1, 0, 0.3, 0)}"/>` +
+          [[53, 61, 1.8], [67, 62, 1.4], [60, 67, 1.1], [47, 67, 1.2], [73, 68, 1.3], [58, 57.6, 0.9], [44, 76, 0.9], [77, 77, 1]].map(([x, y, r]) => `<circle cx="${x}" cy="${y}" r="${r}" fill="${P.wine}" opacity=".75"/><circle cx="${x}" cy="${y}" r="${f(r + 0.7)}" fill="none" stroke="${P.wine}" stroke-width=".3" opacity=".6"/>`).join('') +
+          hair(46, 84, 52, 86.4, 57, 85, 0.5, P.wine) + hair(63, 85, 68, 86.4, 74, 84, 0.5, P.wine) + hair(50, 58, 54, 55, 58, 54.4, 0.7, '#fff', 0.7) +
+          hair(42, 70, 43, 64, 46, 59, 0.45, '#fff', 0.5) + hair(55, 70, 60, 68.6, 65, 70, 0.4, P.wine),
+      }], 0.75) +
+      `<path d="M45 70.6L56.4 73.6M75 70.6L63.6 73.6" stroke="${P.ink}" stroke-width="1.7" stroke-linecap="round"/>` +
+      eye(51.4) + eye(68.6) +
+      `<g transform="translate(60.4 55.4) rotate(-5) scale(1.2)">${crown(k, 0.5, true)}</g>` +
+      water(k, 92, 2.2, 4, P.mid, P.night, P.sky, 1, -6, 126) +
+      swell(24, 100, 97, 2, 4.4, P.sky2, 0.45) +
+      `<path d="${ellipse(60, 91.6, 24, 2)}" fill="none" stroke="${P.white}" stroke-width="1" stroke-dasharray="2.6 1.8"/>` +
+      drop(34, 86, -30, 0.8) + drop(86, 86, 30, 0.8) + drop(28.6, 91, -50, 0.6) + drop(91, 90.6, 50, 0.6) +
+      sparkle(92, 40, 2, P.goldL) + sparkle(28, 42, 1.4, P.paper) +
       k.defs()
     )
   },
 
   // ── Terror de piratas ──────────────────────────────────────────────
 
-  // Tres piratas: el meeple ya tiene el look (pañuelo, parche, arito y rayas).
+  // Tres piratas: ya tenés el look; la calavera de la bandera con pañuelo, parche y diente de oro.
   'Parche en el ojo': (u) => {
     const k = kit(u)
-    const s = 1.06
+    const bandana = 'M-13.2 -6.4C-12.8 -12.6 -7.6 -15.4 0 -15.4C7.6 -15.4 12.8 -12.6 13.2 -6.4C8 -9.6 -8 -9.6 -13.2 -6.4Z'
+    const tails = 'M12.2 -8.6C15.6 -9.8 19 -12.6 20.8 -15.8C21.2 -12 19.4 -8.6 16.4 -7C18.8 -6.2 20.6 -4 21.4 -.8C18.4 -1.8 15 -3.4 12.6 -5.4Z'
+    const patch = 'M.8 -3.2C.8 -4.6 9.8 -4.6 9.8 -3.2V1.4C9.8 4.6 7.6 6.2 5.3 6.2C3 6.2 .8 4.6 .8 1.4Z'
+    const dots = ([[-8, -11.6], [-3, -13.4], [2.6, -13], [7.4, -11.4], [-5.4, -9.6], [0, -10.6], [5, -9.6], [10.6, -8.8], [-10.6, -8.8]] as Pt[]).map(([x, y]) => `<circle cx="${x}" cy="${y}" r=".8" fill="${P.white}"/>`).join('')
     return (
       k.day() +
-      k.stage(60, 60, 33) +
-      k.floor(61.4, 92.4, 19, 2.4) +
-      `<g transform="translate(60 64.4) scale(${s})">${pirate(k, MEEPLE_D, false, s)}</g>` +
-      sparkle(86, 40, 2.4) + sparkle(33, 46, 1.6) +
+      k.sun(60, 58, 18, 46, 28, false) +
+      `<g transform="translate(60 57) scale(1.6)">` +
+      bone(k, 0, 12.6, 36, 36) + bone(k, 0, 12.6, -36, 36) +
+      skull(k, '', 0.5, true) +
+      `<path d="M-12.8 -7.4L1.8 -3.4M9.6 -1.6L13.4 .6" stroke="${P.night}" stroke-width=".9" stroke-linecap="round"/>` +
+      `<path d="${patch}" fill="${P.night}" stroke="${P.ink}" stroke-width=".4"/>` +
+      `<path d="M1.8 -2.8H8.8V1.2C8.8 3.8 7 5.2 5.3 5.2C3.6 5.2 1.8 3.8 1.8 1.2Z" fill="none" stroke="${P.mid}" stroke-width=".3" stroke-dasharray=".6 .5"/>` +
+      `<path d="M2.6 -2Q4.4 -2.8 6.4 -2.2" fill="none" stroke="${P.sky2}" stroke-width=".4" stroke-linecap="round"/><circle cx="5.3" cy="1.2" r=".7" fill="${P.gold}" stroke="${P.goldD}" stroke-width=".2"/>` +
+      `<circle cx="-5.4" cy=".6" r=".9" fill="${P.goldL}"/><circle cx="-5.7" cy=".3" r=".3" fill="#fff"/>` +
+      k.draw([
+        { d: tails, fill: P.red, inner: k.sh(tails, 0, 0, 1, 1, 0, 0.9, P.wine, 0.4) + hair(13.6, -7.4, 17, -9, 19.6, -13, 0.35, P.wine) + hair(14, -6, 17.4, -4.6, 20, -2, 0.35, P.wine) },
+        { d: bandana, fill: P.red, inner: dots + k.sh(bandana, 0, 0, 1, 1, 0, 0.85, P.wine, 0.4) + `<path d="M-10.4 -9.6C-9 -12.6 -5.6 -14.4 -1.6 -14.6" fill="none" stroke="#fff" stroke-width=".8" stroke-linecap="round" opacity=".5"/>` + hair(-4, -9.2, 2, -11.4, 9, -10.6, 0.35, P.wine) },
+      ], 0.45) +
+      `<circle cx="12.8" cy="-7.4" r="2" fill="${P.red}" stroke="${P.ink}" stroke-width=".45"/><path d="M11.8 -8L13.6 -6.8" stroke="${P.wine}" stroke-width=".35"/>` +
+      `</g>` +
+      sparkle(32, 40, 2.4) + sparkle(88, 76, 1.6) +
       k.defs()
     )
   },
 
-  // Doce piratas: pata de palo sobre la cubierta, toc, toc.
+  // Doce piratas: la pata de palo, torneada y con correas, golpeando la cubierta. Toc, toc.
   'Pata de palo': (u) => {
     const k = kit(u)
-    const s = 0.98
-    const deck = 'M16 86H104V112H16Z'
-    const planks = [90, 95, 101].map((y) => `<path d="M16 ${y}H104" stroke="${P.brownD}" stroke-width=".55"/>`).join('') +
-      ([[30, 86, 90], [62, 86, 90], [46, 90, 95], [80, 90, 95], [36, 95, 101], [70, 95, 101]] as const).map(([x, a, b]) => `<path d="M${x} ${a}V${b}" stroke="${P.brownD}" stroke-width=".5"/>`).join('') +
-      [[34, 88], [58, 88], [50, 92.6], [76, 92.6]].map(([x, y]) => `<circle cx="${x}" cy="${y}" r=".4" fill="${P.brownD}"/>`).join('')
+    const deck = 'M10 90H110V112H10Z'
+    const planks = [94.6, 99.6].map((y) => `<path d="M10 ${y}H110" stroke="${P.brownD}" stroke-width=".55"/>`).join('') +
+      ([[34, 90, 94.6], [78, 90, 94.6], [50, 94.6, 99.6], [88, 94.6, 99.6]] as const).map(([x, a, b]) => `<path d="M${x} ${a}V${b}" stroke="${P.brownD}" stroke-width=".5"/>`).join('') +
+      [[37, 92.2], [75, 92.2], [53, 97], [85, 97]].map(([x, y]) => `<circle cx="${x}" cy="${y}" r=".4" fill="${P.brownD}"/>`).join('') +
+      hair(16, 92, 26, 91.4, 36, 92.2, 0.4, P.brownD) + hair(68, 97, 76, 96.4, 86, 97.2, 0.4, P.brownD)
     return (
       k.day() +
-      k.stage(60, 58, 33) +
-      k.draw([{ d: deck, fill: P.brown, inner: planks + k.sh(deck, 0, 0, 0, 1, 0, 0.8, P.brownD, 0.4) + `<path d="M16 86.6H104" stroke="${P.goldL}" stroke-width=".6" opacity=".6"/>` }], 0.6) +
-      k.floor(59, 87, 18, 1.8, P.brownD) +
-      `<g transform="translate(57 61.4) scale(${s})">${pirate(k, PEG_MEEPLE, true, s)}</g>` +
-      hair(64.6, 88.8, 63, 90.6, 61.6, 92.2, 0.5) + hair(70.6, 88.8, 72.2, 90.6, 73.6, 92.2, 0.5) + hair(67.6, 89.6, 67.6, 91.6, 67.6, 93.4, 0.5) +
-      `<text x="84" y="73" ${GEORGIA} font-style="italic" font-size="6" fill="${P.ink}" text-anchor="middle" transform="rotate(-10 84 73)">toc,</text>` +
-      `<text x="88" y="82" ${GEORGIA} font-style="italic" font-size="6" fill="${P.ink}" text-anchor="middle" transform="rotate(-10 88 82)">toc</text>` +
-      sparkle(34, 40, 2) + sparkle(86, 36, 1.6) +
+      k.stage(60, 56, 34) +
+      k.draw([{ d: deck, fill: P.brown, inner: planks + k.sh(deck, 0, 0, 0, 1, 0, 0.8, P.brownD, 0.4) + `<path d="M10 90.6H110" stroke="${P.goldL}" stroke-width=".6" opacity=".6"/>` }], 0.6) +
+      k.floor(60, 91, 13, 1.8, P.brownD) +
+      `<g transform="translate(58.6 91.4) rotate(-7) scale(1.05)">${pegLeg(k)}</g>` +
+      hair(52, 88, 49, 86.6, 46, 86.6, 0.55) + hair(53, 85, 50.4, 82.6, 48.2, 81, 0.5) + hair(65, 88.4, 68, 87, 71, 87, 0.55) + hair(64.4, 85.4, 67, 83, 69.4, 81.6, 0.5) +
+      `<text x="82" y="70" ${GEORGIA} font-style="italic" font-size="7" fill="${P.ink}" text-anchor="middle" transform="rotate(-10 82 70)">toc,</text>` +
+      `<text x="85" y="80.4" ${GEORGIA} font-style="italic" font-size="7" fill="${P.ink}" text-anchor="middle" transform="rotate(-10 85 80.4)">toc</text>` +
+      sparkle(36, 40, 2.4) + sparkle(30, 70, 1.6) +
       k.defs()
     )
   },
 
-  // Treinta y cinco piratas: barba negra trenzada, sombrero de tres picos y mechas que humean.
+  // Treinta y cinco piratas: de Barba Negra sólo se ven el tricornio, los ojos encendidos y la barba trenzada que humea.
   'Barba Negra': (u) => {
     const k = kit(u)
-    const s = 1.12
-    const coatInner =
-      k.sh('M2 -30H30V30H2Z', 0, 0, 1, 0, 0, 0.8, P.night, 0.45) + `<path d="M-30 -12H-4V30H-30Z" fill="${k.lin(P.red, 0, 0, 1, 0, 0.4, 0)}"/>` +
-      `<path d="M-4.6 -10.6L-1.6 14.6M4.6 -10.6L1.6 14.6" stroke="${P.gold}" stroke-width="1.1"/>` +
-      `<path d="M-20.6 -6.4C-14 -3.4 -10 -4.6 -6.4 -9.4M20.6 -6.4C14 -3.4 10 -4.6 6.4 -9.4" fill="none" stroke="${P.gold}" stroke-width=".9"/>`
-    const head = ellipse(0, -16.8, 9.4, 9.4)
-    const beard = 'M-9.6 -16.4C-10.4 -9 -9 -1.6 -5.6 3.6C-3.8 6.6 -1.6 8.6 0 10C1.6 8.6 3.8 6.6 5.6 3.6C9 -1.6 10.4 -9 9.6 -16.4C7.2 -13 3.6 -12.4 0 -12.4C-3.6 -12.4 -7.2 -13 -9.6 -16.4Z'
-    const stache = 'M0 -13.4C-2 -15.4 -5.6 -15.2 -7.4 -13.4C-8.6 -12.2 -9.6 -12.6 -10 -13.6C-9.6 -11 -7.4 -10.2 -5 -10.8C-3 -11.2 -1.4 -12 0 -12.4C1.4 -12 3 -11.2 5 -10.8C7.4 -10.2 9.6 -11 10 -13.6C9.6 -12.6 8.6 -12.2 7.4 -13.4C5.6 -15.2 2 -15.4 0 -13.4Z'
-    const hat = 'M-18.4 -21.4C-15 -23.2 -11.4 -24 -9.6 -29.6C-7.6 -35.6 7.6 -35.6 9.6 -29.6C11.4 -24 15 -23.2 18.4 -21.4C13 -18.6 6.4 -19.8 0 -17.4C-6.4 -19.8 -13 -18.6 -18.4 -21.4Z'
-    const braid = (x: number) => [0, 1, 2].map((i) => `<ellipse cx="${x}" cy="${f(11 + i * 2.6)}" rx="1.5" ry="1.5" fill="${P.night}" stroke="${P.mid}" stroke-width=".35"/>`).join('') + `<path d="M${x - 1.6} ${f(18.4)}L${x + 1.6} 19.6M${x + 1.6} 18.4L${x - 1.6} 19.6" stroke="${P.red}" stroke-width="1.1" stroke-linecap="round"/>`
+    const crownH = 'M-13.4 -5C-13.6 -15.4 -7.4 -21 0 -21C7.4 -21 13.6 -15.4 13.4 -5Z'
+    const brim = 'M-28.4 -3.4C-21 -10.4 -11 -9 0 -13.6C11 -9 21 -10.4 28.4 -3.4C22 .8 12.4 2.6 4.4 7.8L0 10.6L-4.4 7.8C-12.4 2.6 -22 .8 -28.4 -3.4Z'
+    const brimTop = 'M-28.4 -3.4C-21 -10.4 -11 -9 0 -13.6C11 -9 21 -10.4 28.4 -3.4'
+    const face = 'M-13.4 6C-13 13 -8 18.6 0 18.6C8 18.6 13 13 13.4 6C8 9 4 9.6 0 10.6C-4 9.6 -8 9 -13.4 6Z'
+    const beard = 'M-15.4 12C-17.6 22 -15.6 32 -10.4 40.6C-7.6 45.4 -4 49 0 52.6C4 49 7.6 45.4 10.4 40.6C15.6 32 17.6 22 15.4 12C11 17.4 6 19.6 0 19.6C-6 19.6 -11 17.4 -15.4 12Z'
+    const stache = 'M0 16.4C-2.4 14.2 -7 14.4 -9.6 16.6C-11.4 18.2 -13 17.6 -13.6 16.2C-13.4 19.8 -10.2 21.4 -6.6 20.6C-3.8 20 -1.6 18.8 0 18C1.6 18.8 3.8 20 6.6 20.6C10.2 21.4 13.4 19.8 13.6 16.2C13 17.6 11.4 18.2 9.6 16.6C7 14.4 2.4 14.2 0 16.4Z'
+    const feather = 'M-12 -14C-18 -22 -26 -24 -30 -20C-26 -21 -21 -19 -17.6 -15.4C-22 -17.4 -26.6 -16 -28.4 -12.6C-23.6 -14.4 -18 -12.6 -13.6 -9.6Z'
+    const braid = (x: number, y0: number, n: number) => Array.from({ length: n }, (_, i) => `<path d="${ellipse(x, f(y0 + i * 2.6), 1.7, 1.6)}" fill="${P.night}" stroke="${P.mid}" stroke-width=".35"/><path d="M${f(x - 1.2)} ${f(y0 + i * 2.6 - 0.6)}Q${x} ${f(y0 + i * 2.6 + 0.6)} ${f(x + 1.2)} ${f(y0 + i * 2.6 - 0.6)}" fill="none" stroke="${P.mid}" stroke-width=".3"/>`).join('')
+    const bow = (x: number, y: number) => `<path d="M${x} ${y}C${x - 1.6} ${y - 2} ${x - 3.6} ${y - 1.2} ${x - 3.2} ${y + 0.6}C${x - 2.8} ${y + 1.8} ${x - 1} ${y + 1} ${x} ${y}C${x + 1} ${y + 1} ${x + 2.8} ${y + 1.8} ${x + 3.2} ${y + 0.6}C${x + 3.6} ${y - 1.2} ${x + 1.6} ${y - 2} ${x} ${y}Z" fill="${P.red}" stroke="${P.ink}" stroke-width=".35"/>`
     const fuse = (x0: number, y0: number, x1: number, y1: number) =>
-      `<path d="M${x0} ${y0}L${x1} ${y1}" stroke="${P.ink}" stroke-width="1.5" stroke-linecap="round"/><path d="M${x0} ${y0}L${x1} ${y1}" stroke="${P.brown}" stroke-width=".7" stroke-linecap="round"/>` +
-      `<path d="${starPath(x1, y1, 2.6, 0.8, 6)}" fill="${P.gold}" stroke="${P.goldD}" stroke-width=".3"/><circle cx="${x1}" cy="${y1}" r=".8" fill="${P.goldL}"/>`
-    const embers = [[30, 52, 0.7], [90, 50, 0.6], [26, 72, 0.5], [94, 74, 0.5], [40, 30, 0.5], [82, 26, 0.6]].map(([x, y, r]) => `<circle cx="${x}" cy="${y}" r="${r}" fill="${P.gold}"/>`).join('')
+      `<path d="M${x0} ${y0}L${x1} ${y1}" stroke="${P.ink}" stroke-width="1.6" stroke-linecap="round"/><path d="M${x0} ${y0}L${x1} ${y1}" stroke="${P.brown}" stroke-width=".8" stroke-linecap="round"/>` +
+      `<path d="${starPath(x1, y1, 3, 0.9, 6)}" fill="${P.gold}" stroke="${P.goldD}" stroke-width=".3"/><circle cx="${x1}" cy="${y1}" r=".9" fill="${P.goldL}"/>`
+    const smoke = (x: number, y: number, dir: number) =>
+      hair(x, y, x + dir * 4, y - 5, x, y - 9, 1.1, P.sky2) + hair(x, y - 9, x - dir * 4, y - 13, x + dir * 1, y - 18, 0.9, P.sky2) + hair(x + dir * 1, y - 18, x + dir * 4, y - 21, x + dir * 1, y - 25, 0.7, P.sky2)
+    const strands = [-11, -7.4, -3.6, 0, 3.6, 7.4, 11].map((x, i) => hair(x * 0.95, 21, x * 1.15 + (i % 2 ? 1 : -1), 32, x * 0.55, 46 - Math.abs(x) * 0.6, 0.55, P.mid)).join('') +
+      [-9, -5, 5, 9].map((x) => hair(x, 26, x * 1.1, 32, x * 0.8, 38, 0.4, P.sky2, 0.6)).join('')
+    const embers = [[30, 52, 0.7], [90, 50, 0.6], [26, 72, 0.5], [94, 74, 0.5], [34, 84, 0.5], [86, 88, 0.6], [44, 26, 0.5], [76, 24, 0.5]].map(([x, y, r]) => `<circle cx="${x}" cy="${y}" r="${r}" fill="${P.gold}"/>`).join('')
     return (
       `<rect width="120" height="130" fill="${P.night}"/>` +
-      k.shade(FULL, k.rad(P.gold, 0.5, 0.48, 0.5, 0.75, 0), P.goldD, 0.35) +
-      puff(k, 36, 36, 1) + puff(k, 84, 32, 1.15) + puff(k, 30, 50, 0.7) +
-      hair(38, 44, 33, 40, 37, 35, 0.6, P.sky2) + hair(82, 40, 88, 36, 84, 30, 0.6, P.sky2) +
+      `<g opacity=".6">${k.sun(60, 54, 20, 50, 28, false)}</g>` +
+      k.shade(FULL, k.rad(P.gold, 0.5, 0.44, 0.45, 0.75, 0), P.goldD, 0.35) +
       embers +
-      `<g transform="translate(60 66) scale(${s})">` +
+      `<g transform="translate(60 42) scale(1.12)">` +
+      smoke(-18.6, 13, -1) + smoke(18.6, 13, 1) +
+      k.draw([{ d: face, fill: '#0E1533' }], 0.5) +
+      `<path d="M-8.8 11.6Q-6 10 -3 12M8.8 11.6Q6 10 3 12" fill="none" stroke="${P.gold}" stroke-width="1.6" stroke-linecap="round"/><path d="M-8.4 11.6Q-6 10.6 -3.4 12M8.4 11.6Q6 10.6 3.4 12" fill="none" stroke="${P.goldL}" stroke-width=".6" stroke-linecap="round"/>` +
+      k.shade(ellipse(-6, 11.4, 4, 2.4), k.rad(P.gold, 0.5, 0.5, 0.5, 0.7, 0), P.gold, 0.4) + k.shade(ellipse(6, 11.4, 4, 2.4), k.rad(P.gold, 0.5, 0.5, 0.5, 0.7, 0), P.gold, 0.4) +
+      k.draw([{ d: beard, fill: P.night, inner: k.sh(beard, 0, 0, 1, 1, 0, 0.7, '#0E1533', 0.4) + strands }], 0.7) +
+      braid(-4.6, 44, 4) + braid(4.6, 44, 4) + bow(-4.6, 54.2) + bow(4.6, 54.2) +
+      k.draw([{ d: stache, fill: P.night, inner: hair(-11, 18, -7, 16.4, -2, 17, 0.4, P.mid) + hair(11, 18, 7, 16.4, 2, 17, 0.4, P.mid) }], 0.5) +
+      fuse(-11.4, 26, -18.6, 13.4) + fuse(11.4, 26, 18.6, 13.4) +
       k.draw([
-        { d: MEEPLE_D, fill: P.wine, inner: coatInner },
-        { d: head, fill: P.sky, inner: k.sh(head, 0.3, 0, 1, 0.6, 0, 0.6, P.mid, 0.35) },
-      ], f(0.8 / s)) +
-      `<circle cx="-11.6" cy="4" r="1" fill="${P.gold}" stroke="${P.ink}" stroke-width=".3"/><circle cx="-12.6" cy="9" r="1" fill="${P.gold}" stroke="${P.ink}" stroke-width=".3"/><circle cx="11.6" cy="4" r="1" fill="${P.gold}" stroke="${P.ink}" stroke-width=".3"/><circle cx="12.6" cy="9" r="1" fill="${P.gold}" stroke="${P.ink}" stroke-width=".3"/>` +
-      hair(-6, 6, -4.6, 11, -6.6, 17, 0.6, P.night) + hair(6, 6, 4.6, 11, 6.6, 17, 0.6, P.night) +
-      braid(-3.4) + braid(3.4) +
-      k.draw([{ d: beard, fill: P.night, inner: k.sh(beard, 0, 0, 1, 1, 0, 0.6, '#0E1533', 0.4) }], f(0.7 / s)) +
-      hair(-6, -9, -6.4, -3, -3.6, 3, 0.5, P.mid) + hair(-2, -10, -2.4, -3, -1, 5, 0.5, P.mid) + hair(2.4, -10, 2.8, -3, 1.4, 5, 0.5, P.mid) + hair(6.4, -9, 6.6, -3, 3.8, 2.6, 0.5, P.mid) +
-      k.draw([{ d: stache, fill: P.night }], f(0.5 / s)) +
-      `<path d="M-6.4 -19.6L-2 -17.8M6.4 -19.6L2 -17.8" stroke="${P.ink}" stroke-width="1.1" stroke-linecap="round"/>` +
-      `<circle cx="-3.8" cy="-16.2" r=".95" fill="${P.ink}"/><circle cx="3.8" cy="-16.2" r=".95" fill="${P.ink}"/>` +
-      fuse(-7.6, -6, -12.6, -11.4) + fuse(7.8, -5, 13, -10) +
-      k.draw([{
-        d: hat, fill: P.night,
-        inner: `<path d="M-18.4 -21.4C-13 -18.6 -6.4 -19.8 0 -17.4C6.4 -19.8 13 -18.6 18.4 -21.4" fill="none" stroke="${P.gold}" stroke-width="1.4"/>` + `<path d="M-6 -32.6C-4 -34 -1 -34.4 1.6 -34" fill="none" stroke="${P.sky2}" stroke-width=".6" stroke-linecap="round" opacity=".7"/>`,
-      }], f(0.75 / s)) +
-      `<circle cx="0" cy="-26" r="2.4" fill="${P.paper}"/><circle cx="-.9" cy="-26.2" r=".6" fill="${P.night}"/><circle cx=".9" cy="-26.2" r=".6" fill="${P.night}"/>` +
-      `<path d="M-3.6 -21.8L3.6 -23.8M-3.6 -23.8L3.6 -21.8" stroke="${P.paper}" stroke-width=".9" stroke-linecap="round"/>` +
+        { d: crownH, fill: P.night, inner: k.sh(crownH, 0, 0, 1, 0, 0, 0.6, '#0E1533', 0.4) + hair(-8, -12, -6, -17, -1, -19.4, 0.6, P.sky2, 0.7) },
+        { d: feather, fill: P.white, inner: k.sh(feather, 0, 0, 1, 1, 0, 0.6, P.sky2, 0.4) + hair(-13, -12, -20, -17, -28, -19.6, 0.4, P.sky2) + hair(-15, -12.4, -21, -14.4, -27, -13.4, 0.35, P.sky2) },
+        {
+          d: brim, fill: P.night,
+          inner:
+            k.sh(brim, 0, 0, 1, 1, 0, 0.6, '#0E1533', 0.4) + `<path d="${brimTop}" fill="none" stroke="${P.gold}" stroke-width="2"/><path d="${brimTop}" fill="none" stroke="${P.goldL}" stroke-width=".5" transform="translate(0 -.4)"/>` +
+            hair(-22, -2, -12, -4, -4, -1.6, 0.5, P.mid) + hair(22, -2, 12, -4, 4, -1.6, 0.5, P.mid),
+        },
+      ], 0.6) +
+      [-24, -18, -12, 12, 18, 24].map((x) => `<circle cx="${x}" cy="${f(-6.2 + Math.pow(Math.abs(x) / 28, 2) * 2.6 - (Math.abs(x) < 15 ? 3.4 : 1.4))}" r=".55" fill="${P.goldL}" stroke="${P.goldD}" stroke-width=".2"/>`).join('') +
+      `<circle cx="0" cy="-3.4" r="3" fill="${P.paper}" stroke="${P.ink}" stroke-width=".35"/><circle cx="-1.1" cy="-3.6" r=".75" fill="${P.night}"/><circle cx="1.1" cy="-3.6" r=".75" fill="${P.night}"/><path d="M-.9 -1.6V-.9M0 -1.6V-.9M.9 -1.6V-.9" stroke="${P.night}" stroke-width=".3"/>` +
+      `<path d="M-4.6 .4L4.6 3.4M-4.6 3.4L4.6 .4" stroke="${P.ink}" stroke-width="1.6" stroke-linecap="round"/><path d="M-4.6 .4L4.6 3.4M-4.6 3.4L4.6 .4" stroke="${P.paper}" stroke-width=".8" stroke-linecap="round"/>` +
       `</g>` +
-      sparkle(88, 60, 2, P.goldL) + sparkle(32, 64, 1.5, P.goldL) +
+      sparkle(90, 60, 2, P.goldL) + sparkle(30, 62, 1.5, P.goldL) +
       k.defs()
     )
   },
 
   // ── Polizón ────────────────────────────────────────────────────────
 
-  // Tres ceros: viajás escondido en un barril; sólo se te ven los ojos.
+  // Tres ceros: en la bodega, escondido en un barril de ron; sólo se te ven los ojos.
   'Polizón': (u) => {
     const k = kit(u)
     const body = 'M41.6 48C39.4 58 39.4 76 41.6 87C48 90.6 72 90.6 78.4 87C80.6 76 80.6 58 78.4 48C72 45 48 45 41.6 48Z'
-    const hoop = (y: number, bulge: number) => `M${f(40 + bulge)} ${y}C${f(48)} ${f(y + 3)} ${72} ${f(y + 3)} ${f(80 - bulge)} ${y}L${f(80 - bulge)} ${f(y + 3.2)}C72 ${f(y + 6.2)} 48 ${f(y + 6.2)} ${f(40 + bulge)} ${f(y + 3.2)}Z`
-    const staves = [46, 53, 60, 67, 74].map((x) => hair(x, 50, x + (x - 60) * 0.14, 68, x, 87, 0.45, P.brownD)).join('')
+    const hoop = (y: number, bulge: number) => `M${f(40 + bulge)} ${y}C48 ${f(y + 3)} 72 ${f(y + 3)} ${f(80 - bulge)} ${y}L${f(80 - bulge)} ${f(y + 3.2)}C72 ${f(y + 6.2)} 48 ${f(y + 6.2)} ${f(40 + bulge)} ${f(y + 3.2)}Z`
+    const staves = [46, 53, 60, 67, 74].map((x) => hair(x, 50, x + (x - 60) * 0.14, 68, x, 87, 0.5, P.brownD)).join('')
+    const grain = hair(43.6, 60, 44.2, 66, 43.8, 72, 0.35, P.brownD) + hair(50, 58, 50.6, 64, 50.2, 70, 0.35, P.brownD) + hair(64, 60, 64.4, 64, 64, 68, 0.35, P.brownD) + hair(70.6, 70, 71, 74, 70.6, 78, 0.35, P.brownD) + hair(56, 75, 56.4, 79, 56, 83, 0.35, P.brownD)
     const rim = ellipse(60, 47.6, 18.6, 3.6)
     const lid = ellipse(0, 0, 19, 3.8)
     const lidSide = 'M-19 0V2.4C-19 4.4 19 4.4 19 2.4V0C19 2 -19 2 -19 0Z'
+    const boards = [28, 40, 52, 64, 76, 88].map((x) => `<path d="M${x} 0V96" stroke="${P.ink}" stroke-width=".6" opacity=".5"/>`).join('')
     return (
-      k.day() +
-      k.stage(60, 60, 33) +
-      k.floor(61, 89.6, 21, 2.6) +
+      `<rect width="120" height="130" fill="${P.night}"/>` + boards +
+      `<path d="M0 93H120V130H0Z" fill="${P.ink}"/>` + `<path d="M0 93H120" stroke="${P.mid}" stroke-width=".6"/>` +
+      k.shade('M46 0H74L104 100H16Z', k.lin(P.goldL, 0, 0, 0, 1, 0.45, 0.05), P.goldL, 0.4) +
+      k.shade(ellipse(60, 93, 32, 6), k.rad(P.goldL, 0.5, 0.5, 0.5, 0.55, 0), P.goldL, 0.45) +
+      `<g transform="translate(60 67) scale(1.14) translate(-60 -67)">` +
+      k.floor(61, 89.4, 22, 2.6, '#000') +
       k.draw([
-        { d: body, fill: P.brown, inner: staves + k.sh('M64 40C74 52 76 70 74 92H84V40Z', 0, 0, 1, 0, 0, 0.9, P.brownD, 0.45) + k.sh('M36 80H84V92H36Z', 0, 0, 0, 1, 0, 0.7, P.brownD, 0.3) + `<path d="M36 44H50V92H36Z" fill="${k.lin('#FFE3C2', 0, 0, 1, 0, 0.5, 0)}"/>` },
-        { d: hoop(52, 0.6), fill: P.mid, inner: k.sh(hoop(52, 0.6), 0, 0, 1, 0, 0, 0.8, P.night, 0.4) },
-        { d: hoop(80, 0.8), fill: P.mid, inner: k.sh(hoop(80, 0.8), 0, 0, 1, 0, 0, 0.8, P.night, 0.4) },
+        { d: body, fill: P.brown, inner: staves + grain + k.sh('M64 40C74 52 76 70 74 92H84V40Z', 0, 0, 1, 0, 0, 0.9, P.brownD, 0.45) + k.sh('M36 80H84V92H36Z', 0, 0, 0, 1, 0, 0.7, P.brownD, 0.3) + `<path d="M36 44H50V92H36Z" fill="${k.lin('#FFE3C2', 0, 0, 1, 0, 0.5, 0)}"/>` },
+        { d: hoop(52, 0.6), fill: P.mid, inner: k.sh(hoop(52, 0.6), 0, 0, 1, 0, 0, 0.8, P.night, 0.4) + `<path d="M42 53Q60 57 72 55.6" fill="none" stroke="${P.sky2}" stroke-width=".4"/>` },
+        { d: hoop(80, 0.8), fill: P.mid, inner: k.sh(hoop(80, 0.8), 0, 0, 1, 0, 0, 0.8, P.night, 0.4) + `<path d="M42 81Q60 85 72 83.6" fill="none" stroke="${P.sky2}" stroke-width=".4"/>` },
         { d: rim, fill: P.night },
       ], 0.7) +
-      [44, 76].map((x) => `<circle cx="${x}" cy="${53.8}" r=".5" fill="${P.sky2}"/><circle cx="${x}" cy="81.8" r=".5" fill="${P.sky2}"/>`).join('') +
+      [44, 76].map((x) => `<circle cx="${x}" cy="53.8" r=".5" fill="${P.sky2}"/><circle cx="${x}" cy="81.8" r=".5" fill="${P.sky2}"/>`).join('') +
       `<text x="60" y="71.6" ${GEORGIA} font-weight="700" font-size="7" letter-spacing=".8" fill="${P.brownD}" opacity=".85" text-anchor="middle">RON</text>` +
-      `<ellipse cx="54.6" cy="47.6" rx="2.2" ry="1.6" fill="${P.white}"/><ellipse cx="61.6" cy="47.6" rx="2.2" ry="1.6" fill="${P.white}"/>` +
-      `<circle cx="53.6" cy="47.8" r=".95" fill="${P.ink}"/><circle cx="60.6" cy="47.8" r=".95" fill="${P.ink}"/>` +
-      `<g transform="translate(62 41.4) rotate(-9)">` +
+      `<ellipse cx="54.4" cy="47.8" rx="2.3" ry="1.7" fill="${P.white}"/><ellipse cx="61.4" cy="47.8" rx="2.3" ry="1.7" fill="${P.white}"/>` +
+      `<circle cx="53.4" cy="48" r="1" fill="${P.ink}"/><circle cx="60.4" cy="48" r="1" fill="${P.ink}"/><circle cx="53.1" cy="47.6" r=".3" fill="#fff"/><circle cx="60.1" cy="47.6" r=".3" fill="#fff"/>` +
+      `<g transform="translate(62.4 41.2) rotate(-10)">` +
       k.draw([
         { d: lidSide, fill: P.brownD },
-        { d: lid, fill: P.brown, inner: k.sh(lid, 0, 0, 1, 1, 0, 0.8, P.brownD, 0.4) + `<path d="M-12 -1.6H10M-15 .6H16" stroke="${P.brownD}" stroke-width=".4"/>` },
+        { d: lid, fill: P.brown, inner: k.sh(lid, 0, 0, 1, 1, 0, 0.8, P.brownD, 0.4) + `<path d="M-12 -1.6H10M-15 .6H16" stroke="${P.brownD}" stroke-width=".4"/>` + `<path d="M-14 -1.2Q-6 -3 4 -2.8" fill="none" stroke="${P.goldL}" stroke-width=".5" opacity=".7"/>` },
       ], 0.6) +
       `</g>` +
-      `<text x="34" y="40" ${GEORGIA} font-style="italic" font-size="5.6" fill="${P.ink}" transform="rotate(-12 34 40)">shh…</text>` +
-      sparkle(88, 44, 2) +
+      `</g>` +
+      `<text x="29" y="37" ${GEORGIA} font-style="italic" font-size="6.2" fill="${P.paper}" transform="rotate(-12 29 37)">shh…</text>` +
+      sparkle(90, 44, 1.8, P.goldL) +
       k.defs()
     )
   },
 
-  // Doce ceros: a la deriva en una botella, sin tocar una baza.
+  // Doce ceros: a la deriva en una botella con el mensaje adentro, sin tocar una baza.
   'Botella al mar': (u) => {
     const k = kit(u)
     const glass = 'M-20 -8H6C10 -8 12 -3.4 15 -3.2H22V3.2H15C12 3.4 10 8 6 8H-20C-22.4 8 -23.4 6 -23.4 0C-23.4 -6 -22.4 -8 -20 -8Z'
     const lip = roundRect(21.4, -4, 24.4, 4, 1)
     const cork = 'M24.4 -2.8H29.4C30.2 -2.8 30.6 -2.2 30.6 -1.4V1.4C30.6 2.2 30.2 2.8 29.4 2.8H24.4Z'
-    const scroll = roundRect(-18, -4.2, 4, 4.2, 2)
-    const gull = (x: number, y: number, s: number) => `<path d="M${x - 3 * s} ${y}Q${x - 1.5 * s} ${y - 2 * s} ${x} ${y}Q${x + 1.5 * s} ${y - 2 * s} ${x + 3 * s} ${y}" fill="none" stroke="${P.ink}" stroke-width=".6" stroke-linecap="round"/>`
+    const scroll = roundRect(-18, -4.4, 4, 4.4, 2)
     return (
       k.day() +
-      k.sun(84, 38, 7, 16, 20, false) + `<circle cx="84" cy="38" r="6.4" fill="${P.gold}" stroke="${P.ink}" stroke-width=".5"/>` +
-      gull(40, 38, 1.2) + gull(50, 32, 0.9) +
-      `<path d="${sea(66, 2, 6)}" fill="${P.sky}"/>` + k.sh(sea(66, 2, 6), 0, 0, 0, 1, 0, 0.9, P.mid, 0.45) + crests(66, 2, 6) +
-      hair(30, 74, 36, 72.8, 42, 74, 0.5, P.white) + hair(78, 90, 84, 88.8, 90, 90, 0.5, P.white) +
-      `<g transform="translate(58 68) rotate(-22)">` +
+      k.sun(60, 60, 18, 46, 28, false) +
+      water(k, 70, 2, 6, P.sky, P.mid, P.white) +
+      `<g transform="translate(57 66.4) rotate(-22) scale(1.25)">` +
+      k.cast([glass, lip, cork], 0, 3) +
       k.draw([
-        { d: glass, fill: P.sky1, inner: `<path d="${scroll}" fill="${P.paper}" stroke="${P.ink}" stroke-width=".4"/><path d="M-8 -4.2V4.2M-6.4 -4.2V4.2" stroke="${P.red}" stroke-width=".9"/>` + `<path d="${ellipse(-18, 0, 1.2, 4.2)}" fill="${P.goldL}" stroke="${P.ink}" stroke-width=".35"/>` + hair(-14, -2.4, -6, -3, 2, -2.4, 0.4, P.brown) + k.sh(glass, 0, 0, 0, 1, 0, 0.7, P.blue, 0.4) + `<path d="M-20 -5.4H8" stroke="#fff" stroke-width="1.2" stroke-linecap="round" opacity=".85"/>` },
+        {
+          d: glass, fill: P.sky1,
+          inner:
+            `<path d="${scroll}" fill="${P.paper}" stroke="${P.ink}" stroke-width=".4"/>` + k.sh(scroll, 0, 0, 0, 1, 0, 0.7, P.brown, 0.3) +
+            hair(-15, -2.6, -7, -3.2, 1, -2.6, 0.35, P.brown) + hair(-15, 2.4, -7, 1.8, 1, 2.4, 0.35, P.brown) +
+            `<path d="M-8 -4.4V4.4M-6.4 -4.4V4.4" stroke="${P.red}" stroke-width=".9"/><circle cx="-7.2" cy="0" r="1.4" fill="${P.red}" stroke="${P.wine}" stroke-width=".35"/>` +
+            `<path d="${ellipse(-18, 0, 1.3, 4.4)}" fill="${P.goldL}" stroke="${P.ink}" stroke-width=".35"/><path d="M-18 -2.4Q-17 0 -18 2.4" fill="none" stroke="${P.brown}" stroke-width=".3"/>` +
+            k.sh(glass, 0, 0, 0, 1, 0, 0.7, P.blue, 0.4) + `<path d="M-20 -5.6H8" stroke="#fff" stroke-width="1.2" stroke-linecap="round" opacity=".9"/><path d="M-21.4 -3V2" stroke="#fff" stroke-width=".7" stroke-linecap="round" opacity=".7"/>` +
+            hair(-20, 6.2, -6, 7, 8, 5.4, 0.5, P.mid),
+        },
         { d: lip, fill: P.sky1, inner: k.sh(lip, 0, 0, 0, 1, 0, 0.7, P.blue, 0.4) },
-        { d: cork, fill: P.brown, inner: k.sh(cork, 0, 0, 0, 1, 0, 0.9, P.brownD, 0.4) + `<circle cx="27" cy="-1" r=".4" fill="${P.brownD}"/><circle cx="28.6" cy="1" r=".4" fill="${P.brownD}"/>` },
-      ], 0.7) +
+        { d: cork, fill: P.brown, inner: k.sh(cork, 0, 0, 0, 1, 0, 0.9, P.brownD, 0.4) + `<circle cx="27" cy="-1" r=".4" fill="${P.brownD}"/><circle cx="28.6" cy="1" r=".4" fill="${P.brownD}"/><circle cx="26" cy="1.4" r=".3" fill="${P.brownD}"/>` },
+      ], 0.55) +
+      `<path d="M16.4 -3.6C16 -1 16 1 16.4 3.6M18.4 -3.4C18 -1 18 1 18.4 3.4" fill="none" stroke="${P.brownD}" stroke-width="1"/><path d="M18.4 3.4C19.4 6 18 8.6 16.4 9.6" fill="none" stroke="${P.brownD}" stroke-width=".8" stroke-linecap="round"/>` +
+      `<path d="M14 -1.8Q17 -2.6 21 -2.2" fill="none" stroke="#fff" stroke-width=".6" stroke-linecap="round"/>` +
       `</g>` +
-      `<path d="${sea(72, 1.6, 5, -2, 122)}" fill="${P.sky}" opacity=".7"/>` + crests(72, 1.6, 5, -2, 122) +
-      `<path d="${ellipse(58, 73.4, 20, 2.6)}" fill="none" stroke="${P.white}" stroke-width=".6" stroke-dasharray="3 2.4"/>` +
-      hair(28, 84, 33, 83, 38, 84, 0.5, P.white) + hair(44, 92, 52, 91, 60, 92, 0.5, P.white) +
-      sparkle(32, 54, 1.6) +
+      water(k, 74.6, 1.8, 5, P.sky, P.mid, P.white, 0.72, -2, 122) +
+      `<path d="${ellipse(57, 76, 25, 2.8)}" fill="none" stroke="${P.white}" stroke-width=".7" stroke-dasharray="3 2.4"/>` +
+      swell(24, 100, 82, 3, 5.4) +
+      sparkle(86, 40, 2.4) + sparkle(32, 46, 1.6) +
       k.defs()
     )
   },
 
-  // Treinta y cinco ceros: el barco fantasma; estás, pero se te ve la luna a través de las velas.
+  // Treinta y cinco ceros: el barco fantasma; estás, pero la luna se ve a través de las velas rotas.
   'Barco fantasma': (u) => {
     const k = kit(u)
-    const moon = ellipse(62, 46, 21, 21)
+    const moon = ellipse(62, 44, 23, 23)
     return (
       k.night() +
-      [[28, 40], [92, 34], [30, 66], [96, 62], [40, 26], [84, 22]].map(([x, y], i) => `<circle cx="${x}" cy="${y}" r="${i % 2 ? 0.5 : 0.7}" fill="${P.paper}"/>`).join('') +
+      stars([[28, 40], [92, 30], [30, 66], [96, 62], [40, 24], [84, 20], [24, 52]]) +
       `<path d="${moon}" fill="${P.paper}"/>` + k.shade(moon, k.rad(P.goldL, 0.4, 0.4, 0.7, 0, 0.8), P.goldL, 0.3) +
-      k.shade(ellipse(60, 62, 40, 30), k.rad(P.sky1, 0.5, 0.5, 0.5, 0.5, 0), P.sky1, 0.3) +
-      `<path d="${sea(84, 2.6, 5)}" fill="${P.mid}"/>` + k.sh(sea(84, 2.6, 5), 0, 0, 0, 1, 0, 0.95, P.night, 0.5) + crests(84, 2.6, 5, -4, 124, P.sky2, 0.5) +
-      `<g transform="translate(62 78) scale(.86)" opacity=".9">${ship(k, true)}</g>` +
-      k.shade('M10 76C30 72 50 80 70 76C86 73 100 78 112 76V90H10Z', k.lin(P.white, 0, 0, 0, 1, 0.65, 0.1), P.white, 0.4) +
-      hair(40, 92, 52, 90.6, 64, 92, 0.6, P.sky2) + hair(58, 96, 68, 94.8, 78, 96, 0.5, P.sky2) +
-      sparkle(90, 48, 2.2, P.paper) + sparkle(30, 52, 1.4, P.paper) +
+      `<path d="${ellipse(62, 44, 25.4, 25.4)}" fill="none" stroke="${P.goldL}" stroke-width=".5" stroke-dasharray=".01 1.6" stroke-linecap="round"/>` +
+      k.shade(ellipse(60, 62, 44, 34), k.rad(P.sky1, 0.5, 0.5, 0.5, 0.5, 0), P.sky1, 0.3) +
+      water(k, 85, 2.6, 5, P.mid, P.night, P.sky2) +
+      [44, 56, 68, 80].map((x, i) => hair(x, 89 + (i % 2) * 2, x + 1, 95, x - 0.6, 101, 0.8, P.sky2, 0.6)).join('') +
+      `<g transform="translate(64 78.6) scale(.95)" opacity=".9">${ship(k, true)}</g>` +
+      k.shade('M10 79C30 75 50 83 70 79C86 76 100 81 112 79V93H10Z', k.lin(P.white, 0, 0, 0, 1, 0.6, 0.05), P.white, 0.35) +
+      hair(24, 81, 38, 78.4, 52, 81, 0.7, P.white, 0.8) + hair(68, 82, 82, 79.6, 96, 82, 0.7, P.white, 0.8) +
+      swell(26, 100, 95, 2, 4.4, P.sky2, 0.45) +
+      sparkle(92, 48, 2.2, P.paper) + sparkle(28, 30, 1.5, P.paper) +
       k.defs()
     )
   },
@@ -477,35 +594,42 @@ export const SKULLKING_NUEVAS_ART: Record<string, (u: number) => string> = {
   // Seis rondas: con el catalejo ves venir la baza desde el horizonte (el barco lleva una carta de vela).
   'Catalejo': (u) => {
     const k = kit(u)
-    const brass = (d: string) => ({ d, fill: P.gold, inner: k.sh(d, 0, 0, 0, 1, 0, 0.95, P.goldD, 0.45) + `<path d="M-40 -10H40V-2H-40Z" fill="${k.lin('#ffffff', 0, 0, 0, 1, 0.55, 0)}"/>` })
-    const ring = (x: number, r: number) => brass(roundRect(f(x - 1.2), -r, f(x + 1.2), r, 0.6))
-    const leather = roundRect(-21, -6.4, -1, 6.4, 0.8)
-    const lens = ellipse(-27.4, 0, 2.2, 6.6)
+    const brass = (d: string) => ({ d, fill: P.gold, inner: k.sh(d, 0, 0, 0, 1, 0, 0.95, P.goldD, 0.45) + `<path d="M-40 -10H40V-2.4H-40Z" fill="${k.lin('#ffffff', 0, 0, 0, 1, 0.6, 0)}"/>` })
+    const ring = (x: number, r: number) => brass(roundRect(f(x - 1.3), -r, f(x + 1.3), r, 0.6))
+    const leather = roundRect(-20.4, -6.6, -1.2, 6.6, 0.8)
+    const lens = ellipse(-27.6, 0, 2.4, 7)
     const boat = 'M-7 0H7L5 3.6H-5Z'
+    const horizon = 58
     return (
       k.day() +
-      `<path d="M-4 64H124V130H-4Z" fill="${P.sky}"/>` + k.sh('M-4 64H124V130H-4Z', 0, 0, 0, 1, 0, 0.9, P.mid, 0.45) +
-      `<path d="M-4 64H124" stroke="${P.ink}" stroke-width=".5"/>` +
-      hair(48, 70, 56, 69, 64, 70, 0.5, P.white) + hair(30, 78, 38, 77, 46, 78, 0.5, P.white) + hair(70, 76, 78, 75, 86, 76, 0.5, P.white) +
-      `<g transform="translate(36 63.6) scale(.9)">` +
-      k.draw([{ d: boat, fill: P.brown }], 0.4) + `<path d="M0 0V-12" stroke="${P.ink}" stroke-width=".6"/>` +
-      `<g transform="translate(-.4 -.4) rotate(4)">` + `<path d="${roundRect(-4.4, -12.6, 4.4, -1.6, 0.9)}" fill="${P.white}" stroke="${P.ink}" stroke-width=".45"/>` +
-      `<path d="M0 -5.4C-2.4 -7 -2.3 -9.2 -1 -9.3C-.4 -9.3 -.1 -9 0 -8.5C.1 -9 .4 -9.3 1 -9.3C2.3 -9.2 2.4 -7 0 -5.4Z" fill="${P.red}"/></g>` +
+      k.clip(`M0 0H120V${horizon}H0Z`, k.sun(36, horizon, 9, 40, 24, false)) +
+      `<path d="${ellipse(36, horizon, 8.4, 8.4)}" fill="${P.gold}" stroke="${P.ink}" stroke-width=".6"/>` + k.clip(ellipse(36, horizon, 8.4, 8.4), k.sh(ellipse(36, horizon, 8.4, 8.4), 0, 0, 1, 1, 0, 1, P.goldD, 0.4)) +
+      `<path d="M-4 ${horizon}H124V130H-4Z" fill="${P.sky}"/>` + k.sh(`M-4 ${horizon}H124V130H-4Z`, 0, 0, 0, 1, 0, 0.9, P.mid, 0.45) +
+      k.shade(`M30 ${horizon}H42L48 96H24Z`, k.lin(P.goldL, 0, 0, 0, 1, 0.8, 0), P.goldL, 0.45) +
+      `<path d="M-4 ${horizon}H124" stroke="${P.ink}" stroke-width=".55"/>` +
+      swell(20, 104, 64, 5, 6, P.white, 0.5) +
+      `<g transform="translate(36 ${horizon - 0.6}) scale(.95)">` +
+      k.draw([{ d: boat, fill: P.brown }], 0.4) + `<path d="M0 0V-13" stroke="${P.ink}" stroke-width=".7"/>` +
+      `<g transform="rotate(4 0 -7)">` + `<path d="${roundRect(-4.6, -13.2, 4.6, -1.8, 0.9)}" fill="${P.white}" stroke="${P.ink}" stroke-width=".5"/>` +
+      `<path d="M0 -5.6C-2.6 -7.2 -2.5 -9.6 -1.1 -9.7C-.4 -9.7 -.1 -9.4 0 -8.9C.1 -9.4 .4 -9.7 1.1 -9.7C2.5 -9.6 2.6 -7.2 0 -5.6Z" fill="${P.red}"/>` +
+      `<text x="-3.1" y="-10.4" ${GEORGIA} font-weight="700" font-size="2.6" fill="${P.red}" text-anchor="middle">A</text></g>` +
+      `<path d="M0 -13L3 -14.2L0 -15.2" fill="${P.red}" stroke="${P.ink}" stroke-width=".3"/>` +
       `</g>` +
-      `<g transform="translate(66 68) rotate(36)">` +
-      k.cast([roundRect(-28, -7.2, 28, 7.2, 2)], 0, 4.6) +
+      `<g transform="translate(70 76) rotate(33)">` +
+      k.cast([roundRect(-28, -7.6, 28, 7.6, 2)], 0, 4.6) +
       k.draw([
-        brass(roundRect(23, -2.6, 28.4, 2.6, 0.8)),
-        brass(roundRect(12.4, -3.6, 23.6, 3.6, 0.6)),
-        brass(roundRect(-1.6, -4.8, 13, 4.8, 0.6)),
-        { d: leather, fill: P.brown, inner: k.sh(leather, 0, 0, 0, 1, 0, 0.95, P.brownD, 0.45) + `<path d="M-21 -3.6H-1" stroke="${P.goldL}" stroke-width=".8" opacity=".45"/>` + [-17, -13, -9, -5].map((x) => `<path d="M${x} -6.4L${x + 2} 6.4" stroke="${P.brownD}" stroke-width=".5"/>`).join('') },
-        brass(roundRect(-28, -7.2, -20.6, 7.2, 1)),
-        ring(-1.4, 5.4), ring(12.6, 4.4), ring(23, 3.2),
+        brass(roundRect(23, -2.8, 28.6, 2.8, 0.8)),
+        brass(roundRect(12.4, -3.8, 23.6, 3.8, 0.6)),
+        brass(roundRect(-1.6, -5, 13, 5, 0.6)),
+        { d: leather, fill: P.brown, inner: k.sh(leather, 0, 0, 0, 1, 0, 0.95, P.brownD, 0.45) + `<path d="M-20 -4H-1.6" stroke="${P.goldL}" stroke-width=".8" opacity=".45"/>` + [-17, -13, -9, -5].map((x) => `<path d="M${x} -6.6L${x + 2} 6.6" stroke="${P.brownD}" stroke-width=".5"/>`).join('') + `<path d="M-20 4.8H-1.6" stroke="${P.goldL}" stroke-width=".4" stroke-dasharray=".8 .8" opacity=".7"/>` },
+        brass(roundRect(-28.4, -7.6, -20.2, 7.6, 1)),
+        ring(-1.4, 5.6), ring(12.6, 4.6), ring(23, 3.4), ring(27.6, 3.2),
       ], 0.6) +
-      `<path d="${lens}" fill="${P.sky}" stroke="${P.ink}" stroke-width=".55"/>` + `<path d="M-27.4 -4.6Q-26.2 -2 -27 1" fill="none" stroke="#fff" stroke-width=".7" stroke-linecap="round"/>` +
+      `<path d="M8 -3.6H11.4M17 -2.6H21" stroke="#fff" stroke-width=".6" stroke-linecap="round" opacity=".8"/>` +
+      hair(-27, -5.6, -24, -6.4, -21, -5.6, 0.5, '#fff') +
+      `<path d="${lens}" fill="${P.sky}" stroke="${P.ink}" stroke-width=".6"/>` + `<path d="${ellipse(-27.6, 0, 1.5, 5)}" fill="${P.sky2}"/>` + `<path d="M-27.6 -4.6Q-26.4 -2 -27.2 1" fill="none" stroke="#fff" stroke-width=".8" stroke-linecap="round"/>` +
       `</g>` +
-      `<path d="M41 52L37.6 56" stroke="${P.ink}" stroke-width=".4" stroke-dasharray=".8 1.2"/>` +
-      sparkle(41.6, 49, 2.6) + sparkle(88, 36, 1.6) +
+      sparkle(46.6, 52, 2.6) + sparkle(88, 34, 1.8) +
       k.defs()
     )
   },
@@ -513,49 +637,58 @@ export const SKULLKING_NUEVAS_ART: Record<string, (u: number) => string> = {
   // Ocho rondas: la daga clavada justo en la cruz del mapa.
   'Mapa del tesoro': (u) => {
     const k = kit(u)
-    const sheet = 'M37 38.4C48 37.2 72 37.2 83 38.4V81.6C72 82.8 48 82.8 37 81.6Z'
-    const rollL = roundRect(32.6, 36, 39.4, 84, 3.4), rollR = roundRect(80.6, 36, 87.4, 84, 3.4)
-    const island = 'M48 66C46 60 50 54 56 53C60 50 66 50 70 53C76 54 78 60 76 65C78 70 72 75 66 73C62 76 54 76 52 72C47 72 46 69 48 66Z'
-    const trail = 'M44 76C50 74 50 69 55 68C60 67 60 62 64 60'
-    const rose = starPath(46.6, 47.2, 5.4, 1.2, 4, -90)
-    const blade = 'M-1.5 0L-1.9 -5V-15.6H1.9V-5L1.5 0Z'
-    const guard = roundRect(-5.6, -17.6, 5.6, -15.6, 1)
-    const grip = roundRect(-1.4, -24.8, 1.4, -17.6, 0.8)
-    const pommel = ellipse(0, -26.4, 2, 2)
-    const waves = ([[44, 58], [72, 44], [76, 77], [63, 45]] as Pt[]).map(([x, y]) => `<path d="M${x - 2.4} ${y}q1.2 -1.2 2.4 0t2.4 0" fill="none" stroke="${P.blue}" stroke-width=".45"/>`).join('')
+    const sheet = 'M34 39.4C46 38 74 38 86 39.4V80.6C74 82 46 82 34 80.6Z'
+    const rollL = roundRect(29.4, 37, 36.4, 83, 3.5), rollR = roundRect(83.6, 37, 90.6, 83, 3.5)
+    const island = 'M45 66C43 60 47 53 54 52C58 48.6 66 48.6 70 52C77 53 80 59 77 65C80 71 73 76 66 74C61 77 53 77 50 73C45 73 43 69 45 66Z'
+    const trail = 'M42 76C48 75 49 70 54 69C59 68 59 63 63.4 61.2'
+    const rose = starPath(44, 46.6, 5.6, 1.2, 4, -90)
+    const blade = 'M-1.7 0L-2.1 -6V-18H2.1V-6L1.7 0Z'
+    const guard = 'M-6.6 -20.4C-5 -19.2 5 -19.2 6.6 -20.4L6.2 -18.2C4.6 -17.4 -4.6 -17.4 -6.2 -18.2Z'
+    const grip = roundRect(-1.5, -28.2, 1.5, -19.6, 0.8)
+    const pommel = ellipse(0, -30, 2.3, 2.3)
+    const marks = ([[40, 58], [80, 46], [80, 74], [70, 44], [38, 70]] as Pt[]).map(([x, y]) => `<path d="M${x - 2.4} ${y}q1.2 -1.2 2.4 0t2.4 0" fill="none" stroke="${P.blue}" stroke-width=".45"/>`).join('')
+    const rhumbs = Array.from({ length: 8 }, (_, i) => {
+      const a = (i / 8) * Math.PI * 2
+      return `<path d="M44 46.6L${f(44 + Math.cos(a) * 60)} ${f(46.6 + Math.sin(a) * 60)}" stroke="${P.brown}" stroke-width=".25" opacity=".55"/>`
+    }).join('')
+    const palm = `<path d="M57 60Q57.6 55 56 51" fill="none" stroke="${P.brownD}" stroke-width="1"/>` +
+      ['M56 51C53 49 50 50 49 52', 'M56 51C58.4 48.4 62 48.4 63.4 50.6', 'M56 51C55 48 52.6 46.8 50.6 47.2', 'M56 51C57.6 48 60.4 46.6 62.4 47.4'].map((d) => `<path d="${d}" fill="none" stroke="${P.greenD}" stroke-width="1.2" stroke-linecap="round"/>`).join('')
+    const mount = `<path d="M66 68L69 63L72 68Z" fill="${P.paper}" stroke="${P.ink}" stroke-width=".4"/><path d="M69 63L70.4 68M69 63L71 66" stroke="${P.brown}" stroke-width=".3"/>` +
+      `<path d="M71 69L73.4 65L76 69Z" fill="${P.paper}" stroke="${P.ink}" stroke-width=".4"/>`
     return (
       k.day() +
-      k.stage(60, 60, 33) +
+      k.stage(60, 60, 34) +
       `<g transform="rotate(-6 60 60)">` +
       k.cast([sheet, rollL, rollR], 2, 2.2) +
       k.draw([{
         d: sheet, fill: P.paper,
         inner:
-          k.shade(sheet, k.rad(P.brown, 0.5, 0.5, 0.62, 0, 0.75), P.brown, 0.3) + waves +
-          `<path d="${island}" fill="${P.goldL}" stroke="${P.ink}" stroke-width=".5"/>` + `<path d="${island}" fill="none" stroke="${P.blue}" stroke-width=".4" transform="translate(62 63) scale(1.12) translate(-62 -63)" stroke-dasharray=".8 1"/>` +
-          `<path d="M52 64C54 60 58 58 60 60" fill="none" stroke="${P.green}" stroke-width="1.4" stroke-linecap="round"/>` +
+          rhumbs + k.shade(sheet, k.rad(P.brown, 0.5, 0.5, 0.62, 0, 0.75), P.brown, 0.3) + marks +
+          `<path d="${island}" fill="none" stroke="${P.blue}" stroke-width=".4" transform="translate(61 63) scale(1.13) translate(-61 -63)" stroke-dasharray=".8 1"/>` +
+          `<path d="${island}" fill="${P.goldL}" stroke="${P.ink}" stroke-width=".55"/>` + k.clip(island, k.sh(island, 0, 0, 1, 1, 0, 0.6, P.goldD, 0.3)) +
+          palm + mount +
           `<path d="${trail}" fill="none" stroke="${P.red}" stroke-width=".8" stroke-dasharray="1.4 1.2"/>` +
-          `<path d="${rose}" fill="${P.gold}" stroke="${P.ink}" stroke-width=".35"/><path d="${starPath(46.6, 47.2, 3, 0.8, 4, -45)}" fill="${P.goldD}"/>` +
-          `<text x="46.6" y="40.6" ${GEORGIA} font-weight="700" font-size="3" fill="${P.ink}" text-anchor="middle">N</text>`,
+          `<path d="${rose}" fill="${P.gold}" stroke="${P.ink}" stroke-width=".35"/><path d="${starPath(44, 46.6, 3.2, 0.8, 4, -45)}" fill="${P.goldD}"/><circle cx="44" cy="46.6" r=".7" fill="${P.paper}" stroke="${P.ink}" stroke-width=".25"/>` +
+          `<text x="44" y="39.8" ${GEORGIA} font-weight="700" font-size="3" fill="${P.ink}" text-anchor="middle">N</text>`,
       }], 0.6) +
       k.draw([
-        { d: rollL, fill: P.paper, inner: k.sh(rollL, 0, 0, 1, 0, 0, 0.8, P.brown, 0.4) },
-        { d: rollR, fill: P.paper, inner: k.sh(rollR, 0, 0, 1, 0, 0, 0.8, P.brown, 0.4) },
+        { d: rollL, fill: P.paper, inner: k.sh(rollL, 0, 0, 1, 0, 0, 0.8, P.brown, 0.4) + hair(31, 40, 31.4, 60, 31, 80, 0.4, '#fff') },
+        { d: rollR, fill: P.paper, inner: k.sh(rollR, 0, 0, 1, 0, 0, 0.8, P.brown, 0.4) + hair(85.2, 40, 85.6, 60, 85.2, 80, 0.4, '#fff') },
       ], 0.6) +
-      `<path d="M61.6 57.6L68.4 64.4M68.4 57.6L61.6 64.4" stroke="${P.ink}" stroke-width="2.8" stroke-linecap="round"/><path d="M61.6 57.6L68.4 64.4M68.4 57.6L61.6 64.4" stroke="${P.red}" stroke-width="1.6" stroke-linecap="round"/>` +
+      `<path d="M60.4 57.4L67.6 64.6M67.6 57.4L60.4 64.6" stroke="${P.ink}" stroke-width="3" stroke-linecap="round"/><path d="M60.4 57.4L67.6 64.6M67.6 57.4L60.4 64.6" stroke="${P.red}" stroke-width="1.7" stroke-linecap="round"/>` +
       `</g>` +
-      k.shade('M65 61L72 34L76 35L68 62Z', k.lin(P.ink, 0, 0, 0, 1, 0, 0.5), P.ink, 0.25) +
-      `<g transform="translate(64.6 60.8) rotate(10)">` +
+      k.shade('M64.6 61L74 30L78.6 31.4L67.6 62Z', k.lin(P.ink, 0, 0, 0, 1, 0, 0.5), P.ink, 0.22) +
+      `<g transform="translate(63.4 60.6) rotate(10)">` +
       k.draw([
-        { d: blade, fill: P.white, inner: k.sh(blade, 0, 0, 1, 0, 0, 0.8, P.blue, 0.4) + `<path d="M0 -1V-15" stroke="${P.sky2}" stroke-width=".5"/>` },
-        { d: grip, fill: P.brownD, inner: [-23, -21, -19].map((y) => `<path d="M-1.4 ${y}L1.4 ${y - 1}" stroke="${P.brown}" stroke-width=".5"/>`).join('') },
+        { d: blade, fill: P.white, inner: k.sh(blade, 0, 0, 1, 0, 0, 0.8, P.blue, 0.4) + `<path d="M0 -1V-17" stroke="${P.sky2}" stroke-width=".55"/>` + hair(-1.3, -3, -1.3, -10, -1.3, -17, 0.4, '#fff') },
+        { d: grip, fill: P.brownD, inner: [-26.6, -24.4, -22.2].map((y) => `<path d="M-1.5 ${y}L1.5 ${y - 1.2}" stroke="${P.brown}" stroke-width=".55"/>`).join('') },
         { d: guard, fill: P.gold, inner: k.sh(guard, 0, 0, 1, 1, 0, 0.9, P.goldD, 0.4) },
-        { d: pommel, fill: P.gold, inner: k.sh(pommel, 0, 0, 1, 1, 0, 0.9, P.goldD, 0.4) },
+        { d: pommel, fill: P.gold, inner: k.sh(pommel, 0, 0, 1, 1, 0, 0.9, P.goldD, 0.4) + `<circle cx="-.7" cy="-30.7" r=".55" fill="#fff"/>` },
       ], 0.55) +
-      `<circle cx="0" cy="-16.6" r=".7" fill="${P.red}"/>` +
+      `<circle cx="0" cy="-18.9" r=".8" fill="${P.red}" stroke="${P.ink}" stroke-width=".25"/>` +
       `</g>` +
-      hair(58, 62.4, 60, 62, 61.6, 63, 0.4) + hair(67, 63, 69, 62.6, 71, 63, 0.4) +
-      sparkle(88, 32, 2) + sparkle(30, 86, 1.4) +
+      hair(56.6, 62, 59, 61.4, 61, 62.6, 0.45) + hair(66, 62.8, 68.4, 62.4, 70.6, 63, 0.45) +
+      sparkle(88, 32, 2.2) + sparkle(30, 88, 1.4) +
       k.defs()
     )
   },
@@ -572,26 +705,28 @@ export const SKULLKING_NUEVAS_ART: Record<string, (u: number) => string> = {
     const pileCoins = ([[42, 63, 2.6], [48, 60.4, 2.8], [54.4, 58, 2.8], [61, 57.4, 2.8], [67.4, 58.6, 2.8], [73.6, 60.6, 2.8], [79, 63.4, 2.4], [51, 64.4, 2.6], [64, 63, 2.8], [57.6, 53.8, 2.4], [70.4, 54.6, 2.2], [45.6, 66, 2.2], [76, 66, 2.2]] as const)
       .map(([x, y, r]) => coin(k, x, y, r)).join('')
     const gem = (x: number, y: number, c: string, dk: string, s: number) => `<g transform="translate(${x} ${y}) scale(${s})"><path d="M-3 -1.4L-1.6 -3H1.6L3 -1.4L0 3Z" fill="${c}" stroke="${P.ink}" stroke-width=".45"/><path d="M-3 -1.4H3M-1.6 -3L-.8 -1.4L0 3L.8 -1.4L1.6 -3" fill="none" stroke="${dk}" stroke-width=".3"/><path d="M-1.6 -2.4L-.9 -1.6" stroke="#fff" stroke-width=".4"/></g>`
-    const pearls = along(36, 70, 42, 80, 50, 76.6, [0, 0.12, 0.24, 0.36, 0.48, 0.6, 0.72, 0.84, 1]).map((q) => `<circle cx="${f(q.x)}" cy="${f(q.y)}" r="1.15" fill="${P.white}" stroke="${P.ink}" stroke-width=".35"/>`).join('')
+    const pearls = along(36, 70, 42, 82, 50, 77, [0, 0.12, 0.24, 0.36, 0.48, 0.6, 0.72, 0.84, 1]).map((q) => `<circle cx="${f(q.x)}" cy="${f(q.y)}" r="1.15" fill="${P.white}" stroke="${P.ink}" stroke-width=".35"/>`).join('')
+    const wood = hair(36, 72, 40, 71.4, 42, 72.4, 0.35, P.brownD) + hair(48, 80, 52, 79.4, 54, 80.4, 0.35, P.brownD) + hair(66, 88, 70, 87.4, 74, 88.4, 0.35, P.brownD) + hair(78, 72, 80, 71.6, 84, 72.2, 0.35, P.brownD)
     return (
       k.day() +
-      k.sun(60, 54, 18, 46, 28, false) +
-      k.floor(61, 93.6, 30, 2.8) +
+      k.sun(60, 56, 18, 47, 28, false) +
+      k.floor(61, 94, 31, 3) +
+      `<g transform="translate(60 66) scale(1.06) translate(-60 -66)">` +
       k.draw([{ d: lid, fill: P.brownD, inner: k.sh(lid, 0, 0, 0, 1, 0.2, 0.9, P.night, 0.4) + `<path d="M44 38V63M76 38V63" stroke="${P.gold}" stroke-width="2.6"/><path d="M44 38V63M76 38V63" stroke="${P.goldD}" stroke-width=".5"/>` + `<path d="M39 46C46 41 74 41 81 46" fill="none" stroke="${P.brown}" stroke-width=".6"/>` }], 0.7) +
       k.draw([{ d: pile, fill: P.goldD, inner: k.sh(pile, 0, 0, 1, 1, 0, 0.8, P.brownD, 0.4) }], 0.6) +
-      pileCoins + gem(53, 54.4, P.red, P.wine, 1.1) + gem(74.6, 58.4, P.sky, P.mid, 1) + gem(62.6, 50.6, P.green, P.greenD, 0.9) +
+      pileCoins + gem(53, 54.4, P.red, P.wine, 1.15) + gem(74.6, 58.4, P.sky, P.mid, 1.05) + gem(62.6, 50.6, P.green, P.greenD, 0.95) +
       k.draw([
-        { d: front, fill: P.brown, inner: k.sh(front, 0, 0, 1, 0, 0, 0.9, P.brownD, 0.45) + k.sh('M30 84H90V94H30Z', 0, 0, 0, 1, 0, 0.6, P.brownD, 0.3) + `<path d="M34 76H86M34 84.4H86" stroke="${P.brownD}" stroke-width=".5"/>` + `<path d="${band(44)}${band(76)}" fill="${P.gold}"/>` + `<path d="${band(44)}${band(76)}" fill="none" stroke="${P.goldD}" stroke-width=".5"/>` },
+        { d: front, fill: P.brown, inner: k.sh(front, 0, 0, 1, 0, 0, 0.9, P.brownD, 0.45) + k.sh('M30 84H90V94H30Z', 0, 0, 0, 1, 0, 0.6, P.brownD, 0.3) + `<path d="M34 76H86M34 84.4H86" stroke="${P.brownD}" stroke-width=".5"/>` + wood + `<path d="${band(44)}${band(76)}" fill="${P.gold}"/>` + `<path d="${band(44)}${band(76)}" fill="none" stroke="${P.goldD}" stroke-width=".5"/>` },
         { d: rim, fill: P.gold, inner: k.sh(rim, 0, 0, 1, 1, 0, 0.9, P.goldD, 0.45) + `<path d="M33 64.6H66" stroke="#fff" stroke-width=".7" opacity=".6"/>` },
-        { d: lock, fill: P.gold, inner: k.sh(lock, 0, 0, 1, 1, 0, 0.9, P.goldD, 0.45) },
+        { d: lock, fill: P.gold, inner: k.sh(lock, 0, 0, 1, 1, 0, 0.9, P.goldD, 0.45) + `<path d="M56.4 71H60" stroke="#fff" stroke-width=".6" opacity=".7"/>` },
       ], 0.75) +
       `<path d="M60 72.6C61 72.6 61.6 73.3 61.6 74.1C61.6 74.7 61.3 75.1 60.9 75.4L61.4 78.6H58.6L59.1 75.4C58.7 75.1 58.4 74.7 58.4 74.1C58.4 73.3 59 72.6 60 72.6Z" fill="${P.ink}"/>` +
       [[44, 70], [76, 70], [44, 90.4], [76, 90.4]].map(([x, y]) => `<circle cx="${x}" cy="${y}" r=".6" fill="${P.goldD}"/>`).join('') +
       pearls +
-      coin(k, 30.6, 52, 3, -20, 0.55) + coin(k, 89.6, 48, 3, 24, 0.6) + coin(k, 36.4, 40, 2.6, 30, 0.5) + coin(k, 84.6, 36.4, 2.4, -18, 0.8) +
-      hair(34, 56, 37, 59, 40, 60, 0.5) + hair(86, 52, 83, 56, 80, 57.6, 0.5) +
-      coin(k, 72, 95, 2.8, 0, 0.42) + coin(k, 44, 95.6, 2.6, 0, 0.42) +
-      sparkle(60, 42, 2.4) + sparkle(30, 70, 1.5) +
+      `</g>` +
+      coin(k, 29.4, 52, 3, -20, 0.55) + coin(k, 90.6, 48, 3, 24, 0.6) + coin(k, 35.4, 38.6, 2.6, 30, 0.5) + coin(k, 85.6, 35.6, 2.4, -18, 0.8) +
+      hair(33, 56, 36, 59, 39, 60, 0.5) + hair(87, 52, 84, 56, 81, 57.6, 0.5) + hair(38, 43, 40, 47, 42, 49, 0.45) + hair(83, 40, 81, 44, 79, 46, 0.45) +
+      sparkle(60, 40, 2.4) + sparkle(30, 70, 1.5) + sparkle(92, 66, 1.4) +
       k.defs()
     )
   },
