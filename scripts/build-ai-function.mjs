@@ -1,16 +1,11 @@
-// Copia a la función de Supabase `generate-game` el armado del pedido y el esquema de las fichas,
-// para que el servidor use exactamente el mismo pedido que el modo "copiar y pegar".
-// Correr después de cambiar src/lib/aiPrompt.ts, el esquema o la ficha de ejemplo: npm run build:ai
-import { copyFileSync, readFileSync, writeFileSync } from 'node:fs'
+// Copia a la función de Supabase `generate-game` el armado del pedido (src/lib/aiPrompt.ts),
+// para que el servidor use el mismo pedido que el modo "copiar y pegar".
+// El esquema y el ejemplo van resumidos a mano en supabase/functions/generate-game/sources.ts
+// (más barato por llamada): si cambia el esquema de las fichas, actualizarlo ahí también.
+// Correr después de cambiar src/lib/aiPrompt.ts: npm run build:ai
+import { copyFileSync } from 'node:fs'
 import { join, resolve } from 'node:path'
 
 const root = resolve(import.meta.dirname, '..')
-const dir = join(root, 'supabase/functions/generate-game')
-copyFileSync(join(root, 'src/lib/aiPrompt.ts'), join(dir, 'aiPrompt.ts'))
-const schema = readFileSync(join(root, 'src/lib/games/schema.ts'), 'utf8')
-const example = readFileSync(join(root, 'src/lib/games/catalog/catan.ts'), 'utf8')
-writeFileSync(
-  join(dir, 'sources.ts'),
-  `// Generado por scripts/build-ai-function.mjs: no editar a mano.\nexport const SCHEMA = ${JSON.stringify(schema)}\nexport const EXAMPLE = ${JSON.stringify(example)}\n`,
-)
+copyFileSync(join(root, 'src/lib/aiPrompt.ts'), join(root, 'supabase/functions/generate-game/aiPrompt.ts'))
 console.log('generate-game: listo')

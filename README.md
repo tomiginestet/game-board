@@ -44,8 +44,9 @@ La app funciona offline: todo se guarda en el navegador y, si el dispositivo est
 - `src/lib/aiPrompt.ts` arma el pedido (el mismo para el modo gratis y para la API) con el esquema de las fichas
   (`src/lib/games/schema.ts`) y la ficha del Catán como ejemplo.
 - `supabase/functions/generate-game` llama a la API de Claude. Necesita el secreto `ANTHROPIC_API_KEY`;
-  opcionales: `AI_MODEL`, `AI_MONTHLY_LIMIT_USD` (10) y `AI_DAILY_PER_USER` (10). Después de cambiar el
-  esquema o el pedido: `npm run build:ai` y volver a publicar la función.
+  opcionales: `AI_MODEL`, `AI_MONTHLY_LIMIT_USD` (10) y `AI_DAILY_PER_USER` (10). La función usa una versión
+  resumida del esquema (`sources.ts`, más barata por llamada): si cambia el esquema, actualizarla. Después de
+  cambiar el pedido: `npm run build:ai` y volver a publicar la función.
 
 ## Desarrollo
 
