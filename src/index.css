@@ -1525,6 +1525,23 @@ svg {
   margin: 4px 0 2px;
 }
 
+.ms-share {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 20px;
+  text-align: center;
+}
+
+.ms-share p {
+  margin: 0;
+}
+
+.ms-note {
+  margin: 8px 0 0;
+  text-align: center;
+}
+
 .ms-levels {
   list-style: none;
   margin: 20px 0 0;
@@ -1579,6 +1596,8 @@ svg {
 }
 
 .ms-next {
+  display: flex;
+  gap: 8px;
   position: sticky;
   bottom: 0;
   z-index: 1;
