@@ -16,6 +16,7 @@ import { Link, useNavigate, useParams } from 'react-router-dom'
 import { TeamAvatar } from '../components/Avatar'
 import { GameBadge, sideColor, sideName, sidePlayersOf } from '../components/GameBits'
 import { Medal } from '../components/Medal'
+import { MedalSheet } from '../components/MedalSheet'
 import { Tally } from '../components/Tally'
 import { computeLive, eliminateOf, isDraw, nextTurn, placesFromScores, roundScore, roundsOf, sidesByPlace, targetOf, type LiveState } from '../lib/engine'
 import type { EventDef, GameDef } from '../lib/games/schema'
@@ -795,6 +796,8 @@ function Summary({ play, game, live, players }: { play: Play; game: GameDef; liv
     }
     return out
   }, [data, play, game, players])
+  const [shownUp, setShownUp] = useState<number | null>(null)
+  const shown = shownUp !== null ? ups[shownUp] : undefined
 
   const eventSummary = game.events
     .map((e) => {
@@ -838,7 +841,7 @@ function Summary({ play, game, live, players }: { play: Play; game: GameDef; liv
             <ConfettiIcon className="inline-icon" /> ¡Medallas nuevas!
           </h3>
           {ups.map(({ player, medal }, k) => (
-            <div key={k} className="medal-up">
+            <button key={k} type="button" className="medal-up" aria-haspopup="dialog" onClick={() => setShownUp(k)}>
               <Medal family={medal.family} level={medal.level} size={56} />
               <div>
                 <b>{medal.family.levels[medal.level].name}</b>
@@ -847,8 +850,16 @@ function Summary({ play, game, live, players }: { play: Play; game: GameDef; liv
                 </span>
                 <span className="small">{medal.family.levels[medal.level].description}</span>
               </div>
-            </div>
+            </button>
           ))}
+          {shown && (
+            <MedalSheet
+              family={shown.medal.family}
+              level={shown.medal.level}
+              mine={{ name: shown.player.name, value: shown.medal.value, level: shown.medal.level }}
+              onClose={() => setShownUp(null)}
+            />
+          )}
         </section>
       )}
 
