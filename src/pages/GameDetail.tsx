@@ -1,5 +1,5 @@
-import { ArrowLeftIcon, BookOpenIcon, CopyIcon, PencilSimpleIcon, PlayIcon, SparkleIcon, TrashIcon, TrophyIcon, UsersIcon } from '@phosphor-icons/react'
-import { useMemo } from 'react'
+import { ArrowLeftIcon, ArrowRightIcon, BookOpenIcon, CopyIcon, PencilSimpleIcon, PlayIcon, SparkleIcon, TrashIcon, TrophyIcon, UsersIcon } from '@phosphor-icons/react'
+import { useMemo, useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 import { Avatar, TeamAvatar } from '../components/Avatar'
 import { GameCover } from '../components/GameCover'
@@ -8,6 +8,7 @@ import { LevelIcon } from '../components/icons'
 import { MatchRow } from '../components/MatchRow'
 import { Medal } from '../components/Medal'
 import { confirmAction } from '../lib/feedback'
+import { MedalSheet, type MedalHolder } from '../components/MedalSheet'
 import { isBuiltin, playersLabel, WEIGHT_NAMES } from '../lib/games'
 import { CATEGORIES, CUP_FORMATS, type GameDef, type PlayMode } from '../lib/games/schema'
 import { formatDate, plural, UNKNOWN_PLAYER, useBoard, useGame, useLeaderboard, usePlayerMap } from '../lib/hooks'
@@ -83,17 +84,21 @@ function GameView({ game }: { game: GameDef }) {
   const playCount = useMemo(() => board.views.filter((v) => v.gameId === game.id).length, [board.views, game.id])
   const coop = game.mode === 'coop'
 
-  // Para cada familia de medallas, quién llegó más alto.
+  // Para cada familia de medallas, cómo va cada jugador y quién llegó más alto.
   const leaders = useMemo(() => {
     return gameMedals(game, gameStatsOf(board, '', game.id)).map((fam, k) => {
       let best: { id: string; level: number; value: number } | undefined
+      const all: MedalHolder[] = []
       for (const s of ranking) {
         const m = gameMedals(game, s, ppBoard.stats.get(s.playerId))[k]
+        all.push({ name: players.get(s.playerId)?.name ?? UNKNOWN_PLAYER.name, level: m.level, value: m.value })
         if (m.level >= 0 && (!best || m.level > best.level || (m.level === best.level && m.value > best.value))) best = { id: s.playerId, level: m.level, value: m.value }
       }
-      return { fam, best }
+      return { fam, best, all }
     })
-  }, [game, board, ppBoard, ranking])
+  }, [game, board, ppBoard, ranking, players])
+  const [sheet, setSheet] = useState<{ k: number; level: number } | null>(null)
+  const sheetFam = sheet && leaders[sheet.k]
 
   const recentPlays =
     game.id === 'pingpong'
@@ -203,28 +208,45 @@ function GameView({ game }: { game: GameDef }) {
       )}
 
       <section>
-        <h2>Medallas de {game.name}</h2>
-        <div className="award-list">
-          {leaders.map(({ fam, best }) => (
-            <div key={fam.family.id + fam.family.name} className="card award-row">
-              <div className="award-medals">
-                {fam.family.levels.slice(0, 3).map((_, i) => (
-                  <Medal key={i} family={fam.family} level={i} size={44} />
-                ))}
-              </div>
-              <div className="grow">
-                <b>{fam.family.name}</b>
-                <span className="muted small block">{fam.family.measures}</span>
-                <span className="small block">{fam.family.levels.map((l) => l.name).join(' · ')}</span>
-                {best && (
-                  <span className="small block award-leader">
-                    👑 {players.get(best.id)?.name}: {fam.family.levels[best.level].name}
-                  </span>
-                )}
-              </div>
-            </div>
-          ))}
+        <div className="section-head">
+          <h2>Medallas de {game.name}</h2>
+          <Link to={`/medallas?juego=${game.id}`}>
+            Vitrina <ArrowRightIcon className="inline-icon" size="1em" />
+          </Link>
         </div>
+        <p className="muted small">Tocá una medalla para verla en grande y saber cómo se gana.</p>
+        <div className="award-list">
+          {leaders.map(({ fam, best }, k) => {
+            const extra = fam.family.levels.length - 3
+            return (
+              <div key={fam.family.id + fam.family.name} className="card award-row">
+                <div className="award-medals">
+                  {fam.family.levels.slice(0, 3).map((l, i) => (
+                    <button key={i} type="button" className="medal-btn" aria-haspopup="dialog" aria-label={`Ver ${l.name}`} onClick={() => setSheet({ k, level: i })}>
+                      <Medal family={fam.family} level={i} size={44} />
+                    </button>
+                  ))}
+                  {extra > 0 && (
+                    <button type="button" className="award-more" aria-label={`Ver ${plural(extra, 'nivel más', 'niveles más')}`} onClick={() => setSheet({ k, level: 3 })}>
+                      +{extra}
+                    </button>
+                  )}
+                </div>
+                <button type="button" className="grow award-info" aria-haspopup="dialog" onClick={() => setSheet({ k, level: best ? Math.min(best.level + 1, fam.family.levels.length - 1) : 0 })}>
+                  <b>{fam.family.name}</b>
+                  <span className="muted small block">{fam.family.measures}</span>
+                  <span className="small block">{fam.family.levels.map((l) => l.name).join(' · ')}</span>
+                  {best && (
+                    <span className="small block award-leader">
+                      👑 {players.get(best.id)?.name}: {fam.family.levels[best.level].name}
+                    </span>
+                  )}
+                </button>
+              </div>
+            )
+          })}
+        </div>
+        {sheet && sheetFam && <MedalSheet family={sheetFam.fam.family} level={sheet.level} others={sheetFam.all} onClose={() => setSheet(null)} />}
       </section>
 
       {game.rules.length > 0 && (

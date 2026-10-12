@@ -30,6 +30,7 @@ const NewMatch = page(() => import('./pages/pingpong/NewMatch'), 'NewMatch')
 const NewTournament = page(() => import('./pages/pingpong/NewTournament'), 'NewTournament')
 const TournamentDetail = page(() => import('./pages/pingpong/TournamentDetail'), 'TournamentDetail')
 const PlayerDetail = page(() => import('./pages/PlayerDetail'), 'PlayerDetail')
+const Medals = page(() => import('./pages/Medals'), 'Medals')
 const Players = page(() => import('./pages/Players'), 'Players')
 const PlayScreen = page(() => import('./pages/PlayScreen'), 'PlayScreen')
 const Ranking = page(() => import('./pages/Ranking'), 'Ranking')
@@ -153,6 +154,7 @@ export default function App() {
               <Route path="/torneos/nuevo" element={<NewCup />} />
               <Route path="/torneos/:id" element={<CupDetail />} />
               <Route path="/ranking" element={<Ranking />} />
+              <Route path="/medallas" element={<Medals />} />
               <Route path="/jugadores" element={<Players />} />
               <Route path="/jugadores/:id" element={<PlayerDetail />} />
               <Route path="/historial" element={<History />} />

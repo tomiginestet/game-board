@@ -9,6 +9,7 @@ import { GameBadge, PlayRow } from '../components/GameBits'
 import { PlaceMedal } from '../components/icons'
 import { Logo } from '../components/Logo'
 import { MatchRow } from '../components/MatchRow'
+import { NextMedals } from '../components/NextMedals'
 import { cupChampion } from '../lib/cups'
 import { FEATURED, findGame, HERO, pickGames } from '../lib/games'
 import type { Category, GameDef } from '../lib/games/schema'
@@ -266,6 +267,8 @@ export function Home() {
           </div>
         </section>
       )}
+
+      <NextMedals />
 
       {recent.length > 0 ? (
         <section aria-labelledby="recent-title">

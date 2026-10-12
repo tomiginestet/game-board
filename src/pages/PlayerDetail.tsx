@@ -129,7 +129,7 @@ export function PlayerDetail() {
         <Stat label="Racha máx." value={s.bestStreak} />
       </div>
 
-      <MedalsSection title="Medallas generales" list={globalMedals(s)} />
+      <MedalsSection title="Medallas generales" list={globalMedals(s)} playerName={player.name} />
 
       {perGame.length > 0 && (
         <section>
@@ -172,7 +172,7 @@ export function PlayerDetail() {
               {gs.eloHistory.length > 2 && <Sparkline values={gs.eloHistory} />}
             </div>
           )}
-          {gs && game && <MedalsSection title={`Medallas de ${game.name}`} list={gameMedals(game, gs, ppBoard.stats.get(player.id))} />}
+          {gs && game && <MedalsSection title={`Medallas de ${game.name}`} list={gameMedals(game, gs, ppBoard.stats.get(player.id))} playerName={player.name} />}
         </section>
       )}
 
