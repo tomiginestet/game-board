@@ -1,208 +1,136 @@
-// Ilustraciones redibujadas como pines de esmalte (ver docs/medallas-filosofia.md y las reglas en kit.ts).
+// Ilustraciones redibujadas con el kit nuevo: sin contornos, con luz y volumen suaves (ver kit.ts).
 import { f } from './helpers'
-import { ellipse, ENAMEL as E, MEEPLE, pin, starPath, type Pin } from './kit'
+import { ellipse, kit, starPath, taper, type Kit } from './kit'
 
-/** Carta parada con la base en (0,0): marfil con el palo en esmalte y la letra en metal. */
-const card = (p: Pin, x: number, y: number, rot: number, suit: 'h' | 's') =>
-  `<g transform="translate(${x} ${y}) rotate(${rot})">` +
-  p.cell('M-6.4 -18.6H6.4Q7.6 -18.6 7.6 -17.4V-1.2Q7.6 0 6.4 0H-6.4Q-7.6 0 -7.6 -1.2V-17.4Q-7.6 -18.6 -6.4 -18.6Z', E.white, 1) +
-  p.cell(
-    suit === 'h'
-      ? 'M0 -4.2C-4.6 -7.4 -4.4 -11.6 -1.9 -11.6C-.9 -11.6 -.2 -11 0 -10.2C.2 -11 .9 -11.6 1.9 -11.6C4.4 -11.6 4.6 -7.4 0 -4.2Z'
-      : 'M0 -12.2C-3.4 -9.4 -4.6 -8.2 -4.2 -6.6C-3.8 -5 -1.8 -5 -.8 -6.2L-1.6 -4.2H1.6L.8 -6.2C1.8 -5 3.8 -5 4.2 -6.6C4.6 -8.2 3.4 -9.4 0 -12.2Z',
-    suit === 'h' ? E.crimson : E.charcoal,
-    0.7,
-  ) +
-  `<text x="-4.2" y="-12.4" font-family="Georgia, serif" font-weight="700" font-size="5.6" fill="${p.metal}" stroke="${p.dark}" stroke-width=".25" text-anchor="middle">A</text>` +
-  `</g>`
+/** Destello de cuatro puntas. */
+const sparkle = (x: number, y: number, r: number, a = 0.9) => `<path d="${starPath(x, y, r, r * 0.22, 4)}" fill="#fff" opacity="${a}"/>`
+
+/** Dado en perspectiva con la arista del frente arriba en (x,y) y lado s. */
+function die(x: number, y: number, s: number, rot: number) {
+  const k = s * 0.87, h = s / 2
+  const face = (o: [number, number], a: [number, number], b: [number, number], pips: [number, number][]) =>
+    `<g transform="matrix(${f(a[0])} ${f(a[1])} ${f(b[0])} ${f(b[1])} ${f(o[0])} ${f(o[1])})">${pips.map(([p, q]) => `<circle cx="${p}" cy="${q}" r=".095" fill="#1E2433"/>`).join('')}</g>`
+  return (
+    `<g transform="rotate(${rot} ${x} ${y})">` +
+    `<path d="M${x} ${f(y - s)}L${f(x + k)} ${f(y - h)}L${x} ${y}L${f(x - k)} ${f(y - h)}Z" fill="#FFFFFF"/>` +
+    `<path d="M${f(x - k)} ${f(y - h)}L${x} ${y}L${x} ${f(y + s)}L${f(x - k)} ${f(y + h)}Z" fill="#E3E9F1"/>` +
+    `<path d="M${x} ${y}L${f(x + k)} ${f(y - h)}L${f(x + k)} ${f(y + h)}L${x} ${f(y + s)}Z" fill="#BCC7D6"/>` +
+    face([x - k, y - h], [k, -h], [k, h], [[0.25, 0.25], [0.75, 0.25], [0.5, 0.5], [0.25, 0.75], [0.75, 0.75]]) +
+    face([x - k, y - h], [k, h], [0, s], [[0.25, 0.25], [0.5, 0.5], [0.75, 0.75]]) +
+    face([x, y], [k, -h], [0, s], [[0.3, 0.3], [0.7, 0.7]]) +
+    `</g>`
+  )
+}
+
+/** Aro dorado (aureolas) con su brillo. */
+const halo = (k: Kit, cx: number, cy: number, rx: number, ry: number, t: number) =>
+  k.glow(cx, cy, rx * 1.5, '#FFE08A', 0.5) +
+  `<path d="${ellipse(cx, cy, rx, ry)} ${ellipse(cx, cy + t * 0.18, rx - t, ry - t * 0.55)}" fill-rule="evenodd" fill="${k.lin([[0, '#FFF4C8'], [0.45, '#F4C24E'], [1, '#B47A16']])}"/>` +
+  `<ellipse cx="${f(cx - rx * 0.45)}" cy="${f(cy - ry * 0.72)}" rx="${f(rx * 0.26)}" ry=".55" fill="#fff" opacity=".85"/>`
 
 export const NUEVAS_ART: Record<string, (u: number) => string> = {
-  // La primera victoria: un meeple en lo alto del podio, bajo un sol de rayos y cuatro estrellas.
-  'Primera ficha': (u) => {
-    const p = pin(u)
-    const wedges = Array.from({ length: 8 }, (_, i) => {
-      const a = ((i * 45 - 90) * Math.PI) / 180, d = (11.25 * Math.PI) / 180
-      return p.cell(`M60 50L${f(60 + 90 * Math.cos(a - d))} ${f(50 + 90 * Math.sin(a - d))}L${f(60 + 90 * Math.cos(a + d))} ${f(50 + 90 * Math.sin(a + d))}Z`, E.navy, 0.8)
-    }).join('')
-    const s = 0.95, w = f(1.4 / s)
-    const figure =
-      `<g transform="translate(60 48.4) scale(${s})">` +
-      p.cell(MEEPLE, E.mustard, w) +
-      p.cell('M-6.4 -18.8C-6.4 -22.4 -3.8 -24.6 -1 -24.6C-3.4 -23.2 -4.8 -21.4 -5 -18.4Z', E.ivory, 0.9) +
-      p.cell('M-4.8 -10.4H-1.8L0 -5.8L1.8 -10.4H4.8L1.3 -2.4H-1.3Z', E.crimson, 1) +
-      p.solid(ellipse(0, -.6, 3.4, 3.4)) +
-      p.solid(starPath(0, -.5, 1.9, .85, 5)) +
-      `</g>`
-    return (
-      `<rect x="0" y="0" width="120" height="130" fill="${E.cobalt}"/>` +
-      wedges +
-      p.guil('M0 0H120V130H0Z') +
-      p.star(34, 46, 3) + p.star(86, 46, 3) + p.star(41, 33, 2.1) + p.star(79, 33, 2.1) +
-      p.cell('M41 79H79V108H41Z', E.ivory) +
-      p.cell('M38 73.4H82Q83.6 73.4 83.6 75V77.5Q83.6 79.1 82 79.1H38Q36.4 79.1 36.4 77.5V75Q36.4 73.4 38 73.4Z', E.crimson) +
-      p.solid('M56.4 86.6L61.8 83.4H63.6V97.8H66.2V100.4H55.8V97.8H58.6V87.4L56.4 88.6Z') +
-      figure
-    )
-  },
-
-  // Diez ganadas: la cámara de turista sale volando; queda el mate, con su virola de plata y su guarda.
-  'Ya no sos turista': (u) => {
-    const p = pin(u)
-    const rays = Array.from({ length: 16 }, (_, i) => {
-      const a = ((i * 22.5 - 90) * Math.PI) / 180, d = (4.2 * Math.PI) / 180, R = i % 2 ? 21.5 : 25
-      return p.solid(`M${f(60 + 16.5 * Math.cos(a - d))} ${f(44 + 16.5 * Math.sin(a - d))}L${f(60 + R * Math.cos(a))} ${f(44 + R * Math.sin(a))}L${f(60 + 16.5 * Math.cos(a + d))} ${f(44 + 16.5 * Math.sin(a + d))}Z`)
-    }).join('')
-    const gourd = 'M47 62C42.5 67.5 41 76 44 83.5C47 90.5 53 94 60 94C67 94 73 90.5 76 83.5C79 76 77.5 67.5 73 62Z'
-    const gc = p.id('gc')
-    const band =
-      `<clipPath id="${gc}"><path d="${gourd}"/></clipPath><g clip-path="url(#${gc})">` +
-      `<path d="M38 72.6Q60 76.4 82 72.6V80.2Q60 84 38 80.2Z" fill="${E.charcoal}"/>` +
-      [44, 50.5, 57, 63.5, 70, 76.5].map((x) => {
-        const y = 76.6 + (1 - ((x - 60) / 22) ** 2) * 1.9
-        return `<path d="M${x} ${f(y - 3)}L${f(x + 2.6)} ${f(y)}L${x} ${f(y + 3)}L${f(x - 2.6)} ${f(y)}Z" fill="${E.ivory}"/><circle cx="${x}" cy="${f(y)}" r=".9" fill="${E.crimson}"/>`
-      }).join('') +
-      `</g>` +
-      p.wire('M43.4 72.7Q60 76.4 76.6 72.7', 1) + p.wire('M43.4 80.3Q60 84 76.7 80.3', 1)
-    const camera =
-      `<g transform="translate(33 61) rotate(-24)">` +
-      p.cell('M-9 -3.6Q-9 -6 -6.6 -6H-4.2L-2.6 -8.4H2.6L4.2 -6H6.6Q9 -6 9 -3.6V4.4Q9 6.6 6.6 6.6H-6.6Q-9 6.6 -9 4.4Z', E.charcoal, 1.1) +
-      p.solid(ellipse(0, .4, 4.4, 4.4)) + p.cell(ellipse(0, .4, 2.7, 2.7), E.navy, 0.7) +
-      `<circle cx="-.9" cy="-.5" r=".8" fill="#fff" opacity=".8"/>` +
-      `</g>` +
-      p.wire('M44 69.4L47.6 71.8', 1) + p.wire('M42.4 74.6L45.4 77.6', 1)
-    return (
-      `<rect x="0" y="0" width="120" height="130" fill="${E.sky}"/>` +
-      p.guil('M0 0H120V130H0Z') +
-      rays +
-      p.cell(ellipse(60, 44, 15, 15), E.mustard) +
-      p.cell(gourd, E.leather) +
-      band +
-      p.solid('M46 62V65.2A14 3.6 0 0 0 74 65.2V62Z') +
-      [48.6, 52.6, 56.6, 60.6, 64.6, 68.6, 72].map((x) => `<circle cx="${x}" cy="${f(64.4 + (1 - ((x - 60) / 14) ** 2) * 2.2)}" r=".55" fill="${p.dark}"/>`).join('') +
-      p.solid(ellipse(60, 62, 14, 3.6)) +
-      p.cell(ellipse(60, 61.8, 11.2, 2.4), E.jade, 0.9) +
-      p.cell('M49.6 61.6Q53.4 56.6 58.4 61.4Z', E.jade, 0.9) +
-      p.solid('M61.4 60.8L63.8 61.2L70.6 25.8L68.2 25.4Z') +
-      p.solid('M68.1 25.6C68 23.4 67 22 65 21.4C64.4 21.2 64 22.4 64.6 22.7C66.2 23.4 66.9 24.4 67 25.6Z') +
-      p.solid(ellipse(65.9, 44.2, 2.6, 1.3)) +
-      camera
-    )
-  },
-
-  // Cien: el capo, de traje cruzado, sombrero y rosa, sobre un damasco bordó.
-  'Capo di tutti capi': (u) => {
-    const p = pin(u)
-    const dm = p.id('dm')
-    const s = 1.02, w = f(1.4 / s)
-    const head =
-      p.cell(ellipse(0, -17, 8.8, 8.8), E.blush, w) +
-      p.wire('M-5 -17.6Q-3.4 -16.4 -1.8 -17.6', 0.9) + p.wire('M1.8 -17.6Q3.4 -16.4 5 -17.6', 0.9) +
-      p.cell('M-5.2 -12.6C-3.6 -14.8 -1 -14.6 0 -13.4C1 -14.6 3.6 -14.8 5.2 -12.6C3.8 -11.4 1.4 -11.8 0 -12.3C-1.4 -11.8 -3.8 -11.4 -5.2 -12.6Z', E.charcoal, 0.8)
-    const hat =
-      p.cell('M-8.2 -22.6C-8.8 -28.6 -6.8 -33.4 -2.8 -33.4C-1 -31.8 1 -31.8 2.8 -33.4C6.8 -33.4 8.8 -28.6 8.2 -22.6Z', E.charcoal, w) +
-      p.cell('M-8.5 -26.6C-3 -25.1 3 -25.1 8.5 -26.6L8.4 -23.4C3 -22.2 -3 -22.2 -8.4 -23.4Z', E.crimson, 0.9) +
-      p.cell('M-14.4 -22.4C-14.4 -25.6 14.4 -25.6 14.4 -22.4C14.4 -20.2 -14.4 -20.2 -14.4 -22.4Z', E.charcoal, w)
-    const suit =
-      `<clipPath id="${dm}c"><path d="${MEEPLE}"/></clipPath><g clip-path="url(#${dm}c)">` +
-      Array.from({ length: 12 }, (_, i) => `<path d="M${-24 + i * 4.4} -10V30" stroke="${E.slate}" stroke-width=".55"/>`).join('') + `</g>` +
-      p.cell('M-5 -10.6L0 -1.2L5 -10.6Z', E.white, 0.9) +
-      p.cell('M-1.3 -9.4H1.3L2.1 -2.6L0 .2L-2.1 -2.6Z', E.crimson, 0.8) +
-      p.wire('M-6.8 -10.4L-1.4 -.4', 1) + p.wire('M6.8 -10.4L1.4 -.4', 1) +
-      p.cell('M-10.6 -5.4L-6.6 -5.4L-8.4 -3.2Z', E.white, 0.7) +
-      p.cell('M8.6 -2.6Q11.6 -3.4 12.4 -.8Q9.6 -.2 8.6 -2.6Z', E.jade, 0.7) +
-      p.cell(ellipse(8.2, -5.2, 2.3, 2.3), E.crimson, 0.8) +
-      p.solid('M21.4 -5.6A2.6 2.6 0 1 1 21.39 -5.6ZM21.4 -4.2A1.2 1.2 0 1 0 21.41 -4.2Z') +
-      p.cell(ellipse(21.4, -6.4, 1.3, 1.3), E.crimson, 0.6)
-    return (
-      `<pattern id="${dm}" width="10" height="10" patternUnits="userSpaceOnUse"><rect width="10" height="10" fill="${E.wine}"/>` +
-      `<path d="M5 1.4L7.6 5L5 8.6L2.4 5Z" fill="none" stroke="${E.crimson}" stroke-width=".8"/><circle cx="0" cy="0" r="1" fill="${E.crimson}"/><circle cx="10" cy="0" r="1" fill="${E.crimson}"/><circle cx="0" cy="10" r="1" fill="${E.crimson}"/><circle cx="10" cy="10" r="1" fill="${E.crimson}"/></pattern>` +
-      `<rect x="0" y="0" width="120" height="130" fill="url(#${dm})"/>` +
-      p.guil('M0 0H120V130H0Z') +
-      p.cell(ellipse(60, 89.4, 24, 4.6), E.crimson, 1.2) +
-      `<g transform="translate(60 62.6) scale(${s})">` + p.cell(MEEPLE, E.charcoal, w) + suit + head + hat + `</g>`
-    )
-  },
-
-  // Quinientas partidas: el lobo viejo, de boina y anteojos, gana con los ojos cerrados bajo la luna llena.
-  'Viejo lobo': (u) => {
-    const p = pin(u)
-    const head =
-      'M60 41C67 41 72.6 44 75.4 49.4L83.6 56L78.6 58.8L86.4 64.8L78.8 67.2L82.4 73.6L72.4 75.4C69.2 82.6 64.8 88.4 60 88.4' +
-      'C55.2 88.4 50.8 82.6 47.6 75.4L37.6 73.6L41.2 67.2L33.6 64.8L41.4 58.8L36.4 56L44.6 49.4C47.4 44 53 41 60 41Z'
-    const mirror = (svg: string) => svg + `<g transform="translate(120 0) scale(-1 1)">${svg}</g>`
-    return (
-      `<rect x="0" y="0" width="120" height="130" fill="${E.midnight}"/>` +
-      p.guil('M0 0H120V130H0Z') +
-      p.star(31, 35, 1.8) + p.star(90, 35, 1.5) + p.star(27, 79, 1.4) +
-      p.cell(ellipse(60, 56, 30, 30), E.ivory) +
-      p.cell(ellipse(37.6, 46, 3.2, 3.2), E.cream, 0.9) + p.cell(ellipse(84.6, 43, 2.4, 2.4), E.cream, 0.9) + p.cell(ellipse(80, 33.6, 1.6, 1.6), E.cream, 0.8) +
-      p.cell('M44 92C52 88.6 68 88.6 76 92L74.8 98.4C66 95.4 54 95.4 45.2 98.4Z', E.crimson, 1.1) +
-      p.cell(head, E.gray) +
-      p.cell('M60 56C63 60 66.4 60.8 70 60C74 62.4 76 66.4 75.2 70.4C72.2 79 66.6 86.6 60 86.6C53.4 86.6 47.8 79 44.8 70.4C44 66.4 46 62.4 50 60C53.6 60.8 57 60 60 56Z', E.white, 1.1) +
-      p.cell('M46.6 44.6C49.6 40.8 70 39.6 74.6 44C76.4 46 74.6 48.8 70.6 49.6C64 50.8 54 50.6 48.6 49.2C46 48.4 45.4 46.2 46.6 44.6Z', E.navy) +
-      p.solid(ellipse(60.6, 40.4, 1.6, 1.6)) +
-      mirror(p.cell('M45.8 50.4L43 29.6L56.6 42.2C52.4 43.6 48.6 46.4 45.8 50.4Z', E.gray) + p.cell('M47.2 45.4L45.4 34.4L53.2 42.2C50.8 43 48.8 44 47.2 45.4Z', E.blush, 0.9)) +
-      mirror(p.cell('M47.4 55.6Q52 51.4 57 54.6Q52.4 54.4 47.4 57.2Z', E.white, 0.8) + p.wire('M49.4 60.2Q52.6 62.4 55.8 60', 1) + p.wire(ellipse(52.6, 60.6, 5.4, 5.4), 0.9)) +
-      p.wire('M58 60Q60 58.8 62 60', 0.9) +
-      p.cell('M56 69.4C56 67.6 64 67.6 64 69.4C64 71.6 61.6 73.4 60 73.4C58.4 73.4 56 71.6 56 69.4Z', E.charcoal, 0.8) +
-      p.wire('M60 73.4V76.2M55.6 77.2Q60 80.2 64.8 76.4', 0.9) +
-      card(p, 82, 87, -14, 's') + card(p, 84, 86.4, 4, 'h') + card(p, 86.4, 86.8, 22, 's')
-    )
-  },
-
-  // Diez seguidas: la camiseta con el 10 y su aureola. El Diego, sin mostrarlo.
+  // Diez seguidas: la camiseta con el 10 y su aureola, en un altar de luz. El Diego, sin mostrarlo.
   'D10S': (u) => {
-    const p = pin(u)
-    const shirt = 'M53 40L43.6 43.4L32.6 52.6L38.8 61.4L44.2 57.6V89C54 91.6 66 91.6 75.8 89V57.6L81.2 61.4L87.4 52.6L76.4 43.4L67 40Q60 47.6 53 40Z'
-    const sc = p.id('sh')
+    const k = kit(u)
+    const shirt =
+      'M53 40.2L44.2 43.2C40 46.4 36 49.6 33.2 52.2C32.6 52.8 32.6 53.6 33 54.2L38.2 60.8C38.6 61.4 39.4 61.4 40 61L44.2 58V88.6' +
+      'C54 91.4 66 91.4 75.8 88.6V58L80 61C80.6 61.4 81.4 61.4 81.8 60.8L87 54.2C87.4 53.6 87.4 52.8 86.8 52.2C84 49.6 80 46.4 75.8 43.2L67 40.2Q60 47.8 53 40.2Z'
+    const ink = '#1B2650'
+    const ten =
+      'M50.4 62.6L55 59.6H57.8V78.4H53.6V64.8L50.4 66.4Z' +
+      'M64.6 59.6C67.8 59.6 69.8 62 69.8 65.2V72.8C69.8 76 67.8 78.4 64.6 78.4C61.4 78.4 59.4 76 59.4 72.8V65.2C59.4 62 61.4 59.6 64.6 59.6Z' +
+      'M64.6 63C63.5 63 62.9 63.8 62.9 65V73C62.9 74.2 63.5 75 64.6 75C65.7 75 66.3 74.2 66.3 73V65C66.3 63.8 65.7 63 64.6 63Z'
     return (
-      `<rect x="0" y="0" width="120" height="130" fill="${E.navy}"/>` +
-      p.cell(ellipse(60, 62, 33, 33), E.cobalt) +
-      `<path d="${shirt}" fill="${E.white}"/>` +
-      `<clipPath id="${sc}"><path d="${shirt}"/></clipPath><g clip-path="url(#${sc})">` +
-      `<path d="M55.4 30H64.6V100H55.4ZM42 30H47.6V100H42ZM72.4 30H78V100H72.4Z" fill="${E.sky}"/>` +
-      p.wire('M55.4 30V100M64.6 30V100M47.6 30V100M72.4 30V100') +
-      `</g>` +
-      p.wire(shirt) +
-      p.cell('M53 40Q60 47.6 67 40L64.8 39.2Q60 44.4 55.2 39.2Z', E.navy, 1) +
-      `<text x="60" y="78.6" font-family="Lilita One, sans-serif" font-size="22" fill="${E.navy}" stroke="${p.metal}" stroke-width="1.2" paint-order="stroke" stroke-linejoin="round" text-anchor="middle">10</text>` +
-      p.ring(60, 30.6, 14.6, 5, 4.2, E.mustard)
+      `<rect width="120" height="130" fill="${k.rad([[0, '#3A6CC4'], [0.55, '#1D3474'], [1, '#0C1433']], 0.5, 0.46, 0.62)}"/>` +
+      k.glow(60, 64, 42, '#BFE0FF', 0.42) +
+      k.shadow(61, 93, 22, 3.2, 0.35) +
+      `<path d="${shirt}" fill="#F6F4EF"/>` +
+      k.clip(
+        shirt,
+        `<path d="M55.4 30H64.6V100H55.4ZM42 30H47.6V100H42ZM72.4 30H78V100H72.4Z" fill="#78B0DE"/>` +
+          `<rect x="30" y="30" width="60" height="70" fill="${k.lin([[0, '#fff', 0.3], [0.45, '#fff', 0], [0.6, ink, 0], [1, ink, 0.3]], 0, 0, 1, 0)}"/>` +
+          `<path d="M44.2 57.6C46.6 60.4 47.6 65 47 71C45.6 66.6 44.8 62.2 44.2 57.6Z" fill="${ink}" opacity=".2"/>` +
+          `<path d="M75.8 57.6C73.4 60.4 72.4 65 73 71C74.4 66.6 75.2 62.2 75.8 57.6Z" fill="${ink}" opacity=".22"/>` +
+          `<path d="M50 60C52 70 51.4 80 50.6 91H53.4C54 80 53.6 70 51.8 60Z" fill="${ink}" opacity=".07"/>` +
+          `<path d="M40 85.6C54 88.8 66 88.8 80 85.6V96H40Z" fill="${ink}" opacity=".14"/>` +
+          `<path d="M53 40.2Q60 50.6 67 40.2Q60 46.6 53 40.2Z" fill="${ink}" opacity=".18"/>`,
+      ) +
+      `<path d="M53 40.2Q60 47.8 67 40.2L64.9 39.4Q60 44.6 55.1 39.4Z" fill="#22306A"/>` +
+      `<path d="M55.1 39.4Q60 44.6 64.9 39.4Q60 41.6 55.1 39.4Z" fill="#0E1533"/>` +
+      `<path d="${ten}" fill-rule="evenodd" fill="${ink}" opacity=".22" transform="translate(.7 .9)"/>` +
+      `<path d="${ten}" fill-rule="evenodd" fill="#22306A"/>` +
+      halo(k, 60, 31, 14, 4.6, 3.6) +
+      sparkle(80, 27, 2.6) + sparkle(38, 36, 1.8, 0.7) +
+      k.grain() + k.defs()
     )
   },
 
   // Veinte seguidas: "¿de qué planeta viniste?". Un barrilete celeste y blanco entre las estrellas.
   'Barrilete cósmico': (u) => {
-    const p = pin(u)
-    const bow = (x: number, y: number, r: number) => p.cell('M-3.6 -2.4L0 0L-3.6 2.4Z', E.mustard, 0.9, `translate(${x} ${y}) rotate(${r})`) + p.cell('M3.6 -2.4L0 0L3.6 2.4Z', E.mustard, 0.9, `translate(${x} ${y}) rotate(${r})`)
+    const k = kit(u)
+    const stars = [[28, 46, 0.7], [41, 27, 0.5], [84, 24, 0.6], [94, 50, 0.5], [73, 92, 0.6], [26, 82, 0.5], [90, 72, 0.8], [47, 64, 0.4], [79, 60, 0.4]]
+      .map(([x, y, r], i) => `<circle cx="${x}" cy="${y}" r="${r}" fill="#fff" opacity="${i % 2 ? 0.55 : 0.9}"/>`).join('')
+    const ringOut = ellipse(33, 67, 13.6, 3.3), ringIn = ellipse(33, 67.2, 10, 1.9)
+    const ring = (half: 'back' | 'front') =>
+      `<g transform="rotate(-16 33 67)">` +
+      k.clip(half === 'back' ? 'M10 50H56V67H10Z' : 'M10 67H56V84H10Z', `<path d="${ringOut} ${ringIn}" fill-rule="evenodd" fill="${k.lin([[0, '#FFE7A8'], [0.5, '#E8A84C'], [1, '#8A5A2B']], 0, 0, 1, 0)}"/>`) +
+      `</g>`
+    const planet = ellipse(33, 67, 7.6, 7.6)
+    const bow = (x: number, y: number, r: number) =>
+      `<path d="M0 0C-2 -2.8 -4.8 -2.6 -4.8 0C-4.8 2.6 -2 2.8 0 0C2 -2.8 4.8 -2.6 4.8 0C4.8 2.6 2 2.8 0 0Z" transform="translate(${x} ${y}) rotate(${r})" fill="${k.lin([[0, '#FFE9A6'], [1, '#E39A2D']])}"/>`
     return (
-      `<rect x="0" y="0" width="120" height="130" fill="${E.midnight}"/>` +
-      p.star(33, 31, 2.3) + p.star(88, 63, 1.9) + p.star(86, 31, 1.4) +
-      p.cell(ellipse(33.4, 66, 6.4, 6.4), E.plum) + `<g transform="rotate(-18 33.4 66)">${p.wire(ellipse(33.4, 66, 11, 2.6), 1)}</g>` +
-      p.wire('M60 80C53 86 51 90 55 94C58.4 97.4 63.6 97.6 66.4 101', 1.1) +
-      bow(53.6, 88.6, -30) + bow(61.4, 96.8, 20) +
-      p.cell('M60 22L39 47H60Z', E.sky) + p.cell('M60 22L81 47H60Z', E.white) +
-      p.cell('M39 47L60 80V47Z', E.white) + p.cell('M81 47L60 80V47Z', E.sky) +
-      p.cell(ellipse(60, 47, 4.4, 4.4), E.mustard, 1)
+      `<rect width="120" height="130" fill="${k.rad([[0, '#4A35A8'], [0.5, '#22175E'], [1, '#0B0822']], 0.38, 0.3, 0.8)}"/>` +
+      k.glow(86, 82, 36, '#FF5FA8', 0.3) + k.glow(30, 32, 30, '#45C8FF', 0.24) +
+      stars + sparkle(88, 36, 3.2) + sparkle(30, 88, 2.2, 0.7) +
+      ring('back') +
+      `<path d="${planet}" fill="${k.rad([[0, '#FFC2DC'], [0.5, '#C05BA8'], [1, '#4B1F6E']], 0.35, 0.3, 0.8)}"/>` +
+      k.clip(planet, `<path d="${ellipse(36.4, 70, 8.4, 8.4)} ${ellipse(31.4, 64.6, 8.6, 8.6)}" fill-rule="evenodd" fill="#1A0B33" opacity=".35"/>`) +
+      ring('front') +
+      k.glow(60, 48, 32, '#9FD8FF', 0.32) +
+      `<path d="${taper(60, 83, 46, 93, 62, 100, 1.9, 0.8)}" fill="#EEF3FA" opacity=".9"/>` +
+      bow(54.4, 91, -24) + bow(57.8, 97, 18) +
+      k.shadow(62, 56, 22, 26, 0.25, '#05030F') +
+      `<path d="M60 20L40 43H60Z" fill="#86BDE8"/><path d="M60 20L80 43H60Z" fill="#F7F8FB"/>` +
+      `<path d="M40 43L60 83V43Z" fill="#FFFFFF"/><path d="M80 43L60 83V43Z" fill="#74ACDF"/>` +
+      `<path d="M60 20L40 43L60 83L80 43Z" fill="${k.lin([[0, '#fff', 0.18], [0.6, '#fff', 0], [1, '#0B1F44', 0.16]], 0, 0, 0.6, 1)}"/>` +
+      k.glow(60, 43, 9, '#FFD873', 0.7) +
+      `<circle cx="60" cy="43" r="4.4" fill="${k.rad([[0, '#FFF3C4'], [0.6, '#F6C04E'], [1, '#C98A1B']], 0.4, 0.35, 0.7)}"/>` +
+      k.grain() + k.defs()
     )
   },
 
-  // Siete generalas servidas: la mano de Dios, con la manga albiceleste, larga el dado.
+  // Siete generalas servidas: la mano de Dios sale de las nubes, con la manga albiceleste, y larga el dado.
   'Mano de Dios': (u) => {
-    const p = pin(u)
+    const k = kit(u)
     const hand =
       'M-8.4 24L-10.6 8C-13.6 4.6 -16.4 -.6 -18.2 -5C-19.4 -8 -16.4 -10 -14.4 -7.8C-12.6 -5.8 -11.4 -3.6 -10.6 -2.4' +
-      'L-11.8 -18.8C-12.2 -22.8 -7 -23.4 -6.8 -19.6L-5.6 -5.2L-5.2 -5.2L-5.2 -22.2C-5.2 -26.4 .2 -26.4 .2 -22.2L-.2 -5.4L.2 -5.4' +
-      'L1.2 -20.4C1.6 -24.2 6.6 -23.8 6.2 -20L4.8 -4.6L5.2 -4.6L7.4 -14.6C8.2 -18 12.4 -17.4 11.8 -14L10.6 2L8.4 24Z'
-    const pips = [[-2.8, -2.8], [2.8, -2.8], [0, 0], [-2.8, 2.8], [2.8, 2.8]].map(([x, y]) => `<circle cx="${x}" cy="${y}" r="1.25" fill="${E.charcoal}"/>`).join('')
+      'L-11.8 -18.8C-12.2 -22.8 -7 -23.4 -6.8 -19.6L-6 -5.4L-4.8 -5.4L-5.2 -22.2C-5.2 -26.4 .2 -26.4 .2 -22.2L0 -5.6L1.2 -5.6' +
+      'L1.2 -20.4C1.6 -24.2 6.6 -23.8 6.2 -20L5 -4.8L6.2 -4.8L7.4 -14.6C8.2 -18 12.4 -17.4 11.8 -14L10.6 2L8.4 24Z'
+    const cuff = 'M-11.4 20H11.4L12.6 42H-12.6Z'
+    const cloud =
+      'M14 122V110C14 104 19 100 25 101C26 95 32 91 38 93C41 87.6 49 86 54 90.4C58 86 67 86 70 91C75 87.6 83 89 85 95C91 93 97 97 96 103C102 103 106 107 106 112V122Z'
     return (
-      `<rect x="0" y="0" width="120" height="130" fill="${E.sky}"/>` +
-      p.cell(ellipse(58, 52, 29, 29), E.ivory) +
-      `<g transform="translate(58 62) rotate(6) scale(1.05)">` +
-      p.cell(hand, E.blush, 1.1) +
-      p.cell('M-11.4 20H11.4L12.6 40H-12.6Z', E.sky, 1.1) + p.cell('M-3.4 20H3.4L3.6 40H-3.6Z', E.white, 1.1) +
+      `<rect width="120" height="130" fill="${k.lin([[0, '#6FB2E6'], [0.6, '#B8DEF6'], [1, '#E8F5FD']])}"/>` +
+      k.glow(58, 40, 48, '#FFFFFF', 0.85) +
+      `<g transform="translate(58 57) rotate(6) scale(1.02)">` +
+      `<path d="${cuff}" fill="#78B0DE"/>` +
+      k.clip(cuff, `<path d="M-3.4 18H3.4L3.8 44H-3.8Z" fill="#F6F4EF"/><rect x="-14" y="18" width="28" height="26" fill="${k.lin([[0, '#fff', 0.35], [0.45, '#fff', 0], [1, '#0B1F44', 0.32]], 0, 0, 1, 0)}"/><path d="M-12 18H12V23H-12Z" fill="#0B1F44" opacity=".22"/>`) +
+      `<path d="${hand}" fill="${k.lin([[0, '#FFDDC6'], [0.55, '#F3B48F'], [1, '#D68A63']], 0, 0, 1, 0.25)}"/>` +
+      k.clip(
+        hand,
+        `<path d="M-1 3C5 5 9.6 10 9.6 25H14V-2Z" fill="#B8653E" opacity=".28"/>` +
+          `<ellipse cx="-11.2" cy="2" rx="1.6" ry="5" fill="#B8653E" opacity=".25"/>` +
+          `<ellipse cx="-9.4" cy="-19.4" rx="1.1" ry="2" fill="#fff" opacity=".5"/><ellipse cx="-2.6" cy="-22.6" rx="1.1" ry="2" fill="#fff" opacity=".5"/>` +
+          `<ellipse cx="3.6" cy="-20.6" rx="1" ry="1.8" fill="#fff" opacity=".4"/>` +
+          `<path d="M-12 -6H12V-3.6H-12Z" fill="#B8653E" opacity=".12"/>`,
+      ) +
       `</g>` +
-      p.ring(58.6, 27.6, 12.4, 4.4, 3.8, E.mustard) +
-      `<g transform="translate(80 43) rotate(18)">` + p.cell('M-5 -6.6H5Q6.6 -6.6 6.6 -5V5Q6.6 6.6 5 6.6H-5Q-6.6 6.6 -6.6 5V-5Q-6.6 -6.6 -5 -6.6Z', E.white, 1.1) + pips + `</g>`
+      `<path d="${cloud}" fill="#FFFFFF"/>` +
+      k.clip(cloud, `<rect x="10" y="100" width="100" height="22" fill="${k.lin([[0, '#DDEBF6', 0], [1, '#BFD5E8']])}"/>`) +
+      halo(k, 58.6, 25, 12.2, 4.2, 3.4) +
+      die(81, 38, 8.2, 16) +
+      sparkle(88, 60, 2.4) +
+      k.grain() + k.defs()
     )
   },
 }
