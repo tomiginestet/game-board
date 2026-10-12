@@ -18,16 +18,17 @@ export function hasArt(name: string): boolean {
 }
 
 /**
- * Material de cada nivel (I a VI): el metal pulido (bandas de reflejo de oscuro a claro), su sombra y la
- * piedra que llevan arriba los niveles altos.
+ * Material de cada nivel (I a VI): el metal pulido del marco (bandas de reflejo de oscuro a claro), su borde
+ * (`line`) y la piedra que llevan arriba los niveles altos. `main` y `dark` son los colores del nivel para la
+ * interfaz (ficha de la medalla, imagen para compartir).
  */
 export const TIERS = [
-  { name: 'Bronce', roman: 'I', face: '#FFF1E3', metal: ['#5A2A0E', '#B8692F', '#FFD2A6', '#D88A4E'], dark: '#3E1A06', gem: '' },
-  { name: 'Plata', roman: 'II', face: '#F3F6FA', metal: ['#454E5C', '#A9B3C1', '#FFFFFF', '#CBD3DE'], dark: '#2A313B', gem: '' },
-  { name: 'Oro', roman: 'III', face: '#FFF6DA', metal: ['#6B4600', '#C99418', '#FFF2BF', '#E8BE45'], dark: '#3F2900', gem: '' },
-  { name: 'Diamante', roman: 'IV', face: '#EAFBFD', metal: ['#29495A', '#86B9CB', '#F4FEFF', '#BFE3EE'], dark: '#16303C', gem: '#8AF0FF' },
-  { name: 'Rubí', roman: 'V', face: '#FFEFF4', metal: ['#5C2316', '#C77A62', '#FFE6DC', '#E8A38C'], dark: '#3A140B', gem: '#F0204F' },
-  { name: 'Leyenda', roman: 'VI', face: '#F5EFFF', metal: ['#2A1660', '#6E8BFF', '#FFF0B8', '#F07AC0'], dark: '#170B38', gem: 'prism' },
+  { name: 'Bronce', roman: 'I', main: '#E8A26A', dark: '#9C5221', face: '#FFF1E3', metal: ['#5A2A0E', '#B8692F', '#FFD2A6', '#D88A4E'], line: '#3E1A06', gem: '' },
+  { name: 'Plata', roman: 'II', main: '#D3DBE6', dark: '#6E7C91', face: '#F3F6FA', metal: ['#454E5C', '#A9B3C1', '#FFFFFF', '#CBD3DE'], line: '#2A313B', gem: '' },
+  { name: 'Oro', roman: 'III', main: '#FFD24D', dark: '#C98A00', face: '#FFF6DA', metal: ['#6B4600', '#C99418', '#FFF2BF', '#E8BE45'], line: '#3F2900', gem: '' },
+  { name: 'Diamante', roman: 'IV', main: '#9FE3F2', dark: '#2F7F96', face: '#EAFBFD', metal: ['#29495A', '#86B9CB', '#F4FEFF', '#BFE3EE'], line: '#16303C', gem: '#8AF0FF' },
+  { name: 'Rubí', roman: 'V', main: '#F2A38E', dark: '#A23A4E', face: '#FFEFF4', metal: ['#5C2316', '#C77A62', '#FFE6DC', '#E8A38C'], line: '#3A140B', gem: '#F0204F' },
+  { name: 'Leyenda', roman: 'VI', main: 'grad', dark: '#5F3DC4', face: '#F5EFFF', metal: ['#2A1660', '#6E8BFF', '#FFF0B8', '#F07AC0'], line: '#170B38', gem: 'prism' },
 ] as const
 
 const hexPts = (r: number, cx = 60, cy = 60) =>
@@ -129,7 +130,7 @@ export function medalSvg(art: string, tier: number, opts: MedalOpts = {}): strin
   const icon = own ? own(u) : glyphArt(opts.glyph ?? 'star', hex(opts.color) ?? '#FFD43B', art)
   const label = (opts.label ?? `${art}, nivel ${T.roman}`).replace(/[&<>"]/g, (c) => `&#${c.charCodeAt(0)};`)
   const [dk, md, lt, rf] = T.metal
-  const mm = `url(#mm${u})`, line = T.dark
+  const mm = `url(#mm${u})`, line = T.line
   // Metal pulido: varias bandas de reflejo en diagonal, iguales en todo el pin (marco, filetes, números).
   const bands: [number, string][] =
     k === 5

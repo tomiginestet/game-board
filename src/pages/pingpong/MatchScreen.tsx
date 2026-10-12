@@ -4,6 +4,8 @@ import { useCallback, useEffect, useMemo, useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 import { TeamAvatar } from '../../components/Avatar'
 import { Medal } from '../../components/Medal'
+import { MedalCelebration } from '../../components/MedalCelebration'
+import { MedalSheet } from '../../components/MedalSheet'
 import { levelUps, type LevelUp } from '../../lib/pingpong/achievements'
 import { formatDate, UNKNOWN_PLAYER, usePlayerMap } from '../../lib/hooks'
 import { TIERS } from '../../lib/medalArt'
@@ -279,7 +281,7 @@ function MatchResult({ match, teamA, teamB, onUndo, backTo }: { match: Match; te
   const winnerTeam = state.winner === 'a' ? teamA : teamB
 
   // ELO y logros: comparamos el historial con y sin este partido.
-  const { delta, newAchievements, elo } = useMemo(() => {
+  const { delta, newAchievements, withStats, elo } = useMemo(() => {
     const withMatch = computeLeaderboard(data)
     const without = computeLeaderboard({ ...data, matches: data.matches.filter((m) => m.id !== match.id) })
     const news: { player: Player; ups: LevelUp[] }[] = []
@@ -290,12 +292,21 @@ function MatchResult({ match, teamA, teamB, onUndo, backTo }: { match: Match; te
     return {
       delta: withMatch.eloDeltas.get(match.id),
       newAchievements: news,
+      withStats: withMatch.stats,
       elo: { a: teamElo(teamA), b: teamElo(teamB) },
     }
     function teamElo(team: Player[]) {
       return Math.round(team.reduce((sum, p) => sum + (withMatch.stats.get(p.id)?.elo ?? 1000), 0) / team.length)
     }
   }, [data, match.id, teamA, teamB])
+  const fresh = useMemo(
+    () =>
+      newAchievements.flatMap(({ player, ups }) =>
+        ups.map(({ family, level }) => ({ who: player.name, family, level, value: withStats.get(player.id)?.[family.stat] ?? 0 })),
+      ),
+    [newAchievements, withStats],
+  )
+  const [shownUp, setShownUp] = useState<(LevelUp & { player: Player; value: number }) | null>(null)
 
   const rematch = () => {
     const m = actions.createMatch(sidePlayers(match, 'a'), sidePlayers(match, 'b'), match.config, other(match.firstServer))
@@ -305,6 +316,7 @@ function MatchResult({ match, teamA, teamB, onUndo, backTo }: { match: Match; te
   return (
     <div className="overlay result">
       {winner && <Confetti />}
+      <MedalCelebration id={match.id} finishedAt={match.finishedAt} medals={fresh} />
       <div className="overlay-card">
         {winner ? <TrophyIcon className="big-icon gold" weight="duotone" /> : <HandshakeIcon className="big-icon" weight="duotone" />}
         {winner ? (
@@ -336,15 +348,29 @@ function MatchResult({ match, teamA, teamB, onUndo, backTo }: { match: Match; te
           <div className="new-achievements">
             {newAchievements.map(({ player, ups }) =>
               ups.map(({ family, level }) => (
-                <div key={player.id + family.id} className="achievement-toast">
+                <button
+                  key={player.id + family.id}
+                  type="button"
+                  className="achievement-toast"
+                  aria-haspopup="dialog"
+                  onClick={() => setShownUp({ player, family, level, value: withStats.get(player.id)?.[family.stat] ?? 0 })}
+                >
                   <Medal family={family} level={level} size={44} />
                   <span>
                     <b>{player.name}</b>{' '}
                     {level === 0 ? 'desbloqueó' : `subió a ${TIERS[level].name.toLowerCase()} en ${family.name}:`}{' '}
                     <b>{family.levels[level].name}</b>
                   </span>
-                </div>
+                </button>
               )),
+            )}
+            {shownUp && (
+              <MedalSheet
+                family={shownUp.family}
+                level={shownUp.level}
+                mine={{ name: shownUp.player.name, value: shownUp.value, level: shownUp.level }}
+                onClose={() => setShownUp(null)}
+              />
             )}
           </div>
         )}
