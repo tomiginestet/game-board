@@ -149,4 +149,60 @@ export const NUEVAS_ART: Record<string, (u: number) => string> = {
       card(p, 82, 87, -14, 's') + card(p, 84, 86.4, 4, 'h') + card(p, 86.4, 86.8, 22, 's')
     )
   },
+
+  // Diez seguidas: la camiseta con el 10 y su aureola. El Diego, sin mostrarlo.
+  'D10S': (u) => {
+    const p = pin(u)
+    const shirt = 'M53 40L43.6 43.4L32.6 52.6L38.8 61.4L44.2 57.6V89C54 91.6 66 91.6 75.8 89V57.6L81.2 61.4L87.4 52.6L76.4 43.4L67 40Q60 47.6 53 40Z'
+    const sc = p.id('sh')
+    return (
+      `<rect x="0" y="0" width="120" height="130" fill="${E.navy}"/>` +
+      p.cell(ellipse(60, 62, 33, 33), E.cobalt) +
+      `<path d="${shirt}" fill="${E.white}"/>` +
+      `<clipPath id="${sc}"><path d="${shirt}"/></clipPath><g clip-path="url(#${sc})">` +
+      `<path d="M55.4 30H64.6V100H55.4ZM42 30H47.6V100H42ZM72.4 30H78V100H72.4Z" fill="${E.sky}"/>` +
+      p.wire('M55.4 30V100M64.6 30V100M47.6 30V100M72.4 30V100') +
+      `</g>` +
+      p.wire(shirt) +
+      p.cell('M53 40Q60 47.6 67 40L64.8 39.2Q60 44.4 55.2 39.2Z', E.navy, 1) +
+      `<text x="60" y="78.6" font-family="Lilita One, sans-serif" font-size="22" fill="${E.navy}" stroke="${p.metal}" stroke-width="1.2" paint-order="stroke" stroke-linejoin="round" text-anchor="middle">10</text>` +
+      p.ring(60, 30.6, 14.6, 5, 4.2, E.mustard)
+    )
+  },
+
+  // Veinte seguidas: "¿de qué planeta viniste?". Un barrilete celeste y blanco entre las estrellas.
+  'Barrilete cósmico': (u) => {
+    const p = pin(u)
+    const bow = (x: number, y: number, r: number) => p.cell('M-3.6 -2.4L0 0L-3.6 2.4Z', E.mustard, 0.9, `translate(${x} ${y}) rotate(${r})`) + p.cell('M3.6 -2.4L0 0L3.6 2.4Z', E.mustard, 0.9, `translate(${x} ${y}) rotate(${r})`)
+    return (
+      `<rect x="0" y="0" width="120" height="130" fill="${E.midnight}"/>` +
+      p.star(33, 31, 2.3) + p.star(88, 63, 1.9) + p.star(86, 31, 1.4) +
+      p.cell(ellipse(33.4, 66, 6.4, 6.4), E.plum) + `<g transform="rotate(-18 33.4 66)">${p.wire(ellipse(33.4, 66, 11, 2.6), 1)}</g>` +
+      p.wire('M60 80C53 86 51 90 55 94C58.4 97.4 63.6 97.6 66.4 101', 1.1) +
+      bow(53.6, 88.6, -30) + bow(61.4, 96.8, 20) +
+      p.cell('M60 22L39 47H60Z', E.sky) + p.cell('M60 22L81 47H60Z', E.white) +
+      p.cell('M39 47L60 80V47Z', E.white) + p.cell('M81 47L60 80V47Z', E.sky) +
+      p.cell(ellipse(60, 47, 4.4, 4.4), E.mustard, 1)
+    )
+  },
+
+  // Siete generalas servidas: la mano de Dios, con la manga albiceleste, larga el dado.
+  'Mano de Dios': (u) => {
+    const p = pin(u)
+    const hand =
+      'M-8.4 24L-10.6 8C-13.6 4.6 -16.4 -.6 -18.2 -5C-19.4 -8 -16.4 -10 -14.4 -7.8C-12.6 -5.8 -11.4 -3.6 -10.6 -2.4' +
+      'L-11.8 -18.8C-12.2 -22.8 -7 -23.4 -6.8 -19.6L-5.6 -5.2L-5.2 -5.2L-5.2 -22.2C-5.2 -26.4 .2 -26.4 .2 -22.2L-.2 -5.4L.2 -5.4' +
+      'L1.2 -20.4C1.6 -24.2 6.6 -23.8 6.2 -20L4.8 -4.6L5.2 -4.6L7.4 -14.6C8.2 -18 12.4 -17.4 11.8 -14L10.6 2L8.4 24Z'
+    const pips = [[-2.8, -2.8], [2.8, -2.8], [0, 0], [-2.8, 2.8], [2.8, 2.8]].map(([x, y]) => `<circle cx="${x}" cy="${y}" r="1.25" fill="${E.charcoal}"/>`).join('')
+    return (
+      `<rect x="0" y="0" width="120" height="130" fill="${E.sky}"/>` +
+      p.cell(ellipse(58, 52, 29, 29), E.ivory) +
+      `<g transform="translate(58 62) rotate(6) scale(1.05)">` +
+      p.cell(hand, E.blush, 1.1) +
+      p.cell('M-11.4 20H11.4L12.6 40H-12.6Z', E.sky, 1.1) + p.cell('M-3.4 20H3.4L3.6 40H-3.6Z', E.white, 1.1) +
+      `</g>` +
+      p.ring(58.6, 27.6, 12.4, 4.4, 3.8, E.mustard) +
+      `<g transform="translate(80 43) rotate(18)">` + p.cell('M-5 -6.6H5Q6.6 -6.6 6.6 -5V5Q6.6 6.6 5 6.6H-5Q-6.6 6.6 -6.6 5V-5Q-6.6 -6.6 -5 -6.6Z', E.white, 1.1) + pips + `</g>`
+    )
+  },
 }

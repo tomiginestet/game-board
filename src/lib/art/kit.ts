@@ -42,11 +42,11 @@ export function pin(u: number) {
   let n = 0
   const id = (p: string) => `${p}${u}p${n++}`
   /** Filete de metal en relieve sobre un trazo. */
-  const wire = (d: string, w = 1.4) =>
-    `<path d="${d}" fill="none" stroke="${dark}" stroke-width="${f(w + 0.7)}" stroke-linejoin="round" stroke-linecap="round"/>` +
+  const wire = (d: string, w = 1.2) =>
+    `<path d="${d}" fill="none" stroke="${dark}" stroke-width="${f(w + 0.6)}" stroke-linejoin="round" stroke-linecap="round"/>` +
     `<path d="${d}" fill="none" stroke="${metal}" stroke-width="${w}" stroke-linejoin="round" stroke-linecap="round"/>`
   /** Campo de esmalte con su filete alrededor. */
-  const cell = (d: string, color: string, w = 1.4, t = '') =>
+  const cell = (d: string, color: string, w = 1.2, t = '') =>
     `<g${t ? ` transform="${t}"` : ''}><path d="${d}" fill="${color}"/>${wire(d, w)}</g>`
   /** Pieza de metal macizo. */
   const solid = (d: string, t = '') => `<path d="${d}" fill="${metal}" stroke="${dark}" stroke-width=".6" stroke-linejoin="round"${t ? ` transform="${t}"` : ''}/>`
@@ -55,9 +55,16 @@ export function pin(u: number) {
     const c = id('g')
     return `<clipPath id="${c}"><path d="${d}"/></clipPath><use href="#mgu${u}" clip-path="url(#${c})"/>`
   }
+  /** Aro (halos, anillos): de metal macizo o, con `color`, de esmalte con sus filetes. */
+  const ring = (cx: number, cy: number, rx: number, ry: number, t: number, color?: string) => {
+    const out = ellipse(cx, cy, rx, ry), inn = ellipse(cx, cy + t * 0.15, rx - t, ry - t * 0.6)
+    return color
+      ? `<path d="${out} ${inn}" fill-rule="evenodd" fill="${color}"/>` + wire(out, 0.7) + wire(inn, 0.7)
+      : `<path d="${out} ${inn}" fill-rule="evenodd" fill="${metal}" stroke="${dark}" stroke-width=".6"/>`
+  }
   /** Estrella de metal de cinco puntas. */
   const star = (x: number, y: number, r: number) => solid(starPath(x, y, r, r * 0.45, 5))
-  return { metal, dark, id, wire, cell, solid, guil, star }
+  return { metal, dark, id, wire, cell, solid, guil, ring, star }
 }
 export type Pin = ReturnType<typeof pin>
 
