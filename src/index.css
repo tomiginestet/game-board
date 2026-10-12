@@ -1218,31 +1218,6 @@ svg {
   opacity: 0.4;
 }
 
-/* Las medallas de diamante para arriba son "brillantes": un reflejo les pasa por encima cada tanto. */
-.m-shine {
-  animation: m-shine 6s ease-in-out infinite;
-}
-
-@keyframes m-shine {
-  0%,
-  70% {
-    transform: translateX(0);
-  }
-  100% {
-    transform: translateX(260px);
-  }
-}
-
-.medal.locked .m-shine {
-  display: none;
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .m-shine {
-    animation: none;
-  }
-}
-
 .m-ol {
   stroke: currentColor;
   stroke-width: 2.6;

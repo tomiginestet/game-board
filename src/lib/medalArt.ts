@@ -1,12 +1,16 @@
-// Medallas: "estampitas" coleccionables. Cada una es una figurita troquelada con forma de estampilla:
-// borde perforado, banda grabada del material del nivel, ventana en arco con la ilustración, esquinas
-// como un naipe, rareza en estrellitas y una cinta (o un sello, de oro para arriba) con el número.
-// Las ilustraciones son funciones que devuelven el contenido de la ventana, dibujado en un lienzo de
-// 120×130 centrado en (60,60), como las del Ping Pong Club. Viven en `art/`.
+// Medallas: pines de esmalte duro con forma de hexágono (ver docs/medallas-filosofia.md).
+// El marco es una pieza de metal fundido y pulido; adentro va la ilustración, dibujada en un lienzo de
+// 120×130 centrado en (60,60). Las ilustraciones viven en `art/`.
+//
+// Lo que el marco le deja a las ilustraciones (por id, con el mismo `u` que reciben):
+// - `url(#mm{u})`: el metal pulido del nivel (piezas grandes).
+// - `url(#mw{u})`: el metal claro, para filetes, números y detalles en relieve (siempre brilla).
+// - `url(#md{u})`: el borde oscuro de los filetes.
+// - `#mgu{u}`: el guilloché del nivel (vacío en bronce y plata), para usar con `<use>` sobre los fondos.
 
 import { ART_REGISTRY } from './art'
 import { glyphArt } from './art/glyphs'
-import { f, starPts } from './art/helpers'
+import { f } from './art/helpers'
 import type { Glyph } from './games/schema'
 
 export function hasArt(name: string): boolean {
@@ -14,56 +18,92 @@ export function hasArt(name: string): boolean {
 }
 
 /**
- * Material de cada nivel (I a VI). `foil` es el metal de la banda y la cinta (claro, medio, oscuro),
- * `ink` la tinta del grabado y `line` la de los contornos de la ilustración.
+ * Material de cada nivel (I a VI): el metal pulido (bandas de reflejo de oscuro a claro), su sombra y la
+ * piedra que llevan arriba los niveles altos.
  */
 export const TIERS = [
-  { name: 'Bronce', roman: 'I', main: '#E8A26A', dark: '#9C5221', face: '#FFF1E3', ink: '#6E3514', line: '#3B1B0A', foil: ['#FFD9B8', '#DE8F55', '#9C5221'] },
-  { name: 'Plata', roman: 'II', main: '#D3DBE6', dark: '#6E7C91', face: '#F3F6FA', ink: '#3A4860', line: '#1F2838', foil: ['#FFFFFF', '#BCC7D6', '#6E7C91'] },
-  { name: 'Oro', roman: 'III', main: '#FFD24D', dark: '#C98A00', face: '#FFF6DA', ink: '#1F2A5C', line: '#151C40', foil: ['#FFF4BF', '#F5C33B', '#A86F00'] },
-  { name: 'Diamante', roman: 'IV', main: '#7FE3F0', dark: '#0B7285', face: '#EAFBFD', ink: '#0B4A57', line: '#062F38', foil: ['#F0FEFF', '#6FD8E8', '#0B7285'] },
-  { name: 'Rubí', roman: 'V', main: '#FF8FAB', dark: '#A61E4D', face: '#FFEFF4', ink: '#6E1032', line: '#45081F', foil: ['#FFE0EA', '#F25C85', '#A61E4D'] },
-  { name: 'Leyenda', roman: 'VI', main: 'grad', dark: '#5F3DC4', face: '#F5EFFF', ink: '#3B2391', line: '#24135F', foil: ['#B197FC', '#F783AC', '#66D9E8'] },
+  { name: 'Bronce', roman: 'I', face: '#FFF1E3', metal: ['#5A2A0E', '#B8692F', '#FFD2A6', '#D88A4E'], dark: '#3E1A06', gem: '' },
+  { name: 'Plata', roman: 'II', face: '#F3F6FA', metal: ['#454E5C', '#A9B3C1', '#FFFFFF', '#CBD3DE'], dark: '#2A313B', gem: '' },
+  { name: 'Oro', roman: 'III', face: '#FFF6DA', metal: ['#6B4600', '#C99418', '#FFF2BF', '#E8BE45'], dark: '#3F2900', gem: '' },
+  { name: 'Diamante', roman: 'IV', face: '#EAFBFD', metal: ['#29495A', '#86B9CB', '#F4FEFF', '#BFE3EE'], dark: '#16303C', gem: '#8AF0FF' },
+  { name: 'Rubí', roman: 'V', face: '#FFEFF4', metal: ['#5C2316', '#C77A62', '#FFE6DC', '#E8A38C'], dark: '#3A140B', gem: '#F0204F' },
+  { name: 'Leyenda', roman: 'VI', face: '#F5EFFF', metal: ['#2A1660', '#6E8BFF', '#FFF0B8', '#F07AC0'], dark: '#170B38', gem: 'prism' },
 ] as const
 
-const PAPER = '#FBF4E3'
-const SERIF = `font-family="Playfair Display, Georgia, serif" font-weight="900"`
+const hexPts = (r: number, cx = 60, cy = 60) =>
+  Array.from({ length: 6 }, (_, k) => {
+    const a = ((-90 + 60 * k) * Math.PI) / 180
+    return f(cx + r * Math.cos(a)) + ',' + f(cy + r * Math.sin(a))
+  }).join(' ')
 
-/** Borde de estampilla: rectángulo con mordidas semicirculares en los cuatro lados. */
-function perforated(x: number, y: number, w: number, h: number, r: number, nx: number, ny: number): string {
-  const X = x + w, Y = y + h
-  let d = `M${x} ${y}`
-  for (let i = 0; i < nx; i++) { const c = x + (w * (i + 0.5)) / nx; d += `L${f(c - r)} ${y}A${r} ${r} 0 0 0 ${f(c + r)} ${y}` }
-  d += `L${X} ${y}`
-  for (let i = 0; i < ny; i++) { const c = y + (h * (i + 0.5)) / ny; d += `L${X} ${f(c - r)}A${r} ${r} 0 0 0 ${X} ${f(c + r)}` }
-  d += `L${X} ${Y}`
-  for (let i = 0; i < nx; i++) { const c = X - (w * (i + 0.5)) / nx; d += `L${f(c + r)} ${Y}A${r} ${r} 0 0 0 ${f(c - r)} ${Y}` }
-  d += `L${x} ${Y}`
-  for (let i = 0; i < ny; i++) { const c = Y - (h * (i + 0.5)) / ny; d += `L${x} ${f(c + r)}A${r} ${r} 0 0 0 ${x} ${f(c - r)}` }
-  return d + 'Z'
+/** Números romanos dibujados (no dependen de una tipografía): I y V con serifas, de 9 de alto. */
+const GLYPH = {
+  I: { w: 3.2, d: 'M0 -9H3.2V-8.2H2.5V-.8H3.2V0H0V-.8H.7V-8.2H0Z' },
+  V: { w: 7.4, d: 'M0 -9H3V-8.3H2.3L4 -2.4L5.6 -8.3H4.8V-9H7.4V-8.3H6.8L4.2 0H3.4L.7 -8.3H0Z' },
+} as const
+function roman(txt: string, cx: number, base: number, fill: string, shade: string): string {
+  const gap = 0.9
+  const w = [...txt].reduce((s, c) => s + GLYPH[c as 'I' | 'V'].w, 0) + gap * (txt.length - 1)
+  let x = cx - w / 2, out = ''
+  for (const c of txt) {
+    const g = GLYPH[c as 'I' | 'V']
+    out += `<path d="${g.d}" transform="translate(${f(x + 0.45)} ${f(base + 0.6)})" fill="${shade}"/><path d="${g.d}" transform="translate(${f(x)} ${f(base)})" fill="${fill}"/>`
+    x += g.w + gap
+  }
+  return out
 }
 
-const STAMP = perforated(4, 4, 112, 142, 3.3, 11, 14)
-/** Ventana en arco donde va la ilustración. */
-const WINDOW = 'M23 114V58A37 37 0 0 1 97 58V114Z'
-const WINDOW_OUT = 'M20.5 116V58A39.5 39.5 0 0 1 99.5 58V116'
-/** Banda del marco: rectángulo exterior menos el interior. */
-const BAND = 'M11 11H109V139H11Z M19 19V131H101V19Z'
+/** Piedra facetada centrada en (x,y), de ancho 2s. `prism` es la tornasolada de leyenda. */
+function gem(u: number, x: number, y: number, s: number, color: string, line: string): string {
+  const prism = color === 'prism'
+  const d = (pts: number[][]) => 'M' + pts.map(([a, b]) => `${f(x + a * s)} ${f(y + b * s)}`).join('L') + 'Z'
+  return (
+    (prism ? `<linearGradient id="mgp${u}" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#9BF6FF"/><stop offset=".35" stop-color="#B197FC"/><stop offset=".65" stop-color="#FF8FC8"/><stop offset="1" stop-color="#FFD166"/></linearGradient>` : '') +
+    `<path d="${d([[-1, -0.35], [-0.55, -0.85], [0.55, -0.85], [1, -0.35], [0, 1]])}" fill="${prism ? `url(#mgp${u})` : color}"/>` +
+    `<path d="${d([[-1, -0.35], [1, -0.35], [0, 1]])}" fill="#000" opacity=".22"/>` +
+    `<path d="${d([[-0.55, -0.85], [0.55, -0.85], [0.3, -0.35], [-0.3, -0.35]])}" fill="#fff" opacity=".5"/>` +
+    `<path d="${d([[-0.3, -0.35], [0.3, -0.35], [0, 1]])}" fill="#fff" opacity=".28"/>` +
+    `<path d="${d([[-1, -0.35], [-0.55, -0.85], [0.55, -0.85], [1, -0.35], [0, 1]])}" fill="none" stroke="${line}" stroke-width=".7" stroke-linejoin="round"/>` +
+    `<path d="${d([[-0.74, -0.5], [-0.5, -0.72], [-0.42, -0.44]])}" fill="#fff"/>`
+  )
+}
 
-/** Grabado de la banda, distinto en cada nivel (baldosa de 8×8). */
-const BAND_PATTERN = [
-  (c: string) => `<circle cx="4" cy="4" r="1.25" fill="${c}"/>`,
-  (c: string) => `<path d="M-1 9L9 -1M-1 1L1 -1M7 9L9 7" stroke="${c}" stroke-width="1.1"/>`,
-  (c: string) => `<path d="M0 6.6H6.4V1.6H2.2V4.4H4.2" fill="none" stroke="${c}" stroke-width="1.1" stroke-linecap="square"/>`,
-  (c: string) => `<path d="M4 1.2L6.8 4L4 6.8L1.2 4Z" fill="none" stroke="${c}" stroke-width="1.1"/><circle cx="0" cy="0" r=".9" fill="${c}"/><circle cx="8" cy="8" r=".9" fill="${c}"/><circle cx="0" cy="8" r=".9" fill="${c}"/><circle cx="8" cy="0" r=".9" fill="${c}"/>`,
-  (c: string) => `<path d="M0 6.5A4 4 0 0 1 8 6.5M0 2.5A2 2 0 0 0 4 2.5A2 2 0 0 0 8 2.5" fill="none" stroke="${c}" stroke-width="1.1"/>`,
-  (c: string) => `<polygon points="${starPts(4, 4, 3.2, 1.1, 4)}" fill="${c}"/>`,
-]
+/** Rama de laurel de metal fundido, del lado izquierdo (la derecha es el espejo). */
+function laurel(metal: string, line: string): string {
+  const leaf = 'M0 0C3 -3 8.6 -3 12 0C8.6 3 3 3 0 0Z'
+  const at = (deg: number, r: number) => [60 + r * Math.cos((deg * Math.PI) / 180), 64 + r * Math.sin((deg * Math.PI) / 180)]
+  const [x0, y0] = at(112, 56.5), [x1, y1] = at(218, 56.5)
+  let out = `<path d="M${f(x0)} ${f(y0)}A56.5 56.5 0 0 1 ${f(x1)} ${f(y1)}" fill="none" stroke="${line}" stroke-width="2.6" stroke-linecap="round"/>` +
+    `<path d="M${f(x0)} ${f(y0)}A56.5 56.5 0 0 1 ${f(x1)} ${f(y1)}" fill="none" stroke="${metal}" stroke-width="1.4" stroke-linecap="round"/>`
+  for (let i = 0; i < 9; i++) {
+    const deg = 120 + i * 11.6, [x, y] = at(deg, 56.5)
+    const tan = deg + 90
+    for (const tilt of [-36, 32])
+      out += `<g transform="translate(${f(x)} ${f(y)}) rotate(${f(tan + tilt)})"><path d="${leaf}" fill="${metal}" stroke="${line}" stroke-width=".8"/><path d="M1.4 0H9.6" stroke="${line}" stroke-width=".45" opacity=".7"/></g>`
+  }
+  return out
+}
 
-/** Copa chiquita (esquina de arriba a la derecha, como en los naipes). */
-const cup = (x: number, y: number, c: string) =>
-  `<path transform="translate(${x} ${y})" fill="${c}" d="M-4.2 -4.6H4.2V-1.4C4.2 1.8 2.2 3 0 3C-2.2 3 -4.2 1.8 -4.2 -1.4Z M-.9 3H.9V4.6H-.9Z M-3 4.4H3V5.8H-3Z M-4.2 -3.6C-6.6 -3.6 -6.4 .4 -3.6 .4 M4.2 -3.6C6.6 -3.6 6.4 .4 3.6 .4"/>` +
-  `<path transform="translate(${x} ${y})" d="M-4.2 -3.4C-6.4 -3.4 -6.2 .2 -3.8 .2M4.2 -3.4C6.4 -3.4 6.2 .2 3.8 .2" fill="none" stroke="${c}" stroke-width="1"/>`
+/** Guilloché del nivel: líneas finas grabadas bajo el esmalte, cada vez más ricas. */
+function guilloche(k: number): string {
+  if (k < 2) return ''
+  const rings = Array.from({ length: 30 }, (_, i) => `<circle cx="60" cy="60" r="${f(2 + i * 1.9)}"/>`).join('')
+  const rays = Array.from({ length: 48 }, (_, i) => {
+    const a = (i * 7.5 * Math.PI) / 180
+    return `M60 60L${f(60 + 70 * Math.cos(a))} ${f(60 + 70 * Math.sin(a))}`
+  }).join('')
+  let waves = ''
+  for (let j = 0; j < 22; j++) {
+    let d = `M0 ${f(8 + j * 5.4)}`
+    for (let x = 6; x <= 120; x += 6) d += `Q${x - 3} ${f(8 + j * 5.4 + (x % 12 ? -2.2 : 2.2))} ${x} ${f(8 + j * 5.4)}`
+    waves += d
+  }
+  const line = `fill="none" stroke="#fff" stroke-width=".45"`
+  if (k === 2) return `<g ${line} opacity=".22">${rings}</g>`
+  if (k === 3) return `<g fill="none" stroke="#fff" stroke-width=".4" opacity=".24"><path d="${rays}"/></g><g ${line} opacity=".12">${rings}</g>`
+  if (k === 4) return `<path d="${waves}" ${line} opacity=".2"/>`
+  return `<g ${line} opacity=".2">${rings}</g><g fill="none" stroke="#fff" stroke-width=".35" opacity=".16"><path d="${rays}"/></g>`
+}
 
 let uid = 0
 
@@ -74,13 +114,9 @@ export interface MedalOpts {
   /** Dibujo genérico y color, para medallas sin ilustración propia. */
   glyph?: Glyph
   color?: string
-  /** Valor de la estampilla: el número que hubo que alcanzar (va en las esquinas). */
-  value?: number
-  /** Versión grande: escribe el nombre en la cinta. */
-  detail?: boolean
 }
 
-/** SVG completo de una medalla. */
+/** SVG completo de una medalla: pin hexagonal del metal del nivel + ilustración + plaqueta con el número. */
 export function medalSvg(art: string, tier: number, opts: MedalOpts = {}): string {
   const u = ++uid
   const k = Math.min(Math.max(tier, 0), TIERS.length - 1)
@@ -91,126 +127,64 @@ export function medalSvg(art: string, tier: number, opts: MedalOpts = {}): strin
   // Ilustración propia por nombre; si no hay, un dibujo genérico (para juegos agregados a mano o por la IA).
   const own = ART_REGISTRY[art]
   const icon = own ? own(u) : glyphArt(opts.glyph ?? 'star', hex(opts.color) ?? '#FFD43B', art)
-  const esc = (s: string) => s.replace(/[&<>"]/g, (c) => `&#${c.charCodeAt(0)};`)
-  const label = esc(opts.label ?? `${art}, nivel ${T.roman}`)
-  const [fl, fm, fd] = T.foil
-  const holo = k === 5
-  const ink = T.ink
+  const label = (opts.label ?? `${art}, nivel ${T.roman}`).replace(/[&<>"]/g, (c) => `&#${c.charCodeAt(0)};`)
+  const [dk, md, lt, rf] = T.metal
+  const mm = `url(#mm${u})`, line = T.dark
+  // Metal pulido: varias bandas de reflejo en diagonal, iguales en todo el pin (marco, filetes, números).
+  const bands: [number, string][] =
+    k === 5
+      ? [[0, '#2A1660'], [0.14, '#6E8BFF'], [0.27, '#B8F3FF'], [0.4, '#7B5CFF'], [0.53, '#FF8AC8'], [0.66, '#FFF0B8'], [0.8, '#59D6C9'], [1, '#2A1660']]
+      : [[0, dk], [0.13, md], [0.27, lt], [0.4, md], [0.52, dk], [0.66, rf], [0.8, lt], [0.92, md], [1, dk]]
 
-  // Metal de la banda, la cinta y el sello; el de leyenda es holográfico.
-  const foil = holo
-    ? `<linearGradient id="mf${u}" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#B197FC"/><stop offset=".3" stop-color="#F783AC"/><stop offset=".55" stop-color="#FFE066"/><stop offset=".8" stop-color="#66D9E8"/><stop offset="1" stop-color="#B197FC"/></linearGradient>`
-    : `<linearGradient id="mf${u}" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="${fl}"/><stop offset=".35" stop-color="${fm}"/><stop offset=".55" stop-color="${fd}"/><stop offset=".72" stop-color="${fm}"/><stop offset="1" stop-color="${fl}"/></linearGradient>`
+  // Metal claro de los filetes: sólo reflejos, para que se lea como metal y no como contorno.
+  const shine: [number, string][] =
+    k === 5
+      ? [[0, '#B8F3FF'], [0.25, '#FFF0B8'], [0.5, '#FFC2E2'], [0.75, '#C9B8FF'], [1, '#B8F3FF']]
+      : [[0, rf], [0.22, lt], [0.42, md], [0.6, lt], [0.8, rf], [1, md]]
   const defs =
-    `<defs>${foil}` +
-    `<clipPath id="ms${u}"><path d="${STAMP}"/></clipPath>` +
-    `<clipPath id="mw${u}"><path d="${WINDOW}"/></clipPath>` +
-    `<pattern id="mp${u}" x="11" y="11" width="8" height="8" patternUnits="userSpaceOnUse">${BAND_PATTERN[k](ink)}</pattern>` +
-    `<pattern id="mh${u}" width="3" height="3" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><path d="M0 0V3" stroke="${ink}" stroke-width=".7"/></pattern>` +
-    `<radialGradient id="mv${u}" cx=".5" cy=".45" r=".62"><stop offset=".6" stop-color="${ink}" stop-opacity="0"/><stop offset="1" stop-color="${ink}" stop-opacity=".22"/></radialGradient>` +
-    (k >= 3 ? `<linearGradient id="mg${u}" x1="0" x2="1"><stop offset="0" stop-color="#fff" stop-opacity="0"/><stop offset=".5" stop-color="#fff" stop-opacity=".6"/><stop offset="1" stop-color="#fff" stop-opacity="0"/></linearGradient>` : '') +
+    `<defs>` +
+    `<linearGradient id="mm${u}" gradientUnits="userSpaceOnUse" x1="14" y1="2" x2="106" y2="128">${bands.map(([o, c]) => `<stop offset="${o}" stop-color="${c}"/>`).join('')}</linearGradient>` +
+    `<linearGradient id="mw${u}" gradientUnits="userSpaceOnUse" x1="20" y1="10" x2="100" y2="120">${shine.map(([o, c]) => `<stop offset="${o}" stop-color="${c}"/>`).join('')}</linearGradient>` +
+    `<linearGradient id="md${u}"><stop stop-color="${line}" stop-opacity=".7"/></linearGradient>` +
+    `<linearGradient id="mv${u}" x1="0" y1="0" x2=".7" y2="1"><stop offset="0" stop-color="#fff" stop-opacity=".34"/><stop offset=".42" stop-color="#fff" stop-opacity=".06"/><stop offset=".43" stop-color="#fff" stop-opacity="0"/><stop offset="1" stop-color="#000" stop-opacity=".12"/></linearGradient>` +
+    (k >= 3 ? `<radialGradient id="mo${u}"><stop offset=".45" stop-color="${k === 5 ? '#9D7BFF' : T.gem}" stop-opacity=".5"/><stop offset="1" stop-color="${k === 5 ? '#9D7BFF' : T.gem}" stop-opacity="0"/></radialGradient>` : '') +
+    `<clipPath id="mc${u}"><polygon points="${hexPts(43)}"/></clipPath>` +
+    `<g id="mgu${u}">${guilloche(k)}</g>` +
     `</defs>`
 
-  // Papel con su sombra de sticker.
-  const paper =
-    `<path d="${STAMP}" transform="translate(1.6 2.6)" fill="#000" opacity=".38"/>` +
-    `<path d="${STAMP}" fill="${PAPER}"/>` +
-    (holo ? `<path d="${STAMP}" fill="url(#mf${u})" opacity=".22"/>` : '')
+  const aura =
+    (k >= 3 ? `<circle cx="60" cy="62" r="60" fill="url(#mo${u})"/>` : '') +
+    (k === 5 ? laurel(`url(#mw${u})`, line) + `<g transform="translate(120 0) scale(-1 1)">${laurel(`url(#mw${u})`, line)}</g>` : '')
 
-  // Fondo grabado del interior y banda de metal con su dibujo.
-  const band =
-    `<rect x="19" y="19" width="82" height="112" fill="url(#mh${u})" opacity=".35"/>` +
-    `<path d="${BAND}" fill-rule="evenodd" fill="url(#mf${u})"/>` +
-    `<path d="${BAND}" fill-rule="evenodd" fill="url(#mp${u})" opacity=".55"/>` +
-    `<rect x="11" y="11" width="98" height="128" fill="none" stroke="${ink}" stroke-width="1.4"/>` +
-    `<rect x="19" y="19" width="82" height="112" fill="none" stroke="${ink}" stroke-width="1"/>`
+  // Pieza fundida: sombra, borde, canto pulido con una ranura grabada, y el labio donde apoya el esmalte.
+  const frame =
+    `<polygon points="${hexPts(52, 60, 63.5)}" fill="#000" opacity=".4" stroke="#000" stroke-width="9" stroke-linejoin="round"/>` +
+    `<polygon points="${hexPts(52)}" fill="${line}" stroke="${line}" stroke-width="10" stroke-linejoin="round"/>` +
+    `<polygon points="${hexPts(52)}" fill="${mm}" stroke="${mm}" stroke-width="8" stroke-linejoin="round"/>` +
+    `<polygon points="${hexPts(48.4)}" fill="none" stroke="${line}" stroke-width="1" stroke-linejoin="round" opacity=".75"/>` +
+    `<polygon points="${hexPts(49.3)}" fill="none" stroke="#fff" stroke-width=".5" stroke-linejoin="round" opacity=".55"/>` +
+    `<polygon points="${hexPts(44.4)}" fill="${line}"/>`
 
-  // Rayos de sol detrás del dibujo, de oro para arriba.
-  const rays =
-    k >= 2
-      ? `<g opacity="${k >= 4 ? 0.13 : 0.09}" fill="${ink}">` +
-        Array.from({ length: 18 }, (_, i) => {
-          const a = (i * 20 * Math.PI) / 180, b = ((i * 20 + 8) * Math.PI) / 180
-          return `<path d="M60 64L${f(60 + 90 * Math.cos(a))} ${f(64 + 90 * Math.sin(a))}L${f(60 + 90 * Math.cos(b))} ${f(64 + 90 * Math.sin(b))}Z"/>`
-        }).join('') +
-        `</g>`
-      : ''
-  const window =
-    `<path d="${WINDOW_OUT}" fill="none" stroke="${ink}" stroke-width=".9"/>` +
-    `<path d="${WINDOW}" fill="${face}"/>` +
-    `<g clip-path="url(#mw${u})">${rays}<g transform="translate(0 3)">${icon}</g><path d="${WINDOW}" fill="url(#mv${u})"/></g>` +
-    `<path d="${WINDOW}" fill="none" stroke="${ink}" stroke-width="2"/>`
+  // Esmalte con la ilustración y, encima, el vidrio que brilla en diagonal.
+  const inner =
+    `<polygon points="${hexPts(43)}" fill="${face}"/>` +
+    `<g clip-path="url(#mc${u})">${icon}<polygon points="${hexPts(43)}" fill="url(#mv${u})"/>` +
+    `<path d="M24 46L52 18" stroke="#fff" stroke-width="2.2" stroke-linecap="round" opacity=".4"/></g>`
 
-  // Esquinas como un naipe: el valor arriba a la izquierda y abajo a la derecha (dado vuelta).
-  const val = opts.value !== undefined && opts.value >= 0 && opts.value < 10000 ? String(opts.value) : T.roman
-  const fs = val.length <= 2 ? 10 : val.length === 3 ? 8 : 6.6
-  const corner = (x: number, y: number) => `<rect x="${x}" y="${y}" width="15" height="15" fill="${ink}"/><rect x="${x + 1.5}" y="${y + 1.5}" width="12" height="12" fill="none" stroke="url(#mf${u})" stroke-width=".8"/>`
-  const num = `<text x="0" y="${f(fs * 0.36)}" ${SERIF} font-size="${fs}" fill="${PAPER}" text-anchor="middle">${val}</text>`
-  const corners =
-    corner(10, 10) + corner(95, 10) + corner(10, 125) + corner(95, 125) +
-    `<g transform="translate(17.5 17.5)">${num}</g><g transform="translate(102.5 132.5) rotate(180)">${num}</g>` +
-    cup(102.5, 17, `url(#mf${u})`) +
-    `<polygon points="${starPts(17.5, 132.8, 5, 2.2)}" fill="url(#mf${u})"/>`
-
-  // Rareza: una estrellita por nivel, en un cartucho arriba.
-  const n = k + 1, sw = 7 * n + 5
-  const rarity =
-    `<rect x="${f(60 - sw / 2)}" y="9.5" width="${sw}" height="11" rx="5.5" fill="${ink}"/>` +
-    Array.from({ length: n }, (_, i) => `<polygon points="${starPts(f(60 - (7 * (n - 1)) / 2 + 7 * i), 15.2, 3.1, 1.35)}" fill="url(#mf${u})"/>`).join('')
-
-  // En la versión grande, el nombre va escrito sobre la cinta (en dos renglones si es largo).
-  const words = art.toUpperCase().split(/\s+/).filter(Boolean)
-  const full = words.join(' ')
-  let lines = [full]
-  if (full.length > 18 && words.length > 1) {
-    const off = (i: number) => Math.abs(words.slice(0, i).join(' ').length - full.length / 2)
-    let best = 1
-    for (let i = 2; i < words.length; i++) if (off(i) < off(best)) best = i
-    lines = [words.slice(0, best).join(' '), words.slice(best).join(' ')]
-  }
-  // Cinta con las puntas dobladas hacia atrás (más ancha si el nombre va en dos renglones).
-  const rb = opts.detail && lines.length > 1 ? 119 : 116, tb = rb + 4
-  const ribbon =
-    `<path d="M24 107H9L13.5 ${f((107 + tb) / 2)}L9 ${tb}H24Z" fill="${T.dark}" stroke="${ink}" stroke-width="1.1" stroke-linejoin="round"/>` +
-    `<path d="M96 107H111L106.5 ${f((107 + tb) / 2)}L111 ${tb}H96Z" fill="${T.dark}" stroke="${ink}" stroke-width="1.1" stroke-linejoin="round"/>` +
-    `<path d="M22 ${rb}L24 ${tb}V112Z M98 ${rb}L96 ${tb}V112Z" fill="${ink}"/>` +
-    `<path d="M22 103Q60 115.5 98 103V${rb}Q60 ${f(rb + 12.5)} 22 ${rb}Z" fill="url(#mf${u})" stroke="${ink}" stroke-width="1.2" stroke-linejoin="round"/>` +
-    `<path d="M25 106.4Q60 118 95 106.4" fill="none" stroke="#fff" stroke-opacity=".55" stroke-width="1"/>`
-  // Cada renglón va sobre una curva paralela a la cinta, `dy` por debajo de su línea media.
-  const ribbonLine = (txt: string, i: number, dy: number, max: number) => {
-    const fs = f(Math.min(max, 76 / (Math.max(txt.length, 1) * 0.74)))
-    const y = dy + fs * 0.36
-    return (
-      `<path id="mr${u}-${i}" d="M22 ${f(109.5 + y)}Q60 ${f(122 + y)} 98 ${f(109.5 + y)}" fill="none"/>` +
-      `<text ${SERIF} font-size="${fs}" fill="${ink}" text-anchor="middle"><textPath href="#mr${u}-${i}" startOffset="50%">${esc(txt)}</textPath></text>`
-    )
-  }
-  const ribbonText = opts.detail
-    ? lines.length === 1
-      ? ribbonLine(lines[0], 0, 0, 7.4)
-      : ribbonLine(lines[0], 0, -1.5, 5.6) + ribbonLine(lines[1], 1, 4.8, 5.6)
-    : k < 2
-      ? `<text x="60" y="118.2" ${SERIF} font-size="11" fill="${ink}" text-anchor="middle">${T.roman}</text>`
-      : ''
-
-  // Sello dentado con el número, de oro para arriba.
-  let seal = ''
-  if (k >= 2) {
-    const cy = opts.detail ? 136 : 123, R = 12.5
-    seal =
-      `<polygon points="${starPts(60, cy, R, R - 2.2, 16)}" fill="url(#mf${u})" stroke="${ink}" stroke-width="1.1" stroke-linejoin="round"/>` +
-      `<circle cx="60" cy="${cy}" r="${R - 4.6}" fill="${ink}"/><circle cx="60" cy="${cy}" r="${R - 5.8}" fill="none" stroke="url(#mf${u})" stroke-width=".7"/>` +
-      `<text x="60" y="${f(cy + 3)}" ${SERIF} font-size="${T.roman.length > 2 ? 7 : 8.4}" fill="url(#mf${u})" text-anchor="middle">${T.roman}</text>` +
-      (k >= 4 && !opts.detail ? `<path d="M52 ${cy - 13} L54.5 ${cy - 18} L57.5 ${cy - 14.5} L60 ${cy - 19.5} L62.5 ${cy - 14.5} L65.5 ${cy - 18} L68 ${cy - 13}Z" fill="url(#mf${u})" stroke="${ink}" stroke-width="1" stroke-linejoin="round"/>` : '')
-  }
-
-  // Brillo que pasa por encima (diamante para arriba): una figurita "brillante".
-  const shine =
-    k >= 3 ? `<g clip-path="url(#ms${u})"><g transform="rotate(24 60 76)"><rect class="m-shine" style="animation-delay:-${f((u * 1.7) % 6)}s" x="-70" y="-30" width="34" height="220" fill="url(#mg${u})"/></g></g>` : ''
+  // Piedra engarzada arriba (diamante para arriba) y plaqueta de metal con el número en relieve.
+  const stone =
+    k >= 3 ? `<polygon points="${hexPts(8.8, 60, 9)}" fill="${line}" stroke="${line}" stroke-width="2" stroke-linejoin="round"/><polygon points="${hexPts(8.4, 60, 9)}" fill="${mm}"/>` + gem(u, 60, 9.6, 6.2, T.gem, line) : ''
+  const w = 20 + T.roman.length * 6.4
+  const plaque =
+    `<rect x="${f(60 - w / 2 - 1)}" y="103" width="${f(w + 2)}" height="20" rx="10" fill="${line}"/>` +
+    `<rect x="${f(60 - w / 2)}" y="104" width="${f(w)}" height="18" rx="9" fill="${mm}"/>` +
+    `<rect x="${f(60 - w / 2 + 2.6)}" y="106.6" width="${f(w - 5.2)}" height="12.8" rx="6.4" fill="#1D2B53" stroke="${line}" stroke-width=".6"/>` +
+    `<rect x="${f(60 - w / 2 + 3.6)}" y="107.4" width="${f(w - 7.2)}" height="5" rx="2.5" fill="#fff" opacity=".12"/>` +
+    roman(T.roman, 60, 117.5, `url(#mw${u})`, '#0B1230')
 
   return (
-    `<svg viewBox="0 0 120 152" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="${label}" style="color:${T.line}">` +
-    defs + paper + band + window + corners + rarity + ribbon + ribbonText + seal + shine +
+    `<svg viewBox="0 0 120 130" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="${label}" style="color:#2B1B12">` +
+    defs + aura + frame + inner + stone + plaque +
     `</svg>`
   )
 }

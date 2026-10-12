@@ -15,7 +15,7 @@ const root = resolve(import.meta.dirname, '..')
 const mods = args.length
   ? args
   : readdirSync(join(root, 'src/lib/art'))
-      .filter((f) => f.endsWith('.ts') && !['index.ts', 'helpers.ts', 'glyphs.ts'].includes(f))
+      .filter((f) => f.endsWith('.ts') && !['index.ts', 'helpers.ts', 'glyphs.ts', 'kit.ts'].includes(f))
       .map((f) => f.replace(/\.ts$/, ''))
 // El registro real usa import.meta.glob (de Vite); acá se completa a mano con los módulos pedidos.
 const imports =
@@ -33,7 +33,7 @@ const css = readFileSync(join(root, 'src/index.css'), 'utf8').match(/\.m-ol[^}]*
 const cells = names
   .map((n, i) => `<figure>${medalSvg(n, i % 6)}<figcaption>${n}</figcaption></figure>`)
   .join('')
-const html = `<!doctype html><meta charset="utf-8"><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Lilita+One&family=Playfair+Display:wght@900&display=swap"><style>
+const html = `<!doctype html><meta charset="utf-8"><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Lilita+One&display=swap"><style>
 body{margin:0;padding:12px;background:#161b22;font:12px sans-serif;color:#e6edf3;display:grid;grid-template-columns:repeat(6,150px);gap:10px}
 figure{margin:0;text-align:center}svg{width:140px;height:auto}${css}</style>${cells}`
 writeFileSync(join(dir, 'p.html'), html)
