@@ -30,7 +30,7 @@ export function MedalsSection({ title, list }: { title: string; list: MedalProgr
               onClick={() => setOpenId(openId === k ? null : k)}
             >
               <span className="medal-family">{family.name}</span>
-              <Medal family={family} level={Math.max(level, 0)} locked={level < 0} />
+              <Medal family={family} level={Math.max(level, 0)} locked={level < 0} size={84} />
               <span className="medal-name">{level >= 0 ? family.levels[level].name : 'Bloqueado'}</span>
               <span className="medal-sub">
                 {next ? `${value} de ${next.at} para ${TIERS[level + 1].name.toLowerCase()}` : `Nivel máximo · ${TIERS[level].name}`}
@@ -56,7 +56,7 @@ export function MedalsSection({ title, list }: { title: string; list: MedalProgr
               const got = i <= open.level
               return (
                 <li key={l.name} className={got ? 'got' : ''}>
-                  <Medal family={open.family} level={i} locked={!got} size={56} />
+                  <Medal family={open.family} level={i} locked={!got} size={64} />
                   <div>
                     <span className="medal-at">
                       {TIERS[i].name} · {open.family.unit(l.at)}

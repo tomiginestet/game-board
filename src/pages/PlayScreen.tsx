@@ -839,7 +839,7 @@ function Summary({ play, game, live, players }: { play: Play; game: GameDef; liv
           </h3>
           {ups.map(({ player, medal }, k) => (
             <div key={k} className="medal-up">
-              <Medal family={medal.family} level={medal.level} size={56} />
+              <Medal family={medal.family} level={medal.level} size={72} />
               <div>
                 <b>{medal.family.levels[medal.level].name}</b>
                 <span className="muted small block">

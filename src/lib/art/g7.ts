@@ -418,7 +418,7 @@ export const G7_ART: Record<string, (u: number) => string> = {
     `<ellipse ${ol(2.6)} cx="68" cy="52" rx="13" ry="15" fill="#F4BE8F"/>` +
     `<path ${ol(2.4)} d="M54 50 C52 38 60 34 68 34 C78 34 83 40 82 50 C80 44 76 42 70 42 C64 42 58 44 54 50Z" fill="#343A40"/>` + shine('M62 37 C66 36 70 36 73 37', 1.8, .5) +
     line('M62 47 L66 48.6 M71 48.6 Q74 45.6 78 47', D, 1.8) + dots([[64, 52], [74, 52]], 1.6, D) + line('M64 60 Q69 62.6 74 59', D, 1.8) + `<circle cx="78" cy="58" r="2.2" fill="#FF8FA3" opacity=".7"/>` +
-    `<g transform="rotate(12 40 52)"><path ${ol(2.6)} d="M58 56 C58 48 54 44 48 44 L42 46 C38 47 34 50 28 51 C22 52 22 57 24 57Z" fill="#6B3E1F"/><rect ${ol(2.2)} x="22" y="55.6" width="37" height="4.4" rx="2" fill="#2B1B12"/>` +
+    `<g transform="rotate(12 40 52)"><path ${ol(2.6)} d="M58 56 C58 48 54 44 48 44 L42 46 C38 47 34 50 28 51 C22 52 22 57 24 57Z" fill="#6B3E1F"/><rect ${ol(2.2)} x="22" y="55.6" width="37" height="4.4" rx="2" fill="currentColor"/>` +
     line('M44 47 L40 50 M40 47 L44 50 M39 48 L35 51 M35 48 L39 51', '#fff', 1.2) + shine('M52 50 C53 48 52 47 50 47', 1.6, .5) + `</g>` +
     line('M27 54 C24 48 28 44 25 38', D, 1.6) + `<circle cx="25" cy="37.4" r="1.8" fill="#E03131"/>` +
     `<circle ${ol(2.4)} cx="46" cy="64" r="5" fill="#F4BE8F"/>` + line('M46 69 L50 78', D, 6) + line('M46 69 L50 78', '#495057', 2.6) +

@@ -12,7 +12,7 @@ const sh = (d: string, w = 2.2, o = 0.6) => ln(d, w, '#fff', `opacity="${o}"`)
 const dot = (x: number, y: number, r: number, c = D) => `<circle cx="${f(x)}" cy="${f(y)}" r="${f(r)}" fill="${c}"/>`
 const eye = (x: number, y: number, r = 2) => dot(x, y, r) + dot(x + r * 0.35, y - r * 0.4, r * 0.38, '#fff')
 const blush = (x: number, y: number, r = 2.6) => `<circle cx="${f(x)}" cy="${f(y)}" r="${r}" fill="#FF8FA3" opacity=".7"/>`
-const OUT = 'stroke="#2B1B12" stroke-width="2.6" paint-order="stroke" stroke-linejoin="round"'
+const OUT = 'stroke="currentColor" stroke-width="2.6" paint-order="stroke" stroke-linejoin="round"'
 const sparkle = (x: number, y: number, r: number, c = '#FFD43B') => `<polygon class="m-ol" style="stroke-width:1.6" points="${starPts(x, y, r, r * 0.38, 4)}" fill="${c}"/>`
 const drop = (x: number, y: number, s = 1, c = '#74C0FC') =>
   `<path class="m-ol" style="stroke-width:${f(1.6)}" transform="translate(${x} ${y}) scale(${s})" d="M0 -5 C2 -2 3.4 0 3.4 1.8 A3.4 3.4 0 0 1 -3.4 1.8 C-3.4 0 -2 -2 0 -5Z" fill="${c}"/>`
@@ -283,7 +283,7 @@ export const G6_ART: Record<string, (u: number) => string> = {
     ln('M28 72 H58', 1.6, '#fff', 'opacity=".5"') +
     `<path class="m-ol" style="stroke-width:1.6" d="M33 38 C30 34 34 30 37 32 C40 28 46 30 44 35Z" fill="#C0EB75"/><path class="m-ol" style="stroke-width:1.6" d="M63 38 C60 34 64 30 67 32 C70 28 76 30 74 35Z" fill="#C0EB75"/>` +
     germ(50, 27, 3.8, '#40C057') + germ(62, 23, 3.4, '#E03131') + germ(76, 28, 3.8, '#9775FA')) +
-    t(60, 98, 7, 'achú', '#2F9E44', OUT.replace('#2B1B12', '#fff')),
+    t(60, 98, 7, 'achú', '#2F9E44', OUT.replace('currentColor', '#fff')),
 
   'Riñón prestado': () =>
     stick('M58 68 C66 70 70 78 72 86', '#FFA8A8', 3) +
@@ -743,7 +743,7 @@ export const G6_ART: Record<string, (u: number) => string> = {
       re(32, 59, 22, 10, 4, '#8B5A3C') + dot(38, 64, 1.3, '#FCC419') + dot(47, 64, 1.3, '#FCC419') + sh('M35 61.5 H50', 1.4, 0.5) +
       ol('M54 58 H82 C86 58 88 62 88 64 C80 68 66 70 54 70Z', '#DEE2E6') + sh('M58 61 H80', 2, 0.9) + ln('M54 58 V70', 2.4)) +
     `<path class="m-ol" style="stroke-width:1.8" d="M79 50 C81 53 82 55 82 56.5 A3 3 0 0 1 76 56.5 C76 55 77 53 79 50Z" fill="#E5383B"/>` +
-    sparkle(36, 40, 4) + sparkle(90, 72, 3) + t(44, 88, 8, 'shh…', '#495057', OUT.replace('#2B1B12', '#fff')),
+    sparkle(36, 40, 4) + sparkle(90, 72, 3) + t(44, 88, 8, 'shh…', '#495057', OUT.replace('currentColor', '#fff')),
 
   'Ninja del ducto': () =>
     `<rect x="0" y="0" width="120" height="130" fill="#CED4DA"/>` + ln('M18 50 H102 M44 30 V50 M80 50 V74 M18 74 H102', 1.4, '#ADB5BD') +
@@ -768,7 +768,7 @@ export const G6_ART: Record<string, (u: number) => string> = {
     `<defs><clipPath id="pw${u}"><circle cx="72" cy="61" r="14"/></clipPath></defs>` +
     `<circle cx="72" cy="61" r="14" fill="#FFE066"/>` +
     `<g clip-path="url(#pw${u})"><g transform="translate(146 0) scale(-1 1)">${crew(73, 70, 0.78, '#212529', '#212529', '', 0, '#FF2E2E')}</g>` +
-    `<path d="M64.5 60 L62 47 C64 48 66 52 66.5 60Z" fill="#DEE2E6" stroke="#2B1B12" stroke-width="1"/><rect x="62" y="59.5" width="7" height="2.2" rx="1" fill="#212529"/></g>` +
+    `<path d="M64.5 60 L62 47 C64 48 66 52 66.5 60Z" fill="#DEE2E6" stroke="currentColor" stroke-width="1"/><rect x="62" y="59.5" width="7" height="2.2" rx="1" fill="#212529"/></g>` +
     ci(72, 61, 14, 'none', 3.4) + ci(72, 61, 17, 'none', 1.6) +
     t(60, 96, 7, 'aaah…', '#ADB5BD'),
 }
