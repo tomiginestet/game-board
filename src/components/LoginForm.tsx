@@ -1,6 +1,25 @@
 import { EnvelopeSimpleIcon, GoogleLogoIcon } from '@phosphor-icons/react'
-import { useState } from 'react'
-import { signInWithEmail, signInWithGoogle, verifyEmailCode } from '../lib/auth'
+import { useEffect, useRef, useState } from 'react'
+import { googleButtonAvailable, renderGoogleButton, signInWithEmail, signInWithGoogle, verifyEmailCode } from '../lib/auth'
+
+/** Botón oficial de Google (Google muestra el dominio de la app). Si no carga, el de siempre. */
+function GoogleButton({ busy, run, onError }: { busy: boolean; run: (fn: () => Promise<unknown>) => void; onError: (m: string) => void }) {
+  const ref = useRef<HTMLDivElement>(null)
+  const [fallback, setFallback] = useState(!googleButtonAvailable)
+
+  useEffect(() => {
+    if (fallback || !ref.current) return
+    renderGoogleButton(ref.current, onError).catch(() => setFallback(true))
+  }, [fallback, onError])
+
+  if (fallback)
+    return (
+      <button className="btn block big" disabled={busy} onClick={() => run(signInWithGoogle)}>
+        <GoogleLogoIcon /> Seguir con Google
+      </button>
+    )
+  return <div ref={ref} className="google-btn" />
+}
 
 /** Entrar con un link (o código) por mail, o con Google. Si la cuenta no existe, se crea. */
 export function LoginForm() {
@@ -26,9 +45,7 @@ export function LoginForm() {
     <div className="login-form">
       {!sent ? (
         <>
-          <button className="btn block big" disabled={busy} onClick={() => run(signInWithGoogle)}>
-            <GoogleLogoIcon /> Seguir con Google
-          </button>
+          <GoogleButton busy={busy} run={run} onError={setError} />
           <div className="or-divider">
             <span>o con tu mail</span>
           </div>
