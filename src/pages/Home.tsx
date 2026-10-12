@@ -22,6 +22,7 @@ import { playPath } from './GameDetail'
 /** Estantes por categoría del inicio. */
 const HOME_SHELVES: { cat: Category; title: string; subtitle: string }[] = [
   { cat: 'cartas', title: 'Noches de cartas', subtitle: 'Truco, buraco y compañía' },
+  { cat: 'tcg', title: 'Duelos de cartas', subtitle: 'Magic, Pokémon, Yu-Gi-Oh! y compañía' },
   { cat: 'fiesta', title: 'Para la previa', subtitle: 'Juegos de fiesta para muchos' },
   { cat: 'mesa', title: 'Juegos de mesa', subtitle: 'Para sacar la caja y quedarse un rato' },
 ]

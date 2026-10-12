@@ -21,12 +21,17 @@ de datos) que el [Ping Pong Club](https://github.com/tomiginestet/ping-pong-web-
   - **notificaciones** (solicitudes, invitaciones, amistades) en tiempo real;
   - **ranking de cada grupo** (el de siempre) y **ranking global** (todas las cuentas, todos los grupos).
 
-- **Biblioteca de juegos**: vienen 45 de fábrica (truco, Catán, buraco, Skull King, El Impostor, Pistas cruzadas,
+- **Biblioteca de juegos**: vienen 60 de fábrica (truco, Catán, buraco, Skull King, El Impostor, Pistas cruzadas,
   ta-te-ti, chinchón, generala, La Podrida, TEG, Código Secreto, Dixit, Carcassonne, ¡Aventureros al tren!,
-  Mario Kart, EA FC, Among Us…) y se pueden **agregar más**:
-  - **con IA gratis**: la app arma el pedido, lo pegás en cualquier chat (Claude, ChatGPT…) y pegás la respuesta;
-  - **con IA automática**: un botón que usa la API de Claude, con tope de gasto mensual (USD 10);
-  - **a mano**: un editor de fichas (o el JSON completo).
+  Mario Kart, EA FC, Among Us…) y se pueden **agregar más**.
+  - **Cartas coleccionables** (TCG/LCG): Magic, Pokémon TCG, Yu-Gi-Oh!, Lorcana, One Piece, Mitos y Leyendas,
+    Flesh and Blood, Digimon, Dragon Ball Super, Star Wars: Unlimited, Riftbound, Marvel Champions y Arkham Horror LCG;
+    más Hearthstone y Marvel Snap en videojuegos. Se anotan al mejor de N games y cada uno trae sus formatos como
+    opción de la partida (Commander, Draft, Speed Duel, Primer Bloque…).
+  - Para sumar otros:
+    - **con IA gratis**: la app arma el pedido, lo pegás en cualquier chat (Claude, ChatGPT…) y pegás la respuesta;
+    - **con IA automática**: un botón que usa la API de Claude, con tope de gasto mensual (USD 10);
+    - **a mano**: un editor de fichas (o el JSON completo).
 - **Cada juego se anota a su manera** según su ficha:
   - *marcador en vivo* (truco con fósforos, ta-te-ti al mejor de N);
   - *por manos* (buraco, chinchón con eliminación, generala por categorías, Skull King y La Podrida con apuestas y bazas);
