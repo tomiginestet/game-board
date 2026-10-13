@@ -162,7 +162,7 @@ export const TCG_MITOSYLEYENDAS_NUEVAS_ART: Record<string, (u: number) => string
       `<path d="M14 92C26 86 36 88 46 84M74 84C84 87 92 84 106 90" fill="none" stroke="${P.greenD}" stroke-width=".6" opacity=".7"/>` +
       `<path d="M14 98C26 90 40 92 50 88V104H14ZM70 88C82 91 94 88 106 94V104H70Z" fill="${P.green}" opacity=".55"/>` +
       k.draw([
-        { d: side, fill: STONED, inner: k.clip(side, ashlar(k, 68, 39, 76, 106, 6.4, 3)) + `<path d="${side}" fill="${MYL}" opacity=".35"/>` + k.sh(side, 0, 0, 1, 0, 0.1, 0.55, MYLD, 0.4) },
+        { d: side, fill: STONED, inner: k.clip(side, ashlar(k, 68, 39, 76, 106, 6.4, 3)) + `<path d="${side}" fill="${k.lin(MYLD, 0, 0, 1, 0, 0.3, 0.6)}"/>` },
         {
           d: front, fill: STONE,
           inner: ashlar(k, 44, 42, 70, 106, 6.4, 1) + k.sh(front, 0, 0, 1, 0, 0, 0.55, MYLD, 0.3) + `<path d="M44 42H52V106H44Z" fill="${k.lin('#fff', 0, 0, 1, 0, 0.35, 0)}"/>` +
@@ -171,7 +171,7 @@ export const TCG_MITOSYLEYENDAS_NUEVAS_ART: Record<string, (u: number) => string
         },
       ], 0.75) +
       k.draw([
-        { d: parSide, fill: STONED, inner: `<path d="${parSide}" fill="${MYL}" opacity=".35"/>` + k.sh(parSide, 0, 0, 1, 0, 0.1, 0.55, MYLD, 0.4) },
+        { d: parSide, fill: STONED, inner: `<path d="${parSide}" fill="${k.lin(MYLD, 0, 0, 1, 0, 0.3, 0.6)}"/>` },
         { d: parapet, fill: STONE, inner: ashlar(k, 42, 33, 72, 44, 3.6, 4) + k.sh(parapet, 0, 0, 1, 0, 0, 0.5, MYLD, 0.3) },
       ], 0.65) +
       `<path d="M45.4 44.2H69.6M45.4 45.4H69.6" stroke="${MYLD}" stroke-width=".45"/>` + Array.from({ length: 7 }, (_, i) => `<path d="M${f(47 + i * 3.4)} 43.6V46.6" stroke="${MYLD}" stroke-width=".7"/>`).join('') +

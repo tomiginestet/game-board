@@ -222,13 +222,13 @@ export const TCG_ONEPIECE_NUEVAS_ART: Record<string, (u: number) => string> = {
       k.draw([
         {
           d: foreSail, fill: P.white,
-          inner: k.sh(foreSail, 0, 0, 1, 0, 0, 0.8, P.sky2, 0.5) + hair(44, 40, 42.8, 48, 44, 56, 0.45, P.sky2) + hair(52, 40, 53.6, 48, 52.4, 56, 0.45, P.blue, 0.7) + `<path d="M45 37V58.4M48.4 37V59M51.8 37V58.6" stroke="${P.sky2}" stroke-width=".35"/>` + `<path d="M41 47.4C46 49 51 49 56 47.4" fill="none" stroke="${OP}" stroke-width="1.4"/>`,
+          inner: k.sh(foreSail, 0, 0, 1, 0, 0, 0.8, P.sky2, 0.5) + hair(44, 40, 42.8, 48, 44, 56, 0.45, P.sky2) + hair(52, 40, 53.6, 48, 52.4, 56, 0.45, P.blue, 0.7) + `<path d="M45 37V58.4M48.4 37V59M51.8 37V58.6" stroke="${P.sky2}" stroke-width=".35"/>` + `<path d="M40 39.4H57" stroke="${OP}" stroke-width="1.6"/><path d="M40 41H57" stroke="${OP}" stroke-width=".5"/>`,
         },
         {
           d: mainSail, fill: P.white,
           inner: k.sh(mainSail, 0, 0, 1, 0, 0, 0.8, P.sky2, 0.5) + hair(58, 31, 56.6, 42, 58, 53, 0.5, P.sky2) + hair(74, 31, 76, 42, 74.4, 53, 0.5, P.blue, 0.7) + `<path d="M59.4 27.4V57M63 27.4V57.8M69 27.4V57.8M72.6 27.4V57" stroke="${P.sky2}" stroke-width=".35"/>` +
-            `<path d="M54 49.6C62 52 70 52 78 49.6" fill="none" stroke="${OP}" stroke-width="1.6"/>` +
-            k.sun(66, 39.6, 4.2, 8.6, 16, false) + `<circle cx="66" cy="39.6" r="4" fill="${P.gold}" stroke="${P.goldD}" stroke-width=".4"/><circle cx="66" cy="39.6" r="2.4" fill="${P.goldL}"/>`,
+            `<path d="M53 30.2H79" stroke="${OP}" stroke-width="1.8"/><path d="M53 32.2H79" stroke="${OP}" stroke-width=".6"/>` +
+            k.sun(66, 43, 4.2, 8.6, 16, false) + `<circle cx="66" cy="43" r="4" fill="${P.gold}" stroke="${P.goldD}" stroke-width=".4"/><circle cx="66" cy="43" r="2.4" fill="${P.goldL}"/>`,
         },
       ], 0.6) +
       yard(53.6, 78.4, 27.4) + yard(53.6, 78.4, 55.6) + yard(40, 56.8, 37) + yard(40, 56.8, 57.6) +
@@ -239,7 +239,7 @@ export const TCG_ONEPIECE_NUEVAS_ART: Record<string, (u: number) => string> = {
         {
           d: hull, fill: P.brown,
           inner: k.sh(hull, 0, 0, 0, 1, 0, 0.9, P.brownD, 0.5) + k.sh('M74 60H96V90H74Z', 0, 0, 1, 0, 0, 0.6, P.brownD, 0.4) + `<path d="${castle}" fill="${P.brownD}" opacity=".3"/>` + planks + ports + wins +
-            `<path d="${stripe}" fill="${OP}"/>` + k.sh(stripe, 0, 0, 0, 1, 0, 0.7, OPD, 0.4) + `<path d="${rail}" fill="${P.gold}"/>` + k.sh(rail, 0, 0, 1, 0, 0, 0.7, P.goldD, 0.4) +
+            `<path d="${stripe}" fill="${OP}"/>` + k.sh(stripe, 0, 0, 0, 1, 0, 0.7, OPD, 0.4) + Array.from({ length: 14 }, (_, i) => `<circle cx="${f(44 + i * 3.4)}" cy="75.6" r=".42" fill="${P.goldL}"/>`).join('') + `<path d="${rail}" fill="${P.gold}"/>` + k.sh(rail, 0, 0, 1, 0, 0, 0.7, P.goldD, 0.4) +
             `<path d="M78.4 61.6V87" stroke="${P.brownD}" stroke-width=".5"/>` + hair(40, 82, 56, 85.6, 80, 85.6, 0.6, P.goldL, 0.5) +
             `<path d="M80 69.2C82 67.6 84 68.4 84 70M92 69.2C90 67.6 88 68.4 88 70M86 68.6V70.4" fill="none" stroke="${P.gold}" stroke-width=".6" stroke-linecap="round"/>`,
         },

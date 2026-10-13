@@ -412,7 +412,12 @@ export const TCG_LORCANA_NUEVAS_ART: Record<string, (u: number) => string> = {
         { d: roofR, fill: LOR, inner: k.sh(roofR, 0, 0, 1, 0, 0, 0.9, LORD, 0.5) + hair(78, 70, 79.4, 64, 80.4, 59, 0.4, LORL) + hair(83, 70, 82, 64, 80.8, 59.4, 0.35, LORN) },
         { d: roofK, fill: LOR, inner: k.sh(roofK, 0, 0, 1, 0, 0, 0.9, LORD, 0.5) + hair(56.6, 69, 58.4, 62, 59.8, 56, 0.45, LORL) + hair(63.4, 69, 61.6, 62, 60.2, 56, 0.4, LORN) },
       ], 0.6) +
-      win(38.6, 78) + win(79.6, 76) + win(56, 76.4) + win(62.4, 76.4) + win(38.6, 85) + win(79.6, 84) +
+      win(38.6, 78) + win(79.6, 76) + win(53, 77) + win(65.4, 77) + win(38.6, 85) + win(79.6, 84) + win(46.4, 84.6, 1.4, 2.4) + win(72.4, 84.6, 1.4, 2.4) +
+      // Luz de los fuegos en los filos de techos y torres, y los remates dorados.
+      hair(33.8, 73, 36.4, 67, 39.4, 61.4, 0.6, P.goldL) + hair(74.8, 71, 77.6, 64.4, 80.4, 58.4, 0.6, P.goldL) + hair(53.8, 69.6, 56.6, 62, 59.8, 55, 0.6, P.goldL) +
+      hair(35.2, 75, 35.4, 84, 35.2, 92, 0.5, P.goldL, 0.7) + hair(76.2, 73, 76.4, 82, 76.2, 92, 0.5, P.goldL, 0.7) + hair(51.2, 72, 51.4, 82, 51.2, 92, 0.5, P.goldL, 0.7) +
+      `<path d="M33.6 73.8H45.4M74.6 71.8H86.4M53.6 70.4H66.4" stroke="${P.gold}" stroke-width=".8"/>` +
+      `<path d="M57.4 72.4H62.6V79.6L60 78L57.4 79.6Z" fill="${P.gold}" stroke="${P.ink}" stroke-width=".4" stroke-linejoin="round"/><path d="${starPath(60, 75.2, 1.4, 0.55, 5)}" fill="${LOR}"/>` +
       `<path d="M57.4 93V87.6A2.6 2.6 0 0 1 62.6 87.6V93Z" fill="${P.gold}" stroke="${P.ink}" stroke-width=".4"/>` +
       `<path d="M38 70.4H41M79 68.4H82" stroke="${P.gold}" stroke-width=".5"/>` +
       sparkle(46, 26, 1.6, '#fff') + sparkle(76, 26, 1.4, '#fff') + sparkle(28, 66, 1.2, '#fff') +
