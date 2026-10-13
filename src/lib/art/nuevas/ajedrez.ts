@@ -136,8 +136,8 @@ export const AJEDREZ_NUEVAS_ART: Record<string, (u: number) => string> = {
       walnut(k) +
       k.sun(60, 46, 14, 44, 32, false) +
       board(k) +
-      `<path d="${sq(0, 1)}${sq(-1, 1)}${sq(-2, 1)}" fill="${P.gold}" opacity=".45"/><path d="${sq(-2, 2)}" fill="${P.gold}" opacity=".85"/>` +
-      `<path d="${sq(-2, 2)}" fill="none" stroke="${P.goldL}" stroke-width=".6"/>` +
+      `<path d="${sq(0, 1)}${sq(-1, 1)}${sq(-2, 1)}" fill="${P.gold}" opacity=".6"/><path d="${sq(-2, 2)}" fill="${P.gold}"/>` +
+      `<path d="${sq(0, 1)}${sq(-1, 1)}${sq(-2, 1)}${sq(-2, 2)}" fill="none" stroke="${P.goldL}" stroke-width=".5"/>` +
       `<path d="M${lPath}" fill="none" stroke="${P.ink}" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/><path d="M${lPath}" fill="none" stroke="${P.goldL}" stroke-width=".9" stroke-linejoin="round" stroke-linecap="round"/>` +
       `<path d="M${f(tx - 1.6)} ${f(ty + 1.6)}L${f(tx)} ${f(ty - 0.4)}L${f(tx + 1.6)} ${f(ty + 1.6)}" fill="none" stroke="${P.ink}" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/><path d="M${f(tx - 1.6)} ${f(ty + 1.6)}L${f(tx)} ${f(ty - 0.4)}L${f(tx + 1.6)} ${f(ty + 1.6)}" fill="none" stroke="${P.goldL}" stroke-width=".9" stroke-linejoin="round" stroke-linecap="round"/>` +
       k.floor(bx, ay + 0.4, 10, 1.8, WAL_D) +
@@ -149,14 +149,14 @@ export const AJEDREZ_NUEVAS_ART: Record<string, (u: number) => string> = {
         extra:
           hair(9.6, -16, 10, -26, 7.6, -35, 0.7, BOX_D) + hair(7.4, -15, 8, -24, 6, -33, 0.5, BOX_D) + hair(5, -36, 3, -38.6, 0, -39.6, 0.5, BOX_D) +
           `<path d="M-8.8 -24.6C-6 -26 -4.4 -29 -5 -32.4" fill="none" stroke="${BOX_D}" stroke-width=".55"/>` +
-          `<path d="M-15 -25.4C-13 -24.8 -11 -24.8 -9.4 -25.4" fill="none" stroke="${WAL}" stroke-width=".5"/>` + `<circle cx="-13.6" cy="-26.8" r=".7" fill="${WAL}"/>` +
-          `<path d="M-9.4 -33.6C-8.4 -34.8 -6.6 -35 -5.6 -34.2C-6.6 -33.2 -8.2 -33 -9.4 -33.6Z" fill="${WAL_D}"/><path d="M-10 -34.6C-8.4 -36.2 -6 -36.4 -4.8 -35.2" fill="none" stroke="${BOX_D}" stroke-width=".45"/>` +
+          `<circle cx="-13.8" cy="-26.8" r=".6" fill="${BOX_D}"/>` +
+          `<path d="M-9.4 -33.6C-8.4 -34.8 -6.6 -35 -5.6 -34.2C-6.6 -33.2 -8.2 -33 -9.4 -33.6Z" fill="${BOX_D}"/>` +
           shine(-6.6, -11, -20, 0.7) + hair(-10, -36.4, -7, -39, -3, -40, 0.6, '#fff', 0.8),
         over:
           k.draw([{ d: cloth, fill: P.red, inner: k.sh(cloth, 0, 0, 1, 1, 0, 0.9, P.wine, 0.5) + `<path d="M4 -15.6C6.4 -16 8.6 -16.6 9.8 -17.4" fill="none" stroke="${P.gold}" stroke-width=".5"/>` }], 0.5) + fringe +
-          `<path d="M-14.4 -28C-12 -29.6 -9 -30.4 -6.4 -30M-6.4 -30C-5.6 -27 -6.4 -24.6 -8.4 -24.4M-6.4 -30C-2 -30 1 -27 3 -22" fill="none" stroke="${P.ink}" stroke-width="1.4" stroke-linecap="round"/>` +
-          `<path d="M-14.4 -28C-12 -29.6 -9 -30.4 -6.4 -30M-6.4 -30C-5.6 -27 -6.4 -24.6 -8.4 -24.4M-6.4 -30C-2 -30 1 -27 3 -22" fill="none" stroke="${P.gold}" stroke-width=".6" stroke-linecap="round"/>` +
-          `<circle cx="-6.4" cy="-30" r=".9" fill="${P.goldL}" stroke="${P.ink}" stroke-width=".3"/>`,
+          `<path d="M-3 -38.6C-3.4 -33 -5 -27.6 -7.6 -23.4M-4.4 -31C-1 -29.6 1.4 -26.4 2.8 -22" fill="none" stroke="${P.ink}" stroke-width="1.4" stroke-linecap="round"/>` +
+          `<path d="M-3 -38.6C-3.4 -33 -5 -27.6 -7.6 -23.4M-4.4 -31C-1 -29.6 1.4 -26.4 2.8 -22" fill="none" stroke="${P.gold}" stroke-width=".6" stroke-linecap="round"/>` +
+          `<circle cx="-4.4" cy="-31" r=".9" fill="${P.goldL}" stroke="${P.ink}" stroke-width=".3"/>`,
       }) +
       sparkle(36, 40, 2.2, P.goldL) + sparkle(88, 50, 1.6, P.goldL) + sparkle(84, 30, 1.2, BOX_L) +
       k.defs()
@@ -232,6 +232,8 @@ export const AJEDREZ_NUEVAS_ART: Record<string, (u: number) => string> = {
           d: cup, fill: P.white,
           inner: k.sh('M72 70H84V90H72Z', 0, 0, 1, 0, 0, 0.85, P.sky2, 0.5) + k.sh('M60 82H84V90H60Z', 0, 0, 0, 1, 0, 0.6, P.sky2, 0.35) +
             `<path d="M62.4 78.6Q72 81.6 81.6 78.6" fill="none" stroke="${P.gold}" stroke-width=".7"/><path d="M62.8 80Q72 83 81.2 80" fill="none" stroke="${P.mid}" stroke-width=".45"/>` +
+            `<path d="M63 79.3Q72 82.3 81 79.3" fill="none" stroke="${P.goldD}" stroke-width=".6" stroke-dasharray=".01 1.3" stroke-linecap="round"/>` +
+            `<path d="M71 83.4C70 82.4 70.4 81 71.6 81.2C72.4 81.4 72.4 82.6 71.6 82.8M73 83.4C74 82.4 73.6 81 72.4 81.2" fill="none" stroke="${P.gold}" stroke-width=".4"/>` +
             hair(64.6, 76.4, 64.8, 81, 67, 85.4, 0.9, '#fff', 0.9),
         },
         { d: rim, fill: P.white, inner: `<path d="${coffee}" fill="${WAL_D}"/><path d="${ellipse(71.2, 74.6, 6, 1.2)}" fill="#A9774C"/><path d="${ellipse(70.6, 74.4, 3.4, 0.6)}" fill="#D6A877"/>` },
@@ -257,7 +259,7 @@ export const AJEDREZ_NUEVAS_ART: Record<string, (u: number) => string> = {
     const bell = 'M44.6 73.4C44.6 71.2 45.8 70 47.2 70C48.6 70 49.8 71.2 49.8 73.4L50.6 75.2H43.8Z'
     return (
       walnut(k) +
-      k.sun(60, 54, 14, 42, 32, false) +
+      k.sun(60, 64, 14, 44, 32, false) +
       board(k) +
       `<g transform="translate(60 80) scale(1.26) translate(-60 -80)">` +
       k.floor(62, 87.4, 26, 2.6, WAL_D) +
@@ -270,7 +272,7 @@ export const AJEDREZ_NUEVAS_ART: Record<string, (u: number) => string> = {
       }], 0.75) +
       k.draw([
         { d: ear, fill: COAT, inner: `<path d="M46.6 64.8C48.6 63.6 50.6 63.2 51.8 63.4" stroke="#6E5A50" stroke-width=".5" fill="none"/>` },
-        { d: head, fill: COAT, inner: `<path d="M34 60H46V68C42 66 38 66.4 34 68Z" fill="${k.lin('#8B7466', 0, 0, 0, 1, 0.8, 0)}"/>` + hair(36, 68.6, 40, 69.6, 45, 68.6, 0.4, '#000') },
+        { d: head, fill: '#3E322C', inner: `<path d="M34 60H46V68C42 66 38 66.4 34 68Z" fill="${k.lin('#8B7466', 0, 0, 0, 1, 0.8, 0)}"/>` + hair(36, 68.6, 40, 69.6, 45, 68.6, 0.4, '#000') },
       ], 0.55) +
       k.draw([{ d: top, fill: P.white, inner: k.sh(top, 0, 0, 1, 1, 0, 0.7, P.sky2, 0.5) + curls([[43, 63]], P.sky2, 0.4) }], 0.45) +
       `<path d="M41.4 66.4C42 65.6 43.2 65.4 43.8 66C43.2 66.8 42 66.9 41.4 66.4Z" fill="#000"/><path d="M41.2 65.6C42 64.8 43.4 64.8 44.2 65.4" fill="none" stroke="#8B7466" stroke-width=".4"/>` +
@@ -336,11 +338,11 @@ export const AJEDREZ_NUEVAS_ART: Record<string, (u: number) => string> = {
   // Ocho mates del pastor: la estancia de rivales esquilados. El cayado de oro, la tijera de esquilar y el vellón.
   'Rebaño entero': (u) => {
     const k = kit(u)
-    const staff = 'M64.6 36H68.6V96H64.6Z'
+    const staff = 'M64.2 36H69V96H64.2Z'
     const crook = 'M64.6 38C64.6 30 60 25.4 54 25.4C48 25.4 44 29.4 44 34.6C44 38.6 46.4 41.6 50 42.6L51 39.2C48.8 38.6 47.6 36.8 47.6 34.6C47.6 31.4 50.2 29 54 29C58 29 60.8 32 60.8 38Z'
     const knop = (y: number) => k.draw([{ d: `M63.6 ${y}C63.6 ${f(y - 1.6)} 64.6 ${f(y - 2.6)} 66.6 ${f(y - 2.6)}C68.6 ${f(y - 2.6)} 69.6 ${f(y - 1.6)} 69.6 ${y}C69.6 ${f(y + 1.6)} 68.6 ${f(y + 2.6)} 66.6 ${f(y + 2.6)}C64.6 ${f(y + 2.6)} 63.6 ${f(y + 1.6)} 63.6 ${y}Z`, fill: P.gold, inner: k.sh('M63 0H70V130H63Z', 0, 0, 1, 0, 0, 0.9, P.goldD, 0.5) + `<path d="M63.6 ${y}H69.6" stroke="${P.goldD}" stroke-width=".4"/>` }], 0.45)
-    const WOOL = '#F4ECDC'
-    const fleece = fluff(60, 89, 25, 8.6, 20)
+    const WOOL = '#F7F1E4'
+    const fleece = fluff(60, 88, 26, 9.6, 20)
     const bladeT = 'M14 -3.8L35 -1.2C35.8 -1 35.8 -.2 35 0L14 -.4Z'
     const bladeB = 'M14 3.8L34 1.8C34.8 1.6 34.8 .8 34 .7L14 .4Z'
     const handles = 'M1.6 -4.4H14.6V-1.4H1.6ZM1.6 1.4H14.6V4.4H1.6Z'
@@ -363,6 +365,7 @@ export const AJEDREZ_NUEVAS_ART: Record<string, (u: number) => string> = {
       k.sun(60, 50, 15, 47, 32, false) +
       k.shade(ellipse(60, 50, 28, 28), k.rad(P.goldL, 0.5, 0.5, 0.5, 0.6, 0), P.goldL, 0.4) +
       laurel(46, 100, 26, 92, 23, 64, 8) + laurel(74, 100, 94, 92, 97, 64, 8, true) +
+      `<g transform="translate(59 65.4) scale(1.12) translate(-60 -62)">` +
       k.cast([staff, crook], 2, 2, WAL_D) +
       k.draw([
         { d: staff, fill: P.gold, inner: k.sh(staff, 0, 0, 1, 0, 0, 0.9, P.goldD, 0.5) + `<path d="M65.4 38V96" stroke="${P.goldL}" stroke-width=".7"/>` + Array.from({ length: 12 }, (_, i) => `<path d="M64.6 ${f(48 + i * 4)}L68.6 ${f(46 + i * 4)}" stroke="${P.goldD}" stroke-width=".45"/>`).join('') },
@@ -372,13 +375,17 @@ export const AJEDREZ_NUEVAS_ART: Record<string, (u: number) => string> = {
       `<circle cx="50.4" cy="40.8" r="1.6" fill="${P.red}" stroke="${P.ink}" stroke-width=".4"/><circle cx="50" cy="40.4" r=".45" fill="#fff"/>` +
       `<path d="M66.6 52L66.6 57.4" stroke="${P.ink}" stroke-width=".7"/>` +
       k.draw([{ d: 'M64.2 61.4C64.2 58.6 65.2 57.2 66.6 57.2C68 57.2 69 58.6 69 61.4L69.8 63.2H63.4Z', fill: P.gold, inner: k.sh('M63 56H70V64H63Z', 0, 0, 1, 0, 0, 0.9, P.goldD, 0.5) }], 0.4) +
+      `</g>` +
       k.floor(60, 97, 26, 3, WAL_D) +
       k.draw([{
         d: fleece, fill: WOOL,
-        inner: k.sh(fleece, 0, 0, 1, 1, 0, 0.85, BOX_D, 0.45) + k.sh('M28 92H92V100H28Z', 0, 0, 0, 1, 0, 0.6, TAN_D, 0.35) +
-          curls([[42, 86], [50, 83], [58, 82], [66, 82.4], [74, 83.4], [80, 86.4], [46, 92], [54, 90], [62, 89.6], [70, 90], [78, 92]], BOX_D, 0.55) +
-          curls([[48, 82.6], [56, 81], [64, 81]], '#fff', 0.5),
+        inner: k.sh(fleece, 0, 0, 1, 1, 0, 0.85, P.sky2, 0.5) + k.sh('M28 92H92V100H28Z', 0, 0, 0, 1, 0, 0.6, P.blue, 0.35) +
+          curls([[42, 85], [50, 82], [58, 81], [66, 81.4], [74, 82.4], [80, 85.4], [46, 92], [54, 90], [62, 89.6], [70, 90], [78, 92]], P.sky2, 0.55) +
+          curls([[48, 81.6], [56, 80], [64, 80]], '#fff', 0.5),
       }], 0.75) +
+      `<path d="M37.6 86C46 89.6 58 90.4 70 89.4C76 88.8 80.6 87.6 83.6 86M49.4 79.6C50.4 84 50.6 90 49.8 97.4" fill="none" stroke="${P.ink}" stroke-width="1.6" stroke-linecap="round"/>` +
+      `<path d="M37.6 86C46 89.6 58 90.4 70 89.4C76 88.8 80.6 87.6 83.6 86M49.4 79.6C50.4 84 50.6 90 49.8 97.4" fill="none" stroke="${P.goldD}" stroke-width=".8" stroke-linecap="round"/>` +
+      `<path d="M37.6 86C46 89.6 58 90.4 70 89.4C76 88.8 80.6 87.6 83.6 86M49.4 79.6C50.4 84 50.6 90 49.8 97.4" fill="none" stroke="${P.goldL}" stroke-width=".8" stroke-dasharray=".6 1"/>` +
       shears +
       sparkle(54, 20.6, 2.2, '#fff') + sparkle(88, 44, 1.8, P.goldL) + sparkle(30, 50, 1.4, P.goldL) +
       k.defs()
