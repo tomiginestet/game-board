@@ -374,7 +374,7 @@ export function logoSvg(kind: LogoKind | 'quieto', opts: { bg?: boolean; title?:
 export function loaderForPath(path: string): LogoKind {
   if (/^\/(partido|ping-pong\/nuevo)/.test(path)) return 'duelo'
   if (/^\/(torneos|ping-pong\/torneo)/.test(path)) return 'podio'
-  if (/^\/(jugar|partida)\//.test(path)) return 'turnos'
+  if (/^\/(jugar|partida)\//.test(path) || path.startsWith('/anotar')) return 'turnos'
   if (path.startsWith('/ranking')) return 'tabla'
   if (path.startsWith('/jugadores')) return 'escalera'
   if (path.startsWith('/juegos')) return 'medalla'

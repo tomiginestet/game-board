@@ -1,0 +1,274 @@
+/* Resumen de una partida: el momento del ganador (WinnerHero). */
+
+.winner-card {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  background: linear-gradient(180deg, color-mix(in srgb, var(--gc, var(--accent)) 20%, var(--card)), var(--card) 70%);
+}
+
+.winner-hero {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  text-align: center;
+  padding-top: 4px;
+}
+
+.winner-stage {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+  min-height: 72px;
+  margin-bottom: 2px;
+}
+
+.winner-logo {
+  display: inline-flex;
+  flex: none;
+}
+
+.winner-coopLoss .winner-logo,
+.winner-draw .winner-logo {
+  opacity: 0.7;
+}
+
+.winner-faces {
+  display: inline-flex;
+  align-items: center;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 6px;
+}
+
+.winner-more {
+  font-weight: 700;
+  color: var(--muted);
+  font-size: 14px;
+}
+
+.winner-title {
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  font-weight: 400;
+}
+
+.winner-name {
+  font-family: var(--font-brand);
+  font-size: 44px;
+  line-height: 1.05;
+  color: var(--text);
+  text-wrap: balance;
+  overflow-wrap: anywhere;
+  max-width: 100%;
+}
+
+.winner-name.is-long {
+  font-size: 32px;
+}
+
+.winner-verdict {
+  font-size: 16px;
+  font-weight: 600;
+  line-height: 1.3;
+  color: var(--text-soft);
+  text-wrap: balance;
+}
+
+.winner-cheer {
+  margin: 4px 0 0;
+  font-family: var(--font-brand);
+  font-size: 20px;
+  line-height: 1.2;
+  color: var(--accent-2);
+  text-wrap: balance;
+  max-width: 32ch;
+}
+
+.winner-coopLoss .winner-cheer {
+  color: var(--text-soft);
+}
+
+.winner-next {
+  margin: 6px 0 0;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  max-width: 40ch;
+  padding: 8px 12px;
+  border-radius: 12px;
+  background: color-mix(in srgb, var(--bg) 45%, transparent);
+  color: var(--text-soft);
+  font-size: 14px;
+  line-height: 1.35;
+  text-align: left;
+  text-wrap: pretty;
+}
+
+.winner-next > :first-child {
+  flex: none;
+}
+
+.winner-medals-btn {
+  margin-top: 6px;
+  border-color: color-mix(in srgb, var(--accent-2) 55%, var(--border));
+  color: var(--accent-2);
+}
+
+/* El único momento con autor: el nombre del ganador cae en su lugar y la frase llega detrás.
+   Por defecto todo está visible; la animación sólo corre al terminar la partida. */
+.winner-hero.is-fresh .winner-name {
+  animation: winner-land 460ms cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.winner-hero.is-fresh .winner-verdict,
+.winner-hero.is-fresh .winner-cheer {
+  animation: winner-fade 320ms 200ms cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+@keyframes winner-land {
+  from {
+    opacity: 0;
+    transform: translateY(12px) scale(0.94);
+    filter: blur(6px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+    filter: none;
+  }
+}
+
+@keyframes winner-fade {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .winner-hero.is-fresh .winner-name {
+    animation: winner-fade 240ms ease-out both;
+  }
+  .winner-hero.is-fresh .winner-verdict,
+  .winner-hero.is-fresh .winner-cheer {
+    animation: winner-fade 240ms 120ms ease-out both;
+  }
+}
+
+/* "Ver <juego>": acción secundaria, con forma de link. */
+.summary-secondary {
+  display: flex;
+  justify-content: center;
+  min-height: 44px;
+  align-items: center;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+/* Subtítulos del resumen (h2 por jerarquía, con el tamaño de antes). */
+.summary-subtitle {
+  font-size: 16px;
+}
+
+/* "Para las medallas": datos opcionales, después de los botones del resumen. */
+.medal-data {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.medal-data-head {
+  gap: 12px;
+}
+
+.medal-data-head .summary-subtitle {
+  flex: 1;
+  margin: 0;
+}
+
+.medal-data-head .btn {
+  min-height: 44px;
+}
+
+.medal-data-stat {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+  border: none;
+}
+
+.medal-data-stat legend {
+  padding: 0;
+  margin-bottom: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-soft);
+}
+
+.medal-data-row {
+  flex-wrap: wrap;
+  gap: 6px 12px;
+}
+
+/* Nombres enteros: la fila baja a dos líneas antes que cortar. */
+.medal-data-name {
+  flex: 1 1 8rem;
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.medal-data-row > .input {
+  min-height: 44px;
+}
+
+.medal-data-row > select.input {
+  flex: 1 1 10rem;
+  width: auto;
+}
+
+.medal-data-num {
+  flex: 0 0 6.5rem;
+  width: 6.5rem;
+}
+
+.medal-data-save {
+  align-self: flex-start;
+}
+
+.medal-data-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin: 0;
+}
+
+.medal-data-list dt {
+  font-size: 13px;
+  color: var(--muted);
+}
+
+.medal-data-list dd {
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+
+.medal-data-status {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin: 0;
+  color: var(--win);
+  font-weight: 600;
+  font-size: 14px;
+}

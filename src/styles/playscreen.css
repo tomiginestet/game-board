@@ -1,0 +1,759 @@
+/*
+ * Pantalla de partida: endurecida para la juntada (un pulgar, poca luz, el teléfono que pasa de mano).
+ * Todo cuelga de .play-page o de body.in-play para no tocar el resto de la app.
+ */
+
+/* ---------- Mientras se juega: sin navegación de abajo ---------- */
+
+body.in-play .bottom-nav {
+  display: none;
+}
+
+body.in-play .app {
+  padding-bottom: 0;
+}
+
+/* Los avisos suben por encima de la barra de Deshacer / Terminar. */
+body.in-play .toast-region {
+  bottom: calc(env(safe-area-inset-bottom) + 92px);
+}
+
+/* El cierre (FinishForm) ya no tiene una barra debajo. */
+body.in-play .sticky-actions {
+  bottom: 0;
+  padding-bottom: calc(12px + env(safe-area-inset-bottom));
+}
+
+.play-page.is-live {
+  min-height: 100dvh;
+  padding-bottom: 0;
+}
+
+.play-title {
+  min-width: 0;
+}
+
+.play-h1 {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 800;
+  line-height: 1.2;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.play-board {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+/* ---------- Barra del pulgar: Deshacer + Terminar ---------- */
+
+.play-dock {
+  position: sticky;
+  bottom: 0;
+  z-index: 6;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1.4fr);
+  gap: 10px;
+  margin: auto -16px 0;
+  padding: 16px 16px calc(12px + env(safe-area-inset-bottom));
+  /* Funde lo que pasa por debajo para que no compita con los botones. */
+  background: linear-gradient(to bottom, transparent, var(--bg) 16px);
+}
+
+.play-dock .btn {
+  min-height: 52px;
+  white-space: nowrap;
+}
+
+.play-dock .btn:disabled {
+  opacity: 0.45;
+  cursor: default;
+}
+
+/* "Faltan 8 manos. ¿Terminar igual?": la pregunta ocupa la barra, arriba de los dos botones. */
+.dock-confirm-text {
+  grid-column: 1 / -1;
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  margin: 0;
+  font-weight: 700;
+  text-wrap: pretty;
+}
+
+.dock-confirm-text svg {
+  flex-shrink: 0;
+  margin-top: 3px;
+  color: var(--accent-2);
+}
+
+.dock-confirm {
+  border-top: 1px solid color-mix(in srgb, var(--accent-2) 45%, var(--border));
+  background: color-mix(in srgb, var(--accent-2) 8%, var(--bg));
+  animation: dock-confirm-in 0.22s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes dock-confirm-in {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .dock-confirm {
+    animation: fb-fade 0.2s ease-out;
+  }
+}
+
+/* ---------- Marcador (truco y compañía) ---------- */
+
+.play-page .counter-side {
+  container-type: inline-size;
+}
+
+.play-page .cs-name .ellipsis {
+  min-width: 0;
+}
+
+.ev-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 6px;
+}
+
+/* Con muchos lados y poco ancho, una sola columna para que los nombres entren. */
+@container (max-width: 160px) {
+  .ev-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+.ev-tile {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: center;
+  gap: 2px;
+  min-height: 52px;
+  padding: 6px 8px;
+  border-radius: 12px;
+  border: 1px solid var(--border);
+  background: var(--bg-2);
+  color: var(--text);
+  font: inherit;
+  font-size: 13px;
+  font-weight: 700;
+  line-height: 1.2;
+  text-align: left;
+  overflow-wrap: anywhere;
+  cursor: pointer;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.ev-tile:active {
+  background: var(--card-2);
+  border-color: color-mix(in srgb, var(--pc) 60%, var(--border));
+}
+
+.ev-tile-pts {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--muted);
+}
+
+.ev-tile-count {
+  /* Cuelga de la esquina, fuera del flujo: aparecer o crecer de 9 a 10 no cambia el tamaño de la ficha. */
+  position: absolute;
+  top: -7px;
+  right: -4px;
+  min-width: 20px;
+  padding: 0 6px;
+  border-radius: 999px;
+  background: var(--accent-fill);
+  color: var(--on-fill);
+  font-size: 12px;
+  line-height: 20px;
+  text-align: center;
+  box-shadow: 0 0 0 2px var(--bg);
+  pointer-events: none;
+}
+
+/* Fila de herramientas del tablero: "Ver todo" y la ayuda. Pegada al tablero, no flotando. */
+.board-tools {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 8px;
+  margin-top: -10px;
+}
+
+.more-toggle,
+.help-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 44px;
+  padding: 0 14px;
+  border-radius: 999px;
+  border: 1px solid var(--border);
+  background: transparent;
+  color: var(--text-soft);
+  font: inherit;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.help-toggle {
+  margin-left: auto;
+}
+
+.help-toggle[aria-pressed='true'] {
+  border-color: var(--accent-2);
+  color: var(--accent-2);
+}
+
+.more-toggle svg,
+.help-toggle svg {
+  font-size: 18px;
+  flex-shrink: 0;
+}
+
+.more-toggle .flip {
+  transform: rotate(180deg);
+}
+
+.ev-help {
+  display: grid;
+  gap: 12px;
+  margin: -8px 0 0;
+  padding: 14px 16px;
+  border-radius: 16px;
+  border: 1px solid var(--border);
+  background: var(--card);
+  font-size: 14px;
+}
+
+.ev-help dt {
+  font-weight: 700;
+}
+
+.ev-help dd {
+  margin: 2px 0 0;
+  color: var(--text-soft);
+}
+
+/* ---------- Marcador chico (planilla, manos y turnos) ---------- */
+
+/* Pegado debajo del encabezado fijo; se lee como una extensión de él. */
+.mini-score,
+.turn-bar {
+  position: sticky;
+  top: var(--play-head-h, 68px);
+  z-index: 5;
+  margin: -20px -16px 0;
+  padding: 8px 16px;
+  background: color-mix(in srgb, var(--bg) 92%, transparent);
+  backdrop-filter: blur(8px);
+  border-bottom: 1px solid var(--border);
+}
+
+.turn-bar .mini-score {
+  position: static;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  background: none;
+  backdrop-filter: none;
+  border: 0;
+}
+
+.mscore-row {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+  gap: 6px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.mscore-cell {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+  padding: 5px 8px;
+  border-radius: 12px;
+  border: 1px solid color-mix(in srgb, var(--pc) 30%, transparent);
+  background: color-mix(in srgb, var(--pc) 10%, var(--card));
+}
+
+.mscore-cell.lead {
+  border-color: color-mix(in srgb, var(--accent-2) 70%, transparent);
+}
+
+.mscore-cell.current {
+  border-color: var(--pc);
+  box-shadow: inset 0 0 0 1px var(--pc);
+}
+
+.mscore-cell.out {
+  opacity: 0.6;
+}
+
+.mscore-text {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  line-height: 1.15;
+}
+
+.mscore-name {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-soft);
+}
+
+.mscore-total {
+  display: flex;
+  align-items: baseline;
+  gap: 4px;
+  white-space: nowrap;
+}
+
+.mscore-total b {
+  font-size: 18px;
+  font-weight: 800;
+}
+
+.mscore-suffix {
+  font-size: 12px;
+  color: var(--muted);
+}
+
+.mscore-lead {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  align-self: center;
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--accent-2);
+}
+
+.mscore-out {
+  font-size: 12px;
+  color: var(--loss);
+}
+
+/* ---------- Por turnos (Catán) ---------- */
+
+/* A quién le toca y "Pasar turno", en la misma franja fija que el marcador: siempre a mano. */
+.play-page .turn-banner {
+  flex-direction: row;
+  align-items: center;
+  gap: 12px;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: none;
+  text-align: left;
+}
+
+.turn-who {
+  flex: 1;
+  min-width: 0;
+}
+
+.play-page .turn-name {
+  display: block;
+  font-size: 18px;
+  line-height: 1.2;
+}
+
+.turn-pass {
+  flex-shrink: 0;
+  min-height: 48px;
+}
+
+.play-page .turn-side.current {
+  border-color: var(--pc);
+}
+
+.turn-now {
+  flex-shrink: 0;
+  padding: 2px 10px;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--pc) 40%, var(--card));
+  color: var(--text);
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.ev-rows {
+  display: flex;
+  flex-direction: column;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.ev-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  min-height: 52px;
+  padding: 4px 0;
+}
+
+.ev-row + .ev-row {
+  border-top: 1px solid color-mix(in srgb, var(--pc) 18%, var(--border));
+}
+
+.ev-row-label {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.ev-row-help {
+  display: block;
+  font-size: 13px;
+  font-weight: 400;
+  color: var(--text-soft);
+}
+
+.play-page .ev-rows .stepper {
+  flex-shrink: 0;
+}
+
+.play-page .ev-rows .stepper button {
+  width: 44px;
+  height: 44px;
+}
+
+.play-page .ev-rows .stepper-value {
+  min-width: 36px;
+}
+
+.holder-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+/* Los nombres largos se leen enteros: el chip crece en alto antes que cortar "C…". */
+.holder-chips .chip {
+  min-height: 44px;
+  white-space: normal;
+  text-align: left;
+  overflow: visible;
+}
+
+.play-page .chip {
+  min-height: 44px;
+}
+
+.play-page .log-list summary {
+  display: flex;
+  align-items: center;
+  min-height: 44px;
+  cursor: pointer;
+}
+
+/* ---------- Pausa del punto final ---------- */
+
+/* El tablero queda atrás, chico y apagado: ya no se toca (inert), sólo se ve el resultado. */
+.play-page .play-board,
+.play-page .play-head {
+  transition:
+    opacity 0.4s cubic-bezier(0.16, 1, 0.3, 1),
+    transform 0.4s cubic-bezier(0.16, 1, 0.3, 1),
+    filter 0.4s ease-out;
+}
+
+.play-page.has-beat .play-board {
+  opacity: 0.3;
+  transform: scale(0.94);
+  transform-origin: 50% 0;
+  filter: saturate(0.4);
+}
+
+.play-page.has-beat .play-head {
+  opacity: 0.5;
+}
+
+.final-beat {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 7;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  width: min(100%, 680px);
+  min-height: 52dvh;
+  margin: 0 auto;
+  padding: 28px 16px calc(16px + env(safe-area-inset-bottom));
+  overflow: hidden;
+  border: 1px solid color-mix(in srgb, var(--accent-2) 55%, var(--border-strong));
+  border-bottom: none;
+  border-radius: 22px 22px 0 0;
+  background: linear-gradient(180deg, color-mix(in srgb, var(--accent-2) 10%, var(--card-2)), var(--card) 70%);
+  box-shadow: 0 -16px 48px rgba(0, 0, 0, 0.55);
+  text-align: center;
+  animation: fb-rise 0.45s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.fb-faces {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 10px;
+}
+
+.fb-face {
+  display: inline-flex;
+  animation: fb-face 0.5s cubic-bezier(0.16, 1, 0.3, 1) both;
+  animation-delay: calc(0.15s + var(--k, 0) * 0.07s);
+}
+
+/* Las caras del ganador con el anillo dorado (el del logo). */
+.fb-face .avatar {
+  box-shadow: 0 0 0 3px var(--card-2), 0 0 0 5px var(--accent-2);
+}
+
+.fb-title {
+  display: block;
+  max-width: 100%;
+  font-family: var(--font-brand);
+  font-size: 44px;
+  font-weight: 400;
+  line-height: 1.05;
+  color: var(--text);
+  text-wrap: balance;
+  overflow-wrap: anywhere;
+}
+
+.fb-score {
+  display: block;
+  color: var(--accent-2);
+  font-size: 28px;
+  font-weight: 900;
+  line-height: 1;
+}
+
+.fb-actions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  width: 100%;
+  margin-top: 12px;
+}
+
+.fb-actions .btn {
+  min-height: 52px;
+  white-space: nowrap;
+}
+
+/* Cuenta regresiva hasta el resumen: una línea que se acorta. */
+.fb-timer {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: var(--accent-2);
+  transform-origin: left;
+  animation: fb-timer linear forwards;
+}
+
+@keyframes fb-rise {
+  from {
+    transform: translateY(100%);
+  }
+  to {
+    transform: none;
+  }
+}
+
+@keyframes fb-face {
+  from {
+    opacity: 0;
+    transform: translateY(12px) scale(0.85);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@keyframes fb-timer {
+  from {
+    transform: scaleX(1);
+  }
+  to {
+    transform: scaleX(0);
+  }
+}
+
+@keyframes fb-fade {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+/* Con movimiento reducido: fundidos cortos en vez de subir y achicar, y sin la línea que corre. */
+.final-beat.reduce {
+  animation: fb-fade 0.2s ease-out;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .final-beat,
+  .fb-face {
+    animation: fb-fade 0.2s ease-out both;
+  }
+  .play-page.has-beat .play-board {
+    transform: none;
+  }
+  .play-page .play-board,
+  .play-page .play-head {
+    transition: opacity 0.2s ease-out;
+  }
+  .fb-timer {
+    display: none;
+  }
+}
+
+/* Teléfonos bajitos o nombres largos: el título baja un escalón para que entren los botones. */
+@media (max-height: 640px) {
+  .final-beat {
+    min-height: 0;
+  }
+  .fb-title {
+    font-size: 32px;
+  }
+}
+
+/* ---------- Cierre de la partida ---------- */
+
+.finish-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.finish-buttons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.finish-buttons .btn {
+  flex: 0 1 auto;
+  padding-inline: 14px;
+  white-space: nowrap;
+}
+
+.finish-buttons .finish-save {
+  flex: 1 1 10rem;
+}
+
+.finish-warning {
+  text-wrap: pretty;
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  margin: 0;
+  padding: 10px 12px;
+  border-radius: 12px;
+  border: 1px solid color-mix(in srgb, var(--accent-2) 45%, transparent);
+  background: color-mix(in srgb, var(--accent-2) 12%, var(--card));
+  font-weight: 600;
+}
+
+.finish-warning svg {
+  flex-shrink: 0;
+  margin-top: 2px;
+  color: var(--accent-2);
+}
+
+/* Nombres enteros en el cierre: la fila se acomoda en dos líneas antes que cortar. */
+.finish-form .score-row {
+  flex-wrap: wrap;
+  gap: 6px 12px;
+}
+
+.finish-form .score-row > .ellipsis {
+  flex: 1 1 8rem;
+  min-width: 0;
+  white-space: normal;
+  overflow-wrap: anywhere;
+}
+
+.finish-form .score-row > select.input {
+  flex: 1 1 10rem;
+  width: auto;
+}
+
+.finish-form .score-input {
+  min-height: 44px;
+}
+
+.finish-form:focus {
+  outline: none;
+}
+
+/* Mientras se carga una mano, el formulario tiene sus propios botones (Cancelar / Guardar):
+   la barra del pulgar se va para no taparlo ni duplicar acciones. */
+.page:has(.round-form) .play-dock {
+  display: none;
+}
+
+/* "Lo último anotado" se ve desplegable: flecha que gira al abrir. */
+.log-summary {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 44px;
+  cursor: pointer;
+  color: var(--text-soft);
+  font-size: 14px;
+  font-weight: 600;
+  list-style: none;
+}
+
+.log-summary::-webkit-details-marker {
+  display: none;
+}
+
+.log-caret {
+  transition: transform 0.15s ease-out;
+}
+
+details[open] > .log-summary .log-caret {
+  transform: rotate(90deg);
+}

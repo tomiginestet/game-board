@@ -228,8 +228,10 @@ export function autoResult(game: GameDef, play: Play, live = computeLive(game, p
 
   if (live.instantWinner !== undefined) {
     const w = live.instantWinner
-    const others = placesFromScores(scores, lowWins).map((p) => p + 1)
-    return { scores, places: scores.map((_, i) => (i === w ? 1 : others[i])) }
+    // El resto se ordena entre sí (sin contar al ganador), desde el segundo puesto.
+    const rest = scores.filter((_, i) => i !== w)
+    const places = scores.map((s, i) => (i === w ? 1 : 2 + rest.filter((o) => (lowWins ? o < s : o > s)).length))
+    return { scores, places }
   }
 
   if (game.mode === 'counter') {
