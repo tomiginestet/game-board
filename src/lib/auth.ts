@@ -47,7 +47,7 @@ export function currentUserId(): string | undefined {
 
 function client() {
   const sb = supabase()
-  if (!sb) throw new Error('Las cuentas no están configuradas')
+  if (!sb) throw new Error('Las cuentas no están disponibles en esta versión de la app')
   return sb
 }
 

@@ -1,13 +1,13 @@
 import { ShuffleIcon, TrophyIcon } from '@phosphor-icons/react'
-import { useMemo, useState } from 'react'
+import { useId, useMemo, useState } from 'react'
 import { Navigate, useNavigate, useSearchParams } from 'react-router-dom'
 import { Stepper } from '../components/ConfigEditor'
 import { GameBadge } from '../components/GameBits'
 import { OptionsEditor } from '../components/OptionsEditor'
-import { PlayerPicker } from '../components/PlayerPicker'
+import { ChoiceGroup, PlayerPicker } from '../components/PlayerPicker'
 import { defaultConfig } from '../lib/engine'
 import { CUP_FORMATS, type CupFormat, type GameDef } from '../lib/games/schema'
-import { useGame, useGames } from '../lib/hooks'
+import { plural, useGame, useGames } from '../lib/hooks'
 import { actions, useData } from '../lib/store'
 import type { CupEntrant, Id } from '../lib/types'
 
@@ -39,6 +39,7 @@ export function NewCup() {
 function CupSetup({ game }: { game: GameDef }) {
   const data = useData()
   const navigate = useNavigate()
+  const id = useId()
   const players = useMemo(() => [...data.players].sort((a, b) => a.name.localeCompare(b.name)), [data.players])
   const [format, setFormat] = useState<CupFormat>(game.formats[0])
   const [name, setName] = useState(`Copa de ${game.name}`)
@@ -68,6 +69,14 @@ function CupSetup({ game }: { game: GameDef }) {
   const seriesTooMany = format === 'series' && entrants.length > game.players.max
   const leftover = byTeams ? seq.length % teamSize : 0
   const ready = name.trim() && entrants.length >= minEntrants && !seriesTooMany && !leftover
+  // Qué falta para poder crear el torneo, dicho como lo que hay que hacer.
+  const missing = !name.trim()
+    ? 'Ponele un nombre al torneo'
+    : leftover
+      ? 'Completá los equipos'
+      : seriesTooMany
+        ? `Elegí hasta ${game.players.max} jugadores`
+        : `Elegí al menos ${plural(byTeams ? minEntrants * teamSize : minEntrants, 'jugador', 'jugadores')}`
 
   const create = () => {
     if (!ready) return
@@ -91,15 +100,23 @@ function CupSetup({ game }: { game: GameDef }) {
       </div>
 
       <section>
-        <h2>Formato</h2>
-        <div className="format-options">
-          {CUP_FORMATS.filter((f) => game.formats.includes(f.id)).map((f) => (
-            <button key={f.id} className={'format-opt' + (format === f.id ? ' active' : '')} onClick={() => setFormat(f.id)}>
-              <b>{f.name}</b>
-              <span className="muted small">{f.description}</span>
-            </button>
-          ))}
-        </div>
+        <h2 id={`${id}-format`}>Formato</h2>
+        <ChoiceGroup
+          className="format-options"
+          itemClassName="format-opt"
+          labelledBy={`${id}-format`}
+          value={format}
+          onChange={setFormat}
+          options={CUP_FORMATS.filter((f) => game.formats.includes(f.id)).map((f) => ({
+            value: f.id,
+            content: (
+              <>
+                <b>{f.name}</b>
+                <span className="muted small">{f.description}</span>
+              </>
+            ),
+          }))}
+        />
       </section>
 
       {format === 'league' && (
@@ -110,15 +127,19 @@ function CupSetup({ game }: { game: GameDef }) {
       )}
       {(format === 'tables' || format === 'series') && (
         <div className="field row-between">
-          <label>{format === 'tables' ? 'Rondas' : 'Partidas'}</label>
-          <Stepper value={rounds} min={1} max={20} onChange={setRounds} />
+          <span className="field-label" aria-hidden>
+            {format === 'tables' ? 'Rondas' : 'Partidas'}
+          </span>
+          <Stepper value={rounds} min={1} max={20} onChange={setRounds} label={format === 'tables' ? 'Rondas' : 'Partidas'} />
         </div>
       )}
       {format === 'tables' && (
         <>
           <div className="field row-between">
-            <label>Jugadores por mesa</label>
-            <Stepper value={tableSize} min={Math.max(2, game.players.min)} max={game.players.max} onChange={setTableSize} />
+            <span className="field-label" aria-hidden>
+              Jugadores por mesa
+            </span>
+            <Stepper value={tableSize} min={Math.max(2, game.players.min)} max={game.players.max} onChange={setTableSize} label="Jugadores por mesa" />
           </div>
           <div className="field row-between">
             <label htmlFor="final">Mesa final con los mejores</label>
@@ -128,21 +149,23 @@ function CupSetup({ game }: { game: GameDef }) {
       )}
 
       {game.sides === 'either' && (format === 'knockout' || format === 'league') && (
-        <div className="segmented">
-          <button className={!byTeams ? 'active' : ''} onClick={() => setByTeams(false)}>
-            Individual
-          </button>
-          <button className={byTeams ? 'active' : ''} onClick={() => setByTeams(true)}>
-            Por equipos de {teamSize}
-          </button>
-        </div>
+        <ChoiceGroup
+          className="segmented"
+          label="Cómo se juega"
+          value={byTeams}
+          onChange={setByTeams}
+          options={[
+            { value: false, content: 'Individual' },
+            { value: true, content: `Por equipos de ${teamSize}` },
+          ]}
+        />
       )}
 
       <section>
         <h2>
           Participantes <span className="muted small">{entrants.length} {byTeams ? 'equipos' : 'inscriptos'}</span>
         </h2>
-        <PlayerPicker players={players} selected={selected} onToggle={toggle} />
+        <PlayerPicker players={players} selected={selected} onToggle={toggle} label="Participantes" />
         {byTeams && entrants.length > 0 && (
           <div className="teams-preview">
             <span>
@@ -153,12 +176,16 @@ function CupSetup({ game }: { game: GameDef }) {
               ))}
             </span>
             <button className="link-btn" onClick={() => setOrder([...selected].sort(() => Math.random() - 0.5))}>
-              <ShuffleIcon className="inline-icon" /> Mezclar
+              <ShuffleIcon className="inline-icon" /> Mezclar equipos
             </button>
           </div>
         )}
-        {leftover > 0 && <p className="error">Sobran {leftover}: cada equipo es de {teamSize}.</p>}
-        {seriesTooMany && <p className="error">En partida acumulada juegan todos juntos: máximo {game.players.max}.</p>}
+        {leftover > 0 && (
+          <p className="error">
+            {leftover === 1 ? 'Sobra 1 jugador' : `Sobran ${leftover} jugadores`}: cada equipo es de {teamSize}. Sumá o sacá jugadores para completarlos.
+          </p>
+        )}
+        {seriesTooMany && <p className="error">En partida acumulada juegan todos juntos: elegí hasta {game.players.max} jugadores.</p>}
       </section>
 
       {game.options.length > 0 && (
@@ -175,7 +202,7 @@ function CupSetup({ game }: { game: GameDef }) {
 
       <div className="sticky-actions">
         <button className="btn primary big block" disabled={!ready} onClick={create}>
-          <TrophyIcon /> {ready ? 'Armar torneo' : `Elegí al menos ${minEntrants} ${byTeams ? 'equipos' : 'participantes'}`}
+          <TrophyIcon /> {ready ? 'Crear torneo' : missing}
         </button>
       </div>
     </div>

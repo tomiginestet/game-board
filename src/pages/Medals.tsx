@@ -117,7 +117,7 @@ export function Medals() {
       <header className="vitrina-head">
         <h1>Vitrina de medallas</h1>
         <p className="muted">
-          El grupo ganó <b className="vitrina-count">{wonLevels}</b> de {totalLevels} niveles.
+          El club ganó <b className="vitrina-count">{wonLevels}</b> de {totalLevels} niveles.
         </p>
         <span className="medal-bar" aria-hidden="true">
           <i style={{ width: `${totalLevels ? Math.round((wonLevels / totalLevels) * 100) : 0}%` }} />

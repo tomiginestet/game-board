@@ -99,6 +99,44 @@ describe('motor', () => {
     expect(placesFromScores([10, 7, 2], true)).toEqual([3, 2, 1])
   })
 
+  describe('ganar en el acto: el resto se ordena desde el segundo puesto', () => {
+    const generala = () => game('generala')
+    const servida = (sides: number, w: number, sc: number[]) => {
+      const p = play('generala', Array.from({ length: sides }, (_, i) => [`j${i}`]))
+      const ev = new Array<number>(sides).fill(0)
+      ev[w] = 1
+      // El ganador anota poco a propósito: gana igual aunque tenga menos puntos.
+      p.log.push({ k: 'round', sc, ev: { generalaServida: ev }, t })
+      return autoResult(generala(), p)?.places
+    }
+
+    it('2 jugadores → [1, 2], gane quien gane', () => {
+      expect(servida(2, 0, [0, 30])).toEqual([1, 2])
+      expect(servida(2, 1, [30, 0])).toEqual([2, 1])
+    })
+
+    it('3 jugadores con los otros empatados → comparten el segundo', () => {
+      expect(servida(3, 0, [0, 10, 10])).toEqual([1, 2, 2])
+      expect(servida(3, 1, [10, 0, 10])).toEqual([2, 1, 2])
+    })
+
+    it('3 jugadores distintos → [1, 2, 3] con el ganador en cualquier lugar', () => {
+      expect(servida(3, 0, [0, 20, 10])).toEqual([1, 2, 3])
+      expect(servida(3, 1, [10, 0, 20])).toEqual([3, 1, 2])
+      expect(servida(3, 2, [20, 10, 0])).toEqual([2, 3, 1])
+    })
+
+    it('si gana el que menos tiene (chinchón), el resto también arranca en 2', () => {
+      const chinchon = game('chinchon')
+      const q = play('chinchon', [['a'], ['b'], ['c']])
+      q.log.push({ k: 'round', sc: [40, 0, 15], ev: { chinchon: [0, 1, 0] }, t })
+      expect(autoResult(chinchon, q)?.places).toEqual([3, 1, 2])
+      const r = play('chinchon', [['a'], ['b'], ['c']])
+      r.log.push({ k: 'round', sc: [20, 20, 0], ev: { chinchon: [0, 0, 1] }, t })
+      expect(autoResult(chinchon, r)?.places).toEqual([2, 2, 1])
+    })
+  })
+
   it('ganadores: empate y cooperativo', () => {
     expect(winnerSides(finished('x', [['a'], ['b']], [1, 1]))).toEqual([])
     expect(winnerSides(finished('x', [['a', 'b']], [1], { result: { places: [1], coopWin: true } }))).toEqual([0])
@@ -182,7 +220,7 @@ describe('estadísticas y medallas', () => {
     const fam = (unit: (n: number) => string) => ({ unit })
     expect(missingLabel(GLOBAL_FAMILIES[0], 3)).toBe('Faltan 3 victorias')
     expect(missingLabel(GLOBAL_FAMILIES[0], 1)).toBe('Falta 1 victoria')
-    expect(missingLabel(fam((n) => `+${n} de ELO`), 55)).toBe('Faltan 55 de ELO')
+    expect(missingLabel(fam((n) => `+${n} de Elo`), 55)).toBe('Faltan 55 de Elo')
     expect(missingLabel(fam((n) => `ganó por ${n}`), 3)).toBe('Faltan 3')
     expect(missingLabel(fam((n) => `de ${n} abajo`), 2)).toBe('Faltan 2')
   })
@@ -276,9 +314,10 @@ describe('catálogo', () => {
           expect(medalSvg(name, 2, { glyph, color })).toContain('<svg')
   })
 
-  // Las que traen `glyph` usan el dibujo genérico a propósito (las de cartas coleccionables, hasta el rediseño de medallas).
+  // Las que traen `glyph` usan el dibujo genérico a propósito (las de cartas coleccionables, hasta que tengan ilustración propia).
   it('cada medalla tiene su ilustración (o un dibujo genérico elegido)', async () => {
-    const { ART_REGISTRY } = await import('./art')
+    const { ART_REGISTRY, loadArt } = await import('./art')
+    await loadArt()
     const { GLOBAL_FAMILIES } = await import('./medals')
     const missing: string[] = []
     for (const g of BUILTIN_GAMES) for (const a of g.awards) for (const l of a.levels) if (!l.glyph && !ART_REGISTRY[l.name]) missing.push(`${g.id}: ${l.name}`)

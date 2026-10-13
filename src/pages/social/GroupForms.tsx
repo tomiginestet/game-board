@@ -2,10 +2,14 @@ import { CheckIcon, GlobeHemisphereWestIcon, HourglassIcon, LockSimpleIcon, Magn
 import { useEffect, useState } from 'react'
 import { cancelJoinRequest, createGroup, requestJoin, searchGroups, updateGroup, type FoundGroup, type MyGroup } from '../../lib/social'
 import { useData } from '../../lib/store'
+import { friendlyError } from '../../lib/text'
+import { ErrorText } from '../../components/Feedback'
+import { EmojiPicker } from '../../components/PlayerForm'
+import { ChoiceGroup } from '../../components/PlayerPicker'
 
-export const GROUP_EMOJIS = ['🎲', '🔥', '🃏', '🏓', '🍕', '🧉', '🏆', '🎉', '👾', '🦁', '🐙', '🌮', '♟️', '🚀', '🍻', '⚽']
+const GROUP_EMOJIS = ['🎲', '🔥', '🃏', '🏓', '🍕', '🧉', '🏆', '🎉', '👾', '🦁', '🐙', '🌮', '♟️', '🚀', '🍻', '⚽']
 
-/** Formulario para crear (o editar) un grupo. */
+/** Formulario para crear (o editar) un club. */
 export function GroupForm({ initial, onDone }: { initial?: MyGroup; onDone: (g?: MyGroup) => void }) {
   const data = useData()
   const [name, setName] = useState(initial?.name ?? '')
@@ -33,7 +37,7 @@ export function GroupForm({ initial, onDone }: { initial?: MyGroup; onDone: (g?:
             onDone(await createGroup({ name: name.trim(), description, emoji, isPublic, importLocal: hasLocal && importLocal }))
           }
         } catch (err) {
-          setError(err instanceof Error ? err.message : String(err))
+          setError(friendlyError(err))
         } finally {
           setBusy(false)
         }
@@ -43,32 +47,40 @@ export function GroupForm({ initial, onDone }: { initial?: MyGroup; onDone: (g?:
         <span className="group-emoji big" aria-hidden>
           {emoji}
         </span>
-        <input className="input" placeholder="Nombre del grupo (Los del asado)" value={name} onChange={(e) => setName(e.target.value)} maxLength={60} aria-label="Nombre del grupo" />
+        <label className="field grow">
+          <span className="field-label">Nombre del club</span>
+          <input className="input" placeholder="Los del asado" value={name} onChange={(e) => setName(e.target.value)} maxLength={60} />
+        </label>
       </div>
-      <div className="emoji-grid">
-        {GROUP_EMOJIS.map((em) => (
-          <button key={em} type="button" className={'emoji-btn' + (em === emoji ? ' active' : '')} onClick={() => setEmoji(em)}>
-            {em}
-          </button>
-        ))}
-      </div>
-      <textarea
-        className="input"
-        rows={2}
-        maxLength={200}
-        placeholder="Descripción corta (opcional): qué juegan, dónde, cuándo…"
-        value={description}
-        onChange={(e) => setDescription(e.target.value)}
-        aria-label="Descripción"
+      <EmojiPicker label="Emoji del club" options={GROUP_EMOJIS} value={emoji} onChange={setEmoji} />
+      <label className="field">
+        <span className="field-label">Descripción corta (opcional)</span>
+        <textarea className="input" rows={2} maxLength={200} placeholder="Truco los viernes en lo de Juli" value={description} onChange={(e) => setDescription(e.target.value)} />
+      </label>
+      <ChoiceGroup
+        className="segmented mt"
+        label="Quién puede encontrar el club"
+        value={isPublic}
+        onChange={setIsPublic}
+        options={[
+          {
+            value: false,
+            content: (
+              <>
+                <LockSimpleIcon /> Privado
+              </>
+            ),
+          },
+          {
+            value: true,
+            content: (
+              <>
+                <GlobeHemisphereWestIcon /> Público
+              </>
+            ),
+          },
+        ]}
       />
-      <div className="segmented mt">
-        <button type="button" className={!isPublic ? 'active' : ''} onClick={() => setIsPublic(false)}>
-          <LockSimpleIcon /> Privado
-        </button>
-        <button type="button" className={isPublic ? 'active' : ''} onClick={() => setIsPublic(true)}>
-          <GlobeHemisphereWestIcon /> Público
-        </button>
-      </div>
       <p className="muted small">
         {isPublic
           ? 'Aparece en el buscador. Quien quiera entrar te pide permiso y vos (o un admin) lo aceptás.'
@@ -77,16 +89,16 @@ export function GroupForm({ initial, onDone }: { initial?: MyGroup; onDone: (g?:
       {hasLocal && (
         <label className="check-row">
           <input type="checkbox" checked={importLocal} onChange={(e) => setImportLocal(e.target.checked)} />
-          <span>Sumar al grupo los jugadores y partidas que ya cargaste en este dispositivo</span>
+          <span>Sumar al club los jugadores y partidas que ya cargaste en este teléfono</span>
         </label>
       )}
-      {error && <p className="error">{error}</p>}
+      <ErrorText>{error}</ErrorText>
       <button className="btn primary block" disabled={busy || !name.trim()}>
         {initial ? (
-          'Guardar'
+          busy ? 'Guardando…' : 'Guardar cambios'
         ) : (
           <>
-            <SparkleIcon /> {busy ? 'Creando…' : 'Crear grupo'}
+            <SparkleIcon /> {busy ? 'Creando…' : 'Crear club'}
           </>
         )}
       </button>
@@ -94,7 +106,7 @@ export function GroupForm({ initial, onDone }: { initial?: MyGroup; onDone: (g?:
   )
 }
 
-/** Buscador de grupos públicos, con el botón para pedir unirse. */
+/** Buscador de clubes públicos, con el botón para pedir unirse. */
 export function GroupSearch({ onOpenMine }: { onOpenMine?: (groupId: string) => void }) {
   const [q, setQ] = useState('')
   const [results, setResults] = useState<FoundGroup[] | null>(null)
@@ -106,7 +118,7 @@ export function GroupSearch({ onOpenMine }: { onOpenMine?: (groupId: string) => 
     const t = setTimeout(() => {
       searchGroups(q)
         .then((r) => !cancelled && (setResults(r), setError('')))
-        .catch((e) => !cancelled && setError(e instanceof Error ? e.message : String(e)))
+        .catch((e) => !cancelled && setError(friendlyError(e)))
     }, 250)
     return () => {
       cancelled = true
@@ -122,7 +134,7 @@ export function GroupSearch({ onOpenMine }: { onOpenMine?: (groupId: string) => 
       else await requestJoin(g.id)
       setResults((r) => r?.map((x) => (x.id === g.id ? { ...x, my_status: g.my_status === 'pending' ? null : 'pending' } : x)) ?? null)
     } catch (e) {
-      setError(e instanceof Error ? e.message : String(e))
+      setError(friendlyError(e))
     } finally {
       setBusyId(null)
     }
@@ -132,11 +144,11 @@ export function GroupSearch({ onOpenMine }: { onOpenMine?: (groupId: string) => 
     <div className="group-search">
       <label className="search">
         <MagnifyingGlassIcon />
-        <input className="input" placeholder="Buscar grupos públicos…" value={q} onChange={(e) => setQ(e.target.value)} />
+        <input className="input" placeholder="Buscar clubes públicos…" aria-label="Buscar clubes públicos" value={q} onChange={(e) => setQ(e.target.value)} />
       </label>
-      {error && <p className="error">{error}</p>}
+      <ErrorText>{error}</ErrorText>
       {results === null && !error && <p className="muted">Buscando…</p>}
-      {results?.length === 0 && <div className="empty">{q ? `No hay grupos públicos con “${q}”.` : 'Todavía no hay grupos públicos.'}</div>}
+      {results?.length === 0 && <div className="empty">{q ? `No hay clubes públicos con “${q}”. Probá con otra palabra.` : 'Todavía no hay clubes públicos.'}</div>}
       <div className="list">
         {results?.map((g) => (
           <div key={g.id} className="card group-row">

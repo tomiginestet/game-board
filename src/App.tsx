@@ -1,10 +1,12 @@
 import { HouseIcon, RankingIcon, SquaresFourIcon, TrophyIcon, UsersIcon, UsersThreeIcon } from '@phosphor-icons/react'
-import { HashRouter, NavLink, Outlet, Route, Routes, useLocation } from 'react-router-dom'
+import { HashRouter, Link, NavLink, Outlet, Route, Routes, useLocation } from 'react-router-dom'
 import { lazy, Suspense, type ComponentType } from 'react'
 import { ErrorBoundary } from './components/ErrorBoundary'
-import { Loader } from './components/Logo'
+import { FeedbackHost } from './components/Feedback'
+import { Loader, Logo } from './components/Logo'
 import { TopBar } from './components/TopBar'
 import { useAuth } from './lib/auth'
+import { useDocumentTitle } from './lib/hooks'
 import { loaderForPath } from './lib/logo'
 import { Home } from './pages/Home'
 import { Gate } from './pages/social/Entry'
@@ -31,6 +33,7 @@ const PlayerDetail = page(() => import('./pages/PlayerDetail'), 'PlayerDetail')
 const Medals = page(() => import('./pages/Medals'), 'Medals')
 const Players = page(() => import('./pages/Players'), 'Players')
 const PlayScreen = page(() => import('./pages/PlayScreen'), 'PlayScreen')
+const QuickPick = page(() => import('./pages/QuickPick'), 'QuickPick')
 const Ranking = page(() => import('./pages/Ranking'), 'Ranking')
 const Settings = page(() => import('./pages/Settings'), 'Settings')
 const Friends = page(() => import('./pages/social/Friends'), 'Friends')
@@ -54,15 +57,38 @@ const NAV = [
   { to: '/ranking', label: 'Ranking', Icon: RankingIcon },
 ]
 
+/** Título de la pestaña según la pantalla (el más específico primero). */
+const TITLES: [RegExp, string][] = [
+  [/^\/$/, 'Inicio'],
+  [/^\/anotar/, 'Anotar'],
+  [/^\/juegos\/nuevo/, 'Agregar juego'],
+  [/^\/juegos/, 'Juegos'],
+  [/^\/(jugar|partida)\//, 'Partida'],
+  [/^\/(ping-pong\/nuevo|partido)/, 'Partido'],
+  [/^\/(torneos|ping-pong\/torneo)/, 'Torneos'],
+  [/^\/ranking/, 'Ranking'],
+  [/^\/jugadores/, 'Jugadores'],
+  [/^\/historial/, 'Historial'],
+  [/^\/ajustes/, 'Ajustes'],
+  [/^\/(club|grupo|grupos|unirse)/, 'Club'],
+  [/^\/amigos/, 'Amigos'],
+  [/^\/notificaciones/, 'Notificaciones'],
+  [/^\/(perfil|cuenta)/, 'Perfil'],
+]
+
 function Layout() {
   const location = useLocation()
   const auth = useAuth()
-  // Con cuenta, la última pestaña es el grupo (integrantes, invitaciones, solicitudes); sin cuenta, los jugadores.
-  const nav = [...NAV, auth.session ? { to: '/grupo', label: 'Grupo', Icon: UsersThreeIcon } : { to: '/jugadores', label: 'Jugadores', Icon: UsersIcon }]
+  useDocumentTitle(TITLES.find(([re]) => re.test(location.pathname))?.[1])
+  // Con cuenta, la última pestaña es el club (integrantes, invitaciones, solicitudes); sin cuenta, los jugadores.
+  const nav = [...NAV, auth.session ? { to: '/grupo', label: 'Club', Icon: UsersThreeIcon } : { to: '/jugadores', label: 'Jugadores', Icon: UsersIcon }]
   return (
     <div className="app">
+      <a className="skip-link" href="#contenido" onClick={(e) => (e.preventDefault(), document.getElementById('contenido')?.focus())}>
+        Saltar al contenido
+      </a>
       <TopBar />
-      <main className="content">
+      <main className="content" id="contenido" tabIndex={-1}>
         {/* Se reinicia al cambiar de pantalla. */}
         <ErrorBoundary key={location.pathname}>
           <Suspense fallback={<PageLoader />}>
@@ -70,7 +96,7 @@ function Layout() {
           </Suspense>
         </ErrorBoundary>
       </main>
-      <nav className="bottom-nav">
+      <nav className="bottom-nav" aria-label="Principal">
         {nav.map((n) => (
           <NavLink key={n.to} to={n.to} end={'end' in n ? n.end : undefined} className={({ isActive }) => 'nav-item' + (isActive ? ' active' : '')}>
             {({ isActive }) => (
@@ -82,6 +108,20 @@ function Layout() {
           </NavLink>
         ))}
       </nav>
+    </div>
+  )
+}
+
+/** Dirección que no existe: lo decimos en vez de mostrar el inicio como si nada. */
+function NotFound() {
+  return (
+    <div className="page empty-page">
+      <Logo kind="secuencia" size={72} />
+      <h1>Esta casilla está vacía</h1>
+      <p className="muted">No encontramos esta página. Puede que el link esté incompleto o que eso ya no exista.</p>
+      <Link to="/" className="btn primary">
+        Volver al inicio
+      </Link>
     </div>
   )
 }
@@ -102,6 +142,7 @@ export default function App() {
             <Route path="/partido/:id" element={<MatchScreen />} />
             <Route element={<Layout />}>
               <Route index element={<Home />} />
+              <Route path="/anotar" element={<QuickPick />} />
               <Route path="/juegos" element={<Games />} />
               <Route path="/juegos/nuevo" element={<AddGame />} />
               <Route path="/juegos/:id" element={<GameDetail />} />
@@ -131,11 +172,12 @@ export default function App() {
               <Route path="/amigos" element={<Friends />} />
               <Route path="/notificaciones" element={<Notifications />} />
               <Route path="/perfil" element={<Profile />} />
-              <Route path="*" element={<Home />} />
+              <Route path="*" element={<NotFound />} />
             </Route>
           </Routes>
         </Suspense>
       </Gate>
+      <FeedbackHost />
     </HashRouter>
   )
 }

@@ -1,9 +1,10 @@
 import { ArrowCounterClockwiseIcon, ArrowLeftIcon, ArrowsCounterClockwiseIcon, ArrowsLeftRightIcon, ConfettiIcon, HandshakeIcon, HouseIcon, PingPongIcon, SparkleIcon, StarIcon, TargetIcon, TrashIcon, TrophyIcon, XIcon } from '@phosphor-icons/react'
 import { LevelIcon } from '../../components/icons'
-import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useId, useMemo, useRef, useState, type ReactNode } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 import { TeamAvatar } from '../../components/Avatar'
 import { Medal } from '../../components/Medal'
+import { toast, useModal } from '../../lib/feedback'
 import { MedalCelebration } from '../../components/MedalCelebration'
 import { MedalSheet } from '../../components/MedalSheet'
 import { levelUps, type LevelUp } from '../../lib/pingpong/achievements'
@@ -105,22 +106,28 @@ function Scoreboard({ match }: { match: Match }) {
     setLastScorer(null)
   }, [match])
 
-  // Teclado: ← / → (o A / L) suman, Backspace deshace.
+  // Teclado: ← / → (o A / L) suman, Backspace deshace. Con una capa abierta (antes de empezar,
+  // entre juegos o al final) el teclado es de la capa: sus botones responden a Enter y Escape.
   useEffect(() => {
+    if (locked) return
     const onKey = (e: KeyboardEvent) => {
+      if (e.defaultPrevented || document.querySelector('dialog[open]')) return
       const left: Side = flipped ? 'b' : 'a'
       if (e.key === 'ArrowLeft' || e.key === 'a') score(left)
       else if (e.key === 'ArrowRight' || e.key === 'l') score(other(left))
       else if (e.key === 'Backspace' || (e.key === 'z' && (e.ctrlKey || e.metaKey))) undo()
-      else if (e.key === 'Enter' && betweenGames) setSeenGames(completedGames)
     }
     window.addEventListener('keydown', onKey)
     return () => window.removeEventListener('keydown', onKey)
-  }, [flipped, score, undo, betweenGames, completedGames])
+  }, [locked, flipped, score, undo])
 
   const sides: Side[] = flipped ? ['b', 'a'] : ['a', 'b']
   const playerOf = (s: Side) => (s === 'a' ? pA : pB)
   const lastGame = state.games.filter((g) => g.winner).at(-1)
+  // Para lectores de pantalla: el marcador se anuncia cada vez que cambia ("Ana 7, Beto 5").
+  const announcement = !pending && match.points.length ? `${pA.name} ${state.current.a}, ${pB.name} ${state.current.b}` : ''
+  const keepGoing = () => setSeenGames(completedGames)
+  const titleId = useId()
 
   return (
     <div className="scoreboard">
@@ -165,6 +172,10 @@ function Scoreboard({ match }: { match: Match }) {
               onPointerDown={(e) => {
                 if (e.button === 0) score(s)
               }}
+              // Enter y Espacio llegan como click sin puntero (detail 0); el toque ya sumó en onPointerDown.
+              onClick={(e) => {
+                if (e.detail === 0) score(s)
+              }}
               onContextMenu={(e) => e.preventDefault()}
               disabled={locked}
             >
@@ -191,6 +202,10 @@ function Scoreboard({ match }: { match: Match }) {
         })}
       </div>
 
+      <p className="sr-only" aria-live="polite">
+        {announcement}
+      </p>
+
       {!pending && !finished && match.points.length === 0 && (
         <div className="sb-hint">
           Tocá tu mitad de la pantalla para sumar un punto.
@@ -201,11 +216,11 @@ function Scoreboard({ match }: { match: Match }) {
       )}
 
       {pending && (
-        <div className="overlay">
+        <Overlay labelledBy={`${titleId}-setup`} onEscape={() => navigate(backTo)}>
           <div className="overlay-card">
-            <div className="vs-row">
+            <div className="vs-row" id={`${titleId}-setup`}>
               <PlayerBig team={teamA} />
-              <span className="vs">VS</span>
+              <span className="vs">vs</span>
               <PlayerBig team={teamB} />
             </div>
             <p className="muted">{describeConfig(match.config)}</p>
@@ -224,14 +239,14 @@ function Scoreboard({ match }: { match: Match }) {
               Volver
             </button>
           </div>
-        </div>
+        </Overlay>
       )}
 
       {betweenGames && lastGame && (
-        <div className="overlay">
+        <Overlay labelledBy={`${titleId}-game`} onEscape={keepGoing} initialFocus=".keep-going">
           <div className="overlay-card">
             <TargetIcon className="big-icon" weight="duotone" />
-            <h2>Juego para {playerOf(lastGame.winner!).name}</h2>
+            <h2 id={`${titleId}-game`}>Juego para {playerOf(lastGame.winner!).name}</h2>
             <p className="game-final">
               {lastGame.a} - {lastGame.b}
             </p>
@@ -242,23 +257,66 @@ function Scoreboard({ match }: { match: Match }) {
               className="btn primary big block"
               onClick={() => {
                 setFlipped((f) => !f)
-                setSeenGames(completedGames)
+                keepGoing()
               }}
             >
               <ArrowsLeftRightIcon /> Cambiar lados y seguir
             </button>
-            <button className="btn block" onClick={() => setSeenGames(completedGames)}>
+            {/* Arranca con el foco: Enter sigue sin cambiar lados, como antes. */}
+            <button className="btn block keep-going" onClick={keepGoing}>
               Seguir sin cambiar
             </button>
             <button className="link-btn" onClick={undo}>
               <ArrowCounterClockwiseIcon className="inline-icon" /> Deshacer último punto
             </button>
           </div>
-        </div>
+        </Overlay>
       )}
 
       {finished && <MatchResult match={match} teamA={teamA} teamB={teamB} onUndo={undo} backTo={backTo} />}
     </div>
+  )
+}
+
+/*
+ * Las capas sobre el marcador son <dialog> modales: el foco queda adentro, el resto de la página
+ * es inerte y, al cerrarse, el foco vuelve a donde estaba (useModal). El estilo en línea anula lo
+ * que el navegador le pone a todo <dialog> (borde, margen, tamaño) para que mande `.overlay`.
+ */
+
+function Overlay({
+  className,
+  labelledBy,
+  onEscape,
+  initialFocus,
+  children,
+}: {
+  className?: string
+  /** Id del título visible de la capa. */
+  labelledBy: string
+  /** Qué hace Escape: lo mismo que el botón de salida de la capa. */
+  onEscape: () => void
+  /** Selector del elemento que arranca con el foco (si no, el primero que lo acepte). */
+  initialFocus?: string
+  children: ReactNode
+}) {
+  const ref = useRef<HTMLDialogElement>(null)
+  useModal(ref)
+  useEffect(() => {
+    if (initialFocus) ref.current?.querySelector<HTMLElement>(initialFocus)?.focus()
+  }, [initialFocus])
+  return (
+    <dialog
+      ref={ref}
+      className={'overlay' + (className ? ' ' + className : '')}
+      aria-labelledby={labelledBy}
+      onCancel={(e) => {
+        e.preventDefault()
+        onEscape()
+      }}
+    >
+      {children}
+    </dialog>
   )
 }
 
@@ -279,8 +337,9 @@ function MatchResult({ match, teamA, teamB, onUndo, backTo }: { match: Match; te
   const state = computeMatch(match.points, match.config, match.firstServer)
   const winner = state.winner === 'a' ? pA : state.winner === 'b' ? pB : null
   const winnerTeam = state.winner === 'a' ? teamA : teamB
+  const titleId = useId()
 
-  // ELO y logros: comparamos el historial con y sin este partido.
+  // Elo y logros: comparamos el historial con y sin este partido.
   const { delta, newAchievements, withStats, elo } = useMemo(() => {
     const withMatch = computeLeaderboard(data)
     const without = computeLeaderboard({ ...data, matches: data.matches.filter((m) => m.id !== match.id) })
@@ -314,7 +373,7 @@ function MatchResult({ match, teamA, teamB, onUndo, backTo }: { match: Match; te
   }
 
   return (
-    <div className="overlay result">
+    <Overlay className="result" labelledBy={titleId} onEscape={() => navigate(backTo)}>
       {winner && <Confetti />}
       <MedalCelebration id={match.id} finishedAt={match.finishedAt} medals={fresh} />
       <div className="overlay-card">
@@ -322,30 +381,30 @@ function MatchResult({ match, teamA, teamB, onUndo, backTo }: { match: Match; te
         {winner ? (
           <>
             <TeamAvatar team={winnerTeam} size={80} />
-            <h2>¡{winnerTeam.length > 1 ? 'Ganaron' : 'Ganó'} {winner.name}!</h2>
+            <h2 id={titleId}>¡{winnerTeam.length > 1 ? 'Ganaron' : 'Ganó'} {winner.name}!</h2>
           </>
         ) : (
-          <h2>¡Empate!</h2>
+          <h2 id={titleId}>¡Empate!</h2>
         )}
         <div className="result-score">
           <div className={'rs-side' + (state.winner === 'a' ? ' w' : '')}>
             <span>{pA.emoji} {pA.name}</span>
             <b>{state.gamesWon.a}</b>
-            {delta && <span className={'elo-delta ' + (delta.a >= 0 ? 'up' : 'down')}>{delta.a >= 0 ? '+' : ''}{delta.a} ELO</span>}
+            {delta && <span className={'elo-delta ' + (delta.a >= 0 ? 'up' : 'down')}>{delta.a >= 0 ? '+' : ''}{delta.a} Elo</span>}
             <span className="muted small"><LevelIcon icon={levelFor(elo.a).icon} /> {elo.a}</span>
           </div>
           <span className="vs">-</span>
           <div className={'rs-side' + (state.winner === 'b' ? ' w' : '')}>
             <span>{pB.emoji} {pB.name}</span>
             <b>{state.gamesWon.b}</b>
-            {delta && <span className={'elo-delta ' + (delta.b >= 0 ? 'up' : 'down')}>{delta.b >= 0 ? '+' : ''}{delta.b} ELO</span>}
+            {delta && <span className={'elo-delta ' + (delta.b >= 0 ? 'up' : 'down')}>{delta.b >= 0 ? '+' : ''}{delta.b} Elo</span>}
             <span className="muted small"><LevelIcon icon={levelFor(elo.b).icon} /> {elo.b}</span>
           </div>
         </div>
         <p className="muted">{state.games.map((g) => `${g.a}-${g.b}`).join(' · ')}</p>
 
         {newAchievements.length > 0 && (
-          <div className="new-achievements">
+          <div className="new-achievements" role="status">
             {newAchievements.map(({ player, ups }) =>
               ups.map(({ family, level }) => (
                 <button
@@ -399,10 +458,11 @@ function MatchResult({ match, teamA, teamB, onUndo, backTo }: { match: Match; te
             <button
               className="link-btn danger-text"
               onClick={() => {
-                if (confirm('¿Borrar este partido del historial?')) {
-                  actions.deleteMatch(match.id)
-                  navigate('/historial')
-                }
+                // Se puede recuperar mientras dure el aviso: se borra sin preguntar y se ofrece deshacer.
+                const removed = match
+                actions.deleteMatch(match.id)
+                navigate('/historial')
+                toast('Borraste el partido.', { label: 'Deshacer', run: () => actions.restoreMatch(removed) })
               }}
             >
               <TrashIcon className="inline-icon" /> Borrar
@@ -411,7 +471,7 @@ function MatchResult({ match, teamA, teamB, onUndo, backTo }: { match: Match; te
         </div>
         <p className="muted small">{formatDate(match.finishedAt ?? match.createdAt)}</p>
       </div>
-    </div>
+    </Overlay>
   )
 }
 

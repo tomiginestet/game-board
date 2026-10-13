@@ -1,0 +1,130 @@
+/* Planilla final de la generala en el resumen de la partida (sólo lectura). */
+
+.planilla-summary {
+  /* La tabla se desplaza dentro de la tarjeta; la página nunca se ensancha. */
+  min-width: 0;
+  max-width: 100%;
+  padding: 16px 0 8px;
+}
+
+.ps-wrap {
+  /* Contiene a los textos ocultos (.sr-only) de las celdas para que no ensanchen la página. */
+  position: relative;
+  overflow-x: auto;
+  overscroll-behavior-x: contain;
+  scrollbar-width: thin;
+  scrollbar-color: var(--border-strong) transparent;
+}
+
+.ps-table {
+  width: 100%;
+  min-width: calc(96px + var(--n, 2) * 72px);
+  table-layout: fixed;
+  border-collapse: collapse;
+  font-variant-numeric: tabular-nums;
+  font-size: 16px;
+}
+
+.ps-table caption {
+  caption-side: top;
+  text-align: left;
+  padding: 0 0 8px;
+  font-size: 20px;
+  font-weight: 700;
+  line-height: 1.2;
+  color: var(--text);
+}
+
+/* El título queda quieto aunque la tabla se desplace de costado. */
+.ps-title {
+  display: inline-block;
+  position: sticky;
+  left: 16px;
+  margin-left: 16px;
+}
+
+.ps-table th,
+.ps-table td {
+  padding: 8px 4px;
+  border-bottom: 1px solid var(--border);
+  text-align: center;
+  line-height: 1.3;
+}
+
+.ps-table tr > :first-child {
+  width: 96px;
+  /* La columna de categorías queda fija mientras se desplazan los jugadores. */
+  position: sticky;
+  left: 0;
+  z-index: 1;
+  background: var(--card);
+  text-align: left;
+  padding-left: 16px;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-soft);
+}
+
+.ps-table thead th {
+  padding: 4px 4px 8px;
+  font-size: 13px;
+  font-weight: 700;
+  vertical-align: bottom;
+  color: var(--text);
+}
+
+.ps-table thead th > :first-child:not(.sr-only) {
+  margin: 0 auto 4px;
+}
+
+.ps-name {
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.ps-table td.is-zero {
+  color: var(--muted);
+}
+
+.ps-table tbody tr:last-child > * {
+  border-bottom-color: var(--border-strong);
+}
+
+.ps-table tfoot th,
+.ps-table tfoot td {
+  border-bottom: none;
+  padding-top: 10px;
+  padding-bottom: 10px;
+  vertical-align: top;
+}
+
+.ps-table tfoot th {
+  color: var(--muted);
+}
+
+.ps-table tfoot td b {
+  display: block;
+  font-size: 20px;
+  font-weight: 800;
+  line-height: 1.2;
+}
+
+.ps-table tfoot td.is-lead b {
+  color: var(--accent-2);
+}
+
+.ps-lead {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  margin-top: 2px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--accent-2);
+}
+
+.ps-lead svg {
+  flex: none;
+}

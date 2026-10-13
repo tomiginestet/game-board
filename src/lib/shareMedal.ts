@@ -1,6 +1,7 @@
 // Compartir una medalla: arma una imagen vertical (para el estado o el grupo de WhatsApp)
 // con la medalla en grande, su nombre y quién la ganó, y la comparte o la descarga.
 
+import { loadArt } from './art'
 import { medalSvg, TIERS } from './medalArt'
 import type { MedalFamily } from './medals'
 
@@ -72,6 +73,7 @@ export async function medalImage(family: MedalFamily, level: number, who?: strin
   ctx.fillStyle = fade
   ctx.fillRect(0, 820, W, H - 820)
 
+  await loadArt()
   const svg = medalSvg(l.name, level, { face: l.face, glyph: l.glyph, color: l.color }).replace('<defs>', '<defs>' + OUTLINE_CSS)
   const img = await loadImage('data:image/svg+xml;charset=utf-8,' + encodeURIComponent(svg))
   const size = 560

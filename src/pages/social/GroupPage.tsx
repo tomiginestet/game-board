@@ -37,12 +37,16 @@ import {
   type MyGroup,
 } from '../../lib/social'
 import { useData } from '../../lib/store'
-import { deactivateClub, inviteLink, syncNow, useSyncState } from '../../lib/sync'
+import { deactivateClub, inviteLink, SYNC_LABEL, syncNow, useSyncState } from '../../lib/sync'
+import { SyncIcon } from '../../components/SyncIcon'
 import { formatDate, plural } from '../../lib/hooks'
 import { ClubPage } from '../ClubPage'
 import { GroupForm } from './GroupForms'
+import { friendlyError } from '../../lib/text'
+import { ErrorText } from '../../components/Feedback'
+import { confirmAction } from '../../lib/feedback'
 
-const ROLE_NAMES = { owner: 'Dueño', admin: 'Admin', member: 'Integrante' } as const
+const ROLE_NAMES = { owner: 'Admin principal', admin: 'Admin', member: 'Integrante' } as const
 
 export function GroupPage() {
   const auth = useAuth()
@@ -52,10 +56,10 @@ export function GroupPage() {
   if (!group) {
     return (
       <div className="page">
-        <h1>Grupo</h1>
-        {sync.club ? <p className="muted">Cargando el grupo…</p> : <div className="empty">No tenés un grupo activo.</div>}
+        <h1>Club</h1>
+        {sync.club ? <p className="muted">Cargando el club…</p> : <div className="empty">No tenés un club activo. Elegí uno de tus clubes o creá uno.</div>}
         <Link to="/grupos" className="btn primary">
-          <UsersIcon /> Ver mis grupos
+          <UsersIcon /> Ver mis clubes
         </Link>
       </div>
     )
@@ -81,7 +85,7 @@ function GroupView({ group }: { group: MyGroup }) {
   const load = useCallback(() => {
     groupMembers(group.code)
       .then(setMembers)
-      .catch((e) => setError(e instanceof Error ? e.message : String(e)))
+      .catch((e) => setError(friendlyError(e)))
     if (isAdmin && !duo) groupRequests(group.code).then(setRequests).catch(() => {})
   }, [group.code, isAdmin, duo])
 
@@ -97,7 +101,7 @@ function GroupView({ group }: { group: MyGroup }) {
     try {
       await fn()
     } catch (e) {
-      setError(e instanceof Error ? e.message : String(e))
+      setError(friendlyError(e))
     } finally {
       setBusy(false)
     }
@@ -110,7 +114,7 @@ function GroupView({ group }: { group: MyGroup }) {
     <div className="page">
       {editing ? (
         <>
-          <h1>Editar grupo</h1>
+          <h1>Editar club</h1>
           <GroupForm
             initial={group}
             onDone={() => {
@@ -140,9 +144,11 @@ function GroupView({ group }: { group: MyGroup }) {
               <span className="pill">
                 {plural(playerCount, 'jugador', 'jugadores')} · {plural(playsCount, 'partida', 'partidas')}
               </span>
-              <span className={'sync-badge ' + sync.status}>
-                <span className="sync-dot" /> {sync.status === 'ok' ? 'Al día' : sync.status === 'syncing' ? 'Sincronizando…' : sync.status === 'offline' ? 'Sin conexión' : sync.status === 'error' ? 'Error' : ''}
-              </span>
+              {sync.status !== 'off' && (
+                <span className={'pill sync-pill ' + sync.status}>
+                  <SyncIcon status={sync.status} /> {SYNC_LABEL[sync.status]}
+                </span>
+              )}
             </div>
           </div>
           {isAdmin && !duo && (
@@ -153,8 +159,8 @@ function GroupView({ group }: { group: MyGroup }) {
         </header>
       )}
       {sync.error && sync.status === 'error' && (
-        <p className="error">
-          {sync.error}{' '}
+        <p className="error" role="alert">
+          {friendlyError(sync.error)}{' '}
           <button className="link-btn small" onClick={() => void syncNow()}>
             <ArrowsClockwiseIcon /> Reintentar
           </button>
@@ -224,7 +230,15 @@ function GroupView({ group }: { group: MyGroup }) {
                   className="tool-btn"
                   aria-label={`Sacar a ${m.display_name}`}
                   disabled={busy}
-                  onClick={() => confirm(`¿Sacar a ${m.display_name} del grupo?`) && run(() => removeMember(group.code, m.user_id).then(load))}
+                  onClick={async () => {
+                    const ok = await confirmAction({
+                      title: `¿Sacar a ${m.display_name} del club?`,
+                      detail: 'Sus partidas quedan en el historial. Puede volver a sumarse con una invitación.',
+                      confirmLabel: 'Sacar del club',
+                      danger: true,
+                    })
+                    if (ok) void run(() => removeMember(group.code, m.user_id).then(load))
+                  }}
                 >
                   <XIcon />
                 </button>
@@ -236,18 +250,26 @@ function GroupView({ group }: { group: MyGroup }) {
 
       {!duo && <InviteSection group={group} members={members ?? []} />}
 
-      {error && <p className="error">{error}</p>}
+      <ErrorText>{error}</ErrorText>
 
       <button
         className="btn danger mt"
         disabled={busy}
-        onClick={() => {
-          const msg = duo
-            ? '¿Salir de este mano a mano? Podés volver desde Amigos.'
-            : group.role === 'owner'
-              ? '¿Salir del grupo? Pasa a ser dueño el admin (o integrante) más antiguo.'
-              : '¿Salir del grupo?'
-          if (confirm(msg))
+        onClick={async () => {
+          const ok = await confirmAction(
+            duo
+              ? { title: '¿Salir de este mano a mano?', detail: 'Podés volver cuando quieras desde Amigos.', confirmLabel: 'Salir del mano a mano', danger: true }
+              : {
+                  title: `¿Salir de “${group.name}”?`,
+                  detail:
+                    group.role === 'owner'
+                      ? 'La administración pasa a quien sea admin (o integrante) hace más tiempo. Para volver vas a necesitar una invitación.'
+                      : 'Para volver vas a necesitar una invitación o pedir sumarte de nuevo.',
+                  confirmLabel: 'Salir del club',
+                  danger: true,
+                },
+          )
+          if (ok)
             void run(async () => {
               await leaveGroup(group.code)
               deactivateClub()
@@ -255,7 +277,7 @@ function GroupView({ group }: { group: MyGroup }) {
             })
         }}
       >
-        <SignOutIcon /> {duo ? 'Salir del mano a mano' : 'Salir del grupo'}
+        <SignOutIcon /> {duo ? 'Salir del mano a mano' : 'Salir del club'}
       </button>
     </div>
   )
@@ -283,7 +305,7 @@ function WhoAmI({ group }: { group: MyGroup }) {
       await refreshGroups()
       void syncNow()
     } catch (e) {
-      setError(e instanceof Error ? e.message : String(e))
+      setError(friendlyError(e))
     } finally {
       setBusy(false)
     }
@@ -291,7 +313,7 @@ function WhoAmI({ group }: { group: MyGroup }) {
 
   return (
     <section className="card highlight" id="yo">
-      <h2>¿Quién sos en este grupo?</h2>
+      <h2>¿Quién sos en este club?</h2>
       <p className="muted small">Así tus partidas cuentan para tu perfil y para el ranking global.</p>
       {free.length > 0 && (
         <>
@@ -308,7 +330,7 @@ function WhoAmI({ group }: { group: MyGroup }) {
       <button className="btn primary block mt" disabled={busy} onClick={() => run(() => ensureMyPlayer(group.code))}>
         <UserPlusIcon /> {free.length ? 'No estoy: crear mi jugador' : 'Crear mi jugador'}
       </button>
-      {error && <p className="error">{error}</p>}
+      <ErrorText>{error}</ErrorText>
     </section>
   )
 }
@@ -369,16 +391,16 @@ function InviteSection({ group, members }: { group: MyGroup; members: Member[] }
                 onClick={() =>
                   inviteToGroup(group.code, u.user_id)
                     .then(() => setInvited((x) => [...x, u.user_id]))
-                    .catch((e) => setError(e instanceof Error ? e.message : String(e)))
+                    .catch((e) => setError(friendlyError(e)))
                 }
               >
-                {member ? 'Ya está' : done ? 'Invitado' : 'Invitar'}
+                {member ? 'Ya está' : done ? 'Invitación enviada' : 'Invitar'}
               </button>
             </div>
           )
         })}
       </div>
-      {error && <p className="error">{error}</p>}
+      <ErrorText>{error}</ErrorText>
       <p className="muted small mt">O compartí el link (quien lo tenga puede entrar sin pedir permiso):</p>
       <div className="row gap wrap">
         <button

@@ -1,9 +1,10 @@
 import { ArrowsClockwiseIcon, CheckIcon, TrophyIcon } from '@phosphor-icons/react'
 import { SwordsIcon } from '../../components/icons/custom'
-import { useState } from 'react'
+import { useId, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { ConfigEditor } from '../../components/ConfigEditor'
-import { PlayerPicker } from '../../components/PlayerPicker'
+import { ChoiceGroup, PlayerPicker } from '../../components/PlayerPicker'
+import { plural } from '../../lib/hooks'
 import { DEFAULT_CONFIG } from '../../lib/pingpong/scoring'
 import { actions, useData } from '../../lib/store'
 import { roundRobin } from '../../lib/pingpong/tournament'
@@ -14,6 +15,7 @@ const NAMES = ['Copa de la Oficina', 'Torneo del Asado', 'Gran Slam Casero', 'Co
 export function NewTournament() {
   const data = useData()
   const navigate = useNavigate()
+  const id = useId()
   const players = [...data.players].sort((a, b) => a.name.localeCompare(b.name))
   const [name, setName] = useState(() => NAMES[Math.floor(Math.random() * NAMES.length)])
   const [format, setFormat] = useState<TournamentFormat>('league')
@@ -32,24 +34,43 @@ export function NewTournament() {
 
       <section className="card">
         <label className="field">
-          <span>Nombre</span>
+          <span className="field-label">Nombre</span>
           <input className="input" value={name} onChange={(e) => setName(e.target.value)} maxLength={40} />
         </label>
 
         <div className="field">
-          <label>Formato</label>
-          <div className="format-options">
-            <button type="button" className={'format-opt' + (format === 'league' ? ' active' : '')} onClick={() => setFormat('league')}>
-              <ArrowsClockwiseIcon className="big-icon" weight="duotone" />
-              <b>Liga</b>
-              <span className="muted small">Todos contra todos. Gana quien más puntos sume.</span>
-            </button>
-            <button type="button" className={'format-opt' + (format === 'knockout' ? ' active' : '')} onClick={() => setFormat('knockout')}>
-              <SwordsIcon className="big-icon" weight="duotone" />
-              <b>Eliminación</b>
-              <span className="muted small">Cuadro de llaves. El que pierde, afuera.</span>
-            </button>
-          </div>
+          <span id={`${id}-format`} className="field-label">
+            Formato
+          </span>
+          <ChoiceGroup
+            className="format-options"
+            itemClassName="format-opt"
+            labelledBy={`${id}-format`}
+            value={format}
+            onChange={setFormat}
+            options={[
+              {
+                value: 'league',
+                content: (
+                  <>
+                    <ArrowsClockwiseIcon className="big-icon" weight="duotone" />
+                    <b>Liga</b>
+                    <span className="muted small">Todos contra todos. Gana quien más puntos sume.</span>
+                  </>
+                ),
+              },
+              {
+                value: 'knockout',
+                content: (
+                  <>
+                    <SwordsIcon className="big-icon" weight="duotone" />
+                    <b>Eliminación</b>
+                    <span className="muted small">Cuadro de llaves. El que pierde, afuera.</span>
+                  </>
+                ),
+              },
+            ]}
+          />
         </div>
 
         {format === 'league' && (
@@ -68,7 +89,7 @@ export function NewTournament() {
           {players.length > 2 &&
             (selected.length === players.length ? (
               <button className="link-btn" onClick={() => setSelected([])}>
-                Ninguno
+                Sacar a todos
               </button>
             ) : (
               <button className="link-btn" onClick={() => setSelected(players.map((p) => p.id))}>
@@ -76,7 +97,7 @@ export function NewTournament() {
               </button>
             ))}
         </div>
-        <PlayerPicker players={players} selected={selected} onToggle={toggle} badge={(id) => (selected.includes(id) ? <CheckIcon size={12} /> : undefined)} />
+        <PlayerPicker players={players} selected={selected} onToggle={toggle} label="Jugadores del torneo" badge={(id) => (selected.includes(id) ? <CheckIcon size={12} /> : undefined)} />
       </section>
 
       <section className="card">
@@ -95,8 +116,10 @@ export function NewTournament() {
         >
           {valid ? (
             <>
-              <TrophyIcon /> Crear torneo · {matchCount} partidos
+              <TrophyIcon /> Crear torneo · {plural(matchCount, 'partido', 'partidos')}
             </>
+          ) : !name.trim() ? (
+            'Ponele un nombre al torneo'
           ) : (
             'Elegí al menos 2 jugadores'
           )}

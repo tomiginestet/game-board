@@ -1,6 +1,10 @@
 import { EnvelopeSimpleIcon, GoogleLogoIcon } from '@phosphor-icons/react'
 import { useEffect, useRef, useState } from 'react'
 import { googleButtonAvailable, renderGoogleButton, signInWithEmail, signInWithGoogle, verifyEmailCode } from '../lib/auth'
+import { friendlyError } from '../lib/text'
+import { ErrorText } from './Feedback'
+
+const validEmail = (s: string) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(s.trim())
 
 /** Botón oficial de Google (Google muestra el dominio de la app). Si no carga, el de siempre. */
 function GoogleButton({ busy, run, onError }: { busy: boolean; run: (fn: () => Promise<unknown>) => void; onError: (m: string) => void }) {
@@ -28,6 +32,9 @@ export function LoginForm() {
   const [code, setCode] = useState('')
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState('')
+  // El aviso de mail incompleto aparece recién cuando la persona intenta seguir, no mientras escribe.
+  const [tried, setTried] = useState(false)
+  const emailProblem = tried && !validEmail(email) ? 'Revisá el mail: tiene que ser como nombre@algo.com.' : ''
 
   const run = async (fn: () => Promise<unknown>) => {
     setBusy(true)
@@ -35,7 +42,7 @@ export function LoginForm() {
     try {
       await fn()
     } catch (e) {
-      setError(e instanceof Error ? e.message : String(e))
+      setError(friendlyError(e))
     } finally {
       setBusy(false)
     }
@@ -45,19 +52,39 @@ export function LoginForm() {
     <div className="login-form">
       {!sent ? (
         <>
-          <GoogleButton busy={busy} run={run} onError={setError} />
+          <GoogleButton busy={busy} run={run} onError={(m) => setError(friendlyError(m))} />
           <div className="or-divider">
             <span>o con tu mail</span>
           </div>
           <form
+            noValidate
             onSubmit={(e) => {
               e.preventDefault()
-              if (/.+@.+\..+/.test(email)) void run(() => signInWithEmail(email).then(() => setSent(true)))
+              setTried(true)
+              if (validEmail(email)) void run(() => signInWithEmail(email.trim()).then(() => setSent(true)))
             }}
           >
-            <input className="input" type="email" placeholder="tu@email.com" value={email} onChange={(e) => setEmail(e.target.value)} autoComplete="email" aria-label="Mail" />
-            <button className="btn primary block big mt" disabled={busy || !/.+@.+\..+/.test(email)}>
-              <EnvelopeSimpleIcon /> Mandame un link para entrar
+            <label className="field">
+              <span className="field-label">Tu mail</span>
+              <input
+                className="input"
+                type="email"
+                inputMode="email"
+                placeholder="nombre@mail.com"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                autoComplete="email"
+                aria-invalid={!!emailProblem}
+                aria-describedby={emailProblem ? 'email-problem' : undefined}
+              />
+              {emailProblem && (
+                <span id="email-problem" className="error small">
+                  {emailProblem}
+                </span>
+              )}
+            </label>
+            <button className="btn primary block big" disabled={busy}>
+              <EnvelopeSimpleIcon /> {busy ? 'Mandando…' : 'Mandame un link para entrar'}
             </button>
           </form>
         </>
@@ -72,9 +99,12 @@ export function LoginForm() {
               if (code.trim().length >= 6) void run(() => verifyEmailCode(email, code))
             }}
           >
-            <input className="input" inputMode="numeric" placeholder="Código de 6 dígitos" value={code} onChange={(e) => setCode(e.target.value)} aria-label="Código" />
-            <button className="btn primary block mt" disabled={busy || code.trim().length < 6}>
-              Entrar con el código
+            <label className="field">
+              <span className="field-label">Código del mail (si vino uno)</span>
+              <input className="input" inputMode="numeric" autoComplete="one-time-code" placeholder="6 dígitos" value={code} onChange={(e) => setCode(e.target.value)} />
+            </label>
+            <button className="btn primary block" disabled={busy || code.trim().length < 6}>
+              {busy ? 'Entrando…' : 'Entrar con el código'}
             </button>
           </form>
           <button className="link-btn small mt" onClick={() => setSent(false)}>
@@ -82,7 +112,7 @@ export function LoginForm() {
           </button>
         </>
       )}
-      {error && <p className="error">{error}</p>}
+      <ErrorText>{error}</ErrorText>
     </div>
   )
 }

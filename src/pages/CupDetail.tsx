@@ -4,6 +4,7 @@ import { Link, useNavigate, useParams } from 'react-router-dom'
 import { TeamAvatar } from '../components/Avatar'
 import { GameBadge, PlayRow } from '../components/GameBits'
 import { bracketRounds, cupChampion, cupEntrantName, cupStandings, tableRounds, type BracketSlot } from '../lib/cups'
+import { confirmAction } from '../lib/feedback'
 import { CUP_FORMATS, type GameDef } from '../lib/games/schema'
 import { gameOrMissing, UNKNOWN_PLAYER, usePlayerMap } from '../lib/hooks'
 import { roundName } from '../lib/pingpong/tournament'
@@ -33,7 +34,7 @@ function CupView({ cup, game }: { cup: Cup; game: GameDef }) {
   const players = usePlayerMap()
   const plays = useMemo(() => data.plays.filter((p) => p.cupId === cup.id).sort((a, b) => (a.round ?? 0) - (b.round ?? 0) || (a.slot ?? 0) - (b.slot ?? 0)), [data.plays, cup.id])
   const nameOf = (id: Id) => players.get(id)?.name ?? '?'
-  const entrantName = (i: number | null | undefined) => (i === null ? 'Libre' : i === undefined ? 'A definir' : cupEntrantName(cup, i, nameOf))
+  const entrantName = (i: number | null | undefined) => (i === null ? 'Libre' : i === undefined ? 'Por definir' : cupEntrantName(cup, i, nameOf))
   const entrantTeam = (i: number): Player[] => cup.entrants[i]?.players.map((id) => players.get(id) ?? UNKNOWN_PLAYER) ?? []
   const lowWins = !!game.scoring.lowWins
   const champion = cupChampion(cup, plays, lowWins)
@@ -41,8 +42,14 @@ function CupView({ cup, game }: { cup: Cup; game: GameDef }) {
   const next = plays.find((p) => p.status !== 'finished')
   const formatName = CUP_FORMATS.find((f) => f.id === cup.format)?.name
 
-  const remove = () => {
-    if (!confirm(`¿Borrar el torneo "${cup.name}" con todas sus partidas?`)) return
+  const remove = async () => {
+    const ok = await confirmAction({
+      title: `¿Borrar el torneo “${cup.name}”?`,
+      detail: 'Se borran también todas sus partidas. No se puede deshacer.',
+      confirmLabel: 'Borrar torneo',
+      danger: true,
+    })
+    if (!ok) return
     actions.deleteCup(cup.id)
     navigate('/torneos')
   }
@@ -71,7 +78,7 @@ function CupView({ cup, game }: { cup: Cup; game: GameDef }) {
       {champion !== undefined && (
         <div className="champion-banner">
           <CrownIcon weight="fill" size={36} />
-          <span className="muted small">Campeón</span>
+          <span className="muted small">Ganó el torneo</span>
           <TeamAvatar team={entrantTeam(champion)} size={56} />
           <span className="champion-name">{entrantName(champion)}</span>
         </div>
@@ -94,10 +101,18 @@ function CupView({ cup, game }: { cup: Cup; game: GameDef }) {
                 <tr>
                   <th>#</th>
                   <th className="left">{cup.entrants[0]?.players.length > 1 ? 'Equipo' : 'Jugador'}</th>
-                  <th>PJ</th>
-                  <th>G</th>
-                  {cup.format === 'league' && <th>E</th>}
-                  <th>{cup.format === 'series' && standings.some((s) => s.score) ? 'Puntaje' : 'Pts'}</th>
+                  <th>
+                    <abbr title="Partidas jugadas">PJ</abbr>
+                  </th>
+                  <th>
+                    <abbr title="Victorias">V</abbr>
+                  </th>
+                  {cup.format === 'league' && (
+                    <th>
+                      <abbr title="Empates">E</abbr>
+                    </th>
+                  )}
+                  <th>{cup.format === 'series' && standings.some((s) => s.score) ? 'Puntaje' : <abbr title="Puntos">Pts</abbr>}</th>
                 </tr>
               </thead>
               <tbody>

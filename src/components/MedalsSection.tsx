@@ -31,7 +31,7 @@ export function MedalsSection({ title, list, playerName }: { title: string; list
               onClick={() => setOpenId(k)}
             >
               <span className="medal-family">{family.name}</span>
-              <Medal family={family} level={Math.max(level, 0)} locked={level < 0} />
+              <Medal family={family} level={Math.max(level, 0)} locked={level < 0} size={84} />
               <span className="medal-name">{level >= 0 ? family.levels[level].name : 'Bloqueado'}</span>
               <span className="medal-sub">
                 {next ? `${value} de ${next.at} para ${TIERS[level + 1].name.toLowerCase()}` : `Nivel máximo · ${TIERS[level].name}`}

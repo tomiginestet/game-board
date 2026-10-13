@@ -1,6 +1,7 @@
 // Herramientas de dibujo compartidas por todas las ilustraciones de medallas (mismo estilo que el Ping Pong Club).
 
-export const D = '#2B1B12';
+// Tinta de los contornos: la pone cada medalla según su nivel (ver medalArt).
+export const D = 'currentColor';
 export const f = (n: number) => +n.toFixed(1);
 export const ball = (cx: number, cy: number, r: number) =>
   `<circle cx="${cx}" cy="${cy}" r="${r}" fill="#E7D7C3"/>` +
