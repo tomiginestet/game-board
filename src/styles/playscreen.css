@@ -121,10 +121,6 @@ body.in-play .sticky-actions {
   -webkit-tap-highlight-color: transparent;
 }
 
-.ev-tile:has(.ev-tile-count) {
-  padding-right: 30px;
-}
-
 .ev-tile:active {
   background: var(--card-2);
   border-color: color-mix(in srgb, var(--pc) 60%, var(--border));
@@ -137,9 +133,10 @@ body.in-play .sticky-actions {
 }
 
 .ev-tile-count {
+  /* Cuelga de la esquina, fuera del flujo: aparecer o crecer de 9 a 10 no cambia el tamaño de la ficha. */
   position: absolute;
-  top: 5px;
-  right: 5px;
+  top: -7px;
+  right: -4px;
   min-width: 20px;
   padding: 0 6px;
   border-radius: 999px;
@@ -148,6 +145,8 @@ body.in-play .sticky-actions {
   font-size: 12px;
   line-height: 20px;
   text-align: center;
+  box-shadow: 0 0 0 2px var(--bg);
+  pointer-events: none;
 }
 
 /* Fila de herramientas del tablero: "Ver todo" y la ayuda. Pegada al tablero, no flotando. */
@@ -215,7 +214,144 @@ body.in-play .sticky-actions {
   color: var(--text-soft);
 }
 
+/* ---------- Marcador chico (planilla, manos y turnos) ---------- */
+
+/* Pegado debajo del encabezado fijo; se lee como una extensión de él. */
+.mini-score,
+.turn-bar {
+  position: sticky;
+  top: var(--play-head-h, 68px);
+  z-index: 5;
+  margin: -20px -16px 0;
+  padding: 8px 16px;
+  background: color-mix(in srgb, var(--bg) 92%, transparent);
+  backdrop-filter: blur(8px);
+  border-bottom: 1px solid var(--border);
+}
+
+.turn-bar .mini-score {
+  position: static;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  background: none;
+  backdrop-filter: none;
+  border: 0;
+}
+
+.mscore-row {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+  gap: 6px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.mscore-cell {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+  padding: 5px 8px;
+  border-radius: 12px;
+  border: 1px solid color-mix(in srgb, var(--pc) 30%, transparent);
+  background: color-mix(in srgb, var(--pc) 10%, var(--card));
+}
+
+.mscore-cell.lead {
+  border-color: color-mix(in srgb, var(--accent-2) 70%, transparent);
+}
+
+.mscore-cell.current {
+  border-color: var(--pc);
+  box-shadow: inset 0 0 0 1px var(--pc);
+}
+
+.mscore-cell.out {
+  opacity: 0.6;
+}
+
+.mscore-text {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  line-height: 1.15;
+}
+
+.mscore-name {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-soft);
+}
+
+.mscore-total {
+  display: flex;
+  align-items: baseline;
+  gap: 4px;
+  white-space: nowrap;
+}
+
+.mscore-total b {
+  font-size: 18px;
+  font-weight: 800;
+}
+
+.mscore-suffix {
+  font-size: 12px;
+  color: var(--muted);
+}
+
+.mscore-lead {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  align-self: center;
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--accent-2);
+}
+
+.mscore-out {
+  font-size: 12px;
+  color: var(--loss);
+}
+
 /* ---------- Por turnos (Catán) ---------- */
+
+/* A quién le toca y "Pasar turno", en la misma franja fija que el marcador: siempre a mano. */
+.play-page .turn-banner {
+  flex-direction: row;
+  align-items: center;
+  gap: 12px;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: none;
+  text-align: left;
+}
+
+.turn-who {
+  flex: 1;
+  min-width: 0;
+}
+
+.play-page .turn-name {
+  display: block;
+  font-size: 18px;
+  line-height: 1.2;
+}
+
+.turn-pass {
+  flex-shrink: 0;
+  min-height: 48px;
+}
+
+.play-page .turn-side.current {
+  border-color: var(--pc);
+}
 
 .turn-now {
   flex-shrink: 0;
@@ -253,7 +389,7 @@ body.in-play .sticky-actions {
   flex-direction: column;
   gap: 2px;
   min-width: 0;
-  font-size: 15px;
+  font-size: 16px;
   font-weight: 600;
 }
 
@@ -304,58 +440,95 @@ body.in-play .sticky-actions {
 
 /* ---------- Pausa del punto final ---------- */
 
+/* El tablero queda atrás, chico y apagado: ya no se toca (inert), sólo se ve el resultado. */
+.play-page .play-board,
+.play-page .play-head {
+  transition:
+    opacity 0.4s cubic-bezier(0.16, 1, 0.3, 1),
+    transform 0.4s cubic-bezier(0.16, 1, 0.3, 1),
+    filter 0.4s ease-out;
+}
+
+.play-page.has-beat .play-board {
+  opacity: 0.3;
+  transform: scale(0.94);
+  transform-origin: 50% 0;
+  filter: saturate(0.4);
+}
+
+.play-page.has-beat .play-head {
+  opacity: 0.5;
+}
+
 .final-beat {
-  position: sticky;
+  position: fixed;
+  left: 0;
+  right: 0;
   bottom: 0;
   z-index: 7;
-  display: grid;
-  gap: 14px;
-  margin: auto -16px 0;
-  padding: 18px 16px calc(14px + env(safe-area-inset-bottom));
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  width: min(100%, 680px);
+  min-height: 52dvh;
+  margin: 0 auto;
+  padding: 28px 16px calc(16px + env(safe-area-inset-bottom));
   overflow: hidden;
-  border: 1px solid var(--border-strong);
+  border: 1px solid color-mix(in srgb, var(--accent-2) 55%, var(--border-strong));
   border-bottom: none;
   border-radius: 22px 22px 0 0;
-  border-color: color-mix(in srgb, var(--accent-2) 55%, var(--border-strong));
-  background: var(--card-2);
-  box-shadow: 0 -8px 24px rgba(0, 0, 0, 0.45);
-  animation: fb-rise 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+  background: linear-gradient(180deg, color-mix(in srgb, var(--accent-2) 10%, var(--card-2)), var(--card) 70%);
+  box-shadow: 0 -16px 48px rgba(0, 0, 0, 0.55);
+  text-align: center;
+  animation: fb-rise 0.45s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
-.fb-text {
+.fb-faces {
   display: flex;
-  align-items: center;
-  gap: 12px;
-  min-width: 0;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 10px;
 }
 
-.fb-icon {
-  flex-shrink: 0;
-  font-size: 44px;
-  color: var(--accent-2);
+.fb-face {
+  display: inline-flex;
+  animation: fb-face 0.5s cubic-bezier(0.16, 1, 0.3, 1) both;
+  animation-delay: calc(0.15s + var(--k, 0) * 0.07s);
+}
+
+/* Las caras del ganador con el anillo dorado (el del logo). */
+.fb-face .avatar {
+  box-shadow: 0 0 0 3px var(--card-2), 0 0 0 5px var(--accent-2);
 }
 
 .fb-title {
   display: block;
-  font-family: 'Lilita One', system-ui, sans-serif;
-  font-size: 32px;
+  max-width: 100%;
+  font-family: var(--font-brand);
+  font-size: 44px;
   font-weight: 400;
-  line-height: 1.1;
+  line-height: 1.05;
+  color: var(--text);
+  text-wrap: balance;
   overflow-wrap: anywhere;
 }
 
 .fb-score {
   display: block;
-  margin-top: 2px;
-  color: var(--text-soft);
-  font-size: 16px;
-  font-weight: 700;
+  color: var(--accent-2);
+  font-size: 28px;
+  font-weight: 900;
+  line-height: 1;
 }
 
 .fb-actions {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 10px;
+  width: 100%;
+  margin-top: 12px;
 }
 
 .fb-actions .btn {
@@ -384,6 +557,17 @@ body.in-play .sticky-actions {
   }
 }
 
+@keyframes fb-face {
+  from {
+    opacity: 0;
+    transform: translateY(12px) scale(0.85);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
 @keyframes fb-timer {
   from {
     transform: scaleX(1);
@@ -402,17 +586,35 @@ body.in-play .sticky-actions {
   }
 }
 
-/* Con movimiento reducido: un fundido corto en vez de subir, y sin la línea que corre. */
+/* Con movimiento reducido: fundidos cortos en vez de subir y achicar, y sin la línea que corre. */
 .final-beat.reduce {
   animation: fb-fade 0.2s ease-out;
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .final-beat {
-    animation: fb-fade 0.2s ease-out;
+  .final-beat,
+  .fb-face {
+    animation: fb-fade 0.2s ease-out both;
+  }
+  .play-page.has-beat .play-board {
+    transform: none;
+  }
+  .play-page .play-board,
+  .play-page .play-head {
+    transition: opacity 0.2s ease-out;
   }
   .fb-timer {
     display: none;
+  }
+}
+
+/* Teléfonos bajitos o nombres largos: el título baja un escalón para que entren los botones. */
+@media (max-height: 640px) {
+  .final-beat {
+    min-height: 0;
+  }
+  .fb-title {
+    font-size: 32px;
   }
 }
 

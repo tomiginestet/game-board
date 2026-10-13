@@ -1,17 +1,19 @@
-import { ArrowCounterClockwiseIcon, ArrowLeftIcon, FlagCheckeredIcon, TrashIcon, TrophyIcon } from '@phosphor-icons/react'
+import { ArrowCounterClockwiseIcon, ArrowLeftIcon, FlagCheckeredIcon, TrashIcon } from '@phosphor-icons/react'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
-import { GameBadge } from '../components/GameBits'
+import { TeamAvatar } from '../components/Avatar'
+import { GameBadge, sidePlayersOf } from '../components/GameBits'
 import { computeLive, eliminateOf, isDraw, roundsOf, targetOf, winnerSides, type LiveState } from '../lib/engine'
+import { planillaOf } from '../lib/games/planilla'
 import { confirmAction, toast } from '../lib/feedback'
 import { vibrate } from '../lib/vibrate'
 import type { GameDef } from '../lib/games/schema'
 import { formatDate, gameOrMissing, usePlayerMap } from '../lib/hooks'
-import { sideName } from '../components/GameBits'
 import { actions, getData, useData } from '../lib/store'
 import type { Id, Play, Player } from '../lib/types'
 import { ScoreAnnouncer } from './play/shared'
 import { entryText, useReducedMotion } from './play/playHooks'
+import { winnerTitle } from './play/winnerText'
 import { CounterBoard } from './play/CounterBoard'
 import '../styles/playscreen.css'
 import { RoundsBoard } from './play/RoundsBoard'
@@ -36,8 +38,10 @@ export function PlayScreen() {
   return <PlayView key={play.id} play={play} game={gameOrMissing(data, play.gameId)} />
 }
 
-/** Cuánto dura la pausa del punto final antes de pasar al resumen. */
-const BEAT_MS = 2500
+/** Cuánto dura la pausa del punto final antes de pasar al resumen: lo justo para pasar el teléfono y mirar. */
+const BEAT_MS = 4000
+/** Cuántas caras entran en la pausa final (empate de muchos). */
+const BEAT_FACES = 6
 
 function PlayView({ play, game }: { play: Play; game: GameDef }) {
   const navigate = useNavigate()
@@ -67,6 +71,18 @@ function PlayView({ play, game }: { play: Play; game: GameDef }) {
     document.body.classList.add('in-play')
     return () => document.body.classList.remove('in-play')
   }, [showLive])
+
+  // El marcador chico se pega justo debajo del encabezado (que cambia de alto con el nombre del juego).
+  const headRef = useRef<HTMLElement>(null)
+  const pageRef = useRef<HTMLDivElement>(null)
+  useEffect(() => {
+    const head = headRef.current
+    const page = pageRef.current
+    if (!head || !page || typeof ResizeObserver !== 'function') return
+    const ro = new ResizeObserver(() => page.style.setProperty('--play-head-h', `${head.offsetHeight}px`))
+    ro.observe(head)
+    return () => ro.disconnect()
+  }, [])
 
   // Al pasar al resumen, se arranca desde arriba.
   useEffect(() => {
@@ -100,8 +116,8 @@ function PlayView({ play, game }: { play: Play; game: GameDef }) {
   }
 
   return (
-    <div className={'page play-page' + (showLive ? ' is-live' : '')} style={{ ['--gc' as string]: game.color }}>
-      <header className="play-head">
+    <div ref={pageRef} className={'page play-page' + (showLive ? ' is-live' : '') + (beat ? ' has-beat' : '')} style={{ ['--gc' as string]: game.color }}>
+      <header ref={headRef} className="play-head" inert={beat || undefined}>
         <button className="icon-btn" onClick={() => navigate(backTo)} aria-label={play.cupId ? 'Volver al torneo' : 'Volver al inicio'}>
           <ArrowLeftIcon />
         </button>
@@ -143,7 +159,8 @@ function PlayView({ play, game }: { play: Play; game: GameDef }) {
                 <button type="button" className="btn big dock-undo" onClick={undo} disabled={!play.log.length}>
                   <ArrowCounterClockwiseIcon aria-hidden="true" /> Deshacer
                 </button>
-                <button type="button" className={'btn big dock-finish' + (game.mode === 'turns' ? ' primary' : '')} onClick={() => setFinishing(true)}>
+                {/* Secundario en todos los modos: el único naranja de la pantalla es la acción de anotar (o "Pasar turno"). */}
+                <button type="button" className="btn big dock-finish" onClick={() => setFinishing(true)}>
                   <FlagCheckeredIcon aria-hidden="true" /> Terminar partida
                 </button>
               </div>
@@ -155,13 +172,24 @@ function PlayView({ play, game }: { play: Play; game: GameDef }) {
   )
 }
 
-/** "¡Ganó X!" a todo lo ancho, unos segundos, con "Deshacer" a mano antes del resumen. */
+/**
+ * El punto final: "¡Ganaron Ana y Beto!" en grande, con sus caras y el resultado, ocupando media pantalla
+ * mientras el tablero queda atrás, apagado. Cuatro segundos (lo que tarda en pasar el teléfono),
+ * con "Deshacer" por si fue un toque de más. Si alguien lo toca o lo recorre con el teclado, se queda;
+ * con movimiento reducido no hay cuenta regresiva: espera a "Ver resumen".
+ */
 function FinalBeat({ play, players, onUndo, onDone }: { play: Play; players: Map<Id, Player>; onUndo: () => void; onDone: () => void }) {
   const reduce = useReducedMotion()
   const seeRef = useRef<HTMLButtonElement>(null)
   const winners = winnerSides(play)
-  const title = isDraw(play) || !winners.length ? '¡Empate!' : `¡Ganó ${winners.map((i) => sideName(play.sides[i], players)).join(' y ')}!`
-  const score = play.result?.scores?.length ? play.result.scores.join(' a ') : ''
+  const draw = isDraw(play) || !winners.length
+  const title = winnerTitle(play, players)
+  const faceSides = (draw ? play.sides.map((_, i) => i) : winners).slice(0, BEAT_FACES)
+  const faceSize = faceSides.length === 1 ? 72 : faceSides.length === 2 ? 56 : 44
+  // El del ganador primero: "30 a 2".
+  const raw = play.result?.scores
+  const order = draw ? play.sides.map((_, i) => i) : [...winners, ...play.sides.map((_, i) => i).filter((i) => !winners.includes(i))]
+  const score = raw?.length && raw.every((v) => typeof v === 'number') ? order.map((i) => raw[i]).join(' a ') : ''
   const [paused, setPaused] = useState(false)
   const doneRef = useRef(onDone)
   useEffect(() => {
@@ -173,11 +201,12 @@ function FinalBeat({ play, players, onUndo, onDone }: { play: Play; players: Map
     // El foco estaba en el marcador (que queda inerte): pasa al aviso, sin mover la página.
     seeRef.current?.focus({ preventScroll: true })
   }, [])
+  const counting = !reduce && !paused
   useEffect(() => {
-    if (paused) return
+    if (!counting) return
     const t = window.setTimeout(() => doneRef.current(), BEAT_MS)
     return () => window.clearTimeout(t)
-  }, [paused])
+  }, [counting])
 
   return (
     <div
@@ -187,13 +216,15 @@ function FinalBeat({ play, players, onUndo, onDone }: { play: Play; players: Map
       onPointerDown={() => setPaused(true)}
       onFocus={(e) => (e.target as HTMLElement) !== seeRef.current && setPaused(true)}
     >
-      <div className="fb-text">
-        <TrophyIcon weight="fill" className="fb-icon" aria-hidden="true" />
-        <div>
-          <strong className="fb-title">{title}</strong>
-          {score && <span className="fb-score num">{score}</span>}
-        </div>
+      <div className="fb-faces" aria-hidden="true">
+        {faceSides.map((i, k) => (
+          <span key={i} className="fb-face" style={{ ['--k' as string]: k }}>
+            <TeamAvatar team={sidePlayersOf(play.sides[i], players)} size={faceSize} />
+          </span>
+        ))}
       </div>
+      <strong className="fb-title">{title}</strong>
+      {score && <span className="fb-score num">{score}</span>}
       <div className="fb-actions">
         <button type="button" className="btn big" onClick={onUndo}>
           <ArrowCounterClockwiseIcon aria-hidden="true" /> Deshacer
@@ -202,7 +233,7 @@ function FinalBeat({ play, players, onUndo, onDone }: { play: Play; players: Map
           Ver resumen
         </button>
       </div>
-      {!reduce && !paused && <span className="fb-timer" style={{ animationDuration: `${BEAT_MS}ms` }} aria-hidden="true" />}
+      {counting && <span className="fb-timer" style={{ animationDuration: `${BEAT_MS}ms` }} aria-hidden="true" />}
     </div>
   )
 }
@@ -217,6 +248,8 @@ function describePlay(game: GameDef, play: Play, live: LiveState): string {
   // En juego, el tablero ya dice "Mano N de M"; terminada, se cuentan las jugadas.
   if (rounds && play.status === 'finished') parts.push(`${Math.min(live.roundsPlayed, rounds)} de ${rounds} manos jugadas`)
   if (game.mode === 'turns' && live.turnCount) parts.push(`turno ${live.turnCount}`)
+  // Sin meta ni quema, la regla es la cantidad de casillas (generala) o de manos; la fecha, sólo si no hay nada más.
+  if (!parts.length && rounds) parts.push(planillaOf(game) ? `${rounds} categorías` : `${rounds} manos`)
   if (!parts.length) parts.push(formatDate(play.startedAt ?? play.createdAt))
   return parts.join(' · ')
 }

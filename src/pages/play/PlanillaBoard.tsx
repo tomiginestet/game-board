@@ -10,6 +10,7 @@ import type { GameDef } from '../../lib/games/schema'
 import { actions } from '../../lib/store'
 import type { Id, Play, Player } from '../../lib/types'
 import { vibrate } from '../../lib/vibrate'
+import { MiniScore } from './MiniScore'
 import '../../styles/rounds.css'
 
 // Lo anotado en la mano que todavía no se guardó (falta que anoten otros) vive
@@ -122,86 +123,89 @@ export function PlanillaBoard({ play, game, def, live, players }: { play: Play; 
   })()
 
   return (
-    <section className="planilla" aria-labelledby={`pl-title-${play.id}`}>
-      <div className="planilla-head">
-        <h2 id={`pl-title-${play.id}`} className="num">
-          Mano {mano} de {totalRounds}
-        </h2>
-        <p className="muted small" aria-live="polite">
-          {status}
-        </p>
-      </div>
-      <div className="table-wrap">
-        <table className="planilla-table" style={{ ['--n' as string]: n }}>
-          <caption className="sr-only">Planilla de {game.name}: tocá una casilla libre para anotar o una anotada para corregirla.</caption>
-          <thead>
-            <tr>
-              <th scope="col">
-                <span className="sr-only">Categoría</span>
-              </th>
-              {play.sides.map((s, i) => (
-                <th key={i} scope="col" style={{ ['--pc' as string]: sideColor(s, players) }}>
-                  <TeamAvatar team={sidePlayersOf(s, players)} size={24} />
-                  <span className="ellipsis block">{names[i]}</span>
+    <>
+      <MiniScore play={play} players={players} totals={totals} />
+      <section className="planilla" aria-labelledby={`pl-title-${play.id}`}>
+        <div className="planilla-head">
+          <h2 id={`pl-title-${play.id}`} className="num">
+            Mano {mano} de {totalRounds}
+          </h2>
+          <p className="muted small" aria-live="polite">
+            {status}
+          </p>
+        </div>
+        <div className="table-wrap">
+          <table className="planilla-table" style={{ ['--n' as string]: n }}>
+            <caption className="sr-only">Planilla de {game.name}: tocá una casilla libre para anotar o una anotada para corregirla.</caption>
+            <thead>
+              <tr>
+                <th scope="col">
+                  <span className="sr-only">Categoría</span>
                 </th>
+                {play.sides.map((s, i) => (
+                  <th key={i} scope="col" style={{ ['--pc' as string]: sideColor(s, players) }}>
+                    <TeamAvatar team={sidePlayersOf(s, players)} size={24} />
+                    <span className="ellipsis block">{names[i]}</span>
+                  </th>
+                ))}
+              </tr>
+            </thead>
+            <tbody>
+              {labels.map((label, c) => (
+                <tr key={c}>
+                  <th scope="row">{label}</th>
+                  {play.sides.map((_, i) => {
+                    const saved = grid.value[c][i]
+                    const draft = picks[i]?.cell === c ? picks[i] : null
+                    const v = saved ?? draft?.value ?? null
+                    const state = saved !== null ? 'saved' : draft ? 'draft' : 'empty'
+                    const what = v === 0 ? 'tachada' : `${v} puntos`
+                    const aria =
+                      state === 'empty'
+                        ? `Anotar ${label} a ${names[i]}`
+                        : state === 'draft'
+                          ? `${label} de ${names[i]}: ${what}, sin guardar. Cambiar`
+                          : `${label} de ${names[i]}: ${what}. Corregir`
+                    return (
+                      <td key={i}>
+                        <button
+                          type="button"
+                          className={`pl-cell is-${state}${state === 'empty' && picks[i] ? ' is-quiet' : ''}`}
+                          aria-label={aria}
+                          onClick={() => setEditing({ cell: c, side: i })}
+                        >
+                          {v === null ? <PlusIcon aria-hidden /> : v === 0 ? <XIcon aria-hidden weight="bold" /> : <span className="num">{v}</span>}
+                        </button>
+                      </td>
+                    )
+                  })}
+                </tr>
               ))}
-            </tr>
-          </thead>
-          <tbody>
-            {labels.map((label, c) => (
-              <tr key={c}>
-                <th scope="row">{label}</th>
-                {play.sides.map((_, i) => {
-                  const saved = grid.value[c][i]
-                  const draft = picks[i]?.cell === c ? picks[i] : null
-                  const v = saved ?? draft?.value ?? null
-                  const state = saved !== null ? 'saved' : draft ? 'draft' : 'empty'
-                  const what = v === 0 ? 'tachada' : `${v} puntos`
-                  const aria =
-                    state === 'empty'
-                      ? `Anotar ${label} a ${names[i]}`
-                      : state === 'draft'
-                        ? `${label} de ${names[i]}: ${what}, sin guardar. Cambiar`
-                        : `${label} de ${names[i]}: ${what}. Corregir`
+            </tbody>
+            <tfoot>
+              <tr>
+                <th scope="row">Total</th>
+                {totals.map((v, i) => {
+                  const lead = showLead && v === best
                   return (
-                    <td key={i}>
-                      <button
-                        type="button"
-                        className={`pl-cell is-${state}${state === 'empty' && picks[i] ? ' is-quiet' : ''}`}
-                        aria-label={aria}
-                        onClick={() => setEditing({ cell: c, side: i })}
-                      >
-                        {v === null ? <PlusIcon aria-hidden /> : v === 0 ? <XIcon aria-hidden weight="bold" /> : <span className="num">{v}</span>}
-                      </button>
+                    <td key={i} className={lead ? 'lead' : undefined}>
+                      <b className="num">{v}</b>
+                      {lead && (
+                        <span className="pl-lead">
+                          <CrownIcon aria-hidden weight="fill" /> {totals.filter((t) => t === best).length > 1 ? 'empatado' : 'primero'}
+                        </span>
+                      )}
                     </td>
                   )
                 })}
               </tr>
-            ))}
-          </tbody>
-          <tfoot>
-            <tr>
-              <th scope="row">Total</th>
-              {totals.map((v, i) => {
-                const lead = showLead && v === best
-                return (
-                  <td key={i} className={lead ? 'lead' : undefined}>
-                    <b className="num">{v}</b>
-                    {lead && (
-                      <span className="pl-lead">
-                        <CrownIcon aria-hidden weight="fill" /> {totals.filter((t) => t === best).length > 1 ? 'empatado' : 'primero'}
-                      </span>
-                    )}
-                  </td>
-                )
-              })}
-            </tr>
-          </tfoot>
-        </table>
-      </div>
-      {picks.some(Boolean) && <p className="hint pl-legend">Borde punteado: anotado en esta mano, falta que anoten los demás.</p>}
-      {sheet}
-    </section>
+            </tfoot>
+          </table>
+        </div>
+        {picks.some(Boolean) && <p className="hint pl-legend">Borde punteado: anotado en esta mano, falta que anoten los demás.</p>}
+        {sheet}
+      </section>
+    </>
   )
 }
 

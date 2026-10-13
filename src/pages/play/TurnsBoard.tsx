@@ -1,4 +1,5 @@
 import { LockSimpleIcon, MinusIcon, PlusIcon, SkipForwardIcon } from '@phosphor-icons/react'
+import { useEffect, useRef } from 'react'
 import { TeamAvatar } from '../../components/Avatar'
 import { sideColor, sideName, sidePlayersOf } from '../../components/GameBits'
 import { nextTurn, targetOf, type LiveState } from '../../lib/engine'
@@ -7,7 +8,8 @@ import type { GameDef } from '../../lib/games/schema'
 import { actions } from '../../lib/store'
 import type { Id, Play, Player } from '../../lib/types'
 import { LogList } from './CounterBoard'
-import { usePlayToggle } from './playHooks'
+import { MiniScore } from './MiniScore'
+import { usePlayToggle, useReducedMotion } from './playHooks'
 import { HelpToggle } from './shared'
 
 export function TurnsBoard({ play, game, live, players }: { play: Play; game: GameDef; live: LiveState; players: Map<Id, Player> }) {
@@ -22,36 +24,57 @@ export function TurnsBoard({ play, game, live, players }: { play: Play; game: Ga
   const holders = game.events.filter((e) => e.type === 'holder')
   const [help, setHelp] = usePlayToggle(`help:${game.id}`)
   const anyHelp = game.events.some((e) => e.help && !e.global)
-  // El que juega va primero, justo debajo de "Le toca a"; después, en el orden de la ronda.
-  const n = play.sides.length
-  const first = started ? current : 0
-  const order = play.sides.map((_, k) => (first + k) % n)
+  const reduce = useReducedMotion()
+  const barRef = useRef<HTMLDivElement>(null)
+  const cardRefs = useRef<(HTMLElement | null)[]>([])
+
+  // Las tarjetas quedan siempre en el orden de la ronda (nada cambia de lugar); al pasar el turno,
+  // la del que juega se acomoda a la vista, entre la franja fija de arriba y la barra de abajo.
+  const seenTurn = useRef(live.turnCount)
+  useEffect(() => {
+    if (live.turnCount === seenTurn.current) return
+    seenTurn.current = live.turnCount
+    const card = cardRefs.current[current]
+    if (!card || !live.turnCount) return
+    const top = (barRef.current?.getBoundingClientRect().bottom ?? 0) + 8
+    const dock = document.querySelector('.play-dock')
+    const bottom = (dock ? dock.getBoundingClientRect().top : window.innerHeight) - 8
+    const r = card.getBoundingClientRect()
+    const delta = r.top < top || r.height > bottom - top ? r.top - top : r.bottom > bottom ? r.bottom - bottom : 0
+    if (delta) window.scrollBy({ top: delta, behavior: reduce ? 'auto' : 'smooth' })
+  }, [live.turnCount, current, reduce])
 
   return (
     <>
-      <div className="turn-banner" style={{ ['--pc' as string]: sideColor(play.sides[started ? current : 0], players) }}>
-        {started ? (
-          <>
-            <span className="muted small">Turno {live.turnCount} · le toca a</span>
-            <b className="turn-name">
-              <TeamAvatar team={sidePlayersOf(play.sides[current], players)} size={34} /> {sideName(play.sides[current], players)}
-            </b>
-          </>
-        ) : (
-          <b>Empieza {sideName(play.sides[0], players)}</b>
-        )}
-        <button className="btn primary big" onClick={pass}>
-          <SkipForwardIcon weight="fill" /> {started ? 'Pasar turno' : 'Arrancar'}
-        </button>
+      <div ref={barRef} className="turn-bar">
+        <MiniScore play={play} players={players} totals={live.scores} suffix={target ? `/${target}` : undefined} current={started ? current : undefined}>
+          <div className="turn-banner" style={{ ['--pc' as string]: sideColor(play.sides[started ? current : 0], players) }}>
+            <span className="turn-who" aria-live="polite">
+              {started ? (
+                <>
+                  <span className="muted small block">Turno {live.turnCount} · le toca a</span>
+                  <b className="turn-name ellipsis">{sideName(play.sides[current], players)}</b>
+                </>
+              ) : (
+                <b className="turn-name ellipsis">Empieza {sideName(play.sides[0], players)}</b>
+              )}
+            </span>
+            <button className="btn primary turn-pass" onClick={pass}>
+              <SkipForwardIcon weight="fill" aria-hidden="true" /> {started ? 'Pasar turno' : 'Arrancar'}
+            </button>
+          </div>
+        </MiniScore>
       </div>
 
       <div className="turn-sides">
-        {order.map((i) => {
-          const side = play.sides[i]
+        {play.sides.map((side, i) => {
           const isCurrent = started && i === current
           return (
             <section
               key={i}
+              ref={(el) => {
+                cardRefs.current[i] = el
+              }}
               className={'card turn-side' + (isCurrent ? ' current' : '')}
               style={{ ['--pc' as string]: sideColor(side, players) }}
               aria-label={sideName(side, players) + (isCurrent ? ' (le toca)' : '')}

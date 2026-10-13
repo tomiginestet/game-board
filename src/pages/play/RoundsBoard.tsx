@@ -8,6 +8,7 @@ import { vibrate } from '../../lib/vibrate'
 import type { EventDef, GameDef } from '../../lib/games/schema'
 import { actions } from '../../lib/store'
 import type { Id, Play, Player } from '../../lib/types'
+import { MiniScore } from './MiniScore'
 import { PlanillaBoard } from './PlanillaBoard'
 import { PointsDialog } from './shared'
 import '../../styles/rounds.css'
@@ -39,6 +40,7 @@ function ManosBoard({ play, game, live, players }: { play: Play; game: GameDef; 
 
   return (
     <>
+      <MiniScore play={play} players={players} totals={live.scores} lowWins={lowWins} out={live.eliminated} suffix={target && !lowWins ? `/${target}` : undefined} />
       <div className="manos-head">
         <h2 className="num">{manoTitle(game, play, rounds.length)}</h2>
         {next && <p className="muted small">{next}</p>}
