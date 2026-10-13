@@ -449,48 +449,73 @@ export const COUP_NUEVAS_ART: Record<string, (u: number) => string> = {
     )
   },
 
-  // Doce veces cazado: ya nadie te compra el buzón. El buzón rojo de la esquina, con el cartel de "se vende".
+  // Doce veces cazado: ya nadie te compra el buzón. El mismo buzón, abandonado: despintado, con polvo y telarañas, y el
+  // cartel colgando de un solo piolín con los precios tachados uno tras otro hasta el "¡regalado!".
   'Cuento del tío': (u) => {
     const k = kit(u)
+    const OLD = '#A85A4E', OLD_D = '#6E2C24', RUST = '#9A5A2E'
     const body = 'M47 41H73V86H47Z'
     const cap = 'M44.6 41.6C44.6 33 51.4 27.4 60 27.4C68.6 27.4 75.4 33 75.4 41.6Z'
     const brim = 'M43 40.6H77V44H43Z'
     const knob = 'M57.8 27.6C57.8 25.6 58.8 24.4 60 24.4C61.2 24.4 62.2 25.6 62.2 27.6Z'
     const base = 'M44.6 84.6H75.4L77 90H43Z'
     const slot = roundRect(51.4, 48, 68.6, 51.8, 1.4)
-    const sign = roundRect(-12, -7.6, 12, 7.6, 0.8)
+    const sign = roundRect(-13, -11, 13, 11, 0.8)
+    const dust = 'M46.2 37.4C48 32 53.4 28.4 60 28.4C66.6 28.4 72 32 73.8 37.4C69 35.4 64 34.6 60 34.6C56 34.6 51 35.4 46.2 37.4Z'
+    const rust = [[50.6, 74, 2.2, 1.4], [69.4, 63, 1.6, 2.4], [55, 83, 2.6, 1], [64, 45.6, 1.4, 0.8], [71, 36, 1.6, 1]].map(([x, y, rx, ry]) => `<path d="${ellipse(x, y, rx, ry)}" fill="${RUST}" opacity=".7"/><path d="${ellipse(x + 0.4, y + 0.3, rx * 0.5, ry * 0.5)}" fill="${P.brownD}" opacity=".6"/>`).join('')
+    const flakes = [[52, 66], [56.4, 61], [66, 72], [62, 80], [49.4, 54], [70.4, 52]].map(([x, y]) => `<path d="M${x} ${y}l1 -.6l.8 .7l-.7 .9Z" fill="${CP_XL}" opacity=".85"/>`).join('')
+    // Telaraña en un rincón: rayos desde el vértice y arcos que cuelgan.
+    const web = (x: number, y: number, a0: number, a1: number, R: number) => {
+      const n = 5, ang = Array.from({ length: n }, (_, i) => ((a0 + ((a1 - a0) * i) / (n - 1)) * Math.PI) / 180)
+      const pt = (a: number, r: number) => `${f(x + Math.cos(a) * r)} ${f(y + Math.sin(a) * r)}`
+      const rays = ang.map((a) => `M${x} ${y}L${pt(a, R)}`).join('')
+      const arcs = [0.3, 0.52, 0.74, 0.96].map((t) => ang.slice(1).map((a, i) => {
+        const b = ang[i], m = (a + b) / 2
+        return `M${pt(b, R * t)}Q${pt(m, R * t * 0.8)} ${pt(a, R * t)}`
+      }).join('')).join('')
+      return `<path d="${rays}${arcs}" fill="none" stroke="#fff" stroke-width=".4" opacity=".9"/><path d="${rays}" fill="none" stroke="${P.blue}" stroke-width=".2" opacity=".6" transform="translate(.3 .3)"/>`
+    }
+    const price = (y: number, t: string, x = 0) => `<text x="${x}" y="${y}" ${GEORGIA} font-weight="700" font-size="3.6" fill="${P.ink}" text-anchor="middle">${t}</text>`
+    const strike = (y: number, w: number, r = -6) => `<path d="M${f(-w / 2)} ${f(y - 1 + w * 0.04)}L${f(w / 2)} ${f(y - 1.6 - w * 0.04)}" stroke="${CP}" stroke-width=".8" stroke-linecap="round" transform="rotate(${r} 0 ${y})"/>`
+    const weeds = hair(42.6, 90, 40, 84, 41.4, 78, 1.3, P.greenD) + hair(43.6, 90, 44.6, 85, 43.4, 80.6, 1.1, P.green) + hair(77, 90, 79.6, 85.4, 78.6, 81, 1.2, P.green) + hair(76, 90, 75.6, 86.6, 76.8, 83.4, 0.9, P.greenD)
     return (
       field(k) +
-      k.sun(60, 56, 15, 46, 32, false) +
-      glow(k, 60, 56, 26, 30, 0.6) +
+      stageR(k, 60, 60, 33) +
+      [[30, 40], [36, 30], [86, 36], [90, 54], [28, 62], [92, 74], [82, 26], [40, 50]].map(([x, y], i) => `<circle cx="${x}" cy="${y}" r="${i % 2 ? 0.45 : 0.65}" fill="${CP_D}" opacity=".35"/>`).join('') +
       k.floor(61, 90.4, 22, 2.6, CP_D) +
+      `<g transform="rotate(3.4 60 90)">` +
       k.cast([body, cap, base], 2.2, 2.2, CP_D) +
       k.draw([
-        { d: base, fill: CP_D, inner: k.sh(base, 0, 0, 1, 0, 0, 0.8, '#2A0603', 0.45) + `<path d="M44 86.4H76" stroke="${CP}" stroke-width=".5"/>` },
+        { d: base, fill: OLD_D, inner: k.sh(base, 0, 0, 1, 0, 0, 0.8, '#2A0603', 0.45) + `<path d="M44 86.4H76" stroke="${OLD}" stroke-width=".5"/>` + `<path d="${ellipse(68, 87.6, 2.4, 1)}" fill="${RUST}" opacity=".8"/>` },
         {
-          d: body, fill: CP,
+          d: body, fill: OLD,
           inner:
-            k.sh('M62 40H76V87H62Z', 0, 0, 1, 0, 0, 0.9, CP_D, 0.5) + `<path d="M46 40H54V87H46Z" fill="${k.lin(CP_XL, 0, 0, 1, 0, 0.55, 0)}"/>` +
-            `<path d="M47 58.4H73M47 79.6H73" stroke="${CP_D}" stroke-width=".7"/><path d="M47 59.2H73M47 80.4H73" stroke="${CP_L}" stroke-width=".4"/>` +
-            hair(50, 62, 50.6, 70, 50, 78, 0.5, CP_XL, 0.7) + hair(69, 62, 69.6, 70, 69, 78, 0.45, CP_D),
+            k.sh('M62 40H76V87H62Z', 0, 0, 1, 0, 0, 0.9, OLD_D, 0.5) + `<path d="M46 40H54V87H46Z" fill="${k.lin(CP_XL, 0, 0, 1, 0, 0.35, 0)}"/>` +
+            `<path d="M47 58.4H73M47 79.6H73" stroke="${OLD_D}" stroke-width=".7"/>` + rust + flakes +
+            hair(52, 44, 52.6, 52, 51.6, 60, 0.4, RUST, 0.8) + hair(66, 64, 66.6, 74, 65.6, 84, 0.4, RUST, 0.8) +
+            k.sh('M46 40H74V60H46Z', 0, 0, 0, 1, 0.35, 0, '#B9AFA5', 0.4),
         },
-        { d: brim, fill: CP, inner: k.sh(brim, 0, 0, 1, 1, 0, 0.9, CP_D, 0.5) },
-        { d: cap, fill: CP, inner: k.sh(cap, 0, 0, 1, 1, 0, 0.9, CP_D, 0.5) + `<path d="M46 30H56V42H46Z" fill="${k.lin(CP_XL, 0, 0, 1, 0, 0.6, 0)}"/>` + `<path d="M48 39.6C50 34 54.4 30.6 60 30.2" fill="none" stroke="${CP_XL}" stroke-width=".8" stroke-linecap="round" opacity=".7"/>` },
-        { d: knob, fill: P.gold, inner: k.sh(knob, 0, 0, 1, 1, 0, 0.9, P.goldD, 0.5) },
+        { d: brim, fill: OLD, inner: k.sh(brim, 0, 0, 1, 1, 0, 0.9, OLD_D, 0.5) + `<path d="M43 40.8H77" stroke="#C9C0B4" stroke-width="1" opacity=".8"/>` },
+        { d: cap, fill: OLD, inner: k.sh(cap, 0, 0, 1, 1, 0, 0.9, OLD_D, 0.5) + `<path d="${dust}" fill="#D7CEC2"/>` + k.sh(dust, 0, 0, 1, 1, 0, 0.6, '#9C9083', 0.45) + hair(50, 34, 55, 31.4, 60, 31, 0.4, '#9C9083') + hair(62, 31.4, 67, 32.6, 70, 34.6, 0.35, '#9C9083') },
+        { d: knob, fill: '#B98E4E', inner: k.sh(knob, 0, 0, 1, 1, 0, 0.9, P.brownD, 0.5) },
       ], 0.8) +
-      `<path d="${slot}" fill="${P.night}" stroke="${P.ink}" stroke-width=".6"/><path d="M52 48.2H68" stroke="#000" stroke-width="1"/><path d="M51.6 52.6H68.4" stroke="${CP_L}" stroke-width=".5"/>` +
-      k.draw([{ d: roundRect(52.4, 53.6, 67.6, 57.2, 0.6), fill: P.gold, inner: k.sh(roundRect(52.4, 53.6, 67.6, 57.2, 0.6), 0, 0, 1, 1, 0, 0.8, P.goldD, 0.45) }], 0.35) +
-      `<text x="60" y="56.4" ${GEORGIA} font-weight="700" font-size="2.6" fill="${P.ink}" text-anchor="middle" letter-spacing=".3">CARTAS</text>` +
-      `<circle cx="52.6" cy="45.6" r=".7" fill="${P.gold}" stroke="${P.ink}" stroke-width=".25"/><circle cx="67.4" cy="45.6" r=".7" fill="${P.gold}" stroke="${P.ink}" stroke-width=".25"/>` +
-      // El cartel de cartón, colgado con un piolín.
-      `<path d="M47.6 41.6L52.4 62.6M72.4 41.6L67.8 62" fill="none" stroke="${P.ink}" stroke-width=".9"/><path d="M47.6 41.6L52.4 62.6M72.4 41.6L67.8 62" fill="none" stroke="${CARD}" stroke-width=".4"/>` +
-      `<g transform="translate(60 68.6) rotate(-7)">` +
-      k.draw([{ d: sign, fill: CARD, inner: k.sh(sign, 0, 0, 1, 1, 0, 0.7, CARD_D, 0.45) + `<path d="M-11 -6.6L-9 -5.4M10.6 5.8L8.4 6.6" stroke="${CARD_D}" stroke-width=".4"/>` }], 0.55) +
-      `<circle cx="-8.4" cy="-5.2" r=".7" fill="${P.white}" stroke="${P.ink}" stroke-width=".35"/><circle cx="8.4" cy="-5.6" r=".7" fill="${P.white}" stroke="${P.ink}" stroke-width=".35"/>` +
-      `<text x="0" y="-.4" ${GEORGIA} font-weight="700" font-style="italic" font-size="5.4" fill="${CP_D}" text-anchor="middle">Se vende</text>` +
-      `<text x="0" y="5" ${GEORGIA} font-style="italic" font-size="3" fill="${P.ink}" text-anchor="middle">dueño directo</text>` +
+      `<path d="${slot}" fill="${P.night}" stroke="${P.ink}" stroke-width=".6"/>` + web(51.6, 48.2, 0, 90, 4.2) + web(68.4, 48.2, 90, 180, 4) +
+      k.draw([{ d: roundRect(52.4, 53.6, 67.6, 57.2, 0.6), fill: '#B98E4E', inner: k.sh(roundRect(52.4, 53.6, 67.6, 57.2, 0.6), 0, 0, 1, 1, 0, 0.8, P.brownD, 0.45) }], 0.35) +
+      `<text x="60" y="56.4" ${GEORGIA} font-weight="700" font-size="2.6" fill="${P.brownD}" text-anchor="middle" letter-spacing=".3">CARTAS</text>` +
+      web(43, 44, -90, 0, 9) + web(77, 44, 180, 270, 8) + web(47, 86, -90, 0, 6) +
       `</g>` +
-      sparkle(86, 34, 2) + sparkle(34, 40, 1.6, P.goldL) + sparkle(84, 78, 1.4, P.goldL) +
+      // El cartel, colgando de un solo piolín (el otro se cortó), con los precios tachados.
+      `<path d="M48.6 42.4L47.4 57.8" fill="none" stroke="${P.ink}" stroke-width=".9"/><path d="M48.6 42.4L47.4 57.8" fill="none" stroke="${CARD}" stroke-width=".4"/>` +
+      `<path d="M74.2 43.4C75 46 74.6 48.4 73.4 50.2" fill="none" stroke="${P.ink}" stroke-width=".9"/><path d="M74.2 43.4C75 46 74.6 48.4 73.4 50.2" fill="none" stroke="${CARD}" stroke-width=".4"/>` +
+      `<g transform="translate(60.4 68.6) rotate(-13)">` +
+      k.draw([{ d: sign, fill: CARD, inner: k.sh(sign, 0, 0, 1, 1, 0, 0.7, CARD_D, 0.45) + `<path d="M-12 -10L-9.6 -8.6M12 10L9.4 10.6M10 -10.4L12.4 -8" stroke="${CARD_D}" stroke-width=".4"/>` + k.sh('M-13 -11H13V-4H-13Z', 0, 0, 0, 1, 0.5, 0, '#9C9083', 0.35) }], 0.55) +
+      `<circle cx="-10.2" cy="-8.6" r=".7" fill="${P.white}" stroke="${P.ink}" stroke-width=".35"/>` +
+      price(-5.6, '$1.000') + strike(-5.6, 14) + price(-0.8, '$500') + strike(-0.8, 10, 4) + price(4, '$50') + strike(4, 8, -3) +
+      `<text x="0" y="9.4" ${GEORGIA} font-weight="700" font-style="italic" font-size="4.6" fill="${CP_D}" text-anchor="middle">¡regalado!</text>` +
+      `</g>` +
+      weeds +
+      `<g transform="translate(36 89) rotate(-20)"><path d="M0 0C1.4 -2.2 4.4 -2.4 6 -.6C4.4 1.4 1.4 1.4 0 0Z" fill="${P.brown}" stroke="${P.ink}" stroke-width=".35"/></g>` +
+      `<g transform="translate(80 91) rotate(160)"><path d="M0 0C1.4 -2.2 4.4 -2.4 6 -.6C4.4 1.4 1.4 1.4 0 0Z" fill="${P.goldD}" stroke="${P.ink}" stroke-width=".35"/></g>` +
       k.defs()
     )
   },
