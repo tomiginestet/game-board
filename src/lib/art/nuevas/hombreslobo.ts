@@ -471,7 +471,7 @@ export const HOMBRESLOBO_NUEVAS_ART: Record<string, (u: number) => string> = {
     const knife = 'M-1.6 30V2H1.6V30Z'
     const blade = 'M-1.8 2V-28C-1.8 -32 0 -34 2.4 -34C2.4 -22 2.2 -10 1.8 2Z'
     const fork = 'M-1.4 30V0H1.4V30Z'
-    const forkHead = 'M-4.6 -18V-6C-4.6 -2 -2 0 0 0C2 0 4.6 -2 4.6 -6V-18H3.4V-6.6H1.6V-18H.6V-6.6H-.6V-18H-1.6V-6.6H-3.4V-18Z'
+    const forkHead = 'M-5 -32.4C-5.2 -26 -5 -18 -4.4 -14C-3.8 -10.4 -1.8 -8.6 -1.4 -7.6H1.4C1.8 -8.6 3.8 -10.4 4.4 -14C5 -18 5.2 -26 5 -32.4L3.8 -32.6L3.4 -16.4H2L1.9 -33H.8L.7 -16.4H-.7L-.8 -33H-1.9L-2 -16.4H-3.4L-3.8 -32.6Z'
     const scroll = Array.from({ length: 6 }, (_, i) => {
       const x = 38 + i * 8.8
       return `<path d="M${x} 77.2C${f(x + 1.6)} 73.8 ${f(x + 5)} 73.8 ${f(x + 5.4)} 76.4C${f(x + 5.6)} 78 ${f(x + 3.6)} 78.4 ${f(x + 3)} 77" fill="none" stroke="${P.blue}" stroke-width=".5"/>`
@@ -481,6 +481,7 @@ export const HOMBRESLOBO_NUEVAS_ART: Record<string, (u: number) => string> = {
       k.sun(60, 54, 22, 48, 28, false) +
       luna(k, 60, 52, 21, 1.1) +
       laurel(50, 99, 29, 90, 26, 62, 8) + laurel(70, 99, 91, 90, 94, 62, 8, true) +
+      `<g transform="translate(0 -4)">` +
       // cuchillo y tenedor cruzados por detrás
       `<g transform="translate(60 62) rotate(-40)">` +
       k.draw([
@@ -490,8 +491,8 @@ export const HOMBRESLOBO_NUEVAS_ART: Record<string, (u: number) => string> = {
       `<g transform="translate(60 62) rotate(40)">` +
       k.draw([
         { d: fork, fill: P.white, inner: k.sh(fork, 0, 0, 1, 0, 0, 0.8, P.blue, 0.4) + `<path d="M-1.4 8H1.4M-1.4 24H1.4" stroke="${P.blue}" stroke-width=".4"/>` },
-        { d: `M-1.4 0V-8H1.4V0Z`, fill: STEEL },
-        { d: `M-4.6 -32V-14C-4.6 -10 -2 -8 0 -8C2 -8 4.6 -10 4.6 -14V-32H3.4V-14.6H1.6V-32H.6V-14.6H-.6V-32H-1.6V-14.6H-3.4V-32Z`, fill: STEEL, inner: k.sh(forkHead, 0, 0, 1, 0, 0, 0.9, P.mid, 0.45) },
+        { d: 'M-1.4 0V-8H1.4V0Z', fill: STEEL },
+        { d: forkHead, fill: STEEL, inner: k.sh(forkHead, 0, 0, 1, 0, 0, 0.9, P.mid, 0.45) + `<path d="M-3.4 -12C-2 -9.6 2 -9.6 3.4 -12" fill="none" stroke="#fff" stroke-width=".4"/>` },
       ], 0.55) + `</g>` +
       // la fuente y la campana
       k.floor(61, 89, 32, 3, '#000') +
@@ -506,12 +507,17 @@ export const HOMBRESLOBO_NUEVAS_ART: Record<string, (u: number) => string> = {
             k.shade(ellipse(70, 62, 4.6, 3.4), k.rad(P.goldL, 0.5, 0.5, 0.5, 0.95, 0), P.goldL, 0.6) +
             `<path d="M39 72C39 63 44.4 56.4 51 53.6" fill="none" stroke="#fff" stroke-width="1.6" stroke-linecap="round" opacity=".95"/>` +
             `<path d="M35.6 75.4C46 72.6 74 72.6 84.4 75.4" fill="none" stroke="${P.blue}" stroke-width=".5"/>` + scroll +
-            hair(78, 62, 82, 68, 83, 76, 0.5, IND_D, 0.8),
+            hair(78, 62, 82, 68, 83, 76, 0.5, IND_D, 0.8) +
+            `<path d="${ellipse(60, 64.6, 6.4, 5.4)}" fill="none" stroke="${P.gold}" stroke-width=".6"/><path d="${ellipse(60, 64.6, 7.4, 6.4)}" fill="none" stroke="${P.blue}" stroke-width=".35"/>` +
+            `<path d="M57.6 67.6C57.6 65.6 58.8 64.6 60 64.6C61.2 64.6 62.4 65.6 62.4 67.6C62.4 68.6 61.4 69 60 68.8C58.6 69 57.6 68.6 57.6 67.6Z" fill="${P.mid}"/>` +
+            [[56.6, 63.6], [58.6, 61.6], [61.4, 61.6], [63.4, 63.6]].map(([x, y]) => `<ellipse cx="${x}" cy="${y}" rx=".9" ry="1.2" fill="${P.mid}"/>`).join('') +
+            Array.from({ length: 9 }, (_, i) => { const x = 37.4 + i * 5.65; return `<path d="M${f(x)} 79.4C${f(x + 0.6)} 76 ${f(x + 0.6)} 73 ${f(x + 0.2)} 70.6" fill="none" stroke="${P.blue}" stroke-width=".4" opacity=".7"/>` }).join(''),
         },
         { d: rimBand, fill: P.gold, inner: k.sh(rimBand, 0, 0, 1, 0, 0, 0.9, P.goldD, 0.5) + `<path d="M31.4 80.6H88.6" stroke="${P.goldL}" stroke-width=".5"/>` },
       ], 0.75) +
       `<circle cx="60" cy="51" r="1.6" fill="${P.gold}" stroke="${P.ink}" stroke-width=".4"/>` +
-      // la servilleta atada al tenedor
+      Array.from({ length: 13 }, (_, i) => `<circle cx="${f(33.4 + i * 4.43)}" cy="81.1" r=".45" fill="${P.goldL}"/>`).join('') +
+      `</g>` +
       sparkle(60, 18, 3, '#fff') + sparkle(32, 44, 2, P.goldL) + sparkle(90, 50, 1.6, P.goldL) +
       k.defs()
     )
