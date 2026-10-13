@@ -2,11 +2,12 @@ import { ArrowCounterClockwiseIcon, ArrowLeftIcon, FlagCheckeredIcon, TrashIcon,
 import { useEffect, useId, useMemo, useRef, useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 import { TeamAvatar } from '../components/Avatar'
-import { GameBadge, sidePlayersOf } from '../components/GameBits'
+import { GameBadge, sideName, sidePlayersOf } from '../components/GameBits'
 import { computeLive, eliminateOf, isDraw, roundsOf, targetOf, winnerSides, type LiveState } from '../lib/engine'
 import { planillaOf } from '../lib/games/planilla'
-import { confirmAction, toast } from '../lib/feedback'
+import { clearToast, confirmAction, toast } from '../lib/feedback'
 import { directResult, finishShortfall } from '../lib/finish'
+import { clearPlanillaDraft, hasPlanilla, pendingPlanillaSides } from '../lib/games/planilla'
 import { vibrate } from '../lib/vibrate'
 import type { GameDef } from '../lib/games/schema'
 import { formatDate, gameOrMissing, usePlayerMap } from '../lib/hooks'
@@ -74,13 +75,24 @@ function PlayView({ play, game }: { play: Play; game: GameDef }) {
   // Si el tablero ya sabe el resultado, se cierra sin formulario; si no (empate arriba, roles…), se abre.
   const direct = !finished ? directResult(game, play, live) : undefined
   const shortfall = direct ? finishShortfall(game, play, live) : undefined
+  // Generala: lo anotado en la mano en curso (falta que anoten otros) no entra en el resultado.
+  const pending = confirming && hasPlanilla(game) ? pendingPlanillaSides(play.id) : []
+  const pendingNote = pending.length
+    ? ` Lo anotado en esta mano por ${pending.map((i) => sideName(play.sides[i], players)).join(' y ')} no se guarda.`
+    : ''
   const finishNow = () => {
     if (!direct) return
     vibrate(40)
     setConfirming(false)
     setBeat('manual')
     actions.finishPlay(play.id, direct)
+    if (hasPlanilla(game)) clearPlanillaDraft(play.id)
   }
+  // Ningún aviso viejo (p. ej. "Cambiar" de la revancha) puede quedar encima del festejo, de la pregunta
+  // o del formulario de cierre.
+  useEffect(() => {
+    if (beat || confirming || finishing) clearToast()
+  }, [beat, confirming, finishing])
   const askFinish = () => {
     if (!direct) setFinishing(true)
     else if (shortfall) setConfirming(true)
@@ -184,7 +196,7 @@ function PlayView({ play, game }: { play: Play; game: GameDef }) {
           ) : (
             scored &&
             (confirming && shortfall ? (
-              <FinishConfirm text={`${shortfall}. ¿Terminar igual?`} onKeep={keepPlaying} onFinish={finishNow} />
+              <FinishConfirm text={`${shortfall}.${pendingNote} ¿Terminar igual?`} onKeep={keepPlaying} onFinish={finishNow} />
             ) : (
               <div className="play-dock">
                 <button type="button" className="btn big dock-undo" onClick={undo} disabled={!play.log.length} aria-keyshortcuts={game.mode === 'rounds' ? undefined : 'Z Backspace'}>

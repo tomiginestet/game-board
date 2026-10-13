@@ -47,7 +47,7 @@ describe('terminar partida', () => {
     expect(r.short).toBe('Faltan 8 manos')
   })
 
-  it('catán: los datos para las medallas no frenan; suma lo oculto', () => {
+  it('catán: con puntaje oculto pasa por el formulario para revisar los puntos finales', () => {
     const g = game('catan')
     expect(g.stats.length).toBeGreaterThan(0)
     const log: LogEntry[] = [
@@ -56,9 +56,7 @@ describe('terminar partida', () => {
       { k: 'ev', s: 2, e: 'settlement', n: 2, t },
     ]
     const r = check(g, play('catan', [['a'], ['b'], ['c']], log))
-    expect(r.can).toBe(true)
-    expect(r.result?.places).toEqual([1, 2, 2])
-    expect(r.short).toBe('Nadie llegó a 10 puntos de victoria')
+    expect(r.can).toBe(false)
   })
 
   it('chinchón (se quema): gana el que menos tiene, sin aviso de manos', () => {

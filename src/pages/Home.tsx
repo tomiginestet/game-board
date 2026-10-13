@@ -56,6 +56,8 @@ function startRematch(game: GameDef, plan: RematchPlan, navigate: NavigateFuncti
     label: 'Cambiar',
     run: () => {
       const now = getData().plays.find((x) => x.id === p.id)
+      // Si la partida ya terminó (o no existe), "Cambiar" no borra nada: sólo lleva al armado.
+      if (!now || now.status !== 'live') return navigate(playPath(game))
       actions.deletePlay(p.id)
       navigate(playPath(game), { replace: true })
       // Si ya se había anotado algo, se puede recuperar.

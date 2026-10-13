@@ -175,3 +175,24 @@ export function planillaSummary(game: GameDef, play: Pick<Play, 'log' | 'sides' 
   }
   return { rows, totals, leaders }
 }
+
+/** Dónde se guarda en el dispositivo lo anotado en la mano en curso que todavía no se guardó. */
+export const planillaDraftKey = (playId: string) => `game-board-planilla:${playId}`
+
+/** Lados con algo anotado en la mano en curso (se pierde si se termina la partida antes). */
+export function pendingPlanillaSides(playId: string): number[] {
+  try {
+    const raw = JSON.parse(localStorage.getItem(planillaDraftKey(playId)) ?? 'null')
+    return Array.isArray(raw) ? raw.map((p, i) => (p && typeof p.value === 'number' ? i : -1)).filter((i) => i >= 0) : []
+  } catch {
+    return []
+  }
+}
+
+export function clearPlanillaDraft(playId: string) {
+  try {
+    localStorage.removeItem(planillaDraftKey(playId))
+  } catch {
+    // Sin almacenamiento: no había nada guardado.
+  }
+}

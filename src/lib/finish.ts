@@ -24,6 +24,9 @@ export function liveFinalScores(game: GameDef, live: LiveState): number[] {
  */
 export function directResult(game: GameDef, play: Play, live: LiveState): PlayResult | undefined {
   if (!hasLiveScore(game) || game.roles?.length) return undefined
+  // Con puntaje oculto (Catán: cartas de puntos de victoria), el tablero no sabe todo: el formulario
+  // muestra los puntajes finales para que se corrijan antes de declarar ganador.
+  if (game.mode === 'turns' && game.events.some((e) => e.hidden)) return undefined
   const n = play.sides.length
   if (!n) return undefined
   const scores = liveFinalScores(game, live)
