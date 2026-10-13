@@ -267,7 +267,13 @@ function FinalBeat({ play, players, onUndo, onDone }: { play: Play; players: Map
   // El del ganador primero: "30 a 2".
   const raw = play.result?.scores
   const order = draw ? play.sides.map((_, i) => i) : [...winners, ...play.sides.map((_, i) => i).filter((i) => !winners.includes(i))]
-  const score = raw?.length && raw.every((v) => typeof v === 'number') ? order.map((i) => raw[i]).join(' a ') : ''
+  // Entre dos, "30 a 2"; con más, cada uno con su nombre ("Ana 26 · Beto 11 · Caro 8").
+  const score =
+    raw?.length && raw.every((v) => typeof v === 'number')
+      ? order.length > 2
+        ? order.map((i) => `${sideName(play.sides[i], players)} ${raw[i]}`).join(' · ')
+        : order.map((i) => raw[i]).join(' a ')
+      : ''
   const [paused, setPaused] = useState(false)
   const doneRef = useRef(onDone)
   useEffect(() => {

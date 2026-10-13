@@ -1656,8 +1656,6 @@ svg {
   border-radius: 99px;
   font-size: 12px;
   font-weight: 800;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
   color: var(--tier);
   border: 1px solid color-mix(in srgb, var(--tier) 50%, transparent);
   background: color-mix(in srgb, var(--tier) 12%, transparent);
@@ -1711,8 +1709,6 @@ svg {
   margin: 0;
   font-size: 12px;
   font-weight: 800;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
   color: var(--muted);
 }
 
@@ -1815,8 +1811,6 @@ svg {
   margin-top: -4px;
   font-size: 13px;
   font-weight: 700;
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
   color: var(--muted);
 }
 

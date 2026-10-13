@@ -1,4 +1,4 @@
-import { CaretDownIcon } from '@phosphor-icons/react'
+import { CaretDownIcon, CaretRightIcon } from '@phosphor-icons/react'
 import { useId, useMemo, useState } from 'react'
 import { TeamAvatar } from '../../components/Avatar'
 import { sideColor, sideName, sidePlayersOf } from '../../components/GameBits'
@@ -14,7 +14,9 @@ import { HelpToggle, PointsDialog } from './shared'
 import { sideKeys, undoLast, useScoreKeys } from './useScoreKeys'
 
 /** Cuántas jugadas se muestran de entrada por lado; el resto queda detrás de "Ver todo". */
-const PRIMARY_EVENTS = 4
+/** Con pocas jugadas se muestran todas; con muchas, las más usadas y el resto en "Ver todo". */
+const SHOW_ALL_UP_TO = 8
+const PRIMARY_EVENTS = 6
 
 export function CounterBoard({ play, game, live, players }: { play: Play; game: GameDef; live: LiveState; players: Map<Id, Player> }) {
   const data = useData()
@@ -43,7 +45,7 @@ export function CounterBoard({ play, game, live, players }: { play: Play; game: 
   }, [data.plays, game.id, play.id])
   const [primaryIds] = useState(() => {
     const ranked = events.map((e, i) => ({ e, i })).sort((a, b) => (history[b.e.id] ?? 0) - (history[a.e.id] ?? 0) || a.i - b.i)
-    const ids = new Set(ranked.slice(0, PRIMARY_EVENTS).map((x) => x.e.id))
+    const ids = new Set(ranked.slice(0, events.length <= SHOW_ALL_UP_TO ? events.length : PRIMARY_EVENTS).map((x) => x.e.id))
     for (const e of events) if (live.counts[e.id]?.some((n) => n > 0)) ids.add(e.id)
     // Esconder una sola jugada no ahorra nada.
     if (events.length - ids.size <= 1) for (const e of events) ids.add(e.id)
@@ -203,7 +205,9 @@ export function LogList({ play, game, players }: { play: Play; game: GameDef; pl
   if (!items.length) return null
   return (
     <details className="log-list">
-      <summary className="muted small">Lo último anotado</summary>
+      <summary className="log-summary">
+        <CaretRightIcon className="log-caret" aria-hidden /> Lo último anotado
+      </summary>
       <ul>
         {items.map((e, k) => (
           <li key={k}>{entryText(play, game, players, e)}</li>

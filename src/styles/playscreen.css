@@ -732,3 +732,28 @@ body.in-play .sticky-actions {
 .page:has(.round-form) .play-dock {
   display: none;
 }
+
+/* "Lo último anotado" se ve desplegable: flecha que gira al abrir. */
+.log-summary {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 44px;
+  cursor: pointer;
+  color: var(--text-soft);
+  font-size: 14px;
+  font-weight: 600;
+  list-style: none;
+}
+
+.log-summary::-webkit-details-marker {
+  display: none;
+}
+
+.log-caret {
+  transition: transform 0.15s ease-out;
+}
+
+details[open] > .log-summary .log-caret {
+  transform: rotate(90deg);
+}

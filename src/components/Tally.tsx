@@ -31,7 +31,7 @@ export function Tally({ value, target }: { value: number; target: number }) {
         const n = Math.max(0, Math.min(5, value - g * 5))
         return (
           <g key={g}>
-            <rect x={x} y={0} width={S} height={S} rx={3} fill="none" stroke="rgba(255,255,255,.12)" strokeDasharray="2 3" />
+            <rect x={x} y={0} width={S} height={S} rx={3} fill="none" stroke="rgba(255,255,255,.32)" strokeDasharray="2 3" />
             {sticks(x, n)}
           </g>
         )

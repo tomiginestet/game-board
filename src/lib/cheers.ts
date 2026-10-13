@@ -17,7 +17,7 @@ const CHEERS: Record<Outcome, string[]> = {
     'Para enmarcar y colgar en el living.',
     'Que suene el bombo.',
     'Gloria eterna. O hasta la próxima, que es casi lo mismo.',
-    'Partido redondo, de punta a punta.',
+    'Partida redonda, de punta a punta.',
     'Con el mate en la mano y la sonrisa de oreja a oreja.',
     'Esto va directo al grupo de WhatsApp.',
     'Hoy los platos los lava otra persona.',

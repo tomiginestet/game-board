@@ -247,14 +247,14 @@ export function Home() {
               x.kind === 'play' ? (
                 <div key={x.p.id} className="live-item">
                   <PlayRow play={x.p} game={gameOrMissing(data, x.p.gameId)} players={players} />
-                  <button className="btn small ghost-danger" onClick={() => discardPlay(x.p, gameOrMissing(data, x.p.gameId).name)}>
+                  <button className="btn ghost-danger" onClick={() => discardPlay(x.p, gameOrMissing(data, x.p.gameId).name)}>
                     <TrashIcon aria-hidden /> Descartar partida
                   </button>
                 </div>
               ) : (
                 <div key={x.m.id} className="live-item">
                   <MatchRow match={x.m} players={players} />
-                  <button className="btn small ghost-danger" onClick={() => discardMatch(x.m)}>
+                  <button className="btn ghost-danger" onClick={() => discardMatch(x.m)}>
                     <TrashIcon aria-hidden /> Descartar partido
                   </button>
                 </div>
@@ -433,7 +433,7 @@ function HeroCarousel({ games, plays }: { games: GameDef[]; plays: Map<string, n
   return (
     <section className="hero-carousel" aria-roledescription="carrusel" aria-labelledby="hero-title">
       <h2 id="hero-title">Para jugar hoy</h2>
-      <div className="hero-track" ref={ref} onScroll={onScroll} onKeyDown={onKeyDown} tabIndex={0} aria-label="Juegos para jugar hoy. Usá las flechas para pasar.">
+      <div className="hero-track" ref={ref} onScroll={onScroll} onKeyDown={onKeyDown} tabIndex={0} role="region" aria-label="Juegos para jugar hoy. Usá las flechas para pasar.">
         {games.map((g, i) => (
           <HeroCard key={g.id} game={g} playTo={playPath(g)} plays={plays.get(g.id)} index={i} total={games.length} />
         ))}
