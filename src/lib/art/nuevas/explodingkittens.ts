@@ -337,7 +337,7 @@ export const EXPLODINGKITTENS_NUEVAS_ART: Record<string, (u: number) => string> 
     )
   },
 
-  // Veinte desactivadas: el casco de la brigada, con el visor que refleja la bomba y el cuello acolchado.
+  // Veinte desactivadas: el casco de la brigada, con el visor que refleja la bomba, sobre la caja de herramientas.
   'Brigada antibombas': (u) => {
     const k = kit(u)
     const shell = 'M37.4 64C35.4 44 44.4 27.6 60 27.6C75.6 27.6 84.6 44 82.6 64L81.4 76.4H38.6Z'
@@ -346,9 +346,11 @@ export const EXPLODINGKITTENS_NUEVAS_ART: Record<string, (u: number) => string> 
     const brow = 'M39 42.6C42.4 34.6 77.6 34.6 81 42.6L80.6 45.4C76 40.4 44 40.4 39.4 45.4Z'
     const pod = (x: number) => ellipse(x, 58.4, 3.8, 9.6)
     const lamp = roundRect(54.4, 26.6, 65.6, 31.6, 2)
-    const armor = 'M20 108C20 90 27 79 37.6 72.6C41 80.6 49 85 60 85C71 85 79 80.6 82.4 72.6C93 79 100 90 100 108Z'
-    const plate = 'M45.4 89C45.4 87.2 46.8 86.2 48.6 86.2H71.4C73.2 86.2 74.6 87.2 74.6 89V108H45.4Z'
-    const quilt = [27, 32.4, 37.8, 82.2, 87.6, 93].map((x) => hair(x + (60 - x) * 0.06, 78 + Math.abs(x - 60) * 0.12, x - (60 - x) * 0.02, 94, x - (60 - x) * 0.06, 108, 0.6, P.night, 0.75)).join('')
+    // La caja de herramientas de la brigada, naranja, con tapa, trabas y remaches: el casco descansa arriba.
+    const boxTop = 'M41.4 72.6H78.6L82.6 76.6H37.4Z'
+    const boxFront = 'M37.4 76.6H82.6V88.4C82.6 90 81.4 91 79.8 91H40.2C38.6 91 37.4 90 37.4 88.4Z'
+    const latch = (x: number) => `<rect x="${f(x - 2.2)}" y="77.8" width="4.4" height="5.4" rx=".8" fill="${P.sky1}" stroke="${P.ink}" stroke-width=".45"/><path d="M${f(x - 1.2)} 80.4H${f(x + 1.2)}" stroke="${P.blue}" stroke-width=".6"/><circle cx="${f(x - 0.9)}" cy="78.8" r=".35" fill="#fff"/>`
+    const rivet = (x: number, y: number) => `<circle cx="${x}" cy="${y}" r=".7" fill="${NAR_L}" stroke="${NAR_D}" stroke-width=".3"/>`
     // Reflejo en el visor: la ventana del cuarto, la bomba (achatada por la curva) con su chispa, y el naranja del piso.
     const refl =
       `<path d="M45 44H55L47.4 66H43.4Z" fill="#fff" opacity=".7"/><path d="M57.6 44H61.4L53.8 66H50Z" fill="#fff" opacity=".4"/>` +
@@ -358,17 +360,21 @@ export const EXPLODINGKITTENS_NUEVAS_ART: Record<string, (u: number) => string> 
     return (
       fondo(k) +
       escenario(k, 60, 58, 33) +
-      k.draw([{
-        d: armor, fill: P.mid,
-        inner:
-          k.sh(armor, 0, 0, 1, 0, 0, 0.9, P.night, 0.5) + `<path d="M18 70H34V108H18Z" fill="${k.lin(P.sky, 0, 0, 1, 0, 0.55, 0)}"/>` + quilt +
-          `<path d="M38 74C42 82 50 86.4 60 86.4C70 86.4 78 82 82 74" fill="none" stroke="${P.sky}" stroke-width=".7"/>`,
-      }], 0.8) +
-      k.draw([{
-        d: plate, fill: P.blue,
-        inner: k.sh(plate, 0, 0, 1, 0, 0, 0.85, P.mid, 0.5) + `<path d="M45.4 90.4H74.6V94H45.4Z" fill="${NAR}"/><path d="M45.4 91.6H74.6" stroke="${P.paper}" stroke-width=".8"/>` +
-          `<path d="M45.4 90.4H74.6M45.4 94H74.6M45.4 99.4H74.6" stroke="${P.ink}" stroke-width=".4"/>` + hair(47.6, 88, 54, 87.4, 60, 87.6, 0.6, P.sky1, 0.8),
-      }], 0.6) +
+      k.floor(60, 91.4, 26, 2.6, NAR_D) +
+      k.draw([
+        { d: boxTop, fill: NAR_L, inner: k.sh(boxTop, 0, 0, 1, 0, 0, 0.7, NAR, 0.4) + `<path d="M43 73.8H77" stroke="#fff" stroke-width=".5" opacity=".7"/>` },
+        {
+          d: boxFront, fill: NAR,
+          inner:
+            k.sh(boxFront, 0, 0, 1, 1, 0, 0.9, NAR_D, 0.5) + `<path d="M36 76H44V92H36Z" fill="${k.lin(NAR_L, 0, 0, 1, 0, 0.7, 0)}"/>` +
+            `<path d="M37.4 79.4H82.6" stroke="${NAR_D}" stroke-width=".6"/><path d="M37.4 80H82.6" stroke="${NAR_L}" stroke-width=".4"/>` +
+            hair(40, 86.6, 50, 87.4, 60, 87.2, 0.5, NAR_D, 0.8) + hair(64, 87.4, 72, 87.8, 80, 87, 0.5, NAR_D, 0.8),
+        },
+      ], 0.7) +
+      latch(44.6) + latch(75.4) + rivet(40, 89) + rivet(80, 89) + rivet(52, 89) + rivet(68, 89) +
+      k.draw([{ d: roundRect(53.4, 82.2, 66.6, 87.4, 0.6), fill: P.sky1, inner: k.sh(roundRect(53.4, 82.2, 66.6, 87.4, 0.6), 0, 0, 1, 1, 0, 0.6, P.blue, 0.35) + `<path d="M55 84.2H65M55 85.8H62" stroke="${P.blue}" stroke-width=".4"/>` }], 0.35) +
+      k.floor(60, 73.4, 21, 2, HIERRO_D) +
+      `<g transform="translate(60 74.4) scale(.88) translate(-60 -76.4)">` +
       k.draw([
         { d: pod(36.6), fill: P.mid, inner: k.sh(pod(36.6), 0, 0, 1, 0, 0, 0.8, P.night, 0.4) + [52, 55, 58, 61, 64].map((y) => `<path d="M35 ${y}H38.6" stroke="${P.night}" stroke-width=".7" stroke-linecap="round"/>`).join('') },
         { d: pod(83.4), fill: P.mid, inner: k.sh(pod(83.4), 0, 0, 1, 0, 0.3, 0.95, P.night, 0.5) + [52, 55, 58, 61, 64].map((y) => `<path d="M81.6 ${y}H85.2" stroke="${P.night}" stroke-width=".7" stroke-linecap="round"/>`).join('') },
@@ -376,7 +382,8 @@ export const EXPLODINGKITTENS_NUEVAS_ART: Record<string, (u: number) => string> 
           d: shell, fill: P.mid,
           inner:
             k.sh(shell, 0, 0, 1, 1, 0, 0.9, P.night, 0.55) + `<path d="M34 28H48V78H34Z" fill="${k.lin(P.sky, 0, 0, 1, 0, 0.6, 0)}"/>` +
-            hair(40, 56, 40, 42, 49, 32.6, 1.1, '#fff', 0.7) + hair(80.4, 46, 81.6, 56, 81, 68, 0.6, P.night),
+            hair(40, 56, 40, 42, 49, 32.6, 1.1, '#fff', 0.7) + hair(80.4, 46, 81.6, 56, 81, 68, 0.6, P.night) +
+            `<path d="M38.6 74.4H81.4" stroke="${P.sky}" stroke-width=".6"/>`,
         },
       ], 0.8) +
       k.draw([{ d: lamp, fill: P.sky2, inner: k.sh(lamp, 0, 0, 1, 0, 0, 0.8, P.mid, 0.4) }], 0.45) +
@@ -386,7 +393,8 @@ export const EXPLODINGKITTENS_NUEVAS_ART: Record<string, (u: number) => string> 
       `<path d="${visor}" fill="${P.sky}"/>` +
       k.clip(visor, `<path d="M40 40H80V74H40Z" fill="${k.lin(P.mid, 0, 0, 0, 1, 0.15, 0.9)}"/>` + k.sh(visor, 0, 0, 1, 1, 0, 0.55, P.night, 0.4) + refl) +
       `<path d="${visor}" fill="none" stroke="${P.ink}" stroke-width=".5"/>` +
-      sparkle(32, 36, 2.2) + sparkle(89, 38, 1.6) +
+      `</g>` +
+      sparkle(32, 40, 2.2) + sparkle(89, 42, 1.6) + sparkle(30, 70, 1.2, '#fff') +
       k.defs()
     )
   },
