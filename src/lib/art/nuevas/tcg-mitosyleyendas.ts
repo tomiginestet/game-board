@@ -165,7 +165,7 @@ export const TCG_MITOSYLEYENDAS_NUEVAS_ART: Record<string, (u: number) => string
         { d: side, fill: STONED, inner: k.clip(side, ashlar(k, 68, 39, 76, 106, 6.4, 3)) + `<path d="${side}" fill="${k.lin(MYLD, 0, 0, 1, 0, 0.3, 0.6)}"/>` },
         {
           d: front, fill: STONE,
-          inner: ashlar(k, 44, 42, 70, 106, 6.4, 1) + k.sh(front, 0, 0, 1, 0, 0, 0.55, MYLD, 0.3) + `<path d="M44 42H52V106H44Z" fill="${k.lin('#fff', 0, 0, 1, 0, 0.35, 0)}"/>` +
+          inner: ashlar(k, 44, 42, 70, 106, 6.4, 1) + k.sh(front, 0, 0, 1, 0, 0, 0.32, MYLD, 0.3) + `<path d="M44 42H52V106H44Z" fill="${k.lin('#fff', 0, 0, 1, 0, 0.35, 0)}"/>` +
             `<path d="M54 58V52A3.4 3.4 0 0 1 60.8 52V58Z" fill="${P.goldL}" stroke="${P.ink}" stroke-width=".45"/><path d="M57.4 48.6V58M54 54H60.8" stroke="${MYLD}" stroke-width=".45"/>` +
             slit(51, 70) + slit(62.4, 70) + slit(56.8, 84),
         },
