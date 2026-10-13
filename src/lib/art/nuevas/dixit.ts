@@ -290,7 +290,7 @@ export const DIXIT_NUEVAS_ART: Record<string, (u: number) => string> = {
       k.sun(60, 57, 30, 50, 36, false) +
       glow(k, 60, 57, 40, 40, 0.5) +
       labyrinth(k, 60, 57) +
-      `<g transform="translate(77 97) rotate(-24)">` + k.cast([`M-1.5 -66L-1.15 -2.4H1.15L1.5 -66Z`], 1.8, 1.6, '#12060C') + cane(k, 66) + `</g>` +
+      `<g transform="translate(77 97) rotate(-24) scale(1.12 1)">` + k.cast([`M-1.9 -66L-1.4 -2.4H1.4L1.9 -66Z`], 2.4, 2, '#12060C') + cane(k, 66) + `</g>` +
       sparkle(30, 34, 2.2, P.goldL) + sparkle(90, 80, 1.6, '#fff') + sparkle(88, 30, 1.4, '#fff') +
       k.defs()
     )

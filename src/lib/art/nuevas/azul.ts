@@ -435,14 +435,14 @@ export const AZUL_NUEVAS_ART: Record<string, (u: number) => string> = {
       `<rect width="120" height="130" fill="#26304F"/>` + k.shade(FULL, k.rad('#4A5784', 0.5, 0.42, 0.6, 0.9, 0), '#4A5784', 0.4) +
       Array.from({ length: 9 }, (_, r) => `<path d="M0 ${12 + r * 11}H120" stroke="#1A2240" stroke-width=".6"/>` + Array.from({ length: 6 }, (_, c) => `<path d="M${f(c * 22 + (r % 2) * 11)} ${12 + r * 11}V${23 + r * 11}" stroke="#1A2240" stroke-width=".6"/>`).join('')).join('') +
       // Los haces de luz que bajan hacia la nave.
-      beams.map(([dx, c]) => `<path d="M${f(52 + dx * 20)} 60L${f(66 + dx * 20)} 56L${f(96 + dx * 30)} 130H${f(70 + dx * 30)}Z" fill="${c}" opacity=".16"/>`).join('') +
+      beams.map(([dx, c]) => `<path d="M${f(50 + dx * 20)} 62L${f(64 + dx * 20)} 58L${f(96 + dx * 30)} 130H${f(70 + dx * 30)}Z" fill="${c}" opacity=".26"/>`).join('') +
       k.shade('M48 56L76 52L112 130H66Z', k.lin(P.goldL, 0, 0, 0, 1, 0.35, 0), P.goldL, 0.2) +
       // El vidrio de fondo, oscuro, con su resplandor; los pétalos, los medallones y la estrella del óculo.
       `<circle cx="${cx}" cy="${cy}" r="${R}" fill="${VIDRIO_N}"/>` +
       k.clip(ellipse(cx, cy, R, R),
         `<circle cx="${cx}" cy="${cy}" r="${R}" fill="${COB_D}"/>` + glass +
         `<circle cx="${cx}" cy="${cy}" r="12" fill="${P.red}"/><path d="${star}" fill="${P.gold}"/><circle cx="${cx}" cy="${cy}" r="3.2" fill="${COB}"/>` +
-        k.shade(ellipse(cx, cy, R, R), k.rad('#ffffff', 0.38, 0.32, 0.75, 0.55, 0), '#ffffff', 0.35) +
+        k.shade(ellipse(cx, cy, R, R), k.rad('#ffffff', 0.4, 0.36, 0.7, 0.75, 0), '#ffffff', 0.5) +
         k.shade(ellipse(cx, cy, R, R), k.rad(VIDRIO_N, 0.62, 0.68, 0.6, 0, 0.7), VIDRIO_N, 0.3) +
         `<g fill="none" stroke="${NEGRO}" stroke-width=".55">${leads}<path d="${star}"/><circle cx="${cx}" cy="${cy}" r="6.4"/><circle cx="${cx}" cy="${cy}" r="3.2"/></g>` +
         Array.from({ length: 24 }, (_, i) => { const a = (i / 24) * Math.PI * 2; return `<path d="M${pt(12, a)}L${pt(R, a)}" stroke="${NEGRO}" stroke-width=".4" opacity=".7"/>` }).join('') +

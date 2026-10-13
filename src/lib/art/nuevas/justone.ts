@@ -385,10 +385,10 @@ export const JUSTONE_NUEVAS_ART: Record<string, (u: number) => string> = {
       if (ch === ' ') { t += 0.04; continue }
       const len = ch === '-' ? 0.05 : 0.018
       const [a, b] = along(T0[0], T0[1], TC[0], TC[1], T1[0], T1[1], [t, t + len])
-      marks.push(`<path d="M${f(a.x)} ${f(a.y)}L${f(b.x)} ${f(b.y)}" stroke="${P.ink}" stroke-width="1.3" stroke-linecap="round"/>`)
+      marks.push(`<path d="M${f(a.x)} ${f(a.y)}L${f(b.x)} ${f(b.y)}" stroke="${P.ink}" stroke-width="1.8" stroke-linecap="round"/>`)
       t += len + 0.025
     }
-    const tape = taper(T0[0], T0[1], TC[0], TC[1], T1[0], T1[1], 4.6, 4.6)
+    const tape = taper(T0[0], T0[1], TC[0], TC[1], T1[0], T1[1], 6, 6)
     return (
       field(k) +
       k.sun(60, 58, 18, 48, 32, false) +
@@ -401,7 +401,8 @@ export const JUSTONE_NUEVAS_ART: Record<string, (u: number) => string> = {
         { d: front, fill: P.brownD, inner: k.sh(front, 0, 0, 1, 0, 0, 0.8, '#4A2A14', 0.4) + hair(34, 83.4, 60, 82.6, 86, 83.4, 0.4, P.brown) },
         { d: top, fill: P.brown, inner: k.sh(top, 0, 0, 1, 1, 0, 0.6, P.brownD, 0.4) + hair(38, 76.6, 60, 76, 82, 76.6, 0.45, P.brownD, 0.8) + hair(36, 79, 54, 78.6, 72, 79.2, 0.4, P.brownD, 0.7) },
       ], 0.7) +
-      // Contactos, resorte y bornes de bronce.
+      // Contactos, resorte y bornes de bronce; el manipulador, un poco más grande que la vida.
+      `<g transform="translate(60 76) scale(1.14) translate(-60 -76)">` +
       k.draw([{ d: post(46), fill: P.gold, inner: k.sh(post(46), 0, 0, 1, 0, 0, 0.9, P.goldD, 0.5) }, { d: post(62), fill: P.gold, inner: k.sh(post(62), 0, 0, 1, 0, 0, 0.9, P.goldD, 0.5) }], 0.45) +
       `<path d="M62 69.4V63.6" stroke="${P.ink}" stroke-width="1.6"/><path d="M62 69.4C60.6 68.4 63.4 67.4 62 66.4C60.6 65.4 63.4 64.4 62 63.4" fill="none" stroke="${P.goldL}" stroke-width=".6"/>` +
       k.cast([lever], 1.6, 2.4, JO_D) +
@@ -413,6 +414,7 @@ export const JUSTONE_NUEVAS_ART: Record<string, (u: number) => string> = {
       // La perilla de baquelita.
       `<path d="M40.4 59.6H42.8V61.4H40.4Z" fill="${P.gold}" stroke="${P.ink}" stroke-width=".4"/>` +
       k.draw([{ d: knobSkirt, fill: BAKE, inner: k.sh(knobSkirt, 0, 0, 1, 0, 0, 0.8, '#000', 0.4) }, { d: knobTop, fill: '#4A3E38', inner: k.sh(knobTop, 0, 0, 1, 1, 0, 0.8, BAKE, 0.4) + hair(36, 55, 39.6, 54, 44, 54, 0.6, '#8C7B70') }], 0.6) +
+      `</g>` +
       [38, 82].map((x) => `<ellipse cx="${x}" cy="78" rx="2" ry=".9" fill="${P.gold}" stroke="${P.ink}" stroke-width=".4"/><path d="M${x - 2} 78V76.4A2 .9 0 0 1 ${x + 2} 76.4V78" fill="${P.gold}" stroke="${P.ink}" stroke-width=".4"/><ellipse cx="${x}" cy="76.4" rx="2" ry=".9" fill="${P.goldL}" stroke="${P.ink}" stroke-width=".4"/>`).join('') +
       sparkle(46, 66.4, 2.2, '#fff') +
       sparkle(88, 40, 1.8, '#fff') + sparkle(30, 62, 1.4, '#fff') +
@@ -452,7 +454,9 @@ export const JUSTONE_NUEVAS_ART: Record<string, (u: number) => string> = {
           inner:
             k.sh(body, 0, 0, 1, 1, 0, 0.95, CH_D, 0.5) + `<path d="M-12 -16H6V-4C-2 -4 -8 -2 -12 0Z" fill="${k.lin(JO_L, 0, 0, 1, 1, 0.75, 0)}"/>` +
             `<path d="${plates}" fill="none" stroke="${CH_D}" stroke-width=".55"/>` + `<path d="${plates}" fill="none" stroke="${JO_L}" stroke-width=".3" transform="translate(-.6 0)" opacity=".7"/>` +
-            hair(-8, -6, -2, -12, 8, -12, 0.9, '#fff', 0.85) + hair(2, 4, 8, 6, 14, 2, 0.5, CH_D, 0.8),
+            hair(-8, -6, -2, -12, 8, -12, 0.9, '#fff', 0.85) + hair(2, 4, 8, 6, 14, 2, 0.5, CH_D, 0.8) +
+            Array.from({ length: 9 }, (_, i) => hair(-6 + i * 2.6, 10.6 - Math.abs(i - 4) * 0.4, -4.6 + i * 2.6, 5, -2.6 + i * 2.6, 0.6, 0.4, CH_D, 0.75)).join('') +
+            Array.from({ length: 5 }, (_, i) => hair(12 + i * 1.2, -8 + i * 3, 15 + i * 0.6, -6 + i * 3, 17.4, -4 + i * 3, 0.35, CH_D, 0.7)).join(''),
         },
         { d: head, fill: CH, inner: k.sh(head, 0, 0, 1, 1, 0, 0.9, CH_D, 0.5) + hair(-17.6, -3, -16, -5.4, -12.6, -5.4, 0.5, '#fff', 0.8) },
       ], 0.55) +

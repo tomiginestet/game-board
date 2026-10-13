@@ -137,7 +137,7 @@ export const WAVELENGTH_NUEVAS_ART: Record<string, (u: number) => string> = {
     const inlay = 'M3 -2.8C7 -2.6 11 -2.2 15 -1.8V1.8C11 2.2 7 2.6 3 2.8Z'
     const limbU = taper(44.6, -1, 49, -14, 40.4, -26, 3.8, 1.4)
     const limbD = taper(44.6, 1, 49, 14, 40.4, 26, 3.8, 1.4)
-    const lever = 'M21 3C20 8 16 12 9.4 14.4C8.6 14.6 8.2 15.4 8.8 16C9.4 16.4 10.2 16.2 11 15.8C17.6 13 22 9 23.4 3Z'
+    const lever = 'M22.4 3C21.6 5.4 18.6 6.8 11.6 7.6C10.4 7.8 10 9 11 9.4C18.4 9.6 23 7.2 24.6 3Z'
     const half = 'M-8 0C-8 -5 -4.4 -8.6 0 -8.6C4.4 -8.6 8 -5 8 0Z'
     const cut = ellipse(0, 0, 8, 2.6)
     const seeds = [[-2.4, 0, -20], [2.4, 0, 20], [0, -0.8, 0]].map(([x, y, r]) => `<ellipse cx="${x}" cy="${y}" rx="1.1" ry=".55" fill="${P.brownD}" transform="rotate(${r} ${x} ${y})"/>`).join('')
@@ -150,7 +150,7 @@ export const WAVELENGTH_NUEVAS_ART: Record<string, (u: number) => string> = {
       fondo(k) +
       escenario(k, 60, 60, 33) +
       // La manzana partida, arriba, con la saeta que pasó por el medio y su estela.
-      `<g transform="translate(60 34) rotate(-90) scale(1.18)">` +
+      `<g transform="translate(60 36.4) rotate(-90) scale(1.08)">` +
       hair(-26, -3.4, -20, -3.2, -12, -3.6, 0.6, ROSA) + hair(-26, 3.4, -20, 3.2, -12, 3.6, 0.6, ROSA) + hair(-24, -6, -19, -5.8, -14, -6.6, 0.45, ROSA_D) + hair(-24, 6, -19, 5.8, -14, 6.6, 0.45, ROSA_D) +
       `<g transform="translate(0 -5.4) rotate(-12)">` + appleHalf(true) + `<path d="M7.6 -1.6C9.4 -2 10.6 -2.8 11.4 -4.2" fill="none" stroke="${P.brownD}" stroke-width="1" stroke-linecap="round"/>` +
       k.draw([{ d: 'M10.6 -3.4C13.4 -4.8 16.4 -3.2 16.6 -.8C14.2 .2 11.6 -.8 10.6 -3.4Z', fill: P.green, inner: `<path d="M11.2 -3L16 -1.2" stroke="${P.greenD}" stroke-width=".4"/>` }], 0.4) + `</g>` +
@@ -214,7 +214,7 @@ export const WAVELENGTH_NUEVAS_ART: Record<string, (u: number) => string> = {
       `<path d="M-1.6 2.6L-2.6 5.4H2.6L1.6 2.6Z" fill="${P.sky1}" stroke="${P.ink}" stroke-width=".35"/></g>` +
       // El pie: el mástil, la horquilla y la base atornillada.
       `<path d="M50 63L56 96" stroke="${P.ink}" stroke-width="5.4" stroke-linecap="round"/><path d="M50 63L56 96" stroke="${P.sky2}" stroke-width="3.6" stroke-linecap="round"/><path d="M49.4 64.6L55 95" stroke="#fff" stroke-width=".8" opacity=".7"/>` +
-      `<path d="${starPath(52.6, 76, 4.4, 3.4, 12)}" fill="${P.gold}" stroke="${P.ink}" stroke-width=".5"/><circle cx="52.6" cy="76" r="2" fill="${P.goldD}" stroke="${P.ink}" stroke-width=".4"/><circle cx="52" cy="75.4" r=".6" fill="${P.goldL}"/>` +
+
       k.draw([{ d: 'M44 94.6H68L70 98.6H42Z', fill: P.mid, inner: k.sh('M44 94.6H68L70 98.6H42Z', 0, 0, 1, 0, 0, 0.8, P.night, 0.4) }], 0.6) +
       [47, 56, 65].map((x) => `<circle cx="${x}" cy="96.6" r=".8" fill="${P.sky1}" stroke="${P.ink}" stroke-width=".3"/>`).join('') +
       // La parábola: la cáscara de atrás, el plato con sus gajos y remaches, y el aro.
@@ -229,6 +229,7 @@ export const WAVELENGTH_NUEVAS_ART: Record<string, (u: number) => string> = {
       dish + `<path d="${ellipse(D.x, D.y, rx, ry)}" fill="none" stroke="${P.sky1}" stroke-width="1.4"/><path d="${ellipse(D.x, D.y, rx - 0.6, ry - 0.6)}" fill="none" stroke="${P.ink}" stroke-width=".4"/></g>` +
       `<path d="M${f(rimPt(3.6).x)} ${f(rimPt(3.6).y)}A${rx} ${ry} ${rot} 0 1 ${f(rimPt(4.6).x)} ${f(rimPt(4.6).y)}" fill="none" stroke="#fff" stroke-width="1" stroke-linecap="round" opacity=".9"/>` +
       `<circle cx="${D.x}" cy="${D.y}" r="2.4" fill="${P.sky2}" stroke="${P.ink}" stroke-width=".5"/><circle cx="${D.x}" cy="${D.y}" r="1" fill="${P.mid}"/>` +
+      `<path d="${starPath(55, 83.4, 4.2, 3.2, 12)}" fill="${P.gold}" stroke="${P.ink}" stroke-width=".5"/><circle cx="55" cy="83.4" r="1.9" fill="${P.goldD}" stroke="${P.ink}" stroke-width=".4"/><circle cx="54.4" cy="82.8" r=".6" fill="${P.goldL}"/>` +
       // El brazo con el cabezal en el foco.
       strut(0) + strut(Math.PI) + strut(Math.PI / 2) +
       `<g transform="translate(${F.x} ${F.y}) rotate(-45)">` + k.draw([{ d: roundRect(-3.4, -2.2, 3.4, 2.2, 0.8), fill: P.gold, inner: k.sh(roundRect(-3.4, -2.2, 3.4, 2.2, 0.8), 0, 0, 0, 1, 0, 0.9, P.goldD, 0.5) }], 0.45) +
@@ -351,12 +352,14 @@ export const WAVELENGTH_NUEVAS_ART: Record<string, (u: number) => string> = {
       `<path d="${brace}${rungs}" stroke="${P.ink}" stroke-width="1.3"/><path d="${brace}${rungs}" stroke="${P.sky1}" stroke-width=".5"/>` +
       `<path d="M${f(xAt(top, -1) + 0.4)} ${top}L${f(xAt(bot, -1) + 0.6)} ${bot}" stroke="#fff" stroke-width=".45" opacity=".8"/>` +
       platform(51) + platform(72) +
+      levels.slice(0, -1).map((y0, i) => { const y1 = levels[i + 1], w0 = xAt(y0, 1) - 60, w1 = xAt(y1, 1) - 60, ym = y0 + ((y1 - y0) * w0) / (w0 + w1); return `<circle cx="60" cy="${f(ym)}" r=".6" fill="${P.gold}" stroke="${P.ink}" stroke-width=".25"/>` }).join('') +
       [42, 51, 61, 72, 84, 97].map((y) => `<circle cx="${f(xAt(y, -1))}" cy="${y}" r=".55" fill="${P.goldL}" stroke="${P.ink}" stroke-width=".25"/><circle cx="${f(xAt(y, 1))}" cy="${y}" r=".55" fill="${P.goldL}" stroke="${P.ink}" stroke-width=".25"/>`).join('') +
       // El mástil, las antenitas y el faro.
       rod('M60 34V22.6', P.sky1, 1.2, '#fff') + rod('M55.6 30H64.4M57 26H63', P.sky1, 0.6) +
       k.shade(ellipse(60, 21, 9, 7), k.rad('#ffffff', 0.5, 0.5, 0.5, 0.95, 0), '#ffffff', 0.6) +
-      `<circle cx="60" cy="21.4" r="2.2" fill="${P.red}" stroke="${P.ink}" stroke-width=".5"/><circle cx="59.4" cy="20.8" r=".7" fill="#fff"/>` +
-      sparkle(60, 21.4, 3.6, '#fff') +
+      `<path d="M57.8 23.6H62.2L61.6 22H58.4Z" fill="${P.sky2}" stroke="${P.ink}" stroke-width=".4"/>` +
+      `<circle cx="60" cy="20.6" r="2.3" fill="${P.red}" stroke="${P.ink}" stroke-width=".5"/><circle cx="59.3" cy="19.9" r=".8" fill="#fff"/>` +
+      sparkle(66, 18.6, 1.6, '#fff') +
       k.defs()
     )
   },
