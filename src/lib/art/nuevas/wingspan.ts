@@ -24,7 +24,7 @@ const field = (k: Kit) => `<rect width="120" height="130" fill="${P.paper}"/>` +
 
 /** Escenario verde: un disco pálido con el borde granulado. */
 const stageW = (k: Kit, cx: number, cy: number, r: number) =>
-  `<circle cx="${cx}" cy="${cy}" r="${r}" fill="${W_XL}"/>` + k.shade(ellipse(cx, cy, r, r), k.rad(W_L, 0.5, 0.5, 0.5, 0, 1), '#9CCB5E', 0.55) +
+  `<circle cx="${cx}" cy="${cy}" r="${r}" fill="${W_XL}"/>` + k.shade(ellipse(cx, cy, r, r), k.rad(W_L, 0.5, 0.5, 0.5, 0, 1), W_L, 0.55) +
   `<circle cx="${cx}" cy="${cy}" r="${r}" fill="none" stroke="${W}" stroke-width=".5" stroke-dasharray=".01 1.6" stroke-linecap="round"/>`
 
 /** Resplandor suave de un color. */
@@ -269,7 +269,7 @@ export const WINGSPAN_NUEVAS_ART: Record<string, (u: number) => string> = {
         `<circle cx="${T[0]}" cy="${T[1]}" r="1.3" fill="${P.gold}" stroke="${P.ink}" stroke-width=".45"/>`
     }
     const harness = 'M55.6 46.4H64.4L65 63.6C62 65 58 65 55 63.6Z'
-    const straps = 'M56 50L45 45.6M64 50L75 45.6M55.6 59.6L46 62.6M64.4 59.6L74 62.6'
+    const straps = 'M56 50L50 48M64 50L70 48M55.6 59.6L50.6 61.6M64.4 59.6L69.4 61.6'
     return (
       field(k) +
       k.sun(60, 54, 14, 48, 32, false) +
@@ -346,6 +346,13 @@ export const WINGSPAN_NUEVAS_ART: Record<string, (u: number) => string> = {
     const peaks = Array.from({ length: (nx - 1) * (ny - 1) }, (_, q) => { const i = (q % (nx - 1)) + 1, j = Math.floor(q / (nx - 1)) + 1, [x, y] = pt(i, j); return `<path d="M${f(x - 1.6)} ${f(y + 0.4)}L${f(x)} ${f(y - 2.4)}L${f(x + 1.6)} ${f(y + 0.4)}Z" fill="${PULP_L}" stroke="${PULP_D}" stroke-width=".3"/>` }).join('')
     for (let j = 0; j < ny; j++) for (let i = 0; i < nx; i++) {
       const [x, y] = pt(i + 0.5, j + 0.5), c = EGGS[(i * 2 + j * 3) % EGGS.length]
+      if (i === nx - 1 && j === ny - 1) {
+        // El huevo roto de la tortilla: media cáscara con la yema.
+        const shell = `M${f(x - 3.6)} ${f(y - 1.4)}L${f(x - 2.4)} ${f(y - 2.6)}L${f(x - 1.2)} ${f(y - 1.6)}L${f(x)} ${f(y - 2.8)}L${f(x + 1.2)} ${f(y - 1.6)}L${f(x + 2.4)} ${f(y - 2.6)}L${f(x + 3.6)} ${f(y - 1.4)}C${f(x + 3.6)} ${f(y + 1.6)} ${f(x + 2)} ${f(y + 2.8)} ${x} ${f(y + 2.8)}C${f(x - 2)} ${f(y + 2.8)} ${f(x - 3.6)} ${f(y + 1.6)} ${f(x - 3.6)} ${f(y - 1.4)}Z`
+        eggs += k.draw([{ d: shell, fill: EGGS[5], inner: k.sh(shell, 0, 0, 1, 1, 0, 0.6, '#7C7C90', 0.3) }], 0.4) +
+          `<ellipse cx="${x}" cy="${f(y - 1.6)}" rx="3" ry="1.4" fill="${P.white}" stroke="${P.ink}" stroke-width=".35"/><circle cx="${f(x - 0.3)}" cy="${f(y - 1.8)}" r="1.4" fill="${P.gold}" stroke="${P.goldD}" stroke-width=".35"/><circle cx="${f(x - 0.8)}" cy="${f(y - 2.3)}" r=".4" fill="#fff"/>`
+        continue
+      }
       eggs += egg(k, f(x), f(y - 3), 3.2, 4.2, c, -8 + ((i + j) % 3) * 8, (i + j) % 4 === 1, 0.4)
     }
     return (
@@ -491,16 +498,16 @@ export const WINGSPAN_NUEVAS_ART: Record<string, (u: number) => string> = {
     const k = kit(u)
     const water = 'M0 70H120V130H0Z'
     const city = 'M22 70V60H27V54H31V62H35V48H39V44H42V48H45V60H49V52H53V70ZM67 70V56H71V40H74V36H77V40H80V58H84V50H88V62H92V54H96V70Z'
-    const swanBody = 'M-6 -6C-2 -10.6 8 -11.6 16 -9.4C20.4 -8.2 23.4 -6.2 25.6 -9.6C27 -6 26 -2 21.6 0H-8C-9.2 -2 -8.4 -4.4 -6 -6Z'
+    const swanBody = 'M-6 -6C-2 -9.6 8 -10.4 16 -8.6C20.4 -7.6 23.4 -5.8 25.6 -8.8C27 -5.6 26 -2 21.6 0H-8C-9.2 -2 -8.4 -4.4 -6 -6Z'
     const neck = taper(-1.8, -7.8, -14, -14, -7.6, -26.8, 3.8, 2.2)
     const head = 'M-10.8 -27C-10.8 -29.2 -9.2 -30.6 -7.4 -30.6C-5.4 -30.6 -4.6 -29.2 -4.8 -27.4C-5 -25.6 -6.2 -24.8 -7.6 -24.8C-9.4 -24.8 -10.8 -25.6 -10.8 -27Z'
     const bill = 'M-10.6 -27.6C-13 -27.2 -15.4 -26.2 -17 -24.8C-15 -24.6 -12.6 -24.6 -10.4 -25.2Z'
-    const wingUp = 'M2 -9C6 -14.6 14 -16 20 -12.6C17 -11 12 -9.6 6 -8.8Z'
+    const wingUp = 'M3 -9.2C7 -13.4 14 -14.6 19.4 -11.8C17 -10.6 12 -9.6 6.4 -9Z'
     const swan = (refl: boolean) =>
       k.draw([
         { d: neck, fill: '#1E1E26', inner: k.sh(neck, 0, 0, 1, 0, 0, 0.6, '#000', 0.3) + hair(-11, -18, -10.6, -14, -7.6, -10, 0.5, '#5A5A6A') },
         { d: swanBody, fill: P.white, inner: k.sh(swanBody, 0, 0, 1, 1, 0, 0.75, P.blue, 0.4) + hair(0, -6, 8, -7.6, 18, -6, 0.5, P.sky2) + hair(4, -3.6, 12, -4, 20, -2.6, 0.45, P.sky2) },
-        { d: wingUp, fill: P.white, inner: k.sh(wingUp, 0, 0, 1, 1, 0, 0.7, P.blue, 0.4) + hair(6, -11, 12, -13, 18, -12.4, 0.4, P.sky2) + hair(8, -9.6, 13, -11, 18.4, -11, 0.35, P.sky2) },
+        { d: wingUp, fill: P.white, inner: k.sh(wingUp, 0, 0, 1, 1, 0, 0.7, P.blue, 0.4) + `<path d="M4 -9.4q1.4 -1.6 2.8 -.2q1.4 -1.8 3 -.4q1.6 -1.8 3.2 -.4q1.6 -1.6 3 -.2M7 -12q1.4 -1.4 2.8 -.2q1.6 -1.6 3 -.2q1.4 -1.4 2.8 0" fill="none" stroke="${P.sky2}" stroke-width=".45"/>` },
         { d: head, fill: '#1E1E26' },
         { d: bill, fill: '#9CA8BE', inner: k.sh(bill, 0, 0, 0, 1, 0, 0.6, P.mid, 0.3) },
       ], refl ? 0.3 : 0.6) +

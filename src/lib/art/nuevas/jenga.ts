@@ -502,12 +502,13 @@ export const JENGA_NUEVAS_ART: Record<string, (u: number) => string> = {
     return (
       field(k) +
       stageJ(k, 60, 60, 34) +
-      k.floor(64, 93.4, 18, 2.6) + k.floor(38, 91.6, 8, 1.6) +
+      k.floor(64, 93.4, 18, 2.6) + k.floor(40.6, 87.6, 8, 1.6) +
       `<g transform="rotate(-6 66 95)">` + low.svg +
       `<g transform="translate(5 1) rotate(14 ${f(66 + B * C * 0.5)} ${f(95 - low.H)})">` + up.svg + `</g></g>` +
       loose(k, 88, 52, 34, 0.75, true, 3) + loose(k, 82, 36, -18, 0.62, false, 5) +
       hair(46, 92, 44.4, 88, 46, 84, 0.6, J_D) + hair(43, 93.4, 41.4, 89, 43, 85, 0.5, J_D) + hair(78, 92, 79.6, 88, 78, 84, 0.6, J_D) + hair(81, 93, 82.6, 89, 81, 85, 0.5, J_D) +
       hair(74, 44, 78, 40, 82, 42, 0.5, J_D) + hair(92, 62, 96, 60, 96, 56, 0.45, J_D) +
+      `<g transform="translate(2.6 -4)">` +
       k.draw([{
         d: glass, fill: P.white,
         inner: `<path d="${water}" fill="${P.sky}"/>` + k.sh(water, 0, 0, 1, 0, 0, 0.7, P.blue, 0.4) + `<path d="M31.4 70.4C35.4 69.4 39.6 71.4 43.6 70.4" fill="none" stroke="#fff" stroke-width=".7"/>` +
@@ -515,6 +516,7 @@ export const JENGA_NUEVAS_ART: Record<string, (u: number) => string> = {
           [[37.4, 83, 0.7], [40, 78, 0.5], [36.4, 75, 0.4]].map(([x, y, r]) => `<circle cx="${x}" cy="${y}" r="${r}" fill="none" stroke="#fff" stroke-width=".4"/>`).join(''),
       }], 0.6) +
       `<path d="M31 62H44" stroke="${P.ink}" stroke-width=".5"/>` +
+      `</g>` +
       `<text x="40" y="47" ${GEORGIA} font-style="italic" font-size="9" fill="${J_D}" text-anchor="middle" transform="rotate(-10 40 47)">¡hip!</text>` +
       hair(28, 46, 30.6, 42, 33.4, 40, 0.6, J_D) + hair(51, 36, 54, 38, 55.4, 41.6, 0.6, J_D) +
       sparkle(90, 78, 1.6) +
@@ -612,7 +614,7 @@ export const JENGA_NUEVAS_ART: Record<string, (u: number) => string> = {
     const plane = (x: number, y: number) => {
       const body = 'M-8.6 -1.6L-6 -.8C-2 -1.6 3 -1.8 6.4 -1.2C7.6 -.8 7.6 1 6.4 1.4C3 2 -2 1.8 -6 .8L-8.6 .2Z'
       const fin = 'M-8.6 -1.6L-9.4 -4.6H-7.8L-5.6 -1Z'
-      return `<g transform="translate(${x} ${y}) rotate(-14) scale(1.05)">` +
+      return `<g transform="translate(${x} ${y}) rotate(-14) scale(.95)">` +
         `<path d="M-1 -3.2L-.6 .6M3 -3.2L2.6 .6M.6 1.4L.2 3.4M2.6 1.4L3.2 3.4" stroke="${P.ink}" stroke-width=".4"/>` +
         k.draw([
           { d: fin, fill: J },
@@ -629,8 +631,8 @@ export const JENGA_NUEVAS_ART: Record<string, (u: number) => string> = {
       [[30, 30, 0.6], [26, 84, 0.5], [44, 24, 0.45], [90, 78, 0.5], [94, 88, 0.4], [80, 82, 0.35]].map(([x, y, r]) => `<circle cx="${x}" cy="${y}" r="${r}" fill="${P.paper}"/>`).join('') +
       glow(k, 68, 42, 34, 34, 0.45, J) +
       `<path d="${moon}" fill="${J_L}"/>` + k.shade(moon, k.rad(J_D, 0.36, 0.34, 0.75, 0, 0.8), J, 0.35) + k.clip(moon, craters) +
-      `<path d="M28 44C26 50 30 56 36 56C42 56 44 50 41 47" fill="none" stroke="${P.paper}" stroke-width=".5" stroke-dasharray="1.4 1.4" opacity=".75"/>` +
-      plane(37, 40) +
+      `<path d="M27 47C25 53 29 59 35 59C41 59 43 53 40 50" fill="none" stroke="${P.paper}" stroke-width=".5" stroke-dasharray="1.4 1.4" opacity=".75"/>` +
+      plane(33.4, 45) +
       k.floor(cx, 97, 15, 2.4, '#000') +
       T.svg + S.svg +
       `<path d="M${cx} ${f(needle + 0.6)}V${f(needle - 8)}" stroke="${P.ink}" stroke-width="1.3" stroke-linecap="round"/><path d="M${cx} ${f(needle + 0.4)}V${f(needle - 7.6)}" stroke="${P.white}" stroke-width=".4"/><circle cx="${cx}" cy="${f(needle - 8.4)}" r=".8" fill="${P.red}"/>` +
