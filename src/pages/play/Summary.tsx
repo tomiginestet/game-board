@@ -135,7 +135,7 @@ export function Summary({ play, game, live, players }: { play: Play; game: GameD
               const who = ups.filter((x) => x.medal.family.id === medal.family.id && x.medal.level === medal.level).map((x) => x.player.name)
               return (
             <button key={k} type="button" className="medal-up" aria-haspopup="dialog" onClick={() => setShownUp(k)}>
-              <Medal family={medal.family} level={medal.level} size={56} />
+              <Medal family={medal.family} level={medal.level} size={72} />
               <div>
                 <b>{medal.family.levels[medal.level].name}</b>
                 <span className="muted small block">

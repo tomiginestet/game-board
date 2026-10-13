@@ -1442,7 +1442,7 @@ svg {
 }
 
 .m-ol {
-  stroke: #2b1b12;
+  stroke: currentColor;
   stroke-width: 2.6;
   stroke-linejoin: round;
   stroke-linecap: round;

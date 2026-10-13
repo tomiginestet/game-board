@@ -6,6 +6,7 @@ import './game-board.css'
 import './catalog.css'
 import './social.css'
 import App from './App.tsx'
+import { loadArt } from './lib/art'
 import { startAuth } from './lib/auth'
 import { startSync } from './lib/sync'
 
@@ -31,3 +32,6 @@ if (splash) {
     setTimeout(() => splash.remove(), 300)
   }, wait)
 }
+
+// Las ilustraciones de las medallas van en un archivo aparte: se traen cuando la app ya arrancó.
+setTimeout(() => void loadArt(), 2500)

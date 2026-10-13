@@ -315,7 +315,8 @@ describe('catálogo', () => {
   })
 
   it('cada medalla tiene su ilustración', async () => {
-    const { ART_REGISTRY } = await import('./art')
+    const { ART_REGISTRY, loadArt } = await import('./art')
+    await loadArt()
     const { GLOBAL_FAMILIES } = await import('./medals')
     const missing: string[] = []
     for (const g of BUILTIN_GAMES) for (const a of g.awards) for (const l of a.levels) if (!ART_REGISTRY[l.name]) missing.push(`${g.id}: ${l.name}`)
