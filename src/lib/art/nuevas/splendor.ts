@@ -161,7 +161,7 @@ function solid(verts: V3[], faces: number[][], ry: number, rx: number, s: number
   }).filter((q) => q.n[2] > 0.02)
 }
 
-/** Envoltura convexa de unos puntos (para los tubos de los gemelos). */
+/** Envoltura convexa de unos puntos (para los tubos de los gemelos y la silueta del diamante). */
 function hull(pts: Pt[]): Pt[] {
   const p = [...pts].sort((a, b) => a[0] - b[0] || a[1] - b[1])
   const cross = (o: Pt, a: Pt, b: Pt) => (a[0] - o[0]) * (b[1] - o[1]) - (a[1] - o[1]) * (b[0] - o[0])
@@ -170,7 +170,6 @@ function hull(pts: Pt[]): Pt[] {
   for (const q of p.reverse()) { while (up.length >= 2 && cross(up[up.length - 2], up[up.length - 1], q) <= 0) up.pop(); up.push(q) }
   return lo.slice(0, -1).concat(up.slice(0, -1))
 }
-const circlePts = (cx: number, cy: number, r: number, n = 40): Pt[] => Array.from({ length: n }, (_, i) => [cx + Math.cos((i / n) * Math.PI * 2) * r, cy + Math.sin((i / n) * Math.PI * 2) * r])
 
 /** Corona real abierta: aro con piedras, cinco puntas con perlas, el bonete de terciopelo y la crucecita. Base en (0,0). */
 function crown(k: Kit) {
@@ -259,27 +258,40 @@ export const SPLENDOR_NUEVAS_ART: Record<string, (u: number) => string> = {
     const curtR = 'M116 20H88.6C91.6 40 92.4 62 88.4 84H116Z'
     const rail = 'M4 83.4C28 79.4 92 79.4 116 83.4V90.6C92 86.6 28 86.6 4 90.6Z'
     const front = 'M4 90.6C28 86.6 92 86.6 116 90.6V126H4Z'
-    const LF: Pt = [47.8, 67.4], LB: Pt = [49.8, 57.6], RF: Pt = [72.2, 67.4], RB: Pt = [70.2, 57.6]
-    const r1 = 11, r2 = 8.8
-    const barrel = (F: Pt, B: Pt) => poly(hull([...circlePts(F[0], F[1], r1, 48), ...circlePts(B[0], B[1], r2, 48)]))
-    const nacre = (F: Pt, B: Pt) =>
-      `<path d="M${F[0] - 14} ${F[1] - 24}H${F[0] + 14}V${F[1] + 12}H${F[0] - 14}Z" fill="${k.lin('#F0BED0', 0, 0, 1, 1, 0.6, 0)}"/>` +
-      `<path d="M${F[0] - 14} ${F[1] - 24}H${F[0] + 14}V${F[1] + 12}H${F[0] - 14}Z" fill="${k.lin(P.sky, 1, 0, 0, 1, 0.55, 0)}"/>` +
-      [0, 1, 2, 3].map((i) => hair(B[0] - r2 + 1 + i * 0.6, B[1] + 2 - i * 2.6, B[0] - 2 + i, B[1] - r2 + 1 + i * 0.4, B[0] + r2 - 2, B[1] - 3 + i * 1.6, 0.45, i % 2 ? '#D6BCE0' : '#E7C4AE')).join('') +
-      k.sh(`M${F[0] + 2} ${F[1] - 24}H${F[0] + 14}V${F[1] + 12}H${F[0] + 2}Z`, 0, 0, 1, 0, 0, 0.75, P.blue, 0.35)
-    const lens = (F: Pt) => {
-      const [x, y] = F, ri = r1 - 2.4
+    // Los gemelos, acostados de perfil sobre la baranda: el objetivo mira a la izquierda y los oculares a la derecha.
+    const ell = (cx: number, cy: number, rx: number, ry: number, n = 36): Pt[] => Array.from({ length: n }, (_, i) => [cx + Math.cos((i / n) * Math.PI * 2) * rx, cy + Math.sin((i / n) * Math.PI * 2) * ry])
+    const tube = (o: Pt, e: Pt, ro: number, re: number) => poly(hull([...ell(o[0], o[1], ro * 0.42, ro), ...ell(e[0], e[1], re * 0.42, re)]))
+    // Un aro dorado que abraza el tubo: se ve la mitad que da al frente.
+    const band = (x: number, y: number, r: number, w: number) =>
+      `<path d="M${f(x)} ${f(y - r)}A${f(r * 0.42)} ${f(r)} 0 0 0 ${f(x)} ${f(y + r)}L${f(x + w)} ${f(y + r - 0.2)}A${f(r * 0.42)} ${f(r - 0.2)} 0 0 1 ${f(x + w)} ${f(y - r + 0.2)}Z" fill="${P.gold}" stroke="${P.ink}" stroke-width=".4"/>` +
+      `<path d="M${f(x + w * 0.5)} ${f(y - r + 0.6)}A${f(r * 0.4)} ${f(r - 0.6)} 0 0 0 ${f(x + w * 0.5)} ${f(y + r - 0.6)}" fill="none" stroke="${P.goldL}" stroke-width=".4" stroke-dasharray=".01 .9" stroke-linecap="round"/>`
+    const glasses = (o: Pt, e: Pt, near: boolean) => {
+      const ro = 10.4, re = 6.4, body = tube(o, e, ro, re)
+      const at = (t: number): Pt => [o[0] + (e[0] - o[0]) * t, o[1] + (e[1] - o[1]) * t]
+      const rr = (t: number) => ro + (re - ro) * t
+      const [b1x, b1y] = at(0.34), [b2x, b2y] = at(0.82)
       return (
-        `<path d="${ringE(x, y, r1, r1, ri, ri)}" fill="${P.gold}" stroke="${P.ink}" stroke-width=".55"/>` +
-        k.clip(ringE(x, y, r1, r1, ri, ri), k.sh(ellipse(x, y, r1, r1), 0, 0, 1, 1, 0, 0.95, P.goldD, 0.5) + `<path d="M${x - r1} ${y - r1}H${x}V${y}H${x - r1}Z" fill="${k.lin('#ffffff', 0, 0, 1, 1, 0.5, 0)}"/>`) +
-        `<circle cx="${x}" cy="${y}" r="${f(r1 - 1.2)}" fill="none" stroke="${P.goldL}" stroke-width=".6" stroke-dasharray=".01 1" stroke-linecap="round"/>` +
-        `<circle cx="${x}" cy="${y}" r="${f(ri)}" fill="${P.night}" stroke="${P.ink}" stroke-width=".45"/>` +
-        `<circle cx="${x}" cy="${y}" r="${f(ri)}" fill="${k.rad(P.mid, 0.35, 0.3, 0.7, 0.95, 0)}"/>` +
-        `<path d="M${f(x - 6)} ${f(y - 1)}A6.2 6.2 0 0 1 ${f(x - 0.6)} ${f(y - 6.2)}" fill="none" stroke="#fff" stroke-width="1.2" stroke-linecap="round" opacity=".9"/>` +
-        // En el vidrio, el resplandor del escenario: un brillo largo arriba y el reflejo dorado sobre el borde.
-        `<path d="M${f(x - ri + 1.4)} ${f(y + 2.4)}A${f(ri - 1.4)} ${f(ri - 1.4)} 0 0 0 ${f(x + ri - 1.4)} ${f(y + 2.4)}" fill="none" stroke="${P.gold}" stroke-width=".5" opacity=".55" transform="rotate(-38 ${x} ${y})"/>`
+        k.draw([{
+          d: body, fill: '#F7F1EA',
+          inner:
+            `<path d="${body}" fill="${k.lin('#F0BED0', 0, 0, 1, 1, 0.6, 0)}"/><path d="${body}" fill="${k.lin(P.sky, 1, 0, 0, 1, 0.5, 0)}"/>` +
+            // Las vetas del nácar, a lo largo del tubo.
+            [-0.55, -0.2, 0.2, 0.5].map((v, i) => hair(o[0] + 3, o[1] + v * ro, (o[0] + e[0]) / 2, (o[1] + e[1]) / 2 + v * (ro + re) / 2 + (i % 2 ? 0.8 : -0.8), e[0] - 2, e[1] + v * re, 0.45, i % 2 ? '#D6BCE0' : '#E7C4AE')).join('') +
+            k.sh(body, 0, 0, 0, 1, 0.1, near ? 0.8 : 0.95, P.blue, 0.4) +
+            hair(o[0] + 4, o[1] - ro * 0.62, (o[0] + e[0]) / 2, (o[1] + e[1]) / 2 - (ro + re) * 0.34, e[0] - 3, e[1] - re * 0.55, 0.9, '#fff', near ? 0.95 : 0.6),
+        }], 0.7) +
+        band(b1x, b1y, rr(0.34), 2.2) + band(b2x, b2y, rr(0.82), 1.8) +
+        // El ocular: una copita de oro en la punta.
+        k.draw([{ d: poly(hull([...ell(e[0], e[1], re * 0.42, re), ...ell(e[0] + 2.6, e[1] + 0.2, re * 0.36, re * 0.82)])), fill: P.gold, inner: k.sh(poly(ell(e[0] + 1, e[1], 4, re)), 0, 0, 0, 1, 0, 0.9, P.goldD, 0.5) }], 0.45) +
+        // El objetivo: el aro de oro con su grano y el vidrio, que se ve de canto.
+        k.draw([{ d: poly(ell(o[0], o[1], ro * 0.42, ro)), fill: P.gold, inner: k.sh(poly(ell(o[0], o[1], ro * 0.42, ro)), 0, 0, 1, 1, 0, 0.9, P.goldD, 0.5) }], 0.55) +
+        `<path d="${poly(ell(o[0], o[1], ro * 0.36, ro - 0.9))}" fill="none" stroke="${P.goldL}" stroke-width=".45" stroke-dasharray=".01 .9" stroke-linecap="round"/>` +
+        `<path d="${poly(ell(o[0] - 0.3, o[1], ro * 0.26, ro - 2.4))}" fill="${P.night}" stroke="${P.ink}" stroke-width=".4"/>` +
+        `<path d="${poly(ell(o[0] - 0.3, o[1], ro * 0.26, ro - 2.4))}" fill="${k.lin(P.mid, 0, 0, 1, 1, 0.9, 0)}"/>` +
+        `<path d="M${f(o[0] - 1.6)} ${f(o[1] - 5.6)}C${f(o[0] - 2.4)} ${f(o[1] - 2.4)} ${f(o[0] - 2.4)} ${f(o[1] + 1)} ${f(o[0] - 1.8)} ${f(o[1] + 3)}" fill="none" stroke="#fff" stroke-width=".8" stroke-linecap="round" opacity=".9"/>`
       )
     }
+    const oN: Pt = [38.6, 70.2], eN: Pt = [69.4, 72.2], oF: Pt = [45.8, 62.4], eF: Pt = [76.6, 64.4]
     return (
       `<rect width="120" height="130" fill="${P.wine}"/>` +
       k.shade(FULL, k.rad(P.night, 0.5, 0.45, 0.7, 0, 0.9), P.night, 0.6) +
@@ -308,24 +320,22 @@ export const SPLENDOR_NUEVAS_ART: Record<string, (u: number) => string> = {
         { d: rail, fill: P.red, inner: k.sh(rail, 0, 0, 0, 1, 0, 0.9, P.wine, 0.5) + `<path d="M8 84C30 80.8 90 80.8 112 84" fill="none" stroke="#E98B84" stroke-width=".8" stroke-linecap="round" opacity=".8"/>` },
       ], 0.7) +
       `<ellipse cx="60" cy="97.2" rx="3.4" ry="2.8" fill="${P.red}" stroke="${P.goldD}" stroke-width=".6"/><ellipse cx="59.2" cy="96.4" rx=".9" ry=".7" fill="#fff" opacity=".6"/>` +
-      k.floor(59, 82, 26, 2.4, P.night) +
-      // Los gemelos de teatro: tubos de nácar, aros de oro con grano, la rueda del foco y el mango.
-      `<g transform="rotate(-9 60 68)">` +
-      k.draw([{ d: barrel(LF, LB), fill: '#F7F1EA', inner: nacre(LF, LB) }, { d: barrel(RF, RB), fill: '#F7F1EA', inner: nacre(RF, RB) }], 0.7) +
-      [LB, RB].map((B) => `<path d="${ringE(B[0], B[1], r2, r2, r2 - 1.3, r2 - 1.3)}" fill="${P.gold}" stroke="${P.ink}" stroke-width=".4"/><circle cx="${B[0]}" cy="${B[1]}" r="${f(r2 - 1.3)}" fill="none" stroke="${P.goldD}" stroke-width=".3"/>`).join('') +
+      k.floor(57, 82, 28, 2.6, P.night) +
+      `<g transform="translate(57 80) scale(1.12) translate(-57 -80)">` +
+      // El mango de los gemelos, que cae sobre la baranda.
+      rod('M70.6 66.4L85.6 80.2', P.gold, 1.7, P.goldL) + `<path d="M74 69.6L82.6 77.4" stroke="#F7F1EA" stroke-width=".9" stroke-linecap="round"/>` +
+      `<circle cx="86.2" cy="80.8" r="1.6" fill="${P.gold}" stroke="${P.ink}" stroke-width=".45"/><circle cx="85.7" cy="80.3" r=".45" fill="${P.goldL}"/>` +
+      // El tubo de atrás, el puente con la rueda del foco y el tubo de adelante.
+      glasses(oF, eF, false) +
       k.draw([
-        { d: 'M55.2 53.6H64.8V60.4H55.2Z', fill: P.gold, inner: k.sh('M55.2 53.6H64.8V60.4H55.2Z', 0, 0, 1, 0, 0, 0.9, P.goldD, 0.5) + `<path d="M55.2 56.8H64.8" stroke="${P.goldD}" stroke-width=".35"/>` },
-        { d: roundRect(55.8, 47.4, 64.2, 53.4, 1.2), fill: P.gold, inner: Array.from({ length: 10 }, (_, i) => `<path d="M${f(56.4 + i * 0.8)} 47.4V53.4" stroke="${P.goldD}" stroke-width=".3"/>`).join('') + k.sh(roundRect(55.8, 47.4, 64.2, 53.4, 1.2), 0, 0, 1, 0, 0, 0.8, P.goldD, 0.4) },
-      ], 0.45) +
-      `<path d="M56.4 48.6H58.8" stroke="#fff" stroke-width=".5" stroke-linecap="round"/>` +
-      lens(LF) + lens(RF) +
-      k.draw([{ d: roundRect(57, 62.4, 63, 70.6, 1.2), fill: P.gold, inner: k.sh(roundRect(57, 62.4, 63, 70.6, 1.2), 0, 0, 1, 0, 0, 0.9, P.goldD, 0.5) + `<path d="M57 66.5H63" stroke="${P.goldD}" stroke-width=".35"/>` }], 0.45) +
-      `<circle cx="60" cy="66.5" r="1.1" fill="${P.red}" stroke="${P.ink}" stroke-width=".3"/><circle cx="59.7" cy="66.2" r=".3" fill="#fff"/>` +
-      rod('M62.4 70.4L84 92.6', P.gold, 1.9, P.goldL) +
-      `<path d="M66.2 74.4L80.2 88.8" stroke="#F7F1EA" stroke-width="1" stroke-linecap="round"/>` +
-      `<circle cx="84.6" cy="93.2" r="1.8" fill="${P.gold}" stroke="${P.ink}" stroke-width=".45"/><circle cx="84" cy="92.6" r=".5" fill="${P.goldL}"/>` +
+        { d: 'M50.6 61.2L52.8 59.6L55 66.6L52.8 68.4Z', fill: P.gold, inner: k.sh('M50 59H56V69H50Z', 0, 0, 1, 0, 0, 0.9, P.goldD, 0.5) },
+        { d: 'M66.6 63L68.6 61.6L70.4 68L68.4 69.6Z', fill: P.gold, inner: k.sh('M66 61H71V70H66Z', 0, 0, 1, 0, 0, 0.9, P.goldD, 0.5) },
+      ], 0.4) +
+      k.draw([{ d: roundRect(64.2, 57.4, 68.6, 62.6, 1.4), fill: P.gold, inner: Array.from({ length: 6 }, (_, i) => `<path d="M${f(64.8 + i * 0.7)} 57.4V62.6" stroke="${P.goldD}" stroke-width=".3"/>`).join('') + k.sh(roundRect(64.2, 57.4, 68.6, 62.6, 1.4), 0, 0, 1, 0, 0, 0.8, P.goldD, 0.4) }], 0.4) +
+      glasses(oN, eN, true) +
+      `<circle cx="60.8" cy="70.8" r="1.1" fill="${P.red}" stroke="${P.ink}" stroke-width=".3"/><circle cx="60.5" cy="70.5" r=".3" fill="#fff"/>` +
       `</g>` +
-      sparkle(40, 46, 1.8, P.goldL) + sparkle(81, 44, 1.5, P.goldL) +
+      sparkle(35, 57, 2, '#fff') + sparkle(40, 46, 1.6, P.goldL) + sparkle(81, 44, 1.5, P.goldL) +
       k.defs()
     )
   },
