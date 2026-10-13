@@ -251,8 +251,7 @@ export const AZUL_NUEVAS_ART: Record<string, (u: number) => string> = {
     )
   },
 
-  // Cien puntos: el rey de Portugal te pide la pared. La puerta nazarí, con su arco de herradura, el alfiz, las yeserías
-  // y el zócalo de alicatado de estrellas.
+  // Cien puntos: el rey de Portugal te pide la pared. La puerta nazarí, con su alfiz y el zócalo de alicatado.
   'Palacio de la Alhambra': (u) => {
     const k = kit(u)
     const cx = 60, cy = 58.4, ri = 13, ro = 16.2
@@ -402,8 +401,7 @@ export const AZUL_NUEVAS_ART: Record<string, (u: number) => string> = {
     )
   },
 
-  // Veinticinco colores completos: entra el sol y da gusto. El rosetón de la catedral, con su piedra, sus plomos y los
-  // haces de luz de colores.
+  // Veinticinco colores completos: entra el sol y da gusto. El rosetón de la catedral, con su piedra y sus plomos.
   'Vitral de catedral': (u) => {
     const k = kit(u)
     const cx = 60, cy = 56, R = 32

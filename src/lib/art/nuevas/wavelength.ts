@@ -129,8 +129,7 @@ export const WAVELENGTH_NUEVAS_ART: Record<string, (u: number) => string> = {
     )
   },
 
-  // Diez blancos perfectos: la manzana partida al medio. La ballesta, con su estribo y sus incrustaciones de hueso, y
-  // la saeta que pasó por el medio.
+  // Diez blancos perfectos: la manzana partida al medio por la saeta, sobre la ballesta de Guillermo Tell.
   'Guillermo Tell': (u) => {
     const k = kit(u)
     const stock = 'M0 -3.4C0 -4.6 1 -5.2 2.4 -5.2C6 -5 12 -4 18 -3.2H46.4L47.6 -1.8V1.8L46.4 3.2H18C12 4 6 5 2.4 5.2C1 5.2 0 4.6 0 3.4Z'
@@ -321,8 +320,7 @@ export const WAVELENGTH_NUEVAS_ART: Record<string, (u: number) => string> = {
     )
   },
 
-  // Veinticinco victorias: emiten para todo el país. La torre de transmisión de reticulado, con sus bandas rosas, el
-  // faro en la punta y las ondas que salen para los dos lados.
+  // Veinticinco victorias: emiten para todo el país. La torre de reticulado con su faro y las ondas a los dos lados.
   'Torre de transmisión': (u) => {
     const k = kit(u)
     const top = 34, bot = 106, wt = 3.2, wb = 17

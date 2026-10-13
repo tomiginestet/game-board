@@ -449,7 +449,7 @@ export const AVENTUREROS_NUEVAS_ART: Record<string, (u: number) => string> = {
     )
   },
 
-  // Siete victorias de punta a punta del mapa: la locomotora rusa de frente, abriéndose paso en la nieve con el quitanieves.
+  // Siete victorias de punta a punta del mapa: la locomotora rusa de frente, abriéndose paso en la nieve.
   'Transiberiano': (u) => {
     const k = kit(u)
     const snow = 'M0 78C30 74 90 74 120 78V130H0Z'
@@ -469,8 +469,7 @@ export const AVENTUREROS_NUEVAS_ART: Record<string, (u: number) => string> = {
 
   // ── Locomotora ─────────────────────────────────────────────────────
 
-  // Cien puntos: paseo tranquilo con vista al río. El coche motor de la costa sobre el terraplén, con el río a los dos
-  // lados, su reflejo en el agua y un velero.
+  // Cien puntos: paseo tranquilo con vista al río. El coche motor sobre el terraplén, con su reflejo y un velero.
   'Trencito de la Costa': (u) => {
     const k = kit(u)
     const river = 'M0 66H120V130H0Z'
