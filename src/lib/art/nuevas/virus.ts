@@ -121,8 +121,8 @@ export const VIRUS_NUEVAS_ART: Record<string, (u: number) => string> = {
       }], 0.75) +
       // El alambre de la nariz, apenas marcado bajo la tela.
       `<path d="M50 45.2C56 44.2 64 44.2 70 45.2" fill="none" stroke="${P.sky1}" stroke-width="1.4" stroke-linecap="round"/><path d="M50 45.2C56 44.2 64 44.2 70 45.2" fill="none" stroke="${P.blue}" stroke-width=".4" transform="translate(0 .7)"/>` +
-      bounce(42, 33, 3.6, 8, hair(44, 38.6, 45.6, 40, 46, 42.4, 0.6, LIMA_D) + hair(40, 39, 40.6, 40.8, 40.4, 42.6, 0.5, LIMA_D)) +
-      bounce(79, 32, 3, 20, hair(77, 36.6, 75.4, 38.4, 75, 40.8, 0.6, LIMA_D) + hair(80.6, 37, 80.6, 39, 81.2, 41, 0.5, LIMA_D)) +
+      bounce(40, 34, 3.6, 8, `<path d="M47.4 44C47 40.4 46 38.4 44.4 37" fill="none" stroke="${LIMA_D}" stroke-width=".6" stroke-dasharray="1 .9" stroke-linecap="round"/>`) +
+      bounce(81, 33, 3, 20, `<path d="M73 43.6C74 40 75.6 37.6 77.6 35.8" fill="none" stroke="${LIMA_D}" stroke-width=".6" stroke-dasharray="1 .9" stroke-linecap="round"/>`) +
       sparkle(60, 30, 2.2, '#fff') + sparkle(88, 84, 1.4) +
       k.defs()
     )
@@ -150,7 +150,7 @@ export const VIRUS_NUEVAS_ART: Record<string, (u: number) => string> = {
         inner:
           `<path d="${gel}" fill="${LIMA_L}"/>` + k.sh(gel, 0, 0, 1, 0, 0, 0.9, LIMA, 0.5) + `<path d="M44 61.6C52 60.2 68 60.2 76 61.6" fill="none" stroke="${LIMA_D}" stroke-width=".55"/><path d="M45 62.8C52 61.6 68 61.6 75 62.8" fill="none" stroke="#fff" stroke-width=".6" opacity=".8"/>` +
           bubbles.map(([x, y, r]) => `<circle cx="${x}" cy="${y}" r="${r}" fill="#fff" opacity=".75" stroke="${LIMA_D}" stroke-width=".25"/>`).join('') +
-          k.sh(bottle, 0, 0, 1, 0, 0.1, 0.7, P.blue, 0.35) +
+          k.sh(bottle, 0, 0, 1, 0, 0, 0.5, P.blue, 0.3) +
           `<path d="M48.6 56C48.4 70 48.6 82 49.4 93" fill="none" stroke="#fff" stroke-width="1.6" stroke-linecap="round" opacity=".9"/><path d="M71.4 57C71.6 70 71.6 82 71 92" fill="none" stroke="${P.blue}" stroke-width=".5" opacity=".7"/>`,
       }], 0.75) +
       k.draw([{
@@ -181,14 +181,13 @@ export const VIRUS_NUEVAS_ART: Record<string, (u: number) => string> = {
     const lid = 'M44.6 47.6C44.6 45.6 45.4 44.6 47 44.4L48.4 40.6H71.6L73 44.4C74.6 44.6 75.4 45.6 75.4 47.6C75.4 48.8 74.6 49.4 73.4 49.4H46.6C45.4 49.4 44.6 48.8 44.6 47.6Z'
     const lidTop = ellipse(60, 40.6, 11.6, 2.2)
     const ear = (x: number, y: number, r: number) => `<ellipse cx="${x}" cy="${y}" rx="2.2" ry="1.5" transform="rotate(${r} ${x} ${y})" fill="${P.ink}"/><ellipse cx="${f(x - 0.4)}" cy="${f(y - 0.4)}" rx="1.5" ry=".9" transform="rotate(${r} ${x} ${y})" fill="${P.mid}"/>`
-    const tube = 'M42.6 87.4C46 93.6 54 96.4 63 95.6C71 95 76.4 92.4 79.6 88.6'
+    const tube = 'M44 90.4C49 95.4 56 96.6 63 95.8C71 95 76.4 92.4 79.6 88.6'
     const bell = ellipse(83.6, 85.6, 6.2, 6.2)
     const ribs = Array.from({ length: 9 }, (_, i) => { const x = 49.4 + i * 2.65; return `<path d="M${f(x)} 61V79" stroke="${P.brown}" stroke-width=".35" opacity=".7"/>` }).join('')
     return (
       fondo(k) +
       k.sun(60, 58, 16, 48, 28, false) +
       k.shade(ellipse(60, 60, 30, 28), k.rad(P.goldL, 0.5, 0.5, 0.5, 0.75, 0), P.goldL, 0.45) +
-      laurel(48, 100, 28, 92, 25, 64, 8) + laurel(72, 100, 92, 92, 95, 64, 8, true) +
       `<g transform="translate(3 -4)">` +
       k.floor(60, 93, 18, 2.6, LIMA_D) +
       k.draw([
@@ -214,10 +213,10 @@ export const VIRUS_NUEVAS_ART: Record<string, (u: number) => string> = {
       hair(64.4, 37.6, 61, 31, 65, 25.6, 0.9, P.blue) + hair(67, 37.4, 70.6, 32, 67.4, 27, 0.7, P.blue) + hair(61.6, 38, 58.6, 34, 60, 30.4, 0.55, P.blue) +
       `</g>` +
       // El estetoscopio echado al pie del vaso: los auriculares de metal, el tubo que da la vuelta y la campana de oro.
-      rod('M42.6 87.4L30.4 76.6', P.sky1, 1.4, '#fff') + rod('M42.6 87.4L36.4 71.8', P.sky1, 1.4, '#fff') + rod('M33 79L38 74.2', P.sky2, 0.6) +
-      ear(29.6, 75.6, 40) + ear(36, 70.6, 70) +
+      rod('M44 90.4C39.6 88.6 34.6 85.4 31.4 80.6', P.sky1, 1.5, '#fff') + rod('M44 90.4C41.4 86 39.4 80.6 39.2 75.4', P.sky1, 1.5, '#fff') + rod('M34.6 84.2L40.4 80.4', P.sky2, 0.7, '#fff') +
+      ear(30.6, 79.2, 50) + ear(39.2, 73.8, 84) +
       rod(tube, P.mid, 2.4, P.sky) +
-      `<circle cx="42.6" cy="87.4" r="1.6" fill="${P.sky2}" stroke="${P.ink}" stroke-width=".45"/>` +
+      `<circle cx="44" cy="90.4" r="1.6" fill="${P.sky2}" stroke="${P.ink}" stroke-width=".45"/>` +
       rod('M79.6 88.6L80.4 87.8', P.sky1, 1.4, '#fff') +
       k.cast([bell], 1.4, 1.6, LIMA_D) +
       k.draw([{
@@ -227,7 +226,7 @@ export const VIRUS_NUEVAS_ART: Record<string, (u: number) => string> = {
       `<circle cx="83.6" cy="85.6" r="4.2" fill="${P.white}" stroke="${P.goldD}" stroke-width=".6"/>` + k.shade(ellipse(83.6, 85.6, 4.2, 4.2), k.lin(P.sky2, 0, 0, 1, 1, 0, 0.9), P.blue, 0.3) +
       `<circle cx="83.6" cy="85.6" r="2.8" fill="none" stroke="${P.sky2}" stroke-width=".35"/><circle cx="83.6" cy="85.6" r="1.4" fill="none" stroke="${P.sky2}" stroke-width=".3"/>` +
       `<circle cx="83.6" cy="85.6" r="5.3" fill="none" stroke="${P.goldD}" stroke-width=".4" stroke-dasharray=".01 1" stroke-linecap="round"/>` +
-      sparkle(47, 50, 2.2, '#fff') + sparkle(88, 50, 1.8) + sparkle(32, 56, 1.4) +
+      sparkle(47, 50, 2.2, '#fff') + sparkle(88, 50, 1.8) + sparkle(31, 60, 1.6) + sparkle(84, 72, 1.2, P.goldL) +
       k.defs()
     )
   },
@@ -397,7 +396,7 @@ export const VIRUS_NUEVAS_ART: Record<string, (u: number) => string> = {
       `<circle cx="13.4" cy="0" r="1.2" fill="${P.white}" stroke="${P.brown}" stroke-width=".5"/><circle cx="13.4" cy="0" r=".5" fill="${PALIDO_G}"/>` +
       `<text x="4.6" y="1.1" ${GEORGIA} font-style="italic" font-weight="700" font-size="3" fill="${P.red}" text-anchor="middle" transform="rotate(180 4.6 0)">prestado</text>` +
       `</g>` +
-      sparkle(38, 36, 2.2, '#fff') + sparkle(88, 78, 1.6) + sparkle(45.6, 48, 1.4, '#fff') +
+      sparkle(38, 36, 2.2, '#fff') + sparkle(84, 40, 1.6) + sparkle(45.6, 48, 1.4, '#fff') +
       k.defs()
     )
   },

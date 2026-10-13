@@ -97,7 +97,7 @@ const HOWL =
   'M-17 -50C-16 -50.8 -14.8 -50.6 -14 -49.8C-12.4 -48 -10.6 -46 -9 -44.4C-8 -43.8 -7 -43.6 -6 -43.8' +
   'C-4.6 -45.6 -2.8 -47.6 -1 -49.2C-.4 -46.8 .4 -44.4 1.4 -42.6C3.4 -40.6 4.6 -37.6 5.4 -34.4L7.2 -33.6L6.4 -31.4L8.4 -30L7.6 -28' +
   'C9.6 -24 13.6 -20 17 -16C21 -11.6 22.4 -5 20.4 -2.6C24.4 -3.4 28.4 -2.8 31.2 -1.4C32.4 -.6 31.6 .6 30 .6H5.6' +
-  'C4.6 .6 4.2 -.6 4.8 -1.6C4.6 -4 3.6 -6 2.4 -7C1.8 -5 1.6 -2.4 1.8 .6H-9C-10 .6 -10.2 -.8 -9.2 -1.6' +
+  'C4.4 .6 4 -.8 4.8 -1.6C4.6 -5 3.6 -8.4 1.4 -10.4C-.2 -9.6 -1.6 -8.6 -2.4 -7C-2.8 -4.6 -2.8 -2 -2.6 .6H-9.6C-10.6 .6 -10.8 -.8 -9.8 -1.6' +
   'C-8.6 -7 -8.4 -13 -9.2 -18C-10.8 -22.4 -11.8 -27 -11.4 -31L-12.8 -32.4L-11.8 -34L-13.2 -35.8' +
   'C-13.4 -38 -14 -40.4 -14.8 -42.4L-16.8 -45.4L-13.4 -45.6L-17.4 -48.6Z'
 
@@ -182,7 +182,7 @@ export const HOMBRESLOBO_NUEVAS_ART: Record<string, (u: number) => string> = {
           `<path d="${HOWL}" fill="${FUR_N}" transform="translate(.9 1)"/>` +
           hair(-6, -36, -4, -30, -6.6, -22, 0.5, IND, 0.9) + hair(2, -34, 4, -27, 3, -20, 0.5, IND, 0.9) + hair(8, -20, 11, -14, 13, -8, 0.5, IND, 0.9) +
           hair(-9, -26, -8, -18, -7.6, -10, 0.45, IND, 0.8) + hair(20, -4, 24, -3.4, 28, -2, 0.45, IND, 0.8) + hair(-1, -40.6, 1, -39.4, 3.4, -40.4, 0.4, IND_L) +
-          hair(17.4, -14, 15, -6, 7, -1.6, 0.7, IND_L, 0.85) + hair(-4.2, -16, -3.6, -8, -3.8, 0, 0.55, IND_L, 0.6) + hair(-11.4, -31, -9, -29.6, -7.6, -26, 0.5, IND_L, 0.7) + hair(-12.6, -36, -10.4, -35, -9, -32, 0.45, IND_L, 0.6),
+          hair(17.4, -14, 15, -6, 7, -1.6, 0.7, IND_L, 0.85) + hair(-6.4, -14, -5.8, -7, -6, 0, 0.5, IND_L, 0.6) + hair(-11.4, -31, -9, -29.6, -7.6, -26, 0.5, IND_L, 0.7) + hair(-12.6, -36, -10.4, -35, -9, -32, 0.45, IND_L, 0.6),
       }], 0.6) +
       `<path d="M-15.4 -46C-13.6 -45 -12 -44 -10.8 -43.2" fill="none" stroke="${P.night}" stroke-width=".6" stroke-linecap="round"/>` +
       `<path d="M-5.6 -42.6C-4.8 -43.2 -3.8 -43.2 -3.2 -42.6" fill="none" stroke="${IND_L}" stroke-width=".5" stroke-linecap="round"/>` +
@@ -197,10 +197,10 @@ export const HOMBRESLOBO_NUEVAS_ART: Record<string, (u: number) => string> = {
   'Lobizón': (u) => {
     const k = kit(u)
     const rid = k.id('cinta')
-    const band = 'M34 84.6Q60 92.6 86 84.6V91Q60 99 34 91Z'
-    const stripe = 'M34 86.8Q60 94.8 86 86.8V88.8Q60 96.8 34 88.8Z'
-    const tailL = 'M34 84.6L27.6 86L30.6 88.6L28.6 92.6L34 91Z'
-    const tailR = 'M86 84.6L92.4 86L89.4 88.6L91.4 92.6L86 91Z'
+    const band = 'M34 80.6Q60 88.6 86 80.6V87Q60 95 34 87Z'
+    const stripe = 'M34 82.8Q60 90.8 86 82.8V84.8Q60 92.8 34 84.8Z'
+    const tailL = 'M34 80.6L27.6 82L30.6 84.6L28.6 88.6L34 87Z'
+    const tailR = 'M86 80.6L92.4 82L89.4 84.6L91.4 88.6L86 87Z'
     return (
       noche(k) +
       k.sun(58, 48, 20, 47) +
@@ -214,7 +214,7 @@ export const HOMBRESLOBO_NUEVAS_ART: Record<string, (u: number) => string> = {
       // la cinta celeste y blanca
       k.draw([{ d: tailL, fill: P.sky, inner: k.sh(tailL, 0, 0, 1, 0, 0, 0.8, P.blue, 0.4) }, { d: tailR, fill: P.sky, inner: k.sh(tailR, 0, 0, 1, 0, 0, 0.9, P.blue, 0.45) }], 0.45) +
       k.draw([{ d: band, fill: P.sky, inner: `<path d="${stripe}" fill="${P.white}"/>` + k.sh(band, 0, 0, 0, 1, 0, 0.5, P.blue, 0.3) }], 0.5) +
-      `<path id="${rid}" d="M36 89.4Q60 97 84 89.4" fill="none"/>` +
+      `<path id="${rid}" d="M36 85.4Q60 93 84 85.4" fill="none"/>` +
       `<text ${GEORGIA} font-style="italic" font-size="3.6" fill="${P.ink}"><textPath href="#${rid}" startOffset="50%" text-anchor="middle">séptimo hijo</textPath></text>` +
       sparkle(86, 26, 2.4, P.goldL) + sparkle(34, 40, 1.8, P.goldL) +
       k.defs()
@@ -309,8 +309,7 @@ export const HOMBRESLOBO_NUEVAS_ART: Record<string, (u: number) => string> = {
     )
   },
 
-  // Veinticinco victorias: te ganaste el sillón municipal. El sillón de terciopelo índigo con el escudo del castillo negro,
-  // y el bastón de mando apoyado.
+  // Veinticinco victorias: te ganaste el sillón municipal. Terciopelo índigo, el castillo negro y el bastón de mando.
   'Intendente de Castronegro': (u) => {
     const k = kit(u)
     const postL = 'M37.4 31H42V70H37.4Z', postR = 'M78 31H82.6V70H78Z'
@@ -393,6 +392,7 @@ export const HOMBRESLOBO_NUEVAS_ART: Record<string, (u: number) => string> = {
       noche(k) +
       stars([[30, 32, 0.6], [88, 30, 0.5], [24, 62, 0.45], [96, 60, 0.5], [46, 22, 0.4]]) +
       luna(k, 80, 38, 11, 1.6) +
+      `<g transform="translate(60 74) scale(1.14) translate(-60 -74)">` +
       k.floor(61, 84, 34, 4, '#000') +
       k.draw([
         { d: side, fill: P.brownD, inner: k.sh(side, 0, 0, 1, 0, 0, 0.8, P.night, 0.4) },
@@ -407,6 +407,7 @@ export const HOMBRESLOBO_NUEVAS_ART: Record<string, (u: number) => string> = {
       k.draw([{ d: flag, fill: P.white, inner: k.sh(flag, 0, 0, 1, 0, 0, 0.6, P.blue, 0.3) }], 0.4) +
       `<text x="54.6" y="54.8" ${GEORGIA} font-style="italic" font-size="2.6" fill="${P.red}" text-anchor="middle">vos</text>` +
       `<circle cx="41" cy="60" r="1.1" fill="${P.red}" stroke="${P.ink}" stroke-width=".35"/>` +
+      `</g>` +
       sparkle(34, 44, 1.8, P.paper) + sparkle(92, 76, 1.4, P.paper) +
       k.defs()
     )
@@ -461,7 +462,7 @@ export const HOMBRESLOBO_NUEVAS_ART: Record<string, (u: number) => string> = {
     )
   },
 
-  // Quince veces el primero en caer: los lobos te esperan con servilleta. La campana de plata, con cubiertos cruzados.
+  // Quince veces el primero en caer: los lobos te esperan con servilleta. La campana con la huella, y cubiertos cruzados.
   'Plato principal': (u) => {
     const k = kit(u)
     const dome = 'M33.4 80C33.4 63.4 45 50.6 60 50.6C75 50.6 86.6 63.4 86.6 80Z'

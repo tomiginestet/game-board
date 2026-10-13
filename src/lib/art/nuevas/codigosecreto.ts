@@ -189,7 +189,7 @@ export const CODIGOSECRETO_NUEVAS_ART: Record<string, (u: number) => string> = {
     const upper = 'M-30 6.4C-31.2 2 -29 -1.4 -24 -3.2C-18 -5.2 -10.6 -7.6 -4.4 -10.8L3.6 -15.4C8 -17.2 14 -17.8 19.6 -17.4C23.6 -17 26.6 -15.4 27.6 -12C28.6 -7 28.6 0 27.8 6.4Z'
     const mouth = 'M3.6 -15.4C8 -17.2 14 -17.8 19.6 -17.4C23.6 -17 26.6 -15.4 27.6 -12C22 -13.6 12 -14 3.6 -15.4Z'
     const sole = 'M-30.6 5.6C-31.2 8.4 -28.6 10 -24 10H9.4L11 6.4H-30.4Z'
-    const heel = 'M11.6 6H28V14C28 14.8 27.4 15.4 26.6 15.4H13.2C12.4 15.4 11.8 14.8 11.8 14Z'
+    const heel = 'M12.6 6H27.8V11.4C27.8 12.2 27.2 12.8 26.4 12.8H14C13.2 12.8 12.6 12.2 12.6 11.4Z'
     const toeCap = 'M-30 6.4C-31.2 2 -29 -1.4 -24 -3.2L-21.4 -4.1C-19.4 -1 -19 2.6 -20 6.4Z'
     const eyelets = [[-3.4, -11.2], [-.6, -12.8], [2.2, -14.4]]
     const lace = 'M-4.2 -10.4L-1.4 -13.8M-1.4 -11.8L1.4 -15.2M-3.6 -12.2L-.8 -10.6M-.8 -14L1.8 -12.4'
@@ -213,7 +213,7 @@ export const CODIGOSECRETO_NUEVAS_ART: Record<string, (u: number) => string> = {
       const [ax, ay] = p(a0), [bx, by] = p(a1), [mx, my] = p((a0 + a1) / 2)
       return hair(ax, ay, 2 * mx - (ax + bx) / 2, 2 * my - (ay + by) / 2, bx, by, w, CS)
     }
-    const coilD = coil(26.4, 13.4, 38, 18, 40, 34, 2.1, 6)
+    const coilD = coil(25.6, 12, 31, 18, 25, 27, 2.1, 5)
     return (
       field(k) +
       k.sun(60, 58, 16, 46, 32, false) +
@@ -225,7 +225,7 @@ export const CODIGOSECRETO_NUEVAS_ART: Record<string, (u: number) => string> = {
       k.cast([upper, sole, heel], 2, 2.2, CS) +
       k.draw([
         { d: sole, fill: P.brownD, inner: `<path d="M-30 7.4H9" stroke="${P.goldL}" stroke-width=".4" stroke-dasharray=".8 .6"/>` },
-        { d: heel, fill: P.brownD, inner: k.sh(heel, 0, 0, 1, 1, 0, 0.9, P.night, 0.5) + `<path d="M11.8 8.6H28M11.8 11.6H28" stroke="${P.brown}" stroke-width=".4"/>` },
+        { d: heel, fill: P.brownD, inner: k.sh(heel, 0, 0, 1, 1, 0, 0.9, P.night, 0.5) + `<path d="M12.6 8.4H27.8M12.6 10.6H27.8" stroke="${P.brown}" stroke-width=".4"/>` },
         {
           d: upper, fill: P.night,
           inner:

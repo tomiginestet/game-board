@@ -15,6 +15,8 @@ const FONDO = '#A4DDC9', FONDO_G = '#76C2A8'
 // Hojalata y su verdín.
 const TIN = '#C3CAD3', TIN_D = '#8792A1'
 const VERDIN = '#86B98F', VERDIN_D = '#4F8461'
+// La roca madre (kimberlita) del diamante en bruto, de la luz a la sombra.
+const ROCA = ['#BDB3A2', '#998D7A', '#736754', '#4E4537']
 
 /** Fondo de Splendor: el papel con el verde agua del jade granulado hacia los bordes. */
 const salon = (k: Kit) => `<rect width="120" height="130" fill="${P.paper}"/>` + k.shade(FULL, k.rad(FONDO, 0.5, 0.46, 0.7, 0, 1), FONDO_G, 0.5)
@@ -344,7 +346,7 @@ export const SPLENDOR_NUEVAS_ART: Record<string, (u: number) => string> = {
     }).join('')
     const silverSh = (d: string) => k.sh(d, 0, 0, 1, 1, 0, 0.85, P.blue, 0.4)
     return (
-      k.day() +
+      salon(k) +
       k.sun(60, 56, 17, 47) +
       k.shade(ellipse(60, 58, 28, 28), k.rad(P.goldL, 0.5, 0.5, 0.5, 0.75, 0), P.goldL, 0.45) +
       laurel(50, 99, 29, 90, 26, 62, 8) + laurel(70, 99, 91, 90, 94, 62, 8, true) +
@@ -389,41 +391,49 @@ export const SPLENDOR_NUEVAS_ART: Record<string, (u: number) => string> = {
   // Dos victorias: el anillo de hojalata con su piedra de vidrio. Brilla, aunque adentro ya le salió el verdín.
   'Anillo de lata': (u) => {
     const k = kit(u)
-    const band = ringE(60, 76, 15.6, 15, 11.8, 11.4, 0.8)
-    const inner = ellipse(60, 76.8, 11.8, 11.4)
-    const cup = 'M51.8 60.4C51.4 57.6 54.6 56.2 60 56.2C65.4 56.2 68.6 57.6 68.2 60.4L65.6 63.6H54.4Z'
-    const prong = (x: number, lean: number) => `M${f(x - 0.9)} 59L${f(x + lean - 0.6)} 52.6L${f(x + lean + 0.7)} 52.4L${f(x + 0.9)} 59Z`
-    const tag = 'M0 0H9.6L12.4 3.4L9.6 6.8H0Z'
+    const cx = 58.6, cy = 75.4
+    const band = ringE(cx, cy, 17.4, 16.4, 13, 12.4, 0.9)
+    const inner = ellipse(cx, cy + 0.9, 13, 12.4)
+    const cup = `M${f(cx - 9.6)} 58.4C${f(cx - 10)} 55.2 ${f(cx - 6)} 53.6 ${cx} 53.6C${f(cx + 6)} 53.6 ${f(cx + 10)} 55.2 ${f(cx + 9.6)} 58.4L${f(cx + 6.6)} 61.6H${f(cx - 6.6)}Z`
+    const prong = (x: number, lean: number) => `M${f(x - 1)} 56.6L${f(x + lean - 0.7)} 49.2L${f(x + lean + 0.8)} 49L${f(x + 1)} 56.6Z`
+    const tag = 'M0 0H10.4L13.4 3.6L10.4 7.2H0Z'
+    const mid = ellipse(cx, cy + 0.45, 15.2, 14.4)
     return (
       salon(k) +
       vitrina(k, 60, 63, 33) +
-      k.floor(61, 92, 18, 2.6, JADE_D) +
+      k.floor(60, 93, 19, 2.6, JADE_D) +
+      k.cast([band], 2.2, 2, JADE_D) +
       k.draw([{
         d: band, fill: TIN,
         inner:
-          k.sh(ellipse(60, 76, 15.6, 15), 0, 0, 1, 1, 0, 0.9, TIN_D, 0.5) + `<path d="M44 64H50V90H44Z" fill="${k.lin('#ffffff', 0, 0, 1, 0, 0.6, 0)}"/>` +
-          hair(47, 70, 46, 76, 48, 83, 0.9, '#fff') + hair(70, 88, 66, 90.4, 61, 90.8, 0.4, TIN_D) + hair(73.6, 70, 74.6, 74, 74, 78, 0.35, TIN_D) +
-          `<path d="M73.2 82.6l1.4 1M46 84.6l1.6 -.6M71.2 66l1.2 1.4" stroke="${TIN_D}" stroke-width=".4"/>`,
-      }], 0.7) +
+          k.sh(ellipse(cx, cy, 17.4, 16.4), 0, 0, 1, 1, 0, 0.9, TIN_D, 0.5) + `<path d="M40 60H47V92H40Z" fill="${k.lin('#ffffff', 0, 0, 1, 0, 0.65, 0)}"/>` +
+          // La guarda estampada de pacotilla, la costura soldada abajo, las abolladuras y las rayas.
+          `<path d="${mid}" fill="none" stroke="${TIN_D}" stroke-width=".55" stroke-dasharray=".01 1.5" stroke-linecap="round"/>` +
+          `<path d="M${f(cx + 1.4)} ${f(cy + 12.6)}L${f(cx + 0.6)} ${f(cy + 16.6)}" stroke="${P.ink}" stroke-width=".5"/><ellipse cx="${f(cx + 1)}" cy="${f(cy + 14.8)}" rx="1.3" ry=".9" fill="${TIN_D}" stroke="${P.ink}" stroke-width=".3"/>` +
+          hair(44.4, 68, 43.2, 76, 45.4, 85, 1, '#fff') + hair(70, 89.4, 66, 91.6, 61, 92, 0.4, TIN_D) + hair(73.6, 70, 75, 75, 74.4, 80, 0.4, TIN_D) +
+          `<path d="M72.8 83.4c.6 .9 1.6 1.2 2.2 .8M44.6 83.8c.8 .2 1.6 -.2 1.9 -.9M71.6 64c.2 1 1 1.6 1.8 1.6" fill="none" stroke="${TIN_D}" stroke-width=".45"/>` +
+          // El verdín que ya trepa por el metal.
+          `<path d="M${f(cx - 4)} ${f(cy + 15.4)}C${f(cx - 2)} ${f(cy + 16.6)} ${f(cx + 3)} ${f(cy + 16.6)} ${f(cx + 5)} ${f(cy + 15.4)}L${f(cx + 4)} ${f(cy + 13.2)}C${f(cx + 2)} ${f(cy + 14)} ${f(cx - 2)} ${f(cy + 14)} ${f(cx - 3.4)} ${f(cy + 13.2)}Z" fill="${VERDIN}" opacity=".85"/>` +
+          [[cx - 7, cy + 13.6, 0.8], [cx + 8.6, cy + 12.6, 0.7], [cx - 11, cy + 10.4, 0.55]].map(([x, y, r]) => `<circle cx="${f(x)}" cy="${f(y)}" r="${r}" fill="${VERDIN}"/>`).join(''),
+      }], 0.75) +
       // Adentro del aro, el verdín que te deja el dedo verde.
-      k.clip(inner, `<path d="${ringE(60, 76.8, 14, 13, 11.8, 11.4, -2.4)}" fill="${VERDIN}" fill-rule="evenodd"/>` + k.sh(ellipse(60, 80, 12, 9), 0, 0, 0, 1, 0, 0.9, VERDIN_D, 0.5)) +
-      `<path d="M49.4 84.4C53 87 57 87.6 60 87.6" fill="none" stroke="${VERDIN_D}" stroke-width=".5"/>` +
-      `<circle cx="53" cy="83.8" r=".7" fill="${VERDIN_D}" opacity=".7"/><circle cx="66.6" cy="84.6" r=".9" fill="${VERDIN_D}" opacity=".6"/><circle cx="62" cy="86.4" r=".5" fill="${VERDIN_D}" opacity=".6"/>` +
-      `<path d="M46.4 86.4C46 88.4 46.6 90 47.4 90.4" fill="none" stroke="${VERDIN}" stroke-width="1.1" stroke-linecap="round"/>` +
+      k.clip(inner, `<path d="${ringE(cx, cy + 0.9, 15.4, 14.4, 13, 12.4, -3.2)}" fill="${VERDIN}" fill-rule="evenodd"/>` + k.sh(ellipse(cx, cy + 5, 13, 10), 0, 0, 0, 1, 0, 0.95, VERDIN_D, 0.55)) +
+      `<path d="M${f(cx - 10)} ${f(cy + 7.4)}C${f(cx - 6)} ${f(cy + 11.4)} ${f(cx + 6)} ${f(cy + 11.4)} ${f(cx + 10)} ${f(cy + 7.4)}" fill="none" stroke="${VERDIN_D}" stroke-width=".55"/>` +
+      [[cx - 5, cy + 10.4, 0.8], [cx + 6.6, cy + 10, 0.9], [cx + 1.4, cy + 11.6, 0.55]].map(([x, y, r]) => `<circle cx="${f(x)}" cy="${f(y)}" r="${r}" fill="${VERDIN_D}" opacity=".75"/>`).join('') +
       // La piedra de vidrio, más grande de lo que debería, y las garras torcidas.
-      sideGem(k, 60, 53.8, 10, 5, 8.4, VIDRIO, 0.6) +
-      k.draw([{ d: cup, fill: TIN, inner: k.sh(cup, 0, 0, 1, 1, 0, 0.9, TIN_D, 0.5) + `<path d="M52.6 59.6C56 60.6 64 60.6 67.4 59.6" fill="none" stroke="#fff" stroke-width=".5"/>` }], 0.55) +
-      k.draw([{ d: prong(52.4, -0.6), fill: TIN }, { d: prong(60, 0), fill: TIN }, { d: prong(67.6, 0.9), fill: TIN }], 0.4) +
-      `<path d="M51.4 52.6H53.4M59 52.4H61M68 52.4H69.8" stroke="${P.ink}" stroke-width=".5" stroke-linecap="round"/>` +
-      `<path d="M54 48.4L56.2 50.6" stroke="#fff" stroke-width=".8" stroke-linecap="round"/>` +
+      sideGem(k, cx, 50.6, 11.6, 5.6, 9.6, VIDRIO, 0.65) +
+      k.draw([{ d: cup, fill: TIN, inner: k.sh(cup, 0, 0, 1, 1, 0, 0.9, TIN_D, 0.5) + `<path d="M${f(cx - 8.6)} 57.4C${f(cx - 4)} 58.6 ${f(cx + 4)} 58.6 ${f(cx + 8.6)} 57.4" fill="none" stroke="#fff" stroke-width=".55"/>` + `<path d="M${f(cx - 6.6)} 60.2H${f(cx + 6.6)}" stroke="${TIN_D}" stroke-width=".4" stroke-dasharray=".01 1.2" stroke-linecap="round"/>` }], 0.6) +
+      k.draw([{ d: prong(cx - 8.6, -0.8), fill: TIN }, { d: prong(cx - 2.6, 0.2), fill: TIN }, { d: prong(cx + 3.4, -0.3), fill: TIN }, { d: prong(cx + 8.8, 1.1), fill: TIN }], 0.4) +
+      `<path d="M${f(cx - 10.4)} 49.2H${f(cx - 8)}M${f(cx - 3.4)} 49.2H${f(cx - 1.4)}M${f(cx + 2.2)} 49.2H${f(cx + 4)}M${f(cx + 9)} 49H${f(cx + 11)}" stroke="${P.ink}" stroke-width=".55" stroke-linecap="round"/>` +
+      `<path d="M${f(cx - 6)} 46.4L${f(cx - 3.4)} 48.6" stroke="#fff" stroke-width=".9" stroke-linecap="round"/>` +
       // La etiqueta del precio, atada con un hilo.
-      `<path d="M73.6 72.4C78 72 82 73.4 84.4 77.2" fill="none" stroke="${P.ink}" stroke-width=".45"/>` +
-      `<g transform="translate(84 76.2) rotate(64)">` +
+      `<path d="M74.6 72C79 71.6 83 73 85.4 76.8" fill="none" stroke="${P.ink}" stroke-width=".45"/>` +
+      `<g transform="translate(85 75.8) rotate(64)">` +
       k.draw([{ d: tag, fill: P.paper, inner: k.sh(tag, 0, 0, 1, 1, 0, 0.6, P.brown, 0.3) }], 0.45) +
-      `<circle cx="10" cy="3.4" r=".7" fill="${P.white}" stroke="${P.ink}" stroke-width=".3"/>` +
-      `<text x="4.6" y="5" ${GEORGIA} font-weight="700" font-size="4.4" fill="${P.red}" text-anchor="middle" transform="rotate(-90 4.6 3.4)">$5</text>` +
+      `<circle cx="10.8" cy="3.6" r=".7" fill="${P.white}" stroke="${P.ink}" stroke-width=".3"/>` +
+      `<text x="4.8" y="5.3" ${GEORGIA} font-weight="700" font-size="4.6" fill="${P.red}" text-anchor="middle" transform="rotate(-90 4.8 3.6)">$5</text>` +
       `</g>` +
-      sparkle(56, 44.4, 3.2, '#fff') + sparkle(34, 48, 1.8) + sparkle(88, 56, 1.4) +
+      sparkle(cx - 4, 40.4, 3.6, '#fff') + sparkle(cx + 7, 44, 1.6, '#fff') + sparkle(34, 50, 1.8) + sparkle(88, 56, 1.4) +
       k.defs()
     )
   },
@@ -450,17 +460,16 @@ export const SPLENDOR_NUEVAS_ART: Record<string, (u: number) => string> = {
       k.floor(60, 88.2, 29, 2.4, '#064A37') +
       k.draw([
         { d: plinth, fill: P.gold, inner: k.sh(plinth, 0, 0, 1, 1, 0, 0.9, P.goldD, 0.5) + `<path d="M33.6 85.2H86.4" stroke="${P.goldL}" stroke-width=".5" stroke-dasharray=".01 1.1" stroke-linecap="round"/>` },
-        { d: base, fill: P.night, inner: k.sh(base, 0, 0, 1, 0, 0, 0.6, '#0F1736', 0.4) },
+        { d: base, fill: P.brownD, inner: k.sh(base, 0, 0, 1, 0, 0, 0.6, '#4A2A12', 0.4) + hair(38, 79.4, 50, 79, 62, 79.4, 0.3, P.brown) },
         {
-          d: bust, fill: P.white,
+          d: bust, fill: P.night,
           inner:
-            k.sh('M63 38C66 50 80 56 92 70V80H62Z', 0, 0, 1, 0, 0, 0.85, P.blue, 0.4) + k.sh('M28 68H92V80H28Z', 0, 0, 0, 1, 0, 0.6, P.blue, 0.3) +
-            `<path d="M30 54H43V80H30Z" fill="${k.lin('#ffffff', 0, 0, 1, 0, 0.5, 0)}"/>` +
-            hair(55.4, 43, 55.2, 48, 55.8, 52, 0.6, '#fff') + hair(64.6, 43, 64.8, 48, 64.2, 52, 0.45, P.blue) +
-            hair(40.4, 61.6, 46, 59.6, 52.4, 59.8, 0.5, P.sky2) + hair(79.6, 61.6, 74, 59.6, 67.6, 59.8, 0.5, P.blue) +
-            hair(36, 66, 37, 71, 36.4, 76, 0.5, P.sky2) + hair(84, 66, 83, 71, 83.6, 76, 0.5, P.blue),
+            `<path d="M30 40H52V80H30Z" fill="${k.lin(P.mid, 0, 0, 1, 0, 0.95, 0)}"/>` + k.sh('M63 38C66 50 80 56 92 70V80H62Z', 0, 0, 1, 0, 0, 0.9, '#0B1130', 0.45) + k.sh('M28 68H92V80H28Z', 0, 0, 0, 1, 0, 0.6, '#0B1130', 0.35) +
+            hair(55.6, 43, 55.4, 48, 56, 52, 0.7, P.sky) + hair(40.4, 61.6, 46, 59.4, 52.4, 59.6, 0.6, P.blue) + hair(36, 65, 36.8, 70.6, 36.2, 76.6, 0.6, P.blue) +
+            hair(79.6, 61.6, 74, 59.6, 67.6, 59.8, 0.45, P.mid) + hair(84, 66, 83, 71, 83.6, 76, 0.45, P.mid) +
+            Array.from({ length: 14 }, (_, i) => hair(38 + i * 3.6, 64 + (i % 3), 38.6 + i * 3.6, 70, 38 + i * 3.6, 77, 0.3, i < 6 ? P.mid : '#0B1130', 0.7)).join(''),
         },
-        { d: neckTop, fill: P.white, inner: k.sh(neckTop, 0, 0, 1, 1, 0, 0.6, P.blue, 0.3) },
+        { d: neckTop, fill: P.mid, inner: k.sh(neckTop, 0, 0, 1, 1, 0, 0.6, P.night, 0.3) },
       ], 0.7) +
       `<text x="60" y="81.6" ${GEORGIA} font-style="italic" font-size="3.4" fill="${P.goldL}" text-anchor="middle">calle Libertad</text>` +
       // El collar: cadena de oro, un rubí y un zafiro, y el colgante de esmeralda con su marco de grano.
@@ -481,7 +490,7 @@ export const SPLENDOR_NUEVAS_ART: Record<string, (u: number) => string> = {
   // Quince victorias: un pedrusco que vale fortunas. El octaedro de diamante en bruto, recién salido de la roca.
   'Diamante en bruto': (u) => {
     const k = kit(u)
-    const RAW = ['#FFFFFF', '#DDE6F6', '#AEC0E6', '#7F95CF']
+    const RAW = ['#FFFFFF', '#D3E0F5', '#9DB3E2', '#6B82C4']
     const verts: V3[] = [[0, 1.32, 0], [0, -1.32, 0], [1, 0, 0], [-1, 0, 0], [0, 0, 1], [0, 0, -1]]
     const faces = [[0, 4, 2], [0, 2, 5], [0, 5, 3], [0, 3, 4], [1, 2, 4], [1, 5, 2], [1, 3, 5], [1, 4, 3]]
     const vis = solid(verts, faces, 0.44, 0.34, 21.6, 60, 47.4)
@@ -520,20 +529,20 @@ export const SPLENDOR_NUEVAS_ART: Record<string, (u: number) => string> = {
       E: [[71, 73.2], [80.6, 75], [87.4, 68.6], [89.2, 78.4], [81, 86.6], [65, 89.4]] as Pt[],
     }
     const stone = (ps: Pt[], c: string, dk: string, extra = '') => k.draw([{ d: poly(ps), fill: c, inner: k.sh(poly(ps), 0, 0, 1, 1, 0, 0.85, dk, 0.45) + extra }], 0.7)
-    const specks = (pts: number[][]) => pts.map(([x, y, r], i) => `<circle cx="${x}" cy="${y}" r="${r}" fill="${i % 3 ? P.sky1 : P.red}" stroke="${i % 3 ? 'none' : P.wine}" stroke-width=".2"/>`).join('')
+    const specks = (pts: number[][]) => pts.map(([x, y, r], i) => `<circle cx="${x}" cy="${y}" r="${r}" fill="${i % 3 ? '#E4DCCB' : P.red}" stroke="${i % 3 ? 'none' : P.wine}" stroke-width=".2"/>`).join('')
     return (
-      k.day() +
+      salon(k) +
       k.sun(60, 50, 15, 48, 32, false) +
       k.shade(ellipse(60, 48, 28, 28), k.rad(P.goldL, 0.5, 0.5, 0.5, 0.85, 0), P.goldL, 0.5) +
       laurel(50, 99, 29, 90, 26, 62, 8) + laurel(70, 99, 91, 90, 94, 62, 8, true) +
-      k.floor(60, 88.6, 28, 3, P.mid) +
-      stone(rock.A, '#A4B2D4', P.blue, hair(38, 70, 42, 70, 46, 67, 0.4, P.mid) + specks([[41, 71, 0.6], [48, 68, 0.4], [36, 74, 0.4]])) +
-      stone(rock.B, '#93A3CC', P.mid, hair(74, 66, 79, 67, 84, 69.6, 0.4, P.mid) + specks([[78, 70, 0.6], [72, 70, 0.4], [83, 70.6, 0.35]])) +
+      k.floor(60, 88.6, 28, 3, ROCA[3]) +
+      stone(rock.A, ROCA[0], ROCA[2], hair(38, 70, 42, 70, 46, 67, 0.4, ROCA[3]) + specks([[41, 71, 0.6], [48, 68, 0.4], [36, 74, 0.4]])) +
+      stone(rock.B, ROCA[1], ROCA[2], hair(74, 66, 79, 67, 84, 69.6, 0.4, ROCA[3]) + specks([[78, 70, 0.6], [72, 70, 0.4], [83, 70.6, 0.35]])) +
       k.cast([silhouette], 2.6, 2.4, P.mid) + crystal +
       hair(top[0] - 0.6, top[1] + 3, top[0] - 4, top[1] + 12, top[0] - 8.4, top[1] + 22, 1, '#fff') +
-      stone(rock.C, P.blue, P.mid, hair(36, 80, 39, 83, 40, 86, 0.45, P.mid) + specks([[38.6, 79.6, 0.7], [42, 84.6, 0.45], [35.4, 82, 0.35]])) +
-      stone(rock.D, '#5D70AF', P.night, hair(52, 76, 55, 82, 54, 88, 0.5, P.night) + hair(62, 74, 63, 80, 60, 86, 0.45, P.night) + hair(50, 72, 56, 73, 60, 72.6, 0.5, P.sky, 0.8) + specks([[56, 79, 0.7], [62.4, 84, 0.5], [51.4, 83.6, 0.45], [66, 77.4, 0.4], [58, 86.6, 0.35]])) +
-      stone(rock.E, '#41528F', P.night, hair(78, 77, 80, 81, 78, 85, 0.45, P.night) + specks([[75, 80, 0.7], [84.4, 76, 0.45], [70, 85, 0.4]])) +
+      stone(rock.C, ROCA[1], ROCA[3], hair(36, 80, 39, 83, 40, 86, 0.45, ROCA[3]) + specks([[38.6, 79.6, 0.7], [42, 84.6, 0.45], [35.4, 82, 0.35]])) +
+      stone(rock.D, ROCA[2], ROCA[3], hair(52, 76, 55, 82, 54, 88, 0.5, ROCA[3]) + hair(62, 74, 63, 80, 60, 86, 0.45, ROCA[3]) + hair(50, 72, 56, 73, 60, 72.6, 0.5, ROCA[0], 0.9) + specks([[56, 79, 0.7], [62.4, 84, 0.5], [51.4, 83.6, 0.45], [66, 77.4, 0.4], [58, 86.6, 0.35]])) +
+      stone(rock.E, ROCA[3], '#2E281F', hair(78, 77, 80, 81, 78, 85, 0.45, ROCA[3]) + specks([[75, 80, 0.7], [84.4, 76, 0.45], [70, 85, 0.4]])) +
       sparkle(top[0], top[1] + 1.6, 4.6, '#fff') + sparkle(42.6, 48.6, 2.4, '#fff') + sparkle(86, 34, 2, P.white) + sparkle(34, 34, 1.6, P.white) +
       k.defs()
     )
@@ -647,7 +656,7 @@ export const SPLENDOR_NUEVAS_ART: Record<string, (u: number) => string> = {
     }).join('')
     const stick = roundRect(-9, -2.3, 9, 2.3, 1.1)
     return (
-      k.day() +
+      salon(k) +
       k.sun(60, 54, 16, 47, 32, false) +
       k.shade(ellipse(60, 56, 30, 30), k.rad(P.goldL, 0.5, 0.5, 0.5, 0.8, 0), P.goldL, 0.45) +
       laurel(50, 99, 29, 90, 26, 62, 8) + laurel(70, 99, 91, 90, 94, 62, 8, true) +

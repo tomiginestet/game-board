@@ -446,6 +446,7 @@ export const EXPLODINGKITTENS_NUEVAS_ART: Record<string, (u: number) => string> 
     return (
       fondo(k) +
       escenario(k, 60, 60, 33) +
+      `<g transform="translate(60 54) scale(.9) translate(-60 -54)">` +
       k.floor(60, 98, 26, 3.2, NAR_D) +
       spikes(60, 47.6, 12.4, 10.8, 190, 350, 25, 5.2) + spikes(60, 74, 17.6, 19, 198, 238, 8, 4.4) + spikes(60, 74, 17.6, 19, 302, 342, 8, 4.4) +
       k.draw([
@@ -460,7 +461,8 @@ export const EXPLODINGKITTENS_NUEVAS_ART: Record<string, (u: number) => string> 
         { d: head, fill: NAR, inner: k.sh(head, 0, 0, 1, 0, 0, 0.9, NAR_D, 0.45) + `<path d="M46 37H54V60H46Z" fill="${k.lin(NAR_L, 0, 0, 1, 0, 0.6, 0)}"/>` + hair(56.6, 39.4, 56, 44, 57, 48.6, 1.2, NAR_D, 0.85) + hair(60, 38.6, 60.4, 44, 60, 49.6, 1.3, NAR_D, 0.85) + hair(63.4, 39.4, 64, 44, 63, 48.6, 1.2, NAR_D, 0.85) + hair(50, 49, 51, 52, 53.6, 54.6, 1, NAR_D, 0.7) + hair(70, 49, 69, 52, 66.4, 54.6, 1, NAR_D, 0.7) + k.sh(head, 0, 0.6, 0, 0, 0, 0.8, HOLLIN, 0.4) },
       ], 0.75) +
       `<g fill="none" stroke-linecap="round">${[[44.4, 77.6, 41.4, 80], [75.6, 77.6, 78.6, 80]].map(([x0, y0, x1, y1]) => `<path d="M${x0} ${y0}Q${f((x0 + x1) / 2)} ${f(y0 - 1.6)} ${x1} ${y1}" stroke="${NAR_D}" stroke-width=".6"/>`).join('')}</g>` +
-      hair(57.4, 33.4, 52.6, 28.6, 56, 23.4, 1.2, P.blue, 0.75) + hair(63.6, 33.4, 68.4, 28.6, 64.6, 23, 1, P.blue, 0.7) + hair(60.4, 30.6, 61.6, 26, 59.6, 21.4, 0.7, P.blue, 0.55) +
+      `</g>` +
+      hair(57.4, 34.4, 52.6, 29.6, 56, 24.4, 1.2, P.blue, 0.75) + hair(63.6, 33.4, 68.4, 28.6, 64.6, 23, 1, P.blue, 0.7) + hair(60.4, 30.6, 61.6, 26, 59.6, 21.4, 0.7, P.blue, 0.55) +
       `<circle cx="41.6" cy="62" r=".55" fill="${P.goldL}"/><circle cx="78.6" cy="60.6" r=".55" fill="${P.goldL}"/>` +
       sparkle(38, 42, 1.6, P.goldL) + sparkle(84, 44, 1.4, P.goldL) + sparkle(31, 70, 1.8, '#fff') +
       k.defs()

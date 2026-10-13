@@ -16,7 +16,7 @@ const ROSA = '#E8ABA2', ROSA_D = '#C47A70', ROSA_L = '#F7D6CF'
 const CARD = '#EADCBD', CARD_D = '#B9A47A'
 
 /** Papel del día con el borde granulado en el rojo de la ficha. */
-const field = (k: Kit) => `<rect width="120" height="130" fill="${P.paper}"/>` + k.shade(FULL, k.rad('#E9B9AF', 0.5, 0.46, 0.7, 0, 1), '#D9958A', 0.5)
+const field = (k: Kit) => `<rect width="120" height="130" fill="${P.paper}"/>` + k.shade(FULL, k.rad('#E2A195', 0.5, 0.46, 0.7, 0, 1), '#C7766A', 0.5)
 
 /** Terciopelo rojo oscuro con la luz en el medio. */
 const velvet = (k: Kit, cy = 0.45) => `<rect width="120" height="130" fill="${CP_D}"/>` + k.shade(FULL, k.rad(CP, 0.5, cy, 0.55, 0.95, 0), CP, 0.45) + k.shade(FULL, k.rad('#2A0603', 0.5, 0.5, 0.75, 0, 0.8), '#2A0603', 0.4)
@@ -103,7 +103,7 @@ export const COUP_NUEVAS_ART: Record<string, (u: number) => string> = {
     const crest = 'M52.4 36.8C52.4 32.4 55.6 29.4 59 29.4C62.4 29.4 65.6 32.4 65.6 36.8C63.4 35.6 61.2 35.2 59 35.2C56.8 35.2 54.6 35.6 52.4 36.8Z'
     const volL = 'M52.6 36.6C49.6 36 47.6 33.8 48.2 31.6C48.8 29.8 51 29.8 51.4 31.2C51.6 32.4 50.4 32.8 49.8 32.2'
     const foot = 'M53.6 86C55.4 88.4 57.2 89.4 59 89.4C60.8 89.4 62.6 88.4 64.4 86C62.6 86.6 60.8 86.8 59 86.8C57.2 86.8 55.4 86.6 53.6 86Z'
-    const S = [29, 37, 47, 63, 78, 80] as const
+    const S = [29, 37, 46, 61, 74, 76] as const
     const sash = (w: number) => taper(S[0], S[1], S[2], S[3], S[4], S[5], w, w)
     const beads = Array.from({ length: 26 }, (_, i) => { const a = (i / 26) * Math.PI * 2; return `<circle cx="${f(cx + Math.cos(a) * 17.4)}" cy="${f(cy + Math.sin(a) * 23.2)}" r=".55" fill="${P.goldL}" stroke="${P.goldD}" stroke-width=".2"/>` }).join('')
     const folds = [0.18, 0.34, 0.5, 0.66].map((t) => {
@@ -136,16 +136,18 @@ export const COUP_NUEVAS_ART: Record<string, (u: number) => string> = {
       `<path d="${glass}" fill="none" stroke="${P.ink}" stroke-width=".7"/>` +
       // La banda: celeste, blanca y celeste, con los filetes dorados, el sol bordado y el moño con fleco y borla.
       k.cast([sash(12.4)], 1.6, 2.2, '#2A0603') +
+      `<g transform="translate(-4 -4)">` +
       k.draw([
         { d: tailA, fill: ARG, inner: `<path d="M77.6 81.5L81.6 92.8" stroke="${P.white}" stroke-width="1.5"/>` + k.sh(tailA, 0, 0, 1, 1, 0, 0.8, ARG_D, 0.45) },
         { d: tailB, fill: ARG, inner: `<path d="M82.3 80.3L88.3 89.7" stroke="${P.white}" stroke-width="1.5"/>` + k.sh(tailB, 0, 0, 1, 1, 0.2, 0.9, ARG_D, 0.5) },
       ], 0.55) +
-      fringe(79.2, 93.6, 83.6, 92) + fringe(86.2, 91, 90.4, 88.4) +
+      fringe(79.2, 93.6, 83.6, 92) + fringe(86.2, 91, 90.4, 88.4) + `</g>` +
       k.draw([{ d: sash(12.4), fill: ARG, inner: stripes(sash(4.4)) + k.sh(sash(12.4), 0, 0, 1, 1, 0, 0.7, ARG_D, 0.45) + folds }], 0.75) +
       `<path d="${sash(5)}" fill="none" stroke="${P.gold}" stroke-width=".45"/><path d="${sash(10.8)}" fill="none" stroke="${P.gold}" stroke-width=".5"/>` +
-      miniSun(k, 63.4, 66.6, 2.6) +
+      miniSun(k, 61.6, 64.4, 2.6) +
+      `<g transform="translate(-4 -4)">` +
       k.draw([{ d: knot, fill: ARG, inner: `<path d="M77 75.2L81 81.8" stroke="${P.white}" stroke-width="2.2"/>` + k.sh(knot, 0, 0, 1, 1, 0, 0.8, ARG_D, 0.45) + `<path d="M74.6 78.6L81.4 74.4M76.2 82.6L83.2 78.4" stroke="${P.gold}" stroke-width=".5"/>` }], 0.5) +
-      cord('M80.6 82C80.8 84.4 80 86.6 78.6 88', 0.8) + tassel(k, 78.4, 87.2, 14, 0.75) +
+      cord('M80.6 82C80.8 84.4 80 86.6 78.6 88', 0.8) + tassel(k, 78.4, 87.2, 14, 0.75) + `</g>` +
       sparkle(44, 38, 1.8, '#fff') + sparkle(88, 36, 1.6, P.goldL) + sparkle(31, 72, 1.4, P.goldL) +
       k.defs()
     )
@@ -279,6 +281,10 @@ export const COUP_NUEVAS_ART: Record<string, (u: number) => string> = {
     const browR = taper(64.4, 46.4, 70.8, 35.2, 82.8, 43.2, 2.8, 0.9)
     const browL = taper(56, 50.4, 47, 48.4, 38.4, 50.8, 2.4, 0.9)
     const stick = taper(83.4, 64, 90, 78, 92, 96, 3.4, 2.6)
+    const plume = 'M0 0C-2.2 -4 -2.8 -11 0 -18C2.8 -11 2.2 -4 0 0Z'
+    const feather = (x: number, y: number, r: number, s: number, c: string, cd: string) =>
+      `<g transform="translate(${x} ${y}) rotate(${r}) scale(${s})">` + k.draw([{ d: plume, fill: c, inner: k.sh(plume, 0, 0, 1, 0, 0, 0.9, cd, 0.5) + Array.from({ length: 7 }, (_, i) => `<path d="M0 ${f(-2 - i * 2.2)}L${f(-1.6 + (i > 4 ? 0.4 : 0))} ${f(-4 - i * 2.2)}M0 ${f(-2 - i * 2.2)}L${f(1.6 - (i > 4 ? 0.4 : 0))} ${f(-4 - i * 2.2)}" stroke="${cd}" stroke-width=".3"/>`).join('') }], f(0.45 / s)) +
+      `<path d="M0 0V-17" stroke="${P.goldL}" stroke-width="${f(0.35 / s)}"/></g>`
     const filig = `<path d="M36.4 60C37.6 63 40 65 43 65.6M84 59C82.8 62.4 80.4 64.6 77.4 65.2" fill="none" stroke="${P.gold}" stroke-width=".6" stroke-linecap="round"/>`
     const gems = [[60, 52.4, 1.4, CP_L], [36.4, 53, 0.7, P.goldL], [85.2, 50, 0.7, P.goldL]]
       .map(([x, y, r, c]) => `<circle cx="${x}" cy="${y}" r="${r}" fill="${c}" stroke="${P.ink}" stroke-width=".3"/>`).join('')
@@ -287,6 +293,7 @@ export const COUP_NUEVAS_ART: Record<string, (u: number) => string> = {
       stageR(k, 60, 60, 33) +
       k.floor(61, 90, 22, 2.4, CP_D) +
       k.draw([{ d: stick, fill: P.gold, inner: k.sh(stick, 0, 0, 1, 0, 0, 0.9, P.goldD, 0.5) + Array.from({ length: 6 }, (_, i) => `<path d="M${f(84 + i * 1.4)} ${f(68 + i * 4.4)}l3.6 -1.4" stroke="${CP}" stroke-width="1.1"/>`).join('') }], 0.55) +
+      feather(37, 48.4, -50, 1.05, CP, CP_D) + feather(38, 48, -24, 0.95, P.gold, P.goldD) +
       k.cast([mask], 2, 2.4, CP_D) +
       k.draw([{
         d: mask, fill: CP_L,
@@ -300,6 +307,7 @@ export const COUP_NUEVAS_ART: Record<string, (u: number) => string> = {
       k.draw([{ d: browR, fill: P.night }, { d: browL, fill: P.night }], 0.25) +
       hair(66.4, 44.4, 70.8, 37.8, 77, 39.2, 0.35, P.mid) +
       filig + gems +
+      `<circle cx="37.4" cy="48.4" r="1.6" fill="${P.gold}" stroke="${P.ink}" stroke-width=".4"/><circle cx="37" cy="48" r=".5" fill="${P.goldL}"/>` +
       `<path d="M38.6 49C41 46.4 45 45.4 49 46" fill="none" stroke="#fff" stroke-width=".8" stroke-linecap="round" opacity=".65"/>` +
       `<path d="M33.6 54.6C30 54 27.6 52 26.4 49.4M86.4 53.6C90 53 92.4 51 93.6 48.4" fill="none" stroke="${P.ink}" stroke-width="1.4" stroke-linecap="round"/><path d="M33.6 54.6C30 54 27.6 52 26.4 49.4M86.4 53.6C90 53 92.4 51 93.6 48.4" fill="none" stroke="${CP_L}" stroke-width=".7" stroke-linecap="round"/>` +
       hair(84, 30, 86, 26, 89, 24, 0.6, CP) + hair(87.6, 33, 91, 31, 94, 31, 0.5, CP) +
@@ -374,9 +382,9 @@ export const COUP_NUEVAS_ART: Record<string, (u: number) => string> = {
       `<path d="M35.6 76C31 76 29.6 79 30.4 82C31 84.6 33 85 34.6 84.2" fill="none" stroke="${P.ink}" stroke-width="2"/><path d="M35.6 76C31 76 29.6 79 30.4 82C31 84.6 33 85 34.6 84.2" fill="none" stroke="${P.night}" stroke-width="1"/>` +
       `<g transform="translate(37.6 82.8) rotate(-30)">` + k.draw([{ d: plug, fill: P.night, inner: `<path d="M-3 -1H3" stroke="${P.mid}" stroke-width=".5"/>` }], 0.45) + `<path d="M3 -1.2H5.4M3 1.2H5.4" stroke="${P.ink}" stroke-width="1.1"/><path d="M3 -1.2H5.2M3 1.2H5.2" stroke="${P.gold}" stroke-width=".5"/></g>` +
       k.draw([
-        { d: side, fill: P.brownD, inner: k.sh(side, 0, 0, 1, 0, 0, 0.8, P.night, 0.45) + hair(83, 58, 83.4, 66, 83, 74, 0.35, P.brown) },
-        { d: top, fill: P.brown, inner: k.sh(top, 0, 0, 1, 1, 0, 0.6, P.brownD, 0.4) + hair(46, 56, 60, 55.6, 76, 56, 0.35, P.brownD) + hair(42, 59, 56, 58.4, 70, 59, 0.35, P.goldL) },
-        { d: front, fill: P.brown, inner: k.sh(front, 0, 0, 1, 1, 0, 0.8, P.brownD, 0.45) + `<path d="M35 61H45V84H35Z" fill="${k.lin(P.goldL, 0, 0, 1, 0, 0.4, 0)}"/>` + hair(37, 66, 40, 74, 37.6, 82, 0.35, P.brownD) + hair(70, 64, 72, 66, 76, 64, 0.35, P.brownD) + `<path d="M36.4 62.4H77.6V82.6H36.4Z" fill="none" stroke="${P.gold}" stroke-width=".45"/>` },
+        { d: side, fill: CP_D, inner: k.sh(side, 0, 0, 1, 0, 0, 0.8, '#2A0603', 0.45) + hair(83, 58, 83.4, 66, 83, 74, 0.35, CP) },
+        { d: top, fill: CP, inner: k.sh(top, 0, 0, 1, 1, 0, 0.6, CP_D, 0.4) + hair(46, 56, 60, 55.6, 76, 56, 0.35, CP_D) + hair(42, 59, 56, 58.4, 70, 59, 0.35, CP_XL) + `<path d="M37.4 60.4L44.4 53.6H85" fill="none" stroke="${P.gold}" stroke-width=".4"/>` },
+        { d: front, fill: CP, inner: k.sh(front, 0, 0, 1, 1, 0, 0.85, CP_D, 0.5) + `<path d="M35 61H45V84H35Z" fill="${k.lin(CP_XL, 0, 0, 1, 0, 0.45, 0)}"/>` + hair(37, 66, 40, 74, 37.6, 82, 0.35, CP_D) + hair(70, 64, 72, 66, 76, 64, 0.35, CP_D) + `<path d="M36.4 62.4H77.6V82.6H36.4Z" fill="none" stroke="${P.gold}" stroke-width=".45"/><path d="M37.2 63.2H76.8V81.8H37.2Z" fill="none" stroke="${P.goldD}" stroke-width=".3" stroke-dasharray=".01 1.1" stroke-linecap="round"/>` },
       ], 0.75) +
       corner(35, 61, 1, 1) + corner(79, 61, -1, 1) + corner(35, 84, 1, -1) + corner(79, 84, -1, -1) +
       `<circle cx="40.6" cy="67" r="1.9" fill="${P.night}" stroke="${P.ink}" stroke-width=".4"/><path d="M40.6 65.4V67" stroke="${P.gold}" stroke-width=".5"/><circle cx="40.6" cy="74" r="1.9" fill="${P.night}" stroke="${P.ink}" stroke-width=".4"/><path d="M41.8 73L40.6 74" stroke="${P.gold}" stroke-width=".5"/>` +
@@ -410,7 +418,8 @@ export const COUP_NUEVAS_ART: Record<string, (u: number) => string> = {
   'Nariz de Pinocho': (u) => {
     const k = kit(u)
     const base = 'M-2.2 -13C-2.8 -7 -4.2 -3 -7.4 1C-10 4.4 -9 9 -5.6 9.8C-3.6 10.2 -2 9.2 0 9.2C2 9.2 3.6 10.2 5.6 9.8C9 9 10 4.4 7.4 1C4.2 -3 2.8 -7 2.2 -13C1.4 -14.2 -1.4 -14.2 -2.2 -13Z'
-    const stick = taper(0, 1.6, 22, -0.4, 48, -6.4, 7.4, 2.8)
+    const stick = taper(1.6, 1.6, 22, -0.4, 48, -6.4, 6.8, 2.8)
+    const tip = ellipse(0.4, 2.2, 4.6, 4.2)
     const twig = 'M32 -4.4C32.6 -8.2 33.4 -11.4 35.6 -14.2'
     const leafA = 'M0 0C2 -3.2 6.6 -3.6 9 -.8C6.4 2.2 2 2 0 0Z'
     const strap = 'M-7 -1.6C-14 -3 -22 -3.6 -32 -2.4'
@@ -418,13 +427,13 @@ export const COUP_NUEVAS_ART: Record<string, (u: number) => string> = {
     const leaf = (x: number, y: number, r: number, s: number) => `<g transform="translate(${x} ${y}) rotate(${r}) scale(${s})">` + k.draw([{ d: leafA, fill: P.green, inner: k.sh(leafA, 0, 0, 1, 1, 0, 0.8, P.greenD, 0.45) + `<path d="M.6 -.2Q4.4 -1 8 -.8" fill="none" stroke="${P.greenD}" stroke-width=".4"/>` }], f(0.4 / s)) + `</g>`
     return (
       field(k) +
-      k.sun(60, 58, 15, 46, 32, false) +
-      glow(k, 60, 58, 28, 26, 0.6) +
+      stageR(k, 60, 60, 33) +
+      glow(k, 60, 58, 24, 22, 0.5) +
       k.floor(60, 84, 26, 2.4, CP_D) +
-      `<g transform="translate(37 62) rotate(-4) scale(1.12)">` +
+      `<g transform="translate(34 63) rotate(-4) scale(1.22)">` +
       `<path d="${strap}" fill="none" stroke="${P.ink}" stroke-width="1.9" stroke-linecap="round"/><path d="${strap}" fill="none" stroke="${CP}" stroke-width="1" stroke-linecap="round"/>` +
       `<path d="M7 -1.6C9.6 -2.2 11.4 -2.6 13 -2.8" fill="none" stroke="${P.ink}" stroke-width="1.9" stroke-linecap="round"/><path d="M7 -1.6C9.6 -2.2 11.4 -2.6 13 -2.8" fill="none" stroke="${CP}" stroke-width="1" stroke-linecap="round"/>` +
-      k.cast([base, stick], 1.6, 2.2, CP_D) +
+      k.cast([base, stick, tip], 1.6, 2.2, CP_D) +
       k.draw([{
         d: base, fill: P.brown,
         inner: k.sh(base, 0, 0, 1, 0, 0, 0.9, P.brownD, 0.5) + `<path d="M-10 -14H-1V10H-10Z" fill="${k.lin(P.goldL, 0, 0, 1, 0, 0.55, 0)}"/>` +
@@ -432,7 +441,7 @@ export const COUP_NUEVAS_ART: Record<string, (u: number) => string> = {
           hair(-1, -12, -1.6, -6, -3.4, -1, 0.4, P.brownD),
       }], 0.75) +
       `<ellipse cx="-3.2" cy="7.8" rx="1.7" ry=".95" fill="${P.night}" transform="rotate(14 -3.2 7.8)"/><ellipse cx="3.2" cy="7.8" rx="1.7" ry=".95" fill="${P.night}" transform="rotate(-14 3.2 7.8)"/>` +
-      k.draw([{
+      k.draw([{ d: tip, fill: P.brown, inner: k.sh(tip, 0, 0, 1, 1, 0, 0.9, P.brownD, 0.5) + `<path d="${ellipse(-0.6, 0.6, 2, 1.4)}" fill="${P.goldL}" opacity=".55"/>` }, {
         d: stick, fill: P.brown,
         inner: k.sh(stick, 0, 0, 0, 1, 0, 0.9, P.brownD, 0.5) + grain + `<path d="M4 -2.6C20 -3.6 36 -6 47 -7.8" fill="none" stroke="${P.goldL}" stroke-width="1" stroke-linecap="round" opacity=".6"/>` +
           `<ellipse cx="26" cy="-.4" rx="1.4" ry=".8" fill="${P.brownD}" opacity=".6"/><ellipse cx="26" cy="-.4" rx="2.6" ry="1.4" fill="none" stroke="${P.brownD}" stroke-width=".3"/>`,

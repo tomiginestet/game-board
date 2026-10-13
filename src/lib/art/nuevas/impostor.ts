@@ -66,7 +66,7 @@ export const IMPOSTOR_NUEVAS_ART: Record<string, (u: number) => string> = {
     const eyeR = 'M10.6 -4.2C8.8 -6.8 4.6 -7 2.8 -4.6C4.6 -2.8 8.8 -2.6 10.6 -4.2Z'
     const nose = 'M.2 -4.6C1.2 -.6 2.8 3.4 3 6.2C2.2 7.4 .8 7.6 -.6 7.2C.6 6.4 1 2 .2 -4.6Z'
     const stick = 'M70.4 62L84 95'
-    const hole = (d: string) => `<path d="${d}" fill="${P.night}"/><path d="${d}" fill="${k.lin(MAG_D, 0, 0, 0, 1, 0, 0.9)}"/><path d="${d}" fill="none" stroke="${P.ink}" stroke-width=".45"/>`
+    const hole = (d: string) => `<path d="${d}" fill="${P.night}"/><path d="${d}" fill="${k.lin(P.mid, 0, 0, 0, 1, 0, 0.5)}"/><path d="${d}" fill="none" stroke="${P.ink}" stroke-width=".45"/>`
     return (
       rosa(k) +
       escenario(k, 60, 58, 34) +
@@ -206,7 +206,7 @@ export const IMPOSTOR_NUEVAS_ART: Record<string, (u: number) => string> = {
 
   // ── Ojo de halcón ──────────────────────────────────────────────────
 
-  // Tres victorias del lado bueno: olfateás al intruso desde la cucha. Sólo asoma la trufa, que ya olió algo.
+  // Tres victorias del lado bueno: olfateás al intruso desde la cucha. Asoma el hocico, que ya olió algo.
   'Perro guardián': (u) => {
     const k = kit(u)
     const wall = 'M35 55L60 33L85 55V92H35Z'
@@ -559,7 +559,7 @@ export const IMPOSTOR_NUEVAS_ART: Record<string, (u: number) => string> = {
         const cx = x + s * dx
         return `M${f(cx - 1.2)} 83.6V${f(top + 1.2)}C${f(cx - 1.2)} ${f(top - 0.2)} ${f(cx + 1.2)} ${f(top - 0.2)} ${f(cx + 1.2)} ${f(top + 1.2)}V83.6Z`
       })
-      const sk = (d: string) => k.sh(d, 0, 0, 1, 0, 0, 0.75, P.brown, 0.4)
+      const sk = (d: string) => k.sh(d, 0, 0, 1, 0, 0, 0.5, P.brown, 0.35)
       return (
         k.draw([
           { d: cuff, fill: P.white, inner: k.sh(cuff, 0, 0, 1, 0, 0, 0.7, P.blue, 0.35) + `<path d="M${X(-6.6)} 93.4H${X(6.6)}" stroke="${P.blue}" stroke-width=".5"/><circle cx="${X(3.4)}" cy="96.6" r=".7" fill="${P.sky}" stroke="${P.ink}" stroke-width=".3"/>` },
