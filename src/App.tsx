@@ -33,6 +33,7 @@ const PlayerDetail = page(() => import('./pages/PlayerDetail'), 'PlayerDetail')
 const Medals = page(() => import('./pages/Medals'), 'Medals')
 const Players = page(() => import('./pages/Players'), 'Players')
 const PlayScreen = page(() => import('./pages/PlayScreen'), 'PlayScreen')
+const QuickPick = page(() => import('./pages/QuickPick'), 'QuickPick')
 const Ranking = page(() => import('./pages/Ranking'), 'Ranking')
 const Settings = page(() => import('./pages/Settings'), 'Settings')
 const Friends = page(() => import('./pages/social/Friends'), 'Friends')
@@ -59,6 +60,7 @@ const NAV = [
 /** Título de la pestaña según la pantalla (el más específico primero). */
 const TITLES: [RegExp, string][] = [
   [/^\/$/, 'Inicio'],
+  [/^\/anotar/, 'Anotar'],
   [/^\/juegos\/nuevo/, 'Agregar juego'],
   [/^\/juegos/, 'Juegos'],
   [/^\/(jugar|partida)\//, 'Partida'],
@@ -140,6 +142,7 @@ export default function App() {
             <Route path="/partido/:id" element={<MatchScreen />} />
             <Route element={<Layout />}>
               <Route index element={<Home />} />
+              <Route path="/anotar" element={<QuickPick />} />
               <Route path="/juegos" element={<Games />} />
               <Route path="/juegos/nuevo" element={<AddGame />} />
               <Route path="/juegos/:id" element={<GameDetail />} />

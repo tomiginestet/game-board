@@ -156,7 +156,7 @@ export function Home() {
             </li>
           </ol>
           {hasPlayers ? (
-            <Link to="/juegos" className="btn primary block">
+            <Link to="/anotar" className="btn primary block">
               <PlusIcon /> Anotar la primera partida
             </Link>
           ) : (
@@ -170,7 +170,7 @@ export function Home() {
         </section>
       ) : (
         <section className="quick-start" aria-label="Anotar una partida">
-          <Link to="/juegos" className="btn primary big block">
+          <Link to="/anotar" className="btn primary big block">
             <PlusIcon /> Anotar una partida
           </Link>
           {againGames.length > 0 && (

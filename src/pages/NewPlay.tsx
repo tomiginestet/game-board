@@ -9,7 +9,7 @@ import { defaultConfig } from '../lib/engine'
 import type { GameDef, OptionValue } from '../lib/games/schema'
 import { plural, useGame } from '../lib/hooks'
 import { actions, useData } from '../lib/store'
-import type { Id, PlaySide } from '../lib/types'
+import type { Id, Play, PlaySide } from '../lib/types'
 
 const lastConfigKey = (gameId: string) => `gb-last-config-${gameId}`
 
@@ -32,6 +32,23 @@ export function NewPlay() {
   return <Setup key={game.id} game={game} />
 }
 
+/**
+ * Jugadores de la última partida de ese juego (terminada o en juego), en un orden que,
+ * repartido 1, 2, 1, 2…, vuelve a armar los mismos equipos.
+ */
+function lastPlayers(plays: Play[], game: GameDef): Id[] {
+  let last: Play | undefined
+  const at = (p: Play) => p.finishedAt ?? p.startedAt ?? p.createdAt
+  for (const p of plays) {
+    if (p.gameId === game.id && (p.status === 'finished' || p.status === 'live') && (!last || at(p) > at(last))) last = p
+  }
+  if (!last) return []
+  const ids: Id[] = []
+  const depth = Math.max(0, ...last.sides.map((s) => s.players.length))
+  for (let i = 0; i < depth; i++) for (const s of last.sides) if (s.players[i] && !ids.includes(s.players[i])) ids.push(s.players[i])
+  return ids.slice(0, game.players.max)
+}
+
 /** Cómo se arman los lados: cada uno por su cuenta, por equipos o todos juntos (cooperativo). */
 type Grouping = 'solo' | 'teams' | 'coop'
 
@@ -42,7 +59,14 @@ function Setup({ game }: { game: GameDef }) {
   const players = useMemo(() => [...data.players].sort((a, b) => a.name.localeCompare(b.name)), [data.players])
   const initialGrouping: Grouping = game.sides === 'coop' ? 'coop' : game.sides === 'teams' ? 'teams' : 'solo'
   const [grouping, setGrouping] = useState<Grouping>(initialGrouping)
-  const [selected, setSelected] = useState<Id[]>(() => (params.get('p') ?? '').split(',').filter((id) => data.players.some((p) => p.id === id)))
+  // Con `?p=` (revancha, desde un jugador) mandan esos; si no, los de la última partida de este juego.
+  const [fromLast] = useState(() => !params.get('p'))
+  const [selected, setSelected] = useState<Id[]>(() => {
+    const exists = (id: Id) => data.players.some((p) => p.id === id)
+    const asked = params.get('p')
+    if (asked) return asked.split(',').filter(exists)
+    return lastPlayers(data.plays, game).filter(exists)
+  })
   const [teamOf, setTeamOf] = useState<Record<Id, number>>({})
   const [teamCount, setTeamCount] = useState(2)
   const [config, setConfig] = useState(() => loadConfig(game))
@@ -141,6 +165,14 @@ function Setup({ game }: { game: GameDef }) {
             {game.mode === 'turns' && grouping === 'solo' ? ' · en orden de turno' : ''}
           </span>
         </h2>
+        {fromLast && selected.length > 0 && (
+          <div className="row-between">
+            <p className="hint">Marcamos a los de la última partida.</p>
+            <button className="link-btn" style={{ flexShrink: 0 }} onClick={() => setSelected([])}>
+              Desmarcar a todos
+            </button>
+          </div>
+        )}
         <PlayerPicker players={players} selected={selected} onToggle={toggle} badge={badge} />
       </section>
 
