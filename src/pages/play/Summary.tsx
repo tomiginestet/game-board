@@ -6,14 +6,19 @@ import { sideName, sidePlayersOf } from '../../components/GameBits'
 import { Medal } from '../../components/Medal'
 import { MedalCelebration } from '../../components/MedalCelebration'
 import { MedalSheet } from '../../components/MedalSheet'
+import { WinnerHero } from '../../components/WinnerHero'
 import { isDraw, sidesByPlace, type LiveState } from '../../lib/engine'
 import { toast } from '../../lib/feedback'
+import { findGame } from '../../lib/games'
 import type { GameDef } from '../../lib/games/schema'
 import { TIERS } from '../../lib/medalArt'
-import { gameMedals, levelUps, type MedalProgress } from '../../lib/medals'
+import { closestFirst, gameMedals, globalMedals, levelUps, medalsInReach, nextMedalHint, type MedalProgress } from '../../lib/medals'
 import { computeBoard, gameStatsOf } from '../../lib/stats'
 import { actions, useData } from '../../lib/store'
 import type { Id, Play, Player } from '../../lib/types'
+
+/** Hasta cuánto después de terminarla se festeja como recién terminada (igual que las medallas). */
+const FRESH_MS = 15 * 60 * 1000
 
 export function Summary({ play, game, live, players }: { play: Play; game: GameDef; live: LiveState; players: Map<Id, Player> }) {
   const data = useData()
@@ -22,23 +27,39 @@ export function Summary({ play, game, live, players }: { play: Play; game: GameD
   const draw = isDraw(play)
   const coop = play.result?.coopWin
 
-  // Medallas que se ganaron con esta partida: comparamos el historial con y sin ella.
-  const ups = useMemo(() => {
-    const before = computeBoard({ ...data, plays: data.plays.filter((p) => p.id !== play.id) }, { gameId: game.id })
-    const after = computeBoard(data, { gameId: game.id })
+  // Medallas que se ganaron con esta partida (las de este juego y las generales): comparamos el
+  // historial con y sin ella. Con lo de después sale también la próxima medalla de la mesa.
+  const { ups, hint } = useMemo(() => {
+    const before = computeBoard({ ...data, plays: data.plays.filter((p) => p.id !== play.id) })
+    const after = computeBoard(data)
+    const ids = play.sides.flatMap((s) => s.players)
     const out: { player: Player; medal: MedalProgress }[] = []
-    for (const id of play.sides.flatMap((s) => s.players)) {
+    for (const id of ids) {
       const p = players.get(id)
       if (!p) continue
-      const b = gameMedals(game, gameStatsOf(before, id, game.id))
-      const a = gameMedals(game, gameStatsOf(after, id, game.id))
-      for (const m of levelUps(b, a)) out.push({ player: p, medal: m })
+      for (const m of levelUps(gameMedals(game, gameStatsOf(before, id, game.id)), gameMedals(game, gameStatsOf(after, id, game.id)))) out.push({ player: p, medal: m })
+      const b = before.players.get(id)
+      const a = after.players.get(id)
+      if (a) for (const m of levelUps(b ? globalMedals(b) : [], globalMedals(a))) out.push({ player: p, medal: m })
     }
-    return out
+    if (out.length) return { ups: out, hint: undefined }
+    // Sin medallas nuevas: la más cercana de quien ganó; si no tiene ninguna a tiro (o no hubo ganador), la de cualquiera de la mesa.
+    const reachOf = (id: Id) => {
+      const s = after.players.get(id)
+      return s ? medalsInReach(s, (g) => findGame(data, g), { onlyGame: game.id }) : []
+    }
+    const near = (pool: Id[]) => closestFirst(pool.flatMap(reachOf))[0]
+    const winnerIds = play.result?.coopWin === undefined ? play.sides.filter((_, i) => play.result?.places[i] === 1).flatMap((s) => s.players) : []
+    const best = (winnerIds.length && !isDraw(play) ? near(winnerIds) : undefined) ?? near(ids)
+    const who = best && players.get(best.playerId)
+    return { ups: out, hint: best && who ? { text: nextMedalHint(who.name, best), progress: best.progress } : undefined }
   }, [data, play, game, players])
   const [shownUp, setShownUp] = useState<number | null>(null)
   const shown = shownUp !== null ? ups[shownUp] : undefined
-  const fresh = useMemo(() => ups.map(({ player, medal }) => ({ who: player.name, family: medal.family, level: medal.level, value: medal.value })), [ups])
+  const newMedals = useMemo(() => ups.map(({ player, medal }) => ({ who: player.name, family: medal.family, level: medal.level, value: medal.value })), [ups])
+  const [celebrate, setCelebrate] = useState(0)
+  // "Recién terminada" se decide al entrar: así la animación y el anuncio no se repiten al volver días después.
+  const [fresh] = useState(() => !!play.finishedAt && Date.now() - play.finishedAt < FRESH_MS)
 
   const eventSummary = game.events
     .map((e) => {
@@ -54,15 +75,9 @@ export function Summary({ play, game, live, players }: { play: Play; game: GameD
 
   return (
     <div className="summary">
-      <div className="card summary-hero">
-        {coop !== undefined ? (
-          <h2>{coop ? '🎉 ¡Ganaron todos!' : '😵 Perdieron contra el juego'}</h2>
-        ) : draw ? (
-          <h2>🤝 Empate</h2>
-        ) : (
-          <h2>🏆 {sideName(play.sides[order[0]], players)}</h2>
-        )}
-        <ol className="standings-list">
+      <div className="card winner-card">
+        <WinnerHero play={play} game={game} players={players} fresh={fresh} newMedals={ups.length} onShowMedals={() => setCelebrate((n) => n + 1)} hint={hint} />
+        <ol className="standings-list" aria-label="Posiciones">
           {order.map((i) => (
             <li key={i} className={play.result?.places[i] === 1 && !draw && coop === undefined ? 'first' : ''}>
               <span className="pick-pos">{coop !== undefined ? '' : `${play.result?.places[i]}°`}</span>
@@ -70,13 +85,33 @@ export function Summary({ play, game, live, players }: { play: Play; game: GameD
               <span className="grow ellipsis">
                 {sideName(play.sides[i], players)}
               </span>
-              {play.result?.scores?.[i] !== undefined && play.result.scores[i] !== null && <b>{play.result.scores[i]}</b>}
+              {play.result?.scores?.[i] !== undefined && play.result.scores[i] !== null && <b className="num">{play.result.scores[i]}</b>}
             </li>
           ))}
         </ol>
       </div>
 
-      <MedalCelebration id={play.id} finishedAt={play.finishedAt} medals={fresh} />
+      <div className="row">
+        {play.cupId ? (
+          <Link to={`/torneos/${play.cupId}`} className="btn primary grow">
+            Volver al torneo
+          </Link>
+        ) : (
+          <button className="btn primary grow" onClick={rematch}>
+            <ArrowsClockwiseIcon /> Revancha
+          </button>
+        )}
+        <button className="btn grow" onClick={() => actions.reopenPlay(play.id)}>
+          Corregir
+        </button>
+      </div>
+      {!play.cupId && (
+        <Link to={`/juegos/${game.id}`} className="summary-secondary">
+          Ver {game.name}
+        </Link>
+      )}
+
+      <MedalCelebration id={play.id} finishedAt={play.finishedAt} medals={newMedals} delay={2000} requested={celebrate} />
       {ups.length > 0 && (
         <section className="card new-achievements">
           <h3>
@@ -135,25 +170,6 @@ export function Summary({ play, game, live, players }: { play: Play; game: GameD
         </section>
       )}
 
-      <div className="row">
-        {!play.cupId && (
-          <button className="btn primary grow" onClick={rematch}>
-            <ArrowsClockwiseIcon /> Revancha
-          </button>
-        )}
-        <button className="btn grow" onClick={() => actions.reopenPlay(play.id)}>
-          Corregir
-        </button>
-      </div>
-      {play.cupId ? (
-        <Link to={`/torneos/${play.cupId}`} className="btn block mt">
-          Volver al torneo
-        </Link>
-      ) : (
-        <Link to={`/juegos/${game.id}`} className="btn block mt">
-          Ver {game.name}
-        </Link>
-      )}
       {!play.cupId && (
         <button
           className="link-btn danger-text small center-block"

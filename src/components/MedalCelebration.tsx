@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import type { MedalFamily } from '../lib/medals'
 import { MedalSheet } from './MedalSheet'
 
@@ -33,21 +33,52 @@ function markSeen(id: string) {
 
 /**
  * Al terminar una partida, abre una por una las medallas que se ganaron, en grande y con festejo.
- * Se muestra una sola vez por partida; después quedan en la lista del resumen para volver a verlas.
+ * Primero se deja ver al ganador (`delay`); se puede adelantar con `requested` (un contador que sube
+ * cada vez que alguien toca "Ver medallas nuevas"), que también sirve para volver a verlas después.
+ * Sola, se abre una vez por partida; después quedan en la lista del resumen.
  */
-export function MedalCelebration({ id, finishedAt, medals }: { id: string; finishedAt?: number; medals: NewMedal[] }) {
+export function MedalCelebration({
+  id,
+  finishedAt,
+  medals,
+  delay = 1800,
+  requested = 0,
+}: {
+  id: string
+  finishedAt?: number
+  medals: NewMedal[]
+  /** Cuánto se espera antes de abrirse sola, para que primero se vea el resultado. */
+  delay?: number
+  requested?: number
+}) {
   const [step, setStep] = useState<number | null>(null)
+  // Si ya se abrió a mano, la apertura automática no vuelve a empezar la ronda.
+  const opened = useRef(false)
 
   useEffect(() => {
     if (!medals.length || !finishedAt || Date.now() - finishedAt > FRESH_MS || seen().includes(id)) return
-    // Un respiro para que primero se vea el resultado. Se marca como visto recién al abrirse
-    // (si se marcara antes, el doble efecto de StrictMode la cancelaría para siempre).
+    // Se marca como vista recién al abrirse (si se marcara antes, el doble efecto de StrictMode
+    // la cancelaría para siempre).
     const t = setTimeout(() => {
+      if (opened.current) return
+      opened.current = true
       markSeen(id)
       setStep(0)
-    }, 700)
+    }, delay)
     return () => clearTimeout(t)
-  }, [id, finishedAt, medals.length])
+  }, [id, finishedAt, medals.length, delay])
+
+  // Pedido a mano: se abre ya, aunque ya se haya festejado (se ajusta al cambiar el contador).
+  const [handled, setHandled] = useState(requested)
+  if (requested !== handled) {
+    setHandled(requested)
+    if (requested && medals.length) setStep(0)
+  }
+  useEffect(() => {
+    if (!requested) return
+    opened.current = true
+    markSeen(id)
+  }, [requested, id])
 
   const m = step !== null ? medals[step] : undefined
   if (!m) return null
