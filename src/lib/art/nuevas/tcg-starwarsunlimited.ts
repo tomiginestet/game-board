@@ -249,20 +249,21 @@ export const TCG_STARWARSUNLIMITED_NUEVAS_ART: Record<string, (u: number) => str
 
   // ── Demoledor imperial ─────────────────────────────────────────────
 
-  // Cinco bases: hacés el ruidito del caza con la boca. El caza de cabina redonda y alas de paneles, con su "¡iiiaaauuu!".
+  // Cinco bases: hacés el ruidito del caza con la boca. El caza de cabina redonda y velas en medialuna, con su "¡iiiaaauuu!".
   'Caza TIE': (u) => {
     const k = kit(u)
     const ball = ellipse(0, 0, 8.6, 8.6)
-    const wing = 'M17 -20.6L24.6 -17.4V17.4L17 20.6Z'
-    const pylon = 'M7.6 -2.2L17 -1.4V1.4L7.6 2.2Z'
-    const cells = Array.from({ length: 7 }, (_, i) => `M17 ${f(-15 + i * 5)}L24.6 ${f(-12.8 + i * 4.3)}`).join('') + 'M20.8 -19V19'
+    // Alas propias: velas en medialuna con costillas radiales, no los paneles del original.
+    const wing = 'M15 -3.6C17.4 -12 22 -20.4 28.4 -24.4C25.6 -12 25.6 12 28.4 24.4C22 20.4 17.4 12 15 3.6Z'
+    const pylon = 'M7.6 -2.2L16 -1.4V1.4L7.6 2.2Z'
+    const cells = Array.from({ length: 7 }, (_, i) => `M16.4 ${f((i - 3) * 1.1)}Q${f(22 - Math.abs(i - 3) * 0.6)} ${f((i - 3) * 4.4)} ${f(26.6 + Math.abs(i - 3) * 0.4)} ${f((i - 3) * 7.4)}`).join('')
     const side = (sx: number) =>
       `<g transform="scale(${sx} 1)">` +
       k.draw([
         { d: pylon, fill: P.sky1, inner: k.sh(pylon, 0, 0, 0, 1, 0, 0.9, P.blue, 0.45) },
-        { d: wing, fill: P.blue, inner: `<path d="${cells}" fill="none" stroke="${P.night}" stroke-width=".45" opacity=".8"/>` + k.sh(wing, 0, 0, 1, 1, 0, 0.9, P.night, 0.45) + hair(18.4, -17, 18.6, 0, 18.4, 17, 0.6, P.sky1) + `<path d="M17 -20.6L24.6 -17.4" stroke="${P.sky1}" stroke-width=".5"/>` },
+        { d: wing, fill: P.blue, inner: `<path d="${cells}" fill="none" stroke="${P.night}" stroke-width=".45" opacity=".8"/>` + k.sh(wing, 0, 0, 1, 1, 0, 0.9, P.night, 0.45) + hair(17.4, -8, 19.6, -15, 25.6, -21.6, 0.6, P.sky1) + hair(26.4, -16, 25.6, 0, 26.4, 16, 0.5, P.sky1, 0.7) },
       ], 0.6) +
-      `<path d="M15.6 -2.6H18.2V2.6H15.6Z" fill="${P.sky2}" stroke="${P.ink}" stroke-width=".4"/></g>`
+      `<circle cx="15.6" cy="0" r="2" fill="${P.sky2}" stroke="${P.ink}" stroke-width=".4"/></g>`
     return (
       space(k, 59) +
       k.sun(60, 61, 12, 42, 28, false) +

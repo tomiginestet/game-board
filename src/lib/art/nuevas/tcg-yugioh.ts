@@ -64,17 +64,24 @@ function thumbsUp(k: Kit) {
   )
 }
 
-/** Carta de reliquia (no la de la marca): marco dorado, ventana violeta con una silueta de piedra y renglones. Base en (0,0). */
+/** Carta de reliquia (no la de la marca): marco dorado, ventana violeta con una pieza de piedra y renglones. Centro en (0,0). */
 function relicCard(k: Kit, art: string) {
-  const d = roundRect(-7.5, -21, 7.5, 0, 1.2)
-  const win = 'M-5.8 -19H5.8V-8.4H-5.8Z'
+  const d = roundRect(-8, -11, 8, 11, 1.2)
+  const win = 'M-6.2 -9H6.2V3.4H-6.2Z'
   return (
-    k.draw([{ d, fill: P.gold, inner: k.sh(d, 0, 0, 1, 1, 0, 0.8, P.goldD, 0.45) }], 0.5) +
-    `<path d="${roundRect(-6.6, -20.1, 6.6, -0.9, 0.7)}" fill="none" stroke="${P.goldD}" stroke-width=".35"/>` +
-    `<path d="${win}" fill="${VIOD}"/>` + k.clip(win, `<circle cx="0" cy="-13.4" r="7" fill="${k.rad(VIOL, 0.5, 0.5, 0.5, 0.8, 0)}"/>` + art) +
+    k.draw([{ d, fill: P.gold, inner: k.sh(d, 0, 0, 1, 1, 0, 0.8, P.goldD, 0.45) + `<path d="M-8 -11H-3V11H-8Z" fill="${k.lin(P.goldL, 0, 0, 1, 0, 0.7, 0)}"/>` }], 0.5) +
+    `<path d="${roundRect(-7, -10, 7, 10, 0.7)}" fill="none" stroke="${P.goldD}" stroke-width=".35"/>` +
+    `<path d="${win}" fill="${VIOD}"/>` + k.clip(win, `<circle cx="0" cy="-2.8" r="7.4" fill="${k.rad(VIOL, 0.5, 0.5, 0.5, 0.85, 0)}"/>` + art) +
     `<path d="${win}" fill="none" stroke="${P.ink}" stroke-width=".4"/>` +
-    `<path d="M-5.6 -6.2H5.6M-5.6 -4.4H5.6M-5.6 -2.6H2.4" stroke="${P.goldD}" stroke-width=".45"/>`
+    `<path d="M-6 5.6H6M-6 7.2H6M-6 8.8H2.6" stroke="${P.goldD}" stroke-width=".45"/>`
   )
+}
+
+/** Las piezas de piedra del prohibido, en coordenadas de la ventana de la carta: cabeza con tocado, brazo y pierna encadenados. */
+const STONE_PIECES = {
+  head: 'M-5.2 3.4C-5.6 -1.6 -4.8 -7 0 -7.8C4.8 -7 5.6 -1.6 5.2 3.4H3.2L2.8 -2.6H-2.8L-3.2 3.4Z',
+  arm: 'M-2.4 3.4H2.4L2.8 -2C4.6 -2.2 5.4 -3.6 5.2 -5.6C5 -7.6 3.6 -8.6 0 -8.6C-3.6 -8.6 -5 -7.6 -5.2 -5.6C-5.4 -3.6 -4.6 -2.2 -2.8 -2Z',
+  leg: 'M-2.6 -9H2.6L2.2 -.4L5.6 1.6C6.4 2.2 6 3.4 5 3.4H-2.8Z',
 }
 
 export const TCG_YUGIOH_NUEVAS_ART: Record<string, (u: number) => string> = {
@@ -422,24 +429,28 @@ export const TCG_YUGIOH_NUEVAS_ART: Record<string, (u: number) => string> = {
     )
   },
 
-  // Primer Exodia: las cinco piezas juntas, que nadie te creía. Cinco cartas en cruz como un cuerpo, sobre el sello.
+  // Primer Exodia: las cinco piezas juntas, que nadie te creía. Cinco cartas en las puntas de la estrella, como un cuerpo.
   'Las cinco piezas': (u) => {
     const k = kit(u)
-    const g = P.goldL
-    const head = `<path d="M-4.4 -9C-4.6 -13 -3.6 -17 0 -17.4C3.6 -17 4.6 -13 4.4 -9L6 -8H2.6V-12.6H-2.6V-8H-6Z" fill="${g}" stroke="${P.goldD}" stroke-width=".3"/><path d="M-2.6 -12.6H2.6V-8H-2.6Z" fill="${P.night}"/>`
-    const arm = `<path d="M-1.6 -6H1.6L2 -13.4C3 -13.6 3.6 -14.6 3.4 -15.8C3.2 -17 2 -17.6 0 -17.6C-2 -17.6 -3.2 -17 -3.4 -15.8C-3.6 -14.6 -3 -13.6 -2 -13.4Z" fill="${g}" stroke="${P.goldD}" stroke-width=".3"/><path d="M-2.6 -11.4H2.6V-9.6H-2.6Z" fill="${P.gold}" stroke="${P.ink}" stroke-width=".3"/>`
-    const leg = `<path d="M-1.6 -18H1.8L1.6 -11.6L4 -9.6C4.6 -9 4.2 -8 3.4 -8H-1.8Z" fill="${g}" stroke="${P.goldD}" stroke-width=".3"/><path d="M-2.4 -12.6H2.4V-11H-2.4Z" fill="${P.gold}" stroke="${P.ink}" stroke-width=".3"/>`
-    const cards: [number, number, number, string, boolean][] = [[60, 46.6, 0, head, false], [37, 66.4, -16, arm, false], [83, 66.4, 16, arm, true], [51, 90.4, -6, leg, false], [69, 90.4, 6, leg, true]]
-    const R = 14, pent = Array.from({ length: 5 }, (_, i) => { const a = (-90 + i * 144) * Math.PI / 180; return `${i ? 'L' : 'M'}${f(60 + Math.cos(a) * R)} ${f(62 + Math.sin(a) * R)}` }).join('') + 'Z'
+    const cx = 60, cy = 58, R = 24
+    const V = Array.from({ length: 5 }, (_, i) => { const a = ((-90 + i * 72) * Math.PI) / 180; return { x: cx + Math.cos(a) * R, y: cy + Math.sin(a) * R } })
+    const star = [0, 2, 4, 1, 3].map((j, i) => `${i ? 'L' : 'M'}${f(V[j].x)} ${f(V[j].y)}`).join('') + 'Z'
+    const stoneFill = (d: string, band: string) =>
+      `<path d="${d}" fill="${P.sky1}" stroke="${P.ink}" stroke-width=".45"/>` + k.clip(d, k.sh(d, 0, 0, 1, 1, 0, 0.9, P.blue, 0.45)) + band
+    const head = stoneFill(STONE_PIECES.head, `<path d="M-4.6 -1.4H4.6M-4.8 .8H4.8" stroke="${P.blue}" stroke-width=".5"/><path d="M-2.8 -2.6H2.8V3.4H-2.8Z" fill="${P.night}"/><circle cx="0" cy="-5.2" r=".9" fill="${P.gold}" stroke="${P.ink}" stroke-width=".3"/>`)
+    const arm = stoneFill(STONE_PIECES.arm, `<path d="M-2.9 -.4H2.9V1.4H-2.9Z" fill="${P.gold}" stroke="${P.ink}" stroke-width=".35"/><path d="M-2.6 -8.4V-5.4M0 -8.6V-5.2M2.6 -8.4V-5.4" stroke="${P.blue}" stroke-width=".45"/><path d="M-4.6 -4.4C-2 -3.4 1 -3.4 3.4 -4.8" fill="none" stroke="${P.blue}" stroke-width=".45"/>`)
+    const leg = stoneFill(STONE_PIECES.leg, `<path d="M-3 -2.8H3V-1H-3Z" fill="${P.gold}" stroke="${P.ink}" stroke-width=".35"/>`)
+    const cards: [number, number, string][] = [[0, 0, head], [1, 12, arm], [2, 6, leg], [3, -6, leg], [4, -12, arm]]
     return (
       k.night() +
-      [[30, 36], [88, 32], [26, 80], [93, 84], [42, 24], [76, 22]].map(([x, y], i) => `<circle cx="${x}" cy="${y}" r="${i % 2 ? 0.5 : 0.7}" fill="${P.paper}"/>`).join('') +
-      k.shade(ellipse(60, 62, 30, 30), k.rad(VIOL, 0.5, 0.5, 0.5, 0.9, 0), VIO, 0.5) +
-      burst(k, 60, 62, 10, 40, 24, VIOL) +
-      `<circle cx="60" cy="62" r="${R + 1.6}" fill="none" stroke="${P.gold}" stroke-width="1.2"/><circle cx="60" cy="62" r="${R + 1.6}" fill="none" stroke="${P.goldL}" stroke-width=".4" stroke-dasharray=".01 1.4" stroke-linecap="round"/>` +
-      `<path d="${pent}" fill="none" stroke="${P.ink}" stroke-width="1.8" stroke-linejoin="round"/><path d="${pent}" fill="none" stroke="${P.gold}" stroke-width=".9" stroke-linejoin="round"/>` +
-      cards.map(([x, y, r, art, flip]) => `<g transform="translate(${x} ${y}) rotate(${r})">` + k.cast([roundRect(-7.5, -21, 7.5, 0, 1.2)], 1.6, 1.4, '#0F1736') + relicCard(k, flip ? `<g transform="scale(-1 1)">${art}</g>` : art) + `</g>`).join('') +
-      sparkle(60, 62, 3, '#fff') + sparkle(86, 40, 2, VIOLL) + sparkle(34, 42, 1.6, VIOLL) +
+      [[30, 36], [88, 32], [26, 80], [93, 84], [44, 22], [78, 24], [60, 94]].map(([x, y], i) => `<circle cx="${x}" cy="${y}" r="${i % 2 ? 0.5 : 0.7}" fill="${P.paper}"/>`).join('') +
+      k.shade(ellipse(cx, cy, 32, 32), k.rad(VIOL, 0.5, 0.5, 0.5, 0.9, 0), VIO, 0.5) +
+      burst(k, cx, cy, 8, 40, 24, VIOL) +
+      `<circle cx="${cx}" cy="${cy}" r="${R}" fill="none" stroke="${P.ink}" stroke-width="2"/><circle cx="${cx}" cy="${cy}" r="${R}" fill="none" stroke="${P.gold}" stroke-width="1"/>` +
+      `<circle cx="${cx}" cy="${cy}" r="${R - 2.2}" fill="none" stroke="${P.goldL}" stroke-width=".45" stroke-dasharray=".01 1.5" stroke-linecap="round"/>` +
+      `<path d="${star}" fill="none" stroke="${P.ink}" stroke-width="2.2" stroke-linejoin="round"/><path d="${star}" fill="none" stroke="${P.gold}" stroke-width="1.1" stroke-linejoin="round"/><path d="${star}" fill="none" stroke="${P.goldL}" stroke-width=".4" stroke-linejoin="round" transform="translate(-.3 -.3)"/>` +
+      cards.map(([j, r, art]) => `<g transform="translate(${f(V[j].x)} ${f(V[j].y)}) rotate(${j === 1 || j === 2 ? r : r}) ${j === 1 || j === 2 ? 'scale(-1 1)' : ''}">` + k.cast([roundRect(-8, -11, 8, 11, 1.2)], 1.6, 1.4, '#0F1736') + relicCard(k, art) + `</g>`).join('') +
+      sparkle(cx, cy, 3.4, '#fff') + sparkle(88, 76, 2, VIOLL) + sparkle(32, 76, 1.6, VIOLL) +
       k.defs()
     )
   },
@@ -481,41 +492,48 @@ export const TCG_YUGIOH_NUEVAS_ART: Record<string, (u: number) => string> = {
   // Seis Exodias: gritás la frase y los vecinos golpean la pared. El puño de piedra encadenado atraviesa el muro.
   '¡Exodia, oblitéralo!': (u) => {
     const k = kit(u)
-    const hole = 'M60 30L67 36L76 33L78 42L88 46L83 55L90 63L81 68L83 79L72 77L66 86L58 80L48 86L45 76L35 77L38 67L30 60L38 53L33 44L43 42L45 33L53 36Z'
+    const hole = 'M60 27L67 34L77 30L79 40L90 44L84 54L92 62L82 67L85 79L73 77L67 87L58 81L48 87L45 77L34 78L37 67L28 60L37 52L31 43L42 40L44 30L53 34Z'
     let bricks = ''
-    for (let r = 0; r < 14; r++) {
-      const y = 4 + r * 8
-      bricks += `M0 ${y}H120`
-      for (let c = 0; c < 9; c++) { const x = (r % 2 ? 7 : 0) + c * 14; bricks += `M${x} ${y}V${y + 8}` }
+    for (let r = 0; r < 17; r++) {
+      const y = r * 7.4
+      bricks += `M0 ${f(y)}H120`
+      for (let c = 0; c < 10; c++) { const x = (r % 2 ? 6.5 : 0) + c * 13; bricks += `M${x} ${f(y)}V${f(y + 7.4)}` }
     }
     const fing: [number, number, number, number][] = [[-17.4, -8.6, -15, 2], [-8.6, 0.4, -16.8, 3], [0.4, 8.8, -16, 2.4], [8.8, 15.6, -13.6, 0.8]]
     const finger = ([x0, x1, t, b]: [number, number, number, number]) => roundRect(x0, t, x1, b, 3.4)
     const heel = 'M-17 1C-17.6 7 -14 13 -6 14.8C2 16.4 11 14 15.6 7.6L16 0Z'
     const thumb = 'M-19.6 3.4C-19.6 .4 -17 -1.6 -13 -1.4L2.4 -.4C5.4 -.2 7 1.8 6.8 4C6.6 6.4 4.4 7.6 1.8 7.4L-14 6.8C-17.6 6.6 -19.6 5.6 -19.6 3.4Z'
-    const cuff = 'M-19 -12C-19 -21 19 -21 19 -12L16 -11C14 -17.4 -14 -17.4 -16 -11Z'
-    const stone = (d: string, extra = '') => ({ d, fill: P.goldL, line: 0.35, inner: k.sh(d, 0, 0, 1, 1, 0, 0.9, P.brown, 0.45) + extra })
-    const link = (x: number, y: number, r: number) => `<g transform="translate(${x} ${y}) rotate(${r})"><path d="${roundRect(-3.4, -1.8, 3.4, 1.8, 1.8)}" fill="none" stroke="${P.ink}" stroke-width="2"/><path d="${roundRect(-3.4, -1.8, 3.4, 1.8, 1.8)}" fill="none" stroke="${P.gold}" stroke-width="1"/></g>`
-    const chip = (x: number, y: number, r: number, s: number) => `<g transform="translate(${x} ${y}) rotate(${r}) scale(${s})">` + k.draw([{ d: 'M-4 -2.4L3.6 -2.8L4.2 2.2L-3.6 2.8Z', fill: P.red, inner: k.sh('M-4 -2.4L3.6 -2.8L4.2 2.2L-3.6 2.8Z', 0, 0, 1, 1, 0, 0.9, P.wine, 0.4) }], 0.5 / s) + `</g>`
+    const cuff = 'M-13.4 13.6C-6 17 6 17 13.4 13.6L13.8 20.6C6 24.4 -6 24.4 -13.8 20.6Z'
+    const stone = (d: string, extra = '') => ({ d, fill: P.sky1, line: 0.35, inner: k.sh(d, 0, 0, 1, 1, 0, 0.9, P.blue, 0.45) + extra })
+    const link = (x: number, y: number, r: number, s = 1) => `<g transform="translate(${x} ${y}) rotate(${r}) scale(${s})"><path d="${roundRect(-3.6, -1.9, 3.6, 1.9, 1.9)}" fill="none" stroke="${P.ink}" stroke-width="2.1"/><path d="${roundRect(-3.6, -1.9, 3.6, 1.9, 1.9)}" fill="none" stroke="${P.gold}" stroke-width="1.05"/><path d="M-2.4 -1.6H1.6" stroke="${P.goldL}" stroke-width=".4"/></g>`
+    const chip = (x: number, y: number, r: number, s: number) => `<g transform="translate(${x} ${y}) rotate(${r}) scale(${s})">` + k.draw([{ d: 'M-4 -2.4L3.6 -2.8L4.2 2.2L-3.6 2.8Z', fill: P.red, inner: k.sh('M-4 -2.4L3.6 -2.8L4.2 2.2L-3.6 2.8Z', 0, 0, 1, 1, 0, 0.9, P.wine, 0.4) + `<path d="M-4 -.4H4" stroke="${P.paper}" stroke-width=".5" opacity=".6"/>` }], 0.5 / s) + `</g>`
+    const cracks = [[28, 60, 18, 62, 10, 58], [90, 44, 98, 40, 108, 42], [85, 79, 90, 86, 94, 96], [44, 30, 42, 22, 44, 14], [34, 78, 28, 84, 24, 92], [77, 30, 80, 24, 86, 20]]
     return (
       `<rect width="120" height="130" fill="${P.paper}"/>` +
       `<path d="${bricks}" stroke="${P.sky2}" stroke-width=".6"/>` + k.shade('M0 0H120V130H0Z', k.rad(P.sky2, 0.5, 0.46, 0.7, 0, 1), '#9EB1DB', 0.5) +
-      `<path d="${hole}" fill="${P.red}" transform="translate(60 58) scale(1.18) translate(-60 -58)"/>` + k.clip(`${hole}`, '') +
-      `<g transform="translate(60 58) scale(1.18) translate(-60 -58)"><path d="${hole}" fill="${P.wine}"/>` + k.sh(hole, 0, 0, 1, 1, 0, 0.9, P.night, 0.4) + `<path d="${bricks}" stroke="${P.paper}" stroke-width=".5" opacity=".4"/></g>` +
-      `<path d="${hole}" fill="${VIOD}"/>` + k.clip(hole, burst(k, 60, 58, 6, 40, 26, VIOLL) + k.shade(hole, k.rad(VIOLL, 0.5, 0.5, 0.5, 1, 0), VIOL, 0.5)) +
-      `<path d="${hole}" fill="none" stroke="${P.ink}" stroke-width=".8" stroke-linejoin="round"/>` +
-      hair(30, 60, 22, 62, 14, 58, 0.6) + hair(88, 46, 96, 42, 104, 44, 0.6) + hair(83, 79, 88, 86, 92, 94, 0.6) + hair(53, 36, 50, 28, 52, 20, 0.5) + hair(35, 77, 30, 82, 26, 90, 0.5) +
-      `<g transform="translate(60 61) scale(1.1)">` +
-      k.draw([{ d: cuff, fill: P.gold, inner: k.sh(cuff, 0, 0, 1, 0, 0, 0.9, P.goldD, 0.5) }], 0.6) +
+      // el agujero en la pared del vecino: los ladrillos rotos alrededor y la luz violeta adentro
+      `<g transform="translate(60 57) scale(1.16) translate(-60 -57)"><path d="${hole}" fill="${P.red}"/>` + k.sh(hole, 0, 0, 1, 1, 0, 0.9, P.wine, 0.45) + k.clip(hole, `<path d="${bricks}" stroke="${P.paper}" stroke-width=".55" opacity=".65"/>`) + `<path d="${hole}" fill="none" stroke="${P.ink}" stroke-width=".5" stroke-linejoin="round"/></g>` +
+      `<path d="${hole}" fill="${VIOD}"/>` + k.clip(hole, burst(k, 60, 56, 5, 40, 28, VIOLL) + k.shade(hole, k.rad(VIOLL, 0.5, 0.5, 0.5, 1, 0), VIOL, 0.55)) +
+      `<path d="${hole}" fill="none" stroke="${P.ink}" stroke-width=".9" stroke-linejoin="round"/>` +
+      cracks.map(([a, b, c, d, e, g]) => hair(a, b, c, d, e, g, 0.7)).join('') +
+      // el puño de piedra, con el grillete dorado y la cadena rota
+      `<g transform="translate(60 56) scale(1.16)">` +
+      k.cast([heel, thumb, ...fing.map(finger), cuff], 2, 1.8, P.night) +
+      k.draw([{
+        d: cuff, fill: P.gold,
+        inner: k.sh(cuff, 0, 0, 1, 0, 0, 0.9, P.goldD, 0.5) + `<path d="M-13.6 15.6C-6 19 6 19 13.6 15.6M-13.7 18.6C-6 22.2 6 22.2 13.7 18.6" fill="none" stroke="${P.goldD}" stroke-width=".45"/>` +
+          [-8, -2.6, 2.6, 8].map((x, i) => `<circle cx="${x}" cy="${f(18.3 + (Math.abs(x) < 5 ? 0.9 : 0.2))}" r="1.1" fill="${i % 2 ? VIO : P.red}" stroke="${P.ink}" stroke-width=".3"/>`).join(''),
+      }], 0.6) +
       k.draw([
-        stone(heel),
-        ...fing.map((g) => stone(finger(g), `<path d="M${g[0]} ${f(g[2] + 7)}H${g[1]}" stroke="${P.brown}" stroke-width=".5"/>` + `<ellipse cx="${f((g[0] + g[1]) / 2 - 1)}" cy="${f(g[2] + 2.6)}" rx="1.8" ry="1" fill="#fff" opacity=".7"/>`)),
-        stone(thumb, `<path d="M1.6 .6C3.8 .8 4.8 2.4 4.6 4C4.4 5.4 3.4 6.2 1.6 6.2C2.2 4.4 2.2 2.4 1.6 .6Z" fill="${P.white}" stroke="${P.brown}" stroke-width=".35"/>`),
+        stone(heel, hair(-12, 8, -6, 12, 2, 12.6, 0.45, P.blue)),
+        ...fing.map((g, i) => stone(finger(g), `<path d="M${g[0]} ${f(g[2] + 7.4)}Q${f((g[0] + g[1]) / 2)} ${f(g[2] + 8.4)} ${g[1]} ${f(g[2] + 7.4)}" fill="none" stroke="${P.blue}" stroke-width=".55"/>` + `<ellipse cx="${f((g[0] + g[1]) / 2 - 1)}" cy="${f(g[2] + 2.8)}" rx="2" ry="1.1" fill="#fff" opacity=".8"/>` + (i === 1 ? hair(-5, -12, -3, -8, -6, -3, 0.45, P.mid) : '') + (i === 2 ? hair(5, -4, 3, -1, 6, 1.4, 0.4, P.mid) : ''))),
+        stone(thumb, `<path d="M1.6 .6C3.8 .8 4.8 2.4 4.6 4C4.4 5.4 3.4 6.2 1.6 6.2C2.2 4.4 2.2 2.4 1.6 .6Z" fill="${P.white}" stroke="${P.blue}" stroke-width=".35"/>` + hair(-14, 2, -10, 1, -6, 2.4, 0.4, P.blue)),
       ], 0.75) +
-      hair(-12, -12, -10, -6, -13, -2, 0.45, P.brownD) + hair(4, -14, 6, -8, 3, -3, 0.4, P.brownD) + hair(-6, 9, -2, 11, 4, 10, 0.4, P.brownD) +
       `</g>` +
-      link(32, 40, 30) + link(26, 34, -40) + link(90, 72, 40) + link(95, 78, -20) +
-      chip(24, 50, 20, 1) + chip(96, 56, -15, 0.9) + chip(30, 88, 35, 0.8) + chip(88, 30, -25, 0.8) +
-      sparkle(60, 30, 2.6, '#fff') +
+      // la cadena rota que vuela
+      link(36, 86, 60) + link(31, 81, -10, 0.95) + link(27, 75, 50, 0.9) + link(84, 32, -30, 0.9) + link(89, 27, 30, 0.8) +
+      chip(24, 50, 20, 1) + chip(96, 58, -15, 0.9) + chip(86, 90, 35, 0.8) + chip(34, 30, -25, 0.8) + chip(97, 76, 10, 0.6) +
+      sparkle(60, 26, 2.6, '#fff') + sparkle(28, 66, 1.6, VIOLL) +
       k.defs()
     )
   },

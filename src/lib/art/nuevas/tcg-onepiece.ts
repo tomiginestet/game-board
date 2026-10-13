@@ -101,12 +101,12 @@ function opCard(k: Kit, w: number, h: number) {
   )
 }
 
-/** Rayo de haki: zigzag negro que se afina, de r0 a r1 en el ángulo a. */
+/** Rayo de haki: zigzag negro y quebrado que se afina, de r0 a r1 en el ángulo a. */
 function bolt(cx: number, cy: number, a: number, r0: number, r1: number, w: number, seed: number) {
-  const N = 6, L: string[] = [], R: string[] = []
+  const N = 5, L: string[] = [], R: string[] = []
   const ux = Math.cos(a), uy = Math.sin(a), px = -uy, py = ux
   for (let i = 0; i <= N; i++) {
-    const t = i / N, r = r0 + (r1 - r0) * t, off = i === 0 || i === N ? 0 : Math.sin(seed * 3.7 + i * 2.3) * 2.4 * (i % 2 ? 1 : -1), ww = w * (1 - t * 0.92)
+    const t = i / N, r = r0 + (r1 - r0) * t, off = i === 0 ? 0 : (i % 2 ? 1 : -1) * (2.2 + Math.abs(Math.sin(seed * 2.1 + i)) * 2), ww = w * (1 - t * 0.9)
     const x = cx + ux * r + px * off, y = cy + uy * r + py * off
     L.push(`${f(x + px * ww)} ${f(y + py * ww)}`)
     R.push(`${f(x - px * ww)} ${f(y - py * ww)}`)
@@ -313,28 +313,31 @@ export const TCG_ONEPIECE_NUEVAS_ART: Record<string, (u: number) => string> = {
   // Doce triggers: la corona del rey suelta el haki; los rayos negros barren la mesa y las cartas del rival se desmayan.
   'Haki del Rey': (u) => {
     const k = kit(u)
-    const cx = 60, cy = 46
-    const angles = [-168, -140, -112, -76, -48, -18, 12, 168, 196, 150, 30]
-    const bolts = angles.map((deg, i) => bolt(cx, cy, (deg * Math.PI) / 180, 14, 40 + (i % 3) * 4, 3, i + 1)).join('')
-    const forks = angles.filter((_, i) => i % 2 === 0).map((deg, i) => bolt(cx + Math.cos((deg * Math.PI) / 180) * 26, cy + Math.sin((deg * Math.PI) / 180) * 26, ((deg + 22) * Math.PI) / 180, 0, 12, 1.4, i + 7)).join('')
+    const cx = 60, cy = 50
+    const angles = [-172, -146, -120, -60, -34, -8, 16, 164, 190, 146, 34]
+    const bolts = angles.map((deg, i) => bolt(cx, cy, (deg * Math.PI) / 180, 17, 46 + (i % 3) * 3, 2.4, i + 1)).join('')
+    const forks = angles.filter((_, i) => i % 2 === 0).map((deg, i) => {
+      const a = (deg * Math.PI) / 180, r = 30
+      return bolt(cx + Math.cos(a) * r, cy + Math.sin(a) * r, a + (i % 2 ? 0.5 : -0.5), 0, 11, 1.2, i + 7)
+    }).join('')
     const points = 'M-15.4 -6.6L-17.4 -19.4L-11.8 -12.2L-8.6 -23.2L-4 -14.2L0 -27L4 -14.2L8.6 -23.2L11.8 -12.2L17.4 -19.4L15.4 -6.6C5 -4.6 -5 -4.6 -15.4 -6.6Z'
     const band = 'M-15 0C-15 -2 -15 -4.4 -15.4 -6.6C-5 -4.6 5 -4.6 15.4 -6.6C15 -4.4 15 -2 15 0C5 1.6 -5 1.6 -15 0Z'
     const cap = 'M-12 -8C-11 -16 -5 -19.4 0 -19.4C5 -19.4 11 -16 12 -8C5 -6.6 -5 -6.6 -12 -8Z'
     const gem = (x: number, y: number, r: number, c: string) => `<circle cx="${x}" cy="${y}" r="${f(r + 0.6)}" fill="${P.gold}" stroke="${P.ink}" stroke-width=".35"/><circle cx="${x}" cy="${y}" r="${r}" fill="${c}" stroke="${P.ink}" stroke-width=".3"/><circle cx="${f(x - r * 0.35)}" cy="${f(y - r * 0.35)}" r="${f(r * 0.3)}" fill="#fff"/>`
     const pearl = (x: number, y: number, r = 1.3) => `<circle cx="${x}" cy="${y}" r="${r}" fill="${P.white}" stroke="${P.ink}" stroke-width=".35"/><circle cx="${f(x - 0.4)}" cy="${f(y - 0.4)}" r=".4" fill="#fff"/>`
-    const table = 'M10 86C28 80.6 92 80.6 110 86V130H10Z'
-    const shock = [[14, 2.4], [26, 4.2], [38, 6]].map(([rx, ry], i) => `<path d="${ellipse(60, 88.4 + i * 1.4, rx, ry)}" fill="none" stroke="${OPL}" stroke-width="${0.8 - i * 0.15}" stroke-dasharray="${3 + i * 2} ${1.6 + i}" opacity="${0.9 - i * 0.2}"/>`).join('')
+    const table = 'M10 88C28 83.4 92 83.4 110 88V130H10Z'
+    const rings = [22, 31, 40].map((r, i) => `<circle cx="${cx}" cy="${cy}" r="${r}" fill="none" stroke="${OPL}" stroke-width="${f(0.8 - i * 0.18)}" stroke-dasharray="${5 + i * 2} ${2 + i}" opacity="${f(0.85 - i * 0.2)}"/>`).join('')
     return (
-      `<rect width="120" height="130" fill="${OPN}"/>` + k.shade('M0 0H120V130H0Z', k.rad(OP, 0.5, 0.36, 0.42, 0.95, 0), OP, 0.5) +
-      k.draw([{ d: table, fill: '#5A2A1E', inner: k.sh(table, 0, 0, 0, 1, 0, 0.9, '#1E0A0E', 0.5) + hair(20, 85.6, 60, 82.4, 100, 85.6, 0.6, OPL, 0.6) + hair(24, 92, 40, 90.4, 52, 90.6, 0.4, '#1E0A0E') + hair(70, 96, 84, 95, 98, 96, 0.4, '#1E0A0E') }], 0.6) +
-      shock +
-      `<path d="${bolts}${forks}" fill="none" stroke="${OP}" stroke-width="3.6" stroke-linejoin="round" opacity=".5"/>` +
-      `<path d="${bolts}${forks}" fill="none" stroke="${OPL}" stroke-width="1.6" stroke-linejoin="round" opacity=".8"/>` +
+      `<rect width="120" height="130" fill="${OPN}"/>` + k.shade('M0 0H120V130H0Z', k.rad(OP, 0.5, 0.4, 0.4, 1, 0), OP, 0.5) +
+      rings +
+      `<path d="${bolts}${forks}" fill="none" stroke="${OP}" stroke-width="3.4" stroke-linejoin="round" opacity=".6"/>` +
+      `<path d="${bolts}${forks}" fill="none" stroke="${OPL}" stroke-width="1.3" stroke-linejoin="round"/>` +
       `<path d="${bolts}${forks}" fill="#14060C"/>` +
-      k.shade(ellipse(cx, cy - 2, 19, 19), k.rad(P.goldL, 0.5, 0.5, 0.5, 0.75, 0), P.goldL, 0.45) +
-      `<g transform="translate(35 82) rotate(-64)">` + opCard(k, 9.6, 13.6) + `</g>` + `<g transform="translate(86 80.4) rotate(58)">` + opCard(k, 9.6, 13.6) + `</g>` +
-      hair(38, 80, 42, 78, 46, 78, 0.6, OPL) + hair(82, 79, 78, 77.4, 74, 77.6, 0.6, OPL) +
-      `<g transform="translate(${cx} ${cy + 13}) scale(1.3)">` +
+      k.draw([{ d: table, fill: '#4A2018', inner: k.sh(table, 0, 0, 0, 1, 0, 0.9, '#1E0A0E', 0.5) + hair(20, 87.6, 60, 84.6, 100, 87.6, 0.6, OPL, 0.7) + hair(26, 94, 40, 92.4, 52, 92.6, 0.4, '#1E0A0E') + hair(68, 97, 82, 96, 96, 97, 0.4, '#1E0A0E') }], 0.6) +
+      k.shade(ellipse(cx, cy, 20, 20), k.rad(P.goldL, 0.5, 0.5, 0.5, 0.8, 0), P.goldL, 0.45) +
+      `<g transform="translate(36 86) rotate(-70)">` + opCard(k, 9.6, 13.6) + `</g>` + `<g transform="translate(85 84.4) rotate(62)">` + opCard(k, 9.6, 13.6) + `</g>` +
+      hair(42, 82, 45, 80.6, 48, 80.4, 0.6, OPL) + hair(79, 81, 76, 79.6, 73, 79.6, 0.6, OPL) +
+      `<g transform="translate(${cx} ${cy + 14}) scale(1.28)">` +
       k.floor(0, 1.4, 15, 2, '#14060C') +
       k.draw([
         { d: cap, fill: OP, inner: k.sh(cap, 0, 0, 1, 1, 0, 0.9, OPD, 0.5) + hair(-6, -9, -5, -14, -1, -17.6, 0.6, OPL, 0.9) },
@@ -344,12 +347,12 @@ export const TCG_ONEPIECE_NUEVAS_ART: Record<string, (u: number) => string> = {
             `<path d="M-14.6 -8.6L-15.8 -16.6M-7.6 -9L-8.2 -19M7.6 -9L8.2 -19M14.6 -8.6L15.8 -16.6M0 -9.4V-23" stroke="${P.goldD}" stroke-width=".4"/>`,
         },
         { d: band, fill: P.gold, inner: k.sh(band, 0, 0, 1, 1, 0, 0.95, P.goldD, 0.5) + `<path d="M-15 -1.6C-5 0 5 0 15 -1.6M-15.2 -5C-5 -3.2 5 -3.2 15.2 -5" fill="none" stroke="${P.goldD}" stroke-width=".35"/>` + hair(-13, -3.6, -8, -2.6, -4, -2.4, 0.5, '#fff') },
-      ], f(0.75 / 1.3)) +
+      ], f(0.75 / 1.28)) +
       pearl(-17.4, -20.2) + pearl(-8.6, -24.2) + pearl(0, -28.2, 1.5) + pearl(8.6, -24.2) + pearl(17.4, -20.2) +
       gem(0, -3.2, 1.6, OP) + gem(-8, -3, 1.1, P.sky) + gem(8, -3, 1.1, P.sky) + gem(-13, -3.4, 0.7, OP) + gem(13, -3.4, 0.7, OP) +
       `<path d="${starPath(0, -12, 1.8, 0.7, 4)}" fill="${P.goldL}"/>` +
       `</g>` +
-      sparkle(60, 21, 2.4, '#fff') + sparkle(88, 36, 1.6, OPL) + sparkle(32, 40, 1.6, OPL) +
+      sparkle(88, 34, 1.6, OPL) + sparkle(32, 40, 1.6, OPL) +
       k.defs()
     )
   },

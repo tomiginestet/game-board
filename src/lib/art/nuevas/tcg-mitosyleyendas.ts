@@ -9,7 +9,7 @@ const STONE = '#DCD0B8', STONEL = '#EEE6D4', STONED = '#A8957A', MORTAR = '#8C7A
 
 /** Pergamino: papel crema con el borde tostado y granulado. */
 function parchment(k: Kit, gx = 0.5, gy = 0.46) {
-  return `<rect width="120" height="130" fill="${P.paper}"/>` + k.shade('M0 0H120V130H0Z', k.rad('#C29A68', gx, gy, 0.7, 0, 1), MYLL, 0.55)
+  return `<rect width="120" height="130" fill="${P.paper}"/>` + k.shade('M0 0H120V130H0Z', k.rad('#C9A57A', gx, gy, 0.72, 0, 0.75), '#CDAE86', 0.6)
 }
 
 /** Sillares: hiladas de piedras con juntas trabadas que llenan el rectángulo (recortalas con la forma del muro). */
@@ -21,7 +21,7 @@ function ashlar(k: Kit, x0: number, y0: number, x1: number, y1: number, h: numbe
     for (let c = 0; x < x1; c++) {
       const w = 10 + ((r * 5 + c * 7 + seed) % 4) * 2.4
       const d = roundRect(f(x + 0.4), f(y + 0.4), f(x + w - 0.4), f(y + h - 0.4), 0.9)
-      s += `<path d="${d}" fill="${tones[(r + c + seed) % 3]}"/>` + k.sh(d, 0, 0, 1, 1, 0, 0.75, STONED, 0.45) +
+      s += `<path d="${d}" fill="${tones[(r + c + seed) % 3]}"/><path d="${d}" fill="${k.lin(STONED, 0, 0, 1, 1, 0, 0.9)}" opacity=".7"/>` +
         `<path d="M${f(x + 1)} ${f(y + 1)}H${f(x + w - 1.6)}" stroke="${STONEL}" stroke-width=".5" opacity=".9"/>` +
         ((r + c) % 3 === 0 ? hair(x + w * 0.3, y + h * 0.3, x + w * 0.45, y + h * 0.55, x + w * 0.4, y + h * 0.8, 0.35, MORTAR, 0.8) : '')
       x += w
@@ -120,7 +120,7 @@ export const TCG_MITOSYLEYENDAS_NUEVAS_ART: Record<string, (u: number) => string
       k.cast([wall], 2.2, 2, MYLD) +
       k.draw([{
         d: wall, fill: STONE,
-        inner: ashlar(k, 20, 53, 100, 108, 8, 2) + k.sh(wall, 0, 0, 1, 0, 0, 0.5, MYLD, 0.3) + k.sh('M20 90H100V108H20Z', 0, 0, 0, 1, 0, 0.6, MYLD, 0.3),
+        inner: ashlar(k, 20, 53, 100, 108, 8, 2) + k.sh(wall, 0, 0, 1, 0, 0, 0.32, MYLD, 0.3) + k.sh('M20 92H100V108H20Z', 0, 0, 0, 1, 0, 0.4, MYLD, 0.3),
       }], 0.8) +
       `<path d="${topFace}" fill="${STONEL}" stroke="${P.ink}" stroke-width=".5" stroke-linejoin="round"/>` +
       `<path d="M28.6 53H37.4M44.6 53H53.4" stroke="${STONEL}" stroke-width="1"/>` +
@@ -161,9 +161,8 @@ export const TCG_MITOSYLEYENDAS_NUEVAS_ART: Record<string, (u: number) => string
       // Valle a lo lejos, entre las nubes.
       `<path d="M14 92C26 86 36 88 46 84M74 84C84 87 92 84 106 90" fill="none" stroke="${P.greenD}" stroke-width=".6" opacity=".7"/>` +
       `<path d="M14 98C26 90 40 92 50 88V104H14ZM70 88C82 91 94 88 106 94V104H70Z" fill="${P.green}" opacity=".55"/>` +
-      k.cast([front + side], 1.4, 1.2, MYL) +
       k.draw([
-        { d: side, fill: STONED, inner: k.clip(side, ashlar(k, 68, 39, 76, 106, 6.4, 3)) + k.sh(side, 0, 0, 1, 0, 0.35, 0.9, MYLD, 0.5) },
+        { d: side, fill: STONED, inner: k.clip(side, ashlar(k, 68, 39, 76, 106, 6.4, 3)) + `<path d="${side}" fill="${MYL}" opacity=".35"/>` + k.sh(side, 0, 0, 1, 0, 0.1, 0.55, MYLD, 0.4) },
         {
           d: front, fill: STONE,
           inner: ashlar(k, 44, 42, 70, 106, 6.4, 1) + k.sh(front, 0, 0, 1, 0, 0, 0.55, MYLD, 0.3) + `<path d="M44 42H52V106H44Z" fill="${k.lin('#fff', 0, 0, 1, 0, 0.35, 0)}"/>` +
@@ -172,7 +171,7 @@ export const TCG_MITOSYLEYENDAS_NUEVAS_ART: Record<string, (u: number) => string
         },
       ], 0.75) +
       k.draw([
-        { d: parSide, fill: STONED, inner: k.sh(parSide, 0, 0, 1, 0, 0.3, 0.9, MYLD, 0.5) },
+        { d: parSide, fill: STONED, inner: `<path d="${parSide}" fill="${MYL}" opacity=".35"/>` + k.sh(parSide, 0, 0, 1, 0, 0.1, 0.55, MYLD, 0.4) },
         { d: parapet, fill: STONE, inner: ashlar(k, 42, 33, 72, 44, 3.6, 4) + k.sh(parapet, 0, 0, 1, 0, 0, 0.5, MYLD, 0.3) },
       ], 0.65) +
       `<path d="M45.4 44.2H69.6M45.4 45.4H69.6" stroke="${MYLD}" stroke-width=".45"/>` + Array.from({ length: 7 }, (_, i) => `<path d="M${f(47 + i * 3.4)} 43.6V46.6" stroke="${MYLD}" stroke-width=".7"/>`).join('') +
@@ -203,12 +202,12 @@ export const TCG_MITOSYLEYENDAS_NUEVAS_ART: Record<string, (u: number) => string
       return `<path d="M${x0} ${y0}Q${mx} ${my} ${x1} ${y1}" fill="none" stroke="${P.ink}" stroke-width=".8"/><path d="M${x0} ${y0}Q${mx} ${my} ${x1} ${y1}" fill="none" stroke="${MYLL}" stroke-width=".35"/>` + pts.join('')
     }
     return (
-      `<rect width="120" height="130" fill="${STONE}"/>` + ashlar(k, 0, 10, 120, 130, 9, 5) + `<rect width="120" height="130" fill="${P.paper}" opacity=".4"/>` +
-      k.shade('M0 0H120V130H0Z', k.rad(MYLD, 0.5, 0.42, 0.62, 0, 0.9), MYLD, 0.5) +
+      `<rect width="120" height="130" fill="${STONE}"/>` + ashlar(k, 0, 10, 120, 130, 9, 5) + `<rect width="120" height="130" fill="${P.paper}" opacity=".5"/>` +
+      k.shade('M0 0H120V130H0Z', k.rad(MYL, 0.5, 0.42, 0.66, 0, 0.6), MYL, 0.6) +
       k.sun(60, 52, 12, 50, 36, false) +
       k.shade(ellipse(60, 52, 22, 32), k.rad(P.goldL, 0.5, 0.5, 0.5, 0.95, 0), P.goldL, 0.55) +
       garland(23, 37, 97, 37, 14) +
-      `<g transform="translate(60 51) scale(.7)">` + k.cast(['M-3.6 -9V36L0 46L3.6 36V-9Z'], 2.6, 2.4, MYLD) + excalibur(k) + `</g>` +
+      `<g transform="translate(60 50.6) scale(.74)">` + k.cast(['M-3.6 -9V36L0 46L3.6 36V-9Z'], 2.6, 2.4, MYLD) + excalibur(k) + `</g>` +
       `<path d="M54.6 49.4C55 52 56 53 57.4 53.2M65.4 49.4C65 52 64 53 62.6 53.2M54.6 68.4C55 71 56 72 57.4 72.2M65.4 68.4C65 71 64 72 62.6 72.2" fill="none" stroke="${P.ink}" stroke-width="1.8" stroke-linecap="round"/>` +
       `<path d="M54.6 49.4C55 52 56 53 57.4 53.2M65.4 49.4C65 52 64 53 62.6 53.2M54.6 68.4C55 71 56 72 57.4 72.2M65.4 68.4C65 71 64 72 62.6 72.2" fill="none" stroke="${P.mid}" stroke-width=".8" stroke-linecap="round"/>` +
       bracket(54.6, 49) + bracket(65.4, 49) + bracket(54.6, 68) + bracket(65.4, 68) +
@@ -288,31 +287,32 @@ export const TCG_MITOSYLEYENDAS_NUEVAS_ART: Record<string, (u: number) => string
     const brace = 'M26 86.4L47.4 61.4L50.4 63.6L31.4 87.6Z'
     const brace2 = 'M64 86.4L51.6 66L49.4 68L59 87.6Z'
     const cross = 'M39.4 56H59.6V60.6H39.4Z'
-    const arm = 'M49.6 80.4L30.2 43.4L34.2 41.4L53.4 78.8Z'
-    const cup = 'M25 37C24.4 41.6 27.4 45.4 31.8 45.4C36.4 45.4 38.8 42 38.6 37.6Z'
-    const trail = 'M36 35C46 20 62 18 72 27'
+    const arm = 'M49.6 80.4L33.6 43L37.6 41.4L53.4 78.8Z'
+    const cup = 'M28.6 38C28 42.6 31 46.4 35.4 46.4C40 46.4 42.4 43 42.2 38.6Z'
+    const trail = 'M38 32C46 19 60 17 71 30'
     return (
       parchment(k, 0.5, 0.42) +
-      k.sun(62, 52, 14, 46, 32, false) +
+      k.sun(76, 38, 10, 40, 28, false) +
       `<path d="${trail}" fill="none" stroke="${MYL}" stroke-width=".9" stroke-dasharray="1.6 1.6" stroke-linecap="round"/>` +
-      hair(64, 23.6, 69, 23.4, 73, 27, 1, P.goldD) + hair(62, 28, 67, 27.4, 71.4, 30.6, 0.7, P.goldD, 0.8) +
+      hair(63, 24, 68, 25, 71.6, 30, 1, P.goldD) + hair(62, 29.4, 66.6, 30.4, 70, 34.6, 0.7, P.goldD, 0.8) +
       k.cast([wall], 2, 2, MYLD) +
       k.draw([{ d: wall, fill: STONE, inner: ashlar(k, 68, 64, 102, 108, 7, 6) + k.sh(wall, 0, 0, 1, 0, 0, 0.6, MYLD, 0.35) }], 0.75) +
+      `<g transform="translate(47 92) scale(1.05) translate(-44 -92)">` +
       k.floor(44, 96, 28, 3.4, MYL) +
       k.draw([
         { d: brace, fill: MYL, inner: k.sh(brace, 0, 0, 1, 1, 0, 0.8, MYLD, 0.4) },
         { d: brace2, fill: MYL, inner: k.sh(brace2, 0, 0, 1, 1, 0, 0.9, MYLD, 0.5) },
         { d: post, fill: MYL, inner: k.sh(post, 0, 0, 1, 0, 0, 0.9, MYLD, 0.5) + hair(48, 62, 47.8, 74, 48.2, 86, 0.5, MYLL) },
         { d: base, fill: MYL, inner: k.sh(base, 0, 0, 0, 1, 0, 0.9, MYLD, 0.5) + hair(22, 84.8, 44, 84.4, 64, 84.8, 0.5, MYLL, 0.9) + [24, 40, 56].map((x) => `<circle cx="${x}" cy="86" r=".6" fill="${P.mid}"/>`).join('') },
-        { d: arm, fill: MYLL, inner: k.sh(arm, 0, 0, 1, 0, 0, 0.9, MYL, 0.5) + hair(50.6, 78, 41.6, 61, 33, 44.6, 0.55, MYLD) + `<path d="M43 64L46.4 62.2M39.6 57.4L43 55.6" stroke="${P.mid}" stroke-width="1.2"/>` },
+        { d: arm, fill: MYLL, inner: k.sh(arm, 0, 0, 1, 0, 0, 0.9, MYL, 0.5) + hair(50.6, 78, 42.6, 61, 36, 44.6, 0.55, MYLD) + `<path d="M43.8 63.4L47.4 61.8M40.8 56.4L44.4 54.8" stroke="${P.mid}" stroke-width="1.2"/>` },
         { d: cross, fill: MYL, inner: k.sh(cross, 0, 0, 0, 1, 0, 0.9, MYLD, 0.5) + `<path d="M39.4 58.2H59.6" stroke="${MYLD}" stroke-width=".4"/>` + hair(41, 57, 50, 56.6, 58, 57, 0.4, MYLL) },
-        { d: cup, fill: MYL, inner: k.sh(cup, 0, 0, 1, 1, 0, 0.9, MYLD, 0.5) + `<path d="M26 39.2C30 41 34 41 37.8 39.2" fill="none" stroke="${MYLD}" stroke-width=".45"/>` + `<path d="M24.8 37.4H38.8" stroke="${P.mid}" stroke-width=".8"/>` },
+        { d: cup, fill: MYL, inner: k.sh(cup, 0, 0, 1, 1, 0, 0.9, MYLD, 0.5) + `<path d="M29.6 40.2C33.6 42 37.6 42 41.4 40.2" fill="none" stroke="${MYLD}" stroke-width=".45"/>` + `<path d="M28.4 38.4H42.4" stroke="${P.mid}" stroke-width=".8"/>` },
       ], 0.65) +
       `<circle cx="51.4" cy="79.6" r="1.7" fill="${P.mid}" stroke="${P.ink}" stroke-width=".45"/><circle cx="51" cy="79.2" r=".5" fill="${P.sky}"/>` +
       `<path d="M38 82.6C35.4 77 35 71 36.4 65" fill="none" stroke="${P.ink}" stroke-width="1.5"/><path d="M38 82.6C35.4 77 35 71 36.4 65" fill="none" stroke="${MYLL}" stroke-width=".65" stroke-dasharray="1 .5"/>` +
       `<circle cx="42" cy="58.3" r=".75" fill="${P.mid}"/><circle cx="57" cy="58.3" r=".75" fill="${P.mid}"/>` +
-      wheel(k, 29, 89, 7.2) + wheel(k, 58, 89, 7.2) +
-      boulder(k, 77.6, 36.4, 6.6) +
+      wheel(k, 29, 89, 7.2) + wheel(k, 58, 89, 7.2) + `</g>` +
+      boulder(k, 77, 37.6, 6.8) +
       sparkle(88, 50, 1.8, '#fff') + sparkle(30, 58, 1.4, '#fff') +
       k.defs()
     )
@@ -346,8 +346,8 @@ export const TCG_MITOSYLEYENDAS_NUEVAS_ART: Record<string, (u: number) => string
       // La máquina.
       k.floor(58, 95, 36, 2.8, MYL) +
       k.draw([
-        { d: legR, fill: MYL, inner: k.sh(legR, 0, 0, 1, 0, 0, 0.9, MYLD, 0.5) },
-        { d: legL, fill: MYLL, inner: k.sh(legL, 0, 0, 1, 0, 0, 0.8, MYL, 0.5) + hair(41, 88, 48, 70, 56, 50, 0.45, '#fff', 0.6) },
+        { d: legR, fill: MYL, inner: k.sh(legR, 0, 0, 1, 0, 0, 0.9, MYLD, 0.5) + hair(74, 90, 66, 72, 58, 55, 0.4, MYLD) },
+        { d: legL, fill: MYLL, inner: k.sh(legL, 0, 0, 1, 0, 0, 0.8, MYL, 0.5) + hair(40.4, 88, 47, 70, 55, 55, 0.45, '#fff', 0.6) + hair(42, 90, 48.6, 72, 56.4, 56, 0.35, MYL) },
         { d: brace, fill: MYL, inner: k.sh(brace, 0, 0, 0, 1, 0, 0.9, MYLD, 0.5) },
         { d: base, fill: MYL, inner: k.sh(base, 0, 0, 0, 1, 0, 0.9, MYLD, 0.5) + hair(26, 92.4, 58, 92, 92, 92.4, 0.5, MYLL, 0.9) + [30, 46, 70, 86].map((x) => `<circle cx="${x}" cy="93.4" r=".7" fill="${P.mid}"/>`).join('') },
       ], 0.65) +
@@ -360,13 +360,18 @@ export const TCG_MITOSYLEYENDAS_NUEVAS_ART: Record<string, (u: number) => string
             `<path d="M${f(butt.x - 2.2)} ${f(butt.y + 3)}V${f(butt.y + 15)}M${f(butt.x + 2.2)} ${f(butt.y + 3)}V${f(butt.y + 15)}" stroke="${MYLD}" stroke-width=".45"/>` +
             [[-4.4, 6.4], [0, 6.4], [4.4, 6.4], [-4.2, 11], [0, 11], [4.2, 11]].map(([dx, dy]) => `<circle cx="${f(butt.x + dx)}" cy="${f(butt.y + dy)}" r=".45" fill="${P.sky}"/>`).join(''),
         },
-        { d: arm, fill: MYLL, inner: k.sh(arm, 0, 0, 1, 1, 0, 0.9, MYL, 0.5) + hair(tip.x + 2, tip.y + 0.4, (tip.x + butt.x) / 2, (tip.y + butt.y) / 2 - 0.8, butt.x - 2, butt.y - 1.6, 0.45, MYLD) },
+        {
+          d: arm, fill: MYLL,
+          inner: k.sh(arm, 0, 0, 1, 1, 0, 0.9, MYL, 0.5) + hair(tip.x + 2, tip.y + 0.4, (tip.x + butt.x) / 2, (tip.y + butt.y) / 2 - 0.8, butt.x - 2, butt.y - 1.6, 0.45, MYLD) +
+            [0.3, 0.55].map((t) => { const x = tip.x + (butt.x - tip.x) * t, y = tip.y + (butt.y - tip.y) * t; return `<path d="M${f(x + nx * 1.4)} ${f(y + ny * 1.4)}L${f(x - nx * 1.4)} ${f(y - ny * 1.4)}" stroke="${P.mid}" stroke-width="1.2"/>` }).join(''),
+        },
       ], 0.65) +
       `<path d="${sling}" fill="none" stroke="${P.ink}" stroke-width="1.3"/><path d="${sling}" fill="none" stroke="${MYLL}" stroke-width=".5"/>` +
       boulder(k, f(tip.x - 5), f(tip.y + 17.4), 3.6) +
       `<circle cx="${px}" cy="${py}" r="2.2" fill="${P.gold}" stroke="${P.ink}" stroke-width=".5"/><circle cx="${px}" cy="${py}" r=".8" fill="${P.goldD}"/>` +
+      `<g transform="translate(84 90)">` + [3.6, 2.6, 1.6].map((r) => `<ellipse cx="0" cy="0" rx="${r * 1.6}" ry="${r * 0.6}" fill="none" stroke="${P.ink}" stroke-width="1.3"/><ellipse cx="0" cy="0" rx="${r * 1.6}" ry="${r * 0.6}" fill="none" stroke="${MYLL}" stroke-width=".55"/>`).join('') + `</g>` +
       // El compás de dibujo, de bronce, abierto sobre el plano.
-      `<g transform="translate(85.4 38) rotate(12) scale(1.15)">` +
+      `<g transform="translate(84.4 42) rotate(12) scale(1.12)">` +
       `<path d="${compassLegs}" fill="${P.gold}" stroke="${P.ink}" stroke-width=".5" stroke-linejoin="round"/>` +
       `<path d="M-6.6 24.6L-7.6 29.6M6.6 24.6L7.6 29.6" stroke="${P.ink}" stroke-width="1.1" stroke-linecap="round"/><path d="M-6.6 24.6L-7.6 29.6M6.6 24.6L7.6 29.6" stroke="${P.sky1}" stroke-width=".5" stroke-linecap="round"/>` +
       `<path d="M-4.6 16.4Q0 18.6 4.6 16.4" fill="none" stroke="${P.goldD}" stroke-width=".7"/>` +
