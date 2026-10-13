@@ -686,3 +686,9 @@ body.in-play .sticky-actions {
 .finish-form:focus {
   outline: none;
 }
+
+/* Mientras se carga una mano, el formulario tiene sus propios botones (Cancelar / Guardar):
+   la barra del pulgar se va para no taparlo ni duplicar acciones. */
+.page:has(.round-form) .play-dock {
+  display: none;
+}
