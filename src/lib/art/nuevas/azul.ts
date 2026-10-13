@@ -511,7 +511,8 @@ export const AZUL_NUEVAS_ART: Record<string, (u: number) => string> = {
     const k = kit(u)
     const trunk = taper(110, 10, 90, 36, 55, 51, 19, 8.6)
     const wrap = taper(56, 50.6, 48.4, 57.6, 40.4, 55.2, 8.8, 6)
-    const tip = 'M41.6 51.6C39.2 50.6 36.4 51.4 35.8 54C35.2 56.8 37.4 58.8 40.2 58.6C41.4 58.6 42.4 58 42.8 57.2Z'
+    const tip = taper(42, 57.6, 34.6, 58, 35.4, 49.4, 6.4, 4.6)
+    const end = 'M32.8 50.4C32.6 48.4 34 46.8 35.8 46.8C37.6 46.8 38.6 48.2 38.2 50C37.8 51.4 36.2 52 34.8 51.8C34 51.6 33.2 51.2 32.8 50.4Z'
     const rings = [0.16, 0.25, 0.34, 0.43, 0.52, 0.6, 0.68, 0.76, 0.84, 0.92].map((t) => {
       const a = 1 - t, x = a * a * 110 + 2 * a * t * 90 + t * t * 55, y = a * a * 10 + 2 * a * t * 36 + t * t * 51
       const dx = 2 * a * (90 - 110) + 2 * t * (55 - 90), dy = 2 * a * (36 - 10) + 2 * t * (51 - 36), L = Math.hypot(dx, dy), w = (19 + (8.6 - 19) * t) / 2
@@ -526,15 +527,16 @@ export const AZUL_NUEVAS_ART: Record<string, (u: number) => string> = {
       `<g transform="translate(60 92) rotate(-22) scale(1.15)">` + k.cast(['M-11 0C-12 -10 -12 -24 -4 -30V-36H4V-30C12 -24 12 -10 11 0Z'], 2, 2, COB_D) + vase(k) +
       `<path d="M3 -26L5.4 -21L3.6 -18L6 -13" fill="none" stroke="${P.ink}" stroke-width=".55" stroke-linejoin="round"/>` + `</g>` +
       // La trompa: gris, con sus arrugas, enroscada en el cuello de la vasija.
-      k.cast([trunk], 2.2, 2.4, COB_D) +
       k.draw([
         { d: trunk, fill: ELEF, inner: k.sh(trunk, 0, 0, 1, 1, 0, 0.9, ELEF_D, 0.5) + `<path d="M92 4C88 24 80 40 60 46L62 41C78 36 84 22 86 4Z" fill="${ELEF_L}" opacity=".8"/>` + rings + hair(98, 22, 92, 34, 80, 42, 0.45, ELEF_D, 0.8) },
         { d: wrap, fill: ELEF, inner: k.sh(wrap, 0, 0, 0, 1, 0, 0.9, ELEF_D, 0.5) + hair(52.4, 51.6, 51, 55, 51.4, 58.4, 0.5, ELEF_D) + hair(47.6, 53, 46.6, 56, 47, 59.4, 0.5, ELEF_D) + hair(43.6, 52.2, 43, 55, 43.4, 58, 0.45, ELEF_D) },
-        { d: tip, fill: ELEF, inner: k.sh(tip, 0, 0, 1, 1, 0, 0.8, ELEF_D, 0.45) },
+        { d: tip, fill: ELEF, inner: k.sh(tip, 0, 0, 1, 0, 0, 0.9, ELEF_D, 0.5) + hair(36.4, 57, 34.6, 55, 34.4, 53, 0.45, ELEF_D) + hair(38.6, 56.6, 37, 54.6, 37.4, 52, 0.4, ELEF_D) },
+        { d: end, fill: ELEF, inner: k.sh(end, 0, 0, 1, 1, 0, 0.8, ELEF_D, 0.45) },
       ], 0.8) +
+      `<ellipse cx="35.6" cy="48.4" rx="1.2" ry=".8" fill="${P.night}" transform="rotate(-20 35.6 48.4)"/><path d="M33.4 49.6C33 48.2 33.8 47.2 35 47" fill="none" stroke="${ELEF_L}" stroke-width=".5" stroke-linecap="round"/>` +
       // El colmillo de marfil, al costado de la trompa.
-      k.draw([{ d: taper(84, 26, 73, 38.6, 61.6, 35, 5.4, 1.2), fill: '#F4EEDF', inner: k.sh(taper(84, 26, 73, 38.6, 61.6, 35, 5.4, 1.2), 0, 0, 0, 1, 0, 0.9, P.goldD, 0.45) + hair(82, 27.4, 74, 35.4, 65, 34.6, 0.45, '#fff') + hair(80, 31, 73, 37.4, 67, 36.6, 0.35, PIEDRA_D) }], 0.6) +
-      `<ellipse cx="37.6" cy="54.6" rx="1.1" ry="1.5" fill="${P.night}" transform="rotate(20 37.6 54.6)"/><path d="M36.6 52.4C37.4 51.6 38.6 51.4 39.6 51.8" fill="none" stroke="${ELEF_L}" stroke-width=".5" stroke-linecap="round"/>` +
+      k.draw([{ d: taper(84, 26, 73, 38.6, 61.6, 35, 5.4, 1.2), fill: '#F7F2E6', inner: k.sh(taper(84, 26, 73, 38.6, 61.6, 35, 5.4, 1.2), 0, 0, 0, 1, 0, 0.9, PIEDRA_D, 0.4) + hair(82, 27.4, 74, 35.4, 65, 34.6, 0.45, '#fff') + hair(80, 31, 73, 37.4, 67, 36.6, 0.35, PIEDRA_D) }], 0.6) +
+
       // Los pedazos que ya saltan.
       [[36, 84, -30], [82, 86, 40], [30, 72, 10]].map(([x, y, r]) => `<g transform="translate(${x} ${y}) rotate(${r})"><path d="M-2.4 -1.6L2.6 -2.2L1.4 2L-1.8 1.4Z" fill="${P.white}" stroke="${P.ink}" stroke-width=".4"/><path d="M-1.6 -.8L1.6 -1.2" stroke="${COB}" stroke-width=".7"/></g>`).join('') +
       hair(42, 76, 38, 79, 36, 81, 0.5, P.blue) + hair(76, 80, 79, 82, 80, 84, 0.5, P.blue) +

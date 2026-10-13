@@ -27,7 +27,7 @@ const fondo = (k: Kit) => `<rect width="120" height="130" fill="${P.paper}"/>` +
 
 /** Escenario lila: un disco claro con el borde granulado. */
 const escenario = (k: Kit, cx: number, cy: number, r: number) =>
-  `<circle cx="${cx}" cy="${cy}" r="${r}" fill="#F7F1FA"/>` + k.shade(ellipse(cx, cy, r, r), k.rad(LILA, 0.5, 0.5, 0.5, 0, 0.85), LILA_G, 0.45) +
+  `<circle cx="${cx}" cy="${cy}" r="${r}" fill="#F7F1FA"/>` + k.shade(ellipse(cx, cy, r, r), k.rad(LILA, 0.5, 0.5, 0.5, 0, 0.6), LILA_G, 0.35) +
   `<circle cx="${cx}" cy="${cy}" r="${r}" fill="none" stroke="${CIR}" stroke-width=".5" stroke-dasharray=".01 1.6" stroke-linecap="round"/>`
 
 /** Varilla entintada: la tinta gruesa y el color encima, con un brillo opcional. */
@@ -553,8 +553,8 @@ export const PODRIDA_NUEVAS_ART: Record<string, (u: number) => string> = {
     const collar = 'M49 69C52 66.4 56 65.6 60 65.6C64 65.6 68 66.4 71 69C68 70.4 64 71 60 71C56 71 52 70.4 49 69Z'
     const claw = (x: number, sx: number) => `<g transform="translate(${x} 72) scale(${sx} 1)"><path d="M0 0C-3.6 -.6 -6 -3.4 -5 -6.4C-4.4 -8.2 -2 -8.4 -1.2 -6.8" fill="none" stroke="${P.ink}" stroke-width="2.2" stroke-linecap="round"/><path d="M0 0C-3.6 -.6 -6 -3.4 -5 -6.4C-4.4 -8.2 -2 -8.4 -1.2 -6.8" fill="none" stroke="${P.gold}" stroke-width="1" stroke-linecap="round"/><circle cx="-1.2" cy="-6.8" r=".6" fill="${P.goldL}"/></g>`
     const fringe = Array.from({ length: 21 }, (_, i) => {
-      const x = 2 + i * 5.8, y = 96 + Math.sin(i * 0.9) * 0.6
-      return `<path d="M${x} ${y}V${y + 3.4}" stroke="${P.gold}" stroke-width=".8"/>`
+      const x = 2 + i * 5.8, y = 91.4 + Math.sin(i * 0.9) * 0.4
+      return `<path d="M${x} ${y}V${y + 3.6}" stroke="${P.ink}" stroke-width="1.5" stroke-linecap="round"/><path d="M${x} ${y}V${y + 3.6}" stroke="${P.gold}" stroke-width=".7" stroke-linecap="round"/>`
     }).join('')
     const mist = hair(cx - 14, cy + 6, cx - 4, cy + 1, cx + 6, cy + 8, 1.1, '#fff', 0.7) + hair(cx - 8, cy + 12, cx + 2, cy + 8, cx + 14, cy + 12, 0.9, '#fff', 0.6) + hair(cx - 12, cy - 4, cx - 6, cy - 8, cx + 2, cy - 6, 0.7, '#fff', 0.5)
     return (
@@ -564,7 +564,7 @@ export const PODRIDA_NUEVAS_ART: Record<string, (u: number) => string> = {
       k.draw([{
         d: cloth, fill: CIR,
         inner: k.sh(cloth, 0, 0, 0, 1, 0, 0.9, CIR_D, 0.5) + hair(30, 80, 28, 88, 30, 98, 0.8, CIR_D) + hair(90, 80, 92, 88, 90, 98, 0.8, CIR_D) + hair(46, 82, 44, 90, 46, 98, 0.6, CIR_D) + hair(74, 82, 76, 90, 74, 98, 0.6, CIR_D) +
-          hair(38, 80, 36, 88, 38, 96, 0.6, CIR_L, 0.7) + hair(82, 80, 84, 88, 82, 96, 0.6, CIR_L, 0.7) + `<path d="M-2 95C30 97 90 97 122 95V98C90 100 30 100 -2 98Z" fill="${P.gold}" stroke="${P.ink}" stroke-width=".4"/>`,
+          hair(38, 80, 36, 88, 38, 96, 0.6, CIR_L, 0.7) + hair(82, 80, 84, 88, 82, 96, 0.6, CIR_L, 0.7) + `<path d="M-2 88C30 90 90 90 122 88V91.4C90 93.4 30 93.4 -2 91.4Z" fill="${P.gold}" stroke="${P.ink}" stroke-width=".4"/><path d="M-2 89.7C30 91.7 90 91.7 122 89.7" fill="none" stroke="${P.goldD}" stroke-width=".5" stroke-dasharray="1 .8"/>`,
       }], 0.6) +
       fringe +
       k.floor(cx, 80.4, 18, 2.4, '#1C0B28') +

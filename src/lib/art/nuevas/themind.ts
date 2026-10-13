@@ -224,11 +224,11 @@ export const THEMIND_NUEVAS_ART: Record<string, (u: number) => string> = {
     const edges = (p: number[], q: number[]) => Array.from({ length: 5 }, (_, i) => `<path d="M${pt(p, 1.2 + i * 1.2)}L${pt(q, 1.2 + i * 1.2)}" stroke="${VIO_L}" stroke-width=".35"/>`).join('')
     // La carta de arriba en coordenadas de carta (14 de ancho por 20 de alto), llevada al paralelogramo.
     const m = `matrix(${f((B[0] - A[0]) / 14)} ${f((B[1] - A[1]) / 14)} ${f((D[0] - A[0]) / 20)} ${f((D[1] - A[1]) / 20)} ${A[0]} ${A[1]})`
-    // La carta de arriba, boca abajo: el dorso violeta con el filete dorado y una estrella en el medio.
+    // La carta de arriba, boca abajo: el dorso claro con el filete violeta y una estrella dorada en el medio.
     const face =
-      `<g transform="${m}"><path d="${roundRect(0.6, 0.6, 13.4, 19.4, 1)}" fill="${VIO_D}"/><path d="${roundRect(1.6, 1.6, 12.4, 18.4, 0.7)}" fill="none" stroke="${P.gold}" stroke-width=".5"/>` +
-      `<path d="${roundRect(2.6, 2.6, 11.4, 17.4, 0.5)}" fill="none" stroke="${VIO_L}" stroke-width=".3" stroke-dasharray=".6 .5"/>` +
-      `<path d="${starPath(7, 10, 4.4, 1.2, 4)}" fill="${P.goldL}" stroke="${P.goldD}" stroke-width=".2"/><circle cx="7" cy="10" r="1" fill="${VIO}"/></g>`
+      `<g transform="${m}"><path d="${roundRect(1.4, 1.4, 12.6, 18.6, 0.8)}" fill="none" stroke="${VIO}" stroke-width=".7"/>` +
+      `<path d="${roundRect(2.6, 2.6, 11.4, 17.4, 0.5)}" fill="none" stroke="${VIO_L}" stroke-width=".35" stroke-dasharray=".6 .5"/>` +
+      `<path d="${starPath(7, 10, 4.6, 1.2, 4)}" fill="${P.gold}" stroke="${P.goldD}" stroke-width=".25"/><circle cx="7" cy="10" r="1.1" fill="${VIO}"/></g>`
     const hole = [A[0] + (B[0] - A[0]) * 0.5 + (D[0] - A[0]) * 0.3, A[1] + (B[1] - A[1]) * 0.5 + (D[1] - A[1]) * 0.3]
     const tip = [hole[0] + 1.6, 45]
     const smoke =
@@ -237,11 +237,11 @@ export const THEMIND_NUEVAS_ART: Record<string, (u: number) => string> = {
       `<path d="M${f(tip[0] - 6)} ${f(tip[1] - 16)}C${f(tip[0] - 10)} ${f(tip[1] - 16.4)} ${f(tip[0] - 11.4)} ${f(tip[1] - 13)} ${f(tip[0] - 9)} ${f(tip[1] - 11.4)}C${f(tip[0] - 7)} ${f(tip[1] - 10.2)} ${f(tip[0] - 5)} ${f(tip[1] - 12.4)} ${f(tip[0] - 6.4)} ${f(tip[1] - 13.8)}" fill="none" stroke="${VIO_L}" stroke-width=".7" stroke-linecap="round" opacity=".85"/>` +
       `<path d="M${f(tip[0] + 1)} ${f(tip[1] - 24)}C${f(tip[0] + 4)} ${f(tip[1] - 27)} ${f(tip[0] + 8)} ${f(tip[1] - 25.4)} ${f(tip[0] + 7)} ${f(tip[1] - 22.4)}C${f(tip[0] + 6.4)} ${f(tip[1] - 20.6)} ${f(tip[0] + 3.6)} ${f(tip[1] - 21)} ${f(tip[0] + 3.8)} ${f(tip[1] - 22.6)}" fill="none" stroke="${VIO_L}" stroke-width=".6" stroke-linecap="round" opacity=".75"/>`
     const beads = Array.from({ length: 27 }, (_, i) => {
-      const a = (i / 27) * Math.PI * 2 + 0.4, x = 60 + Math.cos(a) * 31, y = 80 + Math.sin(a) * 10
+      const a = (i / 27) * Math.PI * 2 + 0.4, x = 60 + Math.cos(a) * 28.6, y = 80 + Math.sin(a) * 9.4
       const front = Math.sin(a) > -0.15
       return { front, s: `<circle cx="${f(x)}" cy="${f(y)}" r="1.5" fill="${P.brown}" stroke="${P.ink}" stroke-width=".4"/><circle cx="${f(x - 0.5)}" cy="${f(y - 0.5)}" r=".45" fill="#FFE3C2"/>` }
     })
-    const tassel = 'M86.6 90L85.2 97H90.2L88.6 90Z'
+    const tassel = 'M50.4 91L49 97.6H53.8L52.4 91Z'
     return (
       noche(k) +
       k.shade(ellipse(60, 50, 26, 30), k.rad(VIO_L, 0.5, 0.5, 0.5, 0.6, 0), VIO_L, 0.35) +
@@ -262,8 +262,8 @@ export const THEMIND_NUEVAS_ART: Record<string, (u: number) => string> = {
       smoke +
       // El rosario: las cuentas de adelante, la cuenta del gurú y la borla.
       beads.filter((b) => b.front).map((b) => b.s).join('') +
-      `<circle cx="87.6" cy="87.6" r="2.2" fill="${P.gold}" stroke="${P.ink}" stroke-width=".45"/><circle cx="87" cy="87" r=".6" fill="${P.goldL}"/>` +
-      k.draw([{ d: tassel, fill: P.red, inner: `<path d="M86.2 91.4V96.6M87.6 91.4V96.8M89 91.4V96.6" stroke="${P.wine}" stroke-width=".35"/>` }], 0.4) +
+      k.draw([{ d: tassel, fill: P.red, inner: `<path d="M50 92.4V97.2M51.4 92.4V97.4M52.8 92.4V97.2" stroke="${P.wine}" stroke-width=".35"/>` }], 0.4) +
+      `<circle cx="51.4" cy="89.4" r="2.2" fill="${P.gold}" stroke="${P.ink}" stroke-width=".45"/><circle cx="50.8" cy="88.8" r=".6" fill="${P.goldL}"/>` +
       sparkle(32, 42, 2, P.goldL) + sparkle(88, 50, 1.6, P.goldL) +
       k.defs()
     )
@@ -280,7 +280,8 @@ export const THEMIND_NUEVAS_ART: Record<string, (u: number) => string> = {
           d, fill: back ? ROSA : P.white,
           inner: `<path d="${d}" fill="${k.lin(back ? ROSA_D : ROSA, 0, 1, 0, 0, 0.1, 0.95)}"/>` + k.sh(`M0 0H${w}V${-h}H0Z`, 0, 0, 1, 0, 0, 0.6, back ? VIO : ROSA_D, 0.4) +
             hair(0, -2, -0.6, -h * 0.5, 0, -h * 0.92, 0.5, ROSA_D, 0.8) + hair(-w * 0.32, -h * 0.12, -w * 0.52, -h * 0.42, -w * 0.26, -h * 0.74, 0.35, ROSA_D, 0.6) + hair(w * 0.32, -h * 0.12, w * 0.52, -h * 0.42, w * 0.26, -h * 0.74, 0.35, ROSA_D, 0.6) +
-            `<path d="M0 ${f(-h * 0.98)}L${f(-w * 0.12)} ${f(-h * 0.86)}" stroke="#fff" stroke-width=".5"/>`,
+            `<path d="M0 ${f(-h * 0.98)}L${f(-w * 0.12)} ${f(-h * 0.86)}" stroke="#fff" stroke-width=".5"/>` +
+            (back ? '' : `<path d="${d}" fill="none" stroke="${P.gold}" stroke-width=".6" transform="scale(.93) translate(0 ${f(-h * 0.03)})" opacity=".85"/>`),
         }], 0.55) + `</g>`
     }
     const water = 'M-2 74H122V130H-2Z'
@@ -295,6 +296,8 @@ export const THEMIND_NUEVAS_ART: Record<string, (u: number) => string> = {
       k.sun(cx, 54, 18, 50, 36, false) +
       k.shade(ellipse(cx, 54, 30, 30), k.rad(P.goldL, 0.5, 0.5, 0.5, 0.95, 0), P.goldL, 0.55) +
       `<circle cx="${cx}" cy="54" r="20" fill="none" stroke="${P.goldL}" stroke-width=".8" opacity=".9"/><circle cx="${cx}" cy="54" r="23" fill="none" stroke="${P.gold}" stroke-width=".4" stroke-dasharray=".01 1.6" stroke-linecap="round"/>` +
+      // La corona del aura: perlas doradas y llamitas alternadas alrededor del halo.
+      Array.from({ length: 24 }, (_, i) => { const a = (i / 24) * Math.PI * 2, x = cx + Math.cos(a) * 26.4, y = 54 + Math.sin(a) * 26.4; return i % 2 ? `<circle cx="${f(x)}" cy="${f(y)}" r=".9" fill="${P.goldL}" stroke="${P.goldD}" stroke-width=".3"/>` : `<path d="${starPath(x, y, 1.8, 0.5, 4, (a * 180) / Math.PI)}" fill="${P.gold}"/>` }).join('') +
       k.draw([{
         d: water, fill: VIO_D,
         inner: k.sh(water, 0, 0, 0, 1, 0, 0.9, NOCHE, 0.5) + `<path d="M-2 74H122V76H-2Z" fill="${VIO}"/>` +

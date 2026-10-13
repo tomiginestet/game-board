@@ -415,10 +415,12 @@ export const AVENTUREROS_NUEVAS_ART: Record<string, (u: number) => string> = {
       `<path d="${starPathRose(25, 71, 2.6)}" fill="${P.gold}" stroke="${P.ink}" stroke-width=".3"/><path d="${starPathRose(95, 71, 2.6)}" fill="${P.gold}" stroke="${P.ink}" stroke-width=".3"/>` +
       // La ventanilla encendida, con las cortinas de terciopelo y el velador del coche comedor.
       k.draw([{
-        d: win, fill: P.goldL,
+        d: win, fill: '#5A2A20',
         inner:
-          k.shade(win, k.rad(P.gold, 0.5, 0.75, 0.75, 0, 0.9), P.goldD, 0.4) +
-          k.shade(ellipse(52, 66, 13, 9), k.rad('#ffffff', 0.5, 0.5, 0.5, 0.8, 0), '#ffffff', 0.5) +
+          [40, 46, 52, 58, 64, 70, 76, 82].map((x) => hair(x, 46, x + 0.4, 60, x, 74, 0.45, '#3A1610', 0.9)).join('') +
+          `<path d="M34 55H86" stroke="${P.goldD}" stroke-width=".5" opacity=".7"/>` +
+          k.shade(ellipse(52, 65, 15, 11), k.rad(P.gold, 0.5, 0.5, 0.5, 0.9, 0), P.gold, 0.45) +
+          k.shade(ellipse(52, 66.4, 8, 5), k.rad('#ffffff', 0.5, 0.5, 0.5, 0.8, 0), P.goldL, 0.6) +
           k.draw([{ d: shade, fill: ROJO_L, inner: k.sh(shade, 0, 0, 1, 0, 0, 0.8, ROJO, 0.45) + `<path d="M49 62.8L47 68.6M52 62.6V68.8M55 62.8L57 68.6" stroke="${ROJO}" stroke-width=".35"/>` }], 0.4) +
           `<path d="M44.6 68.8Q46 70.4 47.4 68.8Q48.8 70.4 50.2 68.8Q51.6 70.4 53 68.8Q54.4 70.4 55.8 68.8Q57.2 70.4 58.6 68.8" fill="none" stroke="${P.goldD}" stroke-width=".5"/>` +
           `<path d="M51.4 68.8H52.6V74.6H51.4Z" fill="${P.goldD}"/><path d="M48.6 74.6C48.6 73.6 55.4 73.6 55.4 74.6V76H48.6Z" fill="${P.goldD}" stroke="${P.ink}" stroke-width=".3"/>` +

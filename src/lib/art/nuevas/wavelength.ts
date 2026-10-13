@@ -71,15 +71,15 @@ function dart(k: Kit) {
 }
 
 /** Medio walkie-talkie centrado en (0,0) (base en y=22): cuerpo, antena, perilla, rejilla, botón y la lucecita. */
-function walkie(k: Kit, c: string, dk: string, lt: string) {
+function walkie(k: Kit, c: string, dk: string, lt: string, ax = -4.6) {
   const body = roundRect(-9, -16, 9, 22, 3.4)
   const grille = roundRect(-6, -10.4, 6, 3.4, 1.6)
   const ptt = 'M-9 -6H-11C-11.8 -6 -12.2 -5.4 -12.2 -4.6V4.6C-12.2 5.4 -11.8 6 -11 6H-9Z'
   return (
-    rod('M-4.6 -16V-35', P.night, 1.6, P.mid) + `<circle cx="-4.6" cy="-36" r="1.6" fill="${P.night}" stroke="${P.ink}" stroke-width=".5"/><circle cx="-5.1" cy="-36.5" r=".5" fill="${P.sky}"/>` +
+    rod(`M${ax} -16V-35`, P.night, 1.6, P.mid) + `<circle cx="${ax}" cy="-36" r="1.6" fill="${P.night}" stroke="${P.ink}" stroke-width=".5"/><circle cx="${f(ax - 0.5)}" cy="-36.5" r=".5" fill="${P.sky}"/>` +
     k.draw([
       { d: ptt, fill: dk },
-      { d: 'M2.2 -16V-19.4H7.4V-16Z', fill: P.night, inner: `<path d="M3.2 -19.4V-16M4.8 -19.4V-16M6.4 -19.4V-16" stroke="${P.mid}" stroke-width=".4"/>` },
+      { d: `M${f(-ax - 2.6)} -16V-19.4H${f(-ax + 2.6)}V-16Z`, fill: P.night, inner: `<path d="M${f(-ax - 1.6)} -19.4V-16M${f(-ax)} -19.4V-16M${f(-ax + 1.6)} -19.4V-16" stroke="${P.mid}" stroke-width=".4"/>` },
       {
         d: body, fill: c,
         inner: k.sh(body, 0, 0, 1, 0, 0, 0.9, dk, 0.5) + `<path d="M-10 -16H-5V22H-10Z" fill="${k.lin(lt, 0, 0, 1, 0, 0.8, 0)}"/>` + k.sh('M-10 14H10V23H-10Z', 0, 0, 0, 1, 0, 0.7, dk, 0.35),
@@ -148,7 +148,8 @@ export const WAVELENGTH_NUEVAS_ART: Record<string, (u: number) => string> = {
       k.draw([{ d: cut, fill: PULPA, inner: k.sh(cut, 0, 0, 1, 1, 0, 0.6, P.goldD, 0.35) + `<path d="${ellipse(0, 0, 4.6, 1.4)}" fill="none" stroke="${P.goldD}" stroke-width=".35"/>` + seeds }], 0.45)
     return (
       fondo(k) +
-      escenario(k, 60, 60, 33) +
+      k.sun(60, 54, 14, 47, 28, false) +
+      k.shade(ellipse(60, 50, 24, 26), k.rad(P.goldL, 0.5, 0.5, 0.5, 0.75, 0), P.goldL, 0.45) +
       // La manzana partida, arriba, con la saeta que pasó por el medio y su estela.
       `<g transform="translate(60 36.4) rotate(-90) scale(1.08)">` +
       hair(-26, -3.4, -20, -3.2, -12, -3.6, 0.6, ROSA) + hair(-26, 3.4, -20, 3.2, -12, 3.6, 0.6, ROSA) + hair(-24, -6, -19, -5.8, -14, -6.6, 0.45, ROSA_D) + hair(-24, 6, -19, 5.8, -14, 6.6, 0.45, ROSA_D) +
@@ -199,17 +200,20 @@ export const WAVELENGTH_NUEVAS_ART: Record<string, (u: number) => string> = {
     const bowl = ellipse(D.x, D.y, rx, ry)
     const panels = Array.from({ length: 16 }, (_, i) => { const t = (i / 16) * Math.PI * 2, a = rimPt(t, 0.12), b = rimPt(t); return `M${f(a.x)} ${f(a.y)}L${f(b.x)} ${f(b.y)}` }).join('')
     const strut = (t: number) => { const p = rimPt(t, 0.97); return rod(`M${f(p.x)} ${f(p.y)}L${f(F.x)} ${f(F.y)}`, P.sky1, 0.7) }
-    const sat = { x: 81, y: 33 }
+    const sat = { x: 79, y: 35 }
     const satBody = roundRect(-2.6, -2.6, 2.6, 2.6, 0.6)
     const panel = (sx: number) => `<g transform="scale(${sx} 1)"><path d="M3.4 -2.2H13.4V2.2H3.4Z" fill="${P.mid}" stroke="${P.ink}" stroke-width=".4"/><path d="M5.8 -2.2V2.2M8.4 -2.2V2.2M11 -2.2V2.2M3.4 0H13.4" stroke="${P.sky}" stroke-width=".3"/><path d="M2.6 0H3.4" stroke="${P.ink}" stroke-width=".6"/></g>`
     const stars = [[24, 30, 0.6], [34, 22, 0.45], [70, 22, 0.5], [104, 50, 0.5], [22, 52, 0.45], [96, 86, 0.6], [28, 80, 0.4], [76, 34, 0.35], [40, 40, 0.35]]
     return (
       noche(k) +
       stars.map(([x, y, r]) => `<circle cx="${x}" cy="${y}" r="${r}" fill="${P.paper}"/>`).join('') + sparkle(30, 38, 1.6, P.paper) + sparkle(100, 66, 1.4, P.paper) +
+      // La gloria rosa que se abre detrás del plato: capta todas las señales.
+      k.shade(ellipse(56, 56, 34, 34), k.rad(ROSA, 0.5, 0.5, 0.5, 0.75, 0), ROSA, 0.35) +
+      `<path d="${Array.from({ length: 28 }, (_, i) => { const a = (i / 28) * Math.PI * 2, w = i % 2 ? 0.035 : 0.06, L = i % 2 ? 34 : 44; return `M${f(56 + Math.cos(a - w) * 12)} ${f(56 + Math.sin(a - w) * 12)}L${f(56 + Math.cos(a) * L)} ${f(56 + Math.sin(a) * L)}L${f(56 + Math.cos(a + w) * 12)} ${f(56 + Math.sin(a + w) * 12)}Z` }).join('')}" fill="${ROSA_L}" opacity=".22"/>` +
       // Las ondas que bajan del satélite al foco de la antena.
-      waves(sat.x, sat.y, [8, 13.4, 18.8], 112, 162) +
+      waves(sat.x, sat.y, [8, 13.4, 18.8], 108, 160) +
       // El satélite: el cuerpo de lámina dorada y los dos paneles.
-      `<g transform="translate(${sat.x} ${sat.y}) rotate(-62)">` + panel(1) + panel(-1) +
+      `<g transform="translate(${sat.x} ${sat.y}) rotate(22) scale(.92)">` + panel(1) + panel(-1) +
       k.draw([{ d: satBody, fill: P.gold, inner: k.sh(satBody, 0, 0, 1, 1, 0, 0.9, P.goldD, 0.5) + `<path d="M-2.6 -.6H2.6M-.6 -2.6V2.6" stroke="${P.goldD}" stroke-width=".3"/>` }], 0.4) +
       `<path d="M-1.6 2.6L-2.6 5.4H2.6L1.6 2.6Z" fill="${P.sky1}" stroke="${P.ink}" stroke-width=".35"/></g>` +
       // El pie: el mástil, la horquilla y la base atornillada.
@@ -247,18 +251,18 @@ export const WAVELENGTH_NUEVAS_ART: Record<string, (u: number) => string> = {
     const k = kit(u)
     let wave = ''
     for (let i = 0; i <= 40; i++) {
-      const t = i / 40, x = 41 + t * 38, y = 30 + t * 2 + Math.sin(t * Math.PI * 4) * 3.6
+      const t = i / 40, x = 44.6 + t * 33.4, y = 33.4 + t * 3.2 + Math.sin(t * Math.PI * 4) * 3.2
       wave += (i ? 'L' : 'M') + f(x) + ' ' + f(y)
     }
     return (
       fondo(k) +
       escenario(k, 60, 62, 33) +
-      k.floor(60, 92, 32, 2.6, ROSA_D) +
-      waves(37, 31, [4, 7.4], 190, 260) + waves(83, 33, [4, 7.4], -80, -10) +
+      k.floor(60, 94.6, 30, 2.6, ROSA_D) +
+      waves(42, 33.1, [3.6, 6.6], 205, 275) + waves(80.6, 36.8, [3.6, 6.6], -95, -25) +
       rod(wave, ROSA, 1.5, '#fff') +
-      `<g transform="translate(80.4 66.4) rotate(9) scale(-.9 .9)">` + walkie(k, P.gold, P.goldD, P.goldL) + `</g>` +
-      `<g transform="translate(42 66) rotate(-8)">` + walkie(k, ROSA, ROSA_D, ROSA_L) + `</g>` +
-      `<text x="60" y="47" ${GEORGIA} font-style="italic" font-size="5" fill="${P.ink}" text-anchor="middle">cambio</text>` +
+      `<g transform="translate(79.6 69.4) rotate(9) scale(.9)">` + walkie(k, P.gold, P.goldD, P.goldL) + `</g>` +
+      `<g transform="translate(42.4 69.4) rotate(-8)">` + walkie(k, ROSA, ROSA_D, ROSA_L, 4.6) + `</g>` +
+      `<text x="60" y="50" ${GEORGIA} font-style="italic" font-size="5" fill="${P.ink}" text-anchor="middle">cambio</text>` +
       sparkle(60, 26, 2) + sparkle(30, 84, 1.4) +
       k.defs()
     )

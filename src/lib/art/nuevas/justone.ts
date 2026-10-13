@@ -377,7 +377,7 @@ export const JUSTONE_NUEVAS_ART: Record<string, (u: number) => string> = {
     const yoke = 'M72 75.6V60.6C72 58.6 73.4 57.6 75 57.6H80C81.6 57.6 83 58.6 83 60.6V75.6H80V62C80 61 79.4 60.6 78.6 60.6H76.4C75.6 60.6 75 61 75 62V75.6Z'
     const post = (x: number) => `M${x - 1.2} 75.6V${69.4}H${x + 1.2}V75.6Z`
     // La cinta de papel con el Morse: "GANAMOS".
-    const T0 = [92, 66], TC = [70, 18], T1 = [26, 40]
+    const T0 = [92, 66], TC = [70, 16], T1 = [30, 43]
     const morse = '--. .- -. .- -- --- ...'
     const marks: string[] = []
     let t = 0.08
@@ -395,7 +395,7 @@ export const JUSTONE_NUEVAS_ART: Record<string, (u: number) => string> = {
       glow(k, 60, 60, 32, 28, 0.7) +
       k.draw([{ d: tape, fill: P.white, inner: k.sh(tape, 0, 0, 0, 1, 0, 0.6, JO_D, 0.3) + `<path d="${tape}" fill="${JO_XL}" opacity=".5"/>` }], 0.45) +
       marks.join('') +
-      `<path d="M24.6 38.4C22.6 40.6 23.4 43.6 26 43.6" fill="none" stroke="${P.ink}" stroke-width=".5"/>` +
+      `<ellipse cx="30" cy="43" rx="1.5" ry="3.2" transform="rotate(-33 30 43)" fill="${P.white}" stroke="${P.ink}" stroke-width=".55"/><ellipse cx="30" cy="43" rx=".6" ry="1.6" transform="rotate(-33 30 43)" fill="none" stroke="${JO_D}" stroke-width=".35"/>` +
       k.floor(60, 86, 28, 2.8, JO_D) +
       k.draw([
         { d: front, fill: P.brownD, inner: k.sh(front, 0, 0, 1, 0, 0, 0.8, '#4A2A14', 0.4) + hair(34, 83.4, 60, 82.6, 86, 83.4, 0.4, P.brown) },

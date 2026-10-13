@@ -40,6 +40,10 @@ const cord = (d: string, c: string, w = 1.2, hi = '#fff') =>
   `<path d="${d}" fill="none" stroke="${c}" stroke-width="${w}" stroke-linecap="round" stroke-linejoin="round"/>` +
   `<path d="${d}" fill="none" stroke="${hi}" stroke-width="${f(w * 0.3)}" stroke-linecap="round" opacity=".55" transform="translate(-.25 -.25)"/>`
 
+/** Cucharita: el mango (del cuello en (0,0) hacia abajo) y la paleta (hacia arriba). */
+const SP_HANDLE = 'M-1.2 0L-1.9 25.6C-3.4 27.6 -3.2 31.4 0 34C3.2 31.4 3.4 27.6 1.9 25.6L1.2 0Z'
+const SP_BOWL = 'M0 1.2C-1.4 -1 -6.8 -4 -6.8 -11.6C-6.8 -18.4 -3.4 -22 0 -22C3.4 -22 6.8 -18.4 6.8 -11.6C6.8 -4 1.4 -1 0 1.2Z'
+
 /** Lamparita encendida, con la rosca abajo (la punta del contacto en (0,16.4)). */
 function bulb(k: Kit) {
   const glass = 'M0 -27C8.4 -27 13.6 -21 13.6 -13.6C13.6 -8.4 10.6 -5 8.4 -1.4C7.4 .2 7 1.6 7 3H-7C-7 1.6 -7.4 .2 -8.4 -1.4C-10.6 -5 -13.6 -8.4 -13.6 -13.6C-13.6 -21 -8.4 -27 0 -27Z'
@@ -358,8 +362,7 @@ export const PISTASCRUZADAS_NUEVAS_ART: Record<string, (u: number) => string> = 
   // Cinco pistas al toque: Uri Geller está nervioso. La cucharita doblada con la mente, que se vence como una flor.
   'Cucharita doblada': (u) => {
     const k = kit(u)
-    const handle = 'M-1.2 0L-1.9 25.6C-3.4 27.6 -3.2 31.4 0 34C3.2 31.4 3.4 27.6 1.9 25.6L1.2 0Z'
-    const bowl = 'M0 1.2C-1.4 -1 -6.8 -4 -6.8 -11.6C-6.8 -18.4 -3.4 -22 0 -22C3.4 -22 6.8 -18.4 6.8 -11.6C6.8 -4 1.4 -1 0 1.2Z'
+    const handle = SP_HANDLE, bowl = SP_BOWL
     const hollow = 'M0 -2.6C-1.4 -4.4 -4.8 -6.6 -4.8 -11.8C-4.8 -16.8 -2.4 -19.6 0 -19.6C2.4 -19.6 4.8 -16.8 4.8 -11.8C4.8 -6.6 1.4 -4.4 0 -2.6Z'
     const src = { x: 32, y: 30 }
     const wave = (r: number) => { const a0 = (10 * Math.PI) / 180, a1 = (72 * Math.PI) / 180; return `M${f(src.x + Math.cos(a0) * r)} ${f(src.y + Math.sin(a0) * r)}A${r} ${r} 0 0 1 ${f(src.x + Math.cos(a1) * r)} ${f(src.y + Math.sin(a1) * r)}` }
@@ -411,9 +414,13 @@ export const PISTASCRUZADAS_NUEVAS_ART: Record<string, (u: number) => string> = 
     const twist = Array.from({ length: 13 }, (_, i) => { const x = -23 + i * 3.8, b = 14.4 - Math.pow(x / 27, 2) * 6, t = 0.4 - Math.pow(x / 27, 2) * 2.4; return hair(x - 1.6, b, x - 0.2, (b + t) / 2, x + 1.6, t + 0.6, 0.55, PC_D, 0.85) }).join('')
     // El penacho: tres plumitas finas que se abren.
     const plume = (x1: number, y1: number, cx: number, cy: number, w: number) => {
-      const d = taper(0, -12, cx, cy, x1, y1, 1.6, w)
-      return k.draw([{ d, fill: P.white, inner: k.sh(d, 0, 0, 1, 1, 0, 0.7, PC_L, 0.45) + `<path d="M0 -12Q${cx} ${cy} ${x1} ${y1}" fill="none" stroke="${PC_L}" stroke-width=".4"/>` }], 0.45) +
-        `<circle cx="${x1}" cy="${y1}" r="${f(w * 0.36)}" fill="${PC}" stroke="${P.ink}" stroke-width=".35"/>`
+      const d = `M0 -12Q${f(cx - w)} ${cy} ${x1} ${y1}Q${f(cx + w)} ${cy} 0 -12Z`
+      const ex = f(x1 + (cx - x1) * 0.3), ey = f(y1 + (cy - y1) * 0.3)
+      return k.draw([{
+        d, fill: P.white,
+        inner: k.sh(d, 0, 0, 1, 1, 0, 0.7, PC_L, 0.45) + `<path d="M0 -12Q${cx} ${cy} ${x1} ${y1}" fill="none" stroke="${PC_L}" stroke-width=".4"/>` +
+          `<ellipse cx="${ex}" cy="${ey}" rx="${f(w * 0.42)}" ry="${f(w * 0.62)}" fill="${PC}" stroke="${P.gold}" stroke-width=".4"/>`,
+      }], 0.45)
     }
     return (
       graph(k) +
@@ -421,7 +428,7 @@ export const PISTASCRUZADAS_NUEVAS_ART: Record<string, (u: number) => string> = 
       glow(k, 60, 52, 32, 30, 0.75) +
       k.floor(60, 80, 26, 3, PC_D) +
       `<g transform="translate(60 62) scale(.94)">` +
-      plume(-9, -34, -6, -26, 3.6) + plume(10, -34, 6, -26, 3.6) + plume(1, -38, 0, -30, 4.2) +
+      plume(-10, -40, -6, -28, 3.8) + plume(11, -40, 7, -28, 3.8) + plume(2, -45, 0, -32, 4.4) +
       k.cast([back, roll, b1, b2, puff, tail], 2.2, 2.6, PC_D) +
       k.draw([
         { d: back, fill: PC_D },
@@ -450,7 +457,8 @@ export const PISTASCRUZADAS_NUEVAS_ART: Record<string, (u: number) => string> = 
     )
   },
 
-  // Cincuenta pistas telepáticas: "¡Pero qué sorpresa!", diría Tusam. El televisor de antes con la espiral en la pantalla.
+  // Cincuenta pistas telepáticas: "¡Pero qué sorpresa!", diría Tusam. El televisor de antes, con la espiral y la cuchara
+  // que se dobla del otro lado de la pantalla.
   'Señal de Tusam': (u) => {
     const k = kit(u)
     const cab = roundRect(31, 44, 89, 86, 4)
@@ -493,6 +501,12 @@ export const PISTASCRUZADAS_NUEVAS_ART: Record<string, (u: number) => string> = 
         inner:
           `<path d="${spiral}" fill="${PC_N}"/>` + k.shade(screen, k.rad(PC_L, 0.5, 0.5, 0.6, 0.1, 0.9), PC, 0.4) +
           `<path d="M36 52H70M36 56H70M36 60H70M36 64H70M36 68H70M36 72H70M36 76H70" stroke="#fff" stroke-width=".3" opacity=".35"/>` +
+          k.shade(ellipse(54.6, 61, 10, 9.4), k.rad('#fff', 0.5, 0.5, 0.5, 0.7, 0), '#fff', 0.4) +
+          // Lo que pasa la tele: la cuchara que se dobla sola, del otro lado de la pantalla.
+          `<g transform="translate(57.4 54.6) rotate(38) scale(.6)">` +
+          k.draw([{ d: SP_HANDLE, fill: P.goldL, inner: k.sh(SP_HANDLE, 0, 0, 1, 0, 0, 0.9, P.goldD, 0.5) + hair(-0.6, 3, -0.9, 14, -0.8, 24, 1, '#fff') }], 1.1) +
+          `<g transform="rotate(118)">` + k.draw([{ d: SP_BOWL, fill: P.goldL, inner: k.sh(SP_BOWL, 0, 0, 1, 1, 0, 0.9, P.goldD, 0.5) + hair(-3.6, -16, -4, -11, -2.6, -6, 1.4, '#fff') }], 1.1) + `</g>` +
+          `</g>` + sparkle(57.4, 54.6, 2.8, '#fff') +
           hair(39, 52, 38.4, 58, 39, 66, 1.1, '#fff', 0.9) + hair(42, 50.4, 46, 49.8, 52, 49.6, 0.7, '#fff', 0.8),
       }], 0.6) +
       `</g>` +
