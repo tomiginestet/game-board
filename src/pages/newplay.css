@@ -1,0 +1,25 @@
+/* Armado de una partida (NewPlay). */
+
+/* Cómo quedan los lados, justo arriba de "¡A jugar!": "Ana & Beto vs Caro & Dani". */
+.setup-preview {
+  margin: 0 0 8px;
+  font-size: 14px;
+  line-height: 1.4;
+  font-weight: 600;
+  color: var(--text-soft);
+  text-align: center;
+  text-wrap: balance;
+  font-variant-numeric: tabular-nums;
+}
+
+/* Cada lado se corta entero a la línea siguiente; sólo un nombre larguísimo se parte por dentro. */
+.setup-preview-side {
+  display: inline-block;
+  max-width: 100%;
+  overflow-wrap: anywhere;
+}
+
+.setup-preview-sep {
+  color: var(--muted);
+  font-weight: 400;
+}

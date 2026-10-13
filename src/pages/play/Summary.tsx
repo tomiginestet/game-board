@@ -9,6 +9,7 @@ import { MedalSheet } from '../../components/MedalSheet'
 import { WinnerHero } from '../../components/WinnerHero'
 import { isDraw, sidesByPlace, type LiveState } from '../../lib/engine'
 import { toast } from '../../lib/feedback'
+import { rematchConfig, rematchSides } from '../../lib/rematch'
 import { findGame } from '../../lib/games'
 import type { GameDef } from '../../lib/games/schema'
 import { TIERS } from '../../lib/medalArt'
@@ -69,7 +70,8 @@ export function Summary({ play, game, live, players }: { play: Play; game: GameD
     .filter((x) => x.per.some((v) => v > 0))
 
   const rematch = () => {
-    const p = actions.createPlay(game.id, play.sides.map((s) => ({ players: s.players, ...(s.name && !s.role ? { name: s.name } : {}) })), play.config)
+    // Mismos lados (los bandos por rol vuelven a ser uno por jugador) y reglas, con opciones nuevas por defecto.
+    const p = actions.createPlay(game.id, rematchSides(play), rematchConfig(game, play))
     navigate(`/partida/${p.id}`, { replace: true })
   }
 
