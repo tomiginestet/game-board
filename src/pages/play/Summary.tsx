@@ -17,6 +17,8 @@ import { closestFirst, gameMedals, globalMedals, levelUps, medalsInReach, nextMe
 import { computeBoard, gameStatsOf } from '../../lib/stats'
 import { actions, useData } from '../../lib/store'
 import type { Id, Play, Player } from '../../lib/types'
+import { MedalDataCard } from './MedalDataCard'
+import { PlanillaSummary } from './PlanillaSummary'
 
 /** Hasta cuánto después de terminarla se festeja como recién terminada (igual que las medallas). */
 const FRESH_MS = 15 * 60 * 1000
@@ -112,6 +114,10 @@ export function Summary({ play, game, live, players }: { play: Play; game: GameD
           Ver {game.name}
         </Link>
       )}
+      {/* Después de los botones: completar los datos nunca empuja "Revancha" fuera de la primera pantalla. */}
+      <MedalDataCard play={play} game={game} players={players} />
+      {/* Generala: la planilla completa queda a la vista al terminar (no rinde nada en otros juegos). */}
+      <PlanillaSummary play={play} game={game} players={players} />
 
       <MedalCelebration id={play.id} finishedAt={play.finishedAt} medals={newMedals} delay={2000} requested={celebrate} />
       {ups.length > 0 && (

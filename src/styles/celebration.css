@@ -177,3 +177,98 @@
 .summary-subtitle {
   font-size: 16px;
 }
+
+/* "Para las medallas": datos opcionales, después de los botones del resumen. */
+.medal-data {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.medal-data-head {
+  gap: 12px;
+}
+
+.medal-data-head .summary-subtitle {
+  flex: 1;
+  margin: 0;
+}
+
+.medal-data-head .btn {
+  min-height: 44px;
+}
+
+.medal-data-stat {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+  border: none;
+}
+
+.medal-data-stat legend {
+  padding: 0;
+  margin-bottom: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-soft);
+}
+
+.medal-data-row {
+  flex-wrap: wrap;
+  gap: 6px 12px;
+}
+
+/* Nombres enteros: la fila baja a dos líneas antes que cortar. */
+.medal-data-name {
+  flex: 1 1 8rem;
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.medal-data-row > .input {
+  min-height: 44px;
+}
+
+.medal-data-row > select.input {
+  flex: 1 1 10rem;
+  width: auto;
+}
+
+.medal-data-num {
+  flex: 0 0 6.5rem;
+  width: 6.5rem;
+}
+
+.medal-data-save {
+  align-self: flex-start;
+}
+
+.medal-data-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin: 0;
+}
+
+.medal-data-list dt {
+  font-size: 13px;
+  color: var(--muted);
+}
+
+.medal-data-list dd {
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+
+.medal-data-status {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin: 0;
+  color: var(--win);
+  font-weight: 600;
+  font-size: 14px;
+}

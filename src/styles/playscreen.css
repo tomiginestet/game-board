@@ -74,6 +74,46 @@ body.in-play .sticky-actions {
   cursor: default;
 }
 
+/* "Faltan 8 manos. ¿Terminar igual?": la pregunta ocupa la barra, arriba de los dos botones. */
+.dock-confirm-text {
+  grid-column: 1 / -1;
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  margin: 0;
+  font-weight: 700;
+  text-wrap: pretty;
+}
+
+.dock-confirm-text svg {
+  flex-shrink: 0;
+  margin-top: 3px;
+  color: var(--accent-2);
+}
+
+.dock-confirm {
+  border-top: 1px solid color-mix(in srgb, var(--accent-2) 45%, var(--border));
+  background: color-mix(in srgb, var(--accent-2) 8%, var(--bg));
+  animation: dock-confirm-in 0.22s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes dock-confirm-in {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .dock-confirm {
+    animation: fb-fade 0.2s ease-out;
+  }
+}
+
 /* ---------- Marcador (truco y compañía) ---------- */
 
 .play-page .counter-side {
