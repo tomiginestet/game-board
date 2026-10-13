@@ -9,7 +9,9 @@ import type { EventDef, GameDef } from '../../lib/games/schema'
 import { actions, useData } from '../../lib/store'
 import type { Id, Play, PlaySide, Player } from '../../lib/types'
 import { entryText, usePlayToggle, useTapGuard } from './playHooks'
+import { KeyHint } from './KeyHint'
 import { HelpToggle, PointsDialog } from './shared'
+import { sideKeys, undoLast, useScoreKeys } from './useScoreKeys'
 
 /** Cuántas jugadas se muestran de entrada por lado; el resto queda detrás de "Ver todo". */
 const PRIMARY_EVENTS = 4
@@ -63,6 +65,24 @@ export function CounterBoard({ play, game, live, players }: { play: Play; game: 
     actions.log(play.id, { k: 'ev', s, e: e.id, n: 1 })
   }
 
+  // Teclado (en la compu): cada lado tiene su tecla y suma lo mismo que tocar su zona grande; Z o Backspace deshace.
+  // Con el diálogo de puntos abierto, el teclado es del diálogo; con la partida cerrada, no se anota nada.
+  const keys = sideKeys(play.sides.length)
+  useScoreKeys(play.status !== 'finished' && !asking, (key) => {
+    if (key === 'z' || key === 'backspace') return undoLast(play, game, players)
+    // Con dos lados, A/L y también 1/2.
+    const s = keys.indexOf(key) >= 0 ? keys.indexOf(key) : two && (key === '1' || key === '2') ? Number(key) - 1 : -1
+    if (s < 0) return false
+    tap(s)
+    return true
+  })
+  const keyItems = [
+    ...(play.sides.length <= 4
+      ? keys.map((k, s) => ({ keys: [k.toUpperCase()], label: `suma a ${sideName(play.sides[s], players)}` }))
+      : [{ keys: [`1–${keys.length}`], label: 'suman a cada lado, en orden' }]),
+    { keys: ['Z'], label: 'deshace' },
+  ]
+
   return (
     <>
       {asking && (
@@ -79,7 +99,7 @@ export function CounterBoard({ play, game, live, players }: { play: Play; game: 
       <div className={'counter-board' + (two ? ' two' : '')}>
         {play.sides.map((side, s) => (
           <div key={s} className="counter-side" style={{ ['--pc' as string]: sideColor(side, players) }}>
-            <SideScore side={side} score={live.scores[s]} game={game} target={target} quick={quick[0]} players={players} onTap={() => tap(s)} />
+            <SideScore side={side} score={live.scores[s]} game={game} target={target} quick={quick[0]} players={players} shortcut={keys[s]?.toUpperCase()} onTap={() => tap(s)} />
             {(shown.length > 0 || quick.length > 1) && (
               <div className="ev-grid" role="group" aria-label={`Jugadas de ${sideName(side, players)}`}>
                 {quick.slice(1).map((n) => (
@@ -107,6 +127,7 @@ export function CounterBoard({ play, game, live, players }: { play: Play; game: 
           </div>
         ))}
       </div>
+      <KeyHint items={keyItems} />
       {(rare.length > 0 || withHelp.length > 0) && (
         <div className="board-tools">
           {rare.length > 0 && (
@@ -155,12 +176,12 @@ export function CounterBoard({ play, game, live, players }: { play: Play; game: 
 }
 
 /** Zona grande de cada lado: un toque suma; un arrastre o un scroll, no. */
-function SideScore({ side, score, game, target, quick, players, onTap }: { side: PlaySide; score: number; game: GameDef; target?: number; quick: number; players: Map<Id, Player>; onTap: () => void }) {
+function SideScore({ side, score, game, target, quick, players, shortcut, onTap }: { side: PlaySide; score: number; game: GameDef; target?: number; quick: number; players: Map<Id, Player>; shortcut?: string; onTap: () => void }) {
   const guard = useTapGuard(onTap)
   const malas = game.scoring.tally === 'matches' && target && target >= 20 ? target / 2 : undefined
   const name = sideName(side, players)
   return (
-    <button type="button" className="counter-main" {...guard}>
+    <button type="button" className="counter-main" aria-keyshortcuts={shortcut} {...guard}>
       <span className="cs-name">
         <TeamAvatar team={sidePlayersOf(side, players)} size={28} /> <span className="ellipsis">{name}</span>
       </span>

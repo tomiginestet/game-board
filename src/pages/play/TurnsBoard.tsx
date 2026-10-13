@@ -10,7 +10,9 @@ import type { Id, Play, Player } from '../../lib/types'
 import { LogList } from './CounterBoard'
 import { MiniScore } from './MiniScore'
 import { usePlayToggle, useReducedMotion } from './playHooks'
+import { KeyHint } from './KeyHint'
 import { HelpToggle } from './shared'
+import { undoLast, useScoreKeys } from './useScoreKeys'
 
 export function TurnsBoard({ play, game, live, players }: { play: Play; game: GameDef; live: LiveState; players: Map<Id, Player> }) {
   const started = live.turnCount > 0
@@ -27,6 +29,13 @@ export function TurnsBoard({ play, game, live, players }: { play: Play; game: Ga
   const reduce = useReducedMotion()
   const barRef = useRef<HTMLDivElement>(null)
   const cardRefs = useRef<(HTMLElement | null)[]>([])
+
+  // Teclado (en la compu): N o Enter pasa el turno (igual que el botón); Z o Backspace deshace.
+  useScoreKeys(play.status !== 'finished', (key) => {
+    if (key === 'n' || key === 'enter') return (pass(), true)
+    if (key === 'z' || key === 'backspace') return undoLast(play, game, players)
+    return false
+  })
 
   // Las tarjetas quedan siempre en el orden de la ronda (nada cambia de lugar); al pasar el turno,
   // la del que juega se acomoda a la vista, entre la franja fija de arriba y la barra de abajo.
@@ -59,7 +68,7 @@ export function TurnsBoard({ play, game, live, players }: { play: Play; game: Ga
                 <b className="turn-name ellipsis">Empieza {sideName(play.sides[0], players)}</b>
               )}
             </span>
-            <button className="btn primary turn-pass" onClick={pass}>
+            <button className="btn primary turn-pass" onClick={pass} aria-keyshortcuts="N Enter">
               <SkipForwardIcon weight="fill" aria-hidden="true" /> {started ? 'Pasar turno' : 'Arrancar'}
             </button>
           </div>
@@ -120,6 +129,13 @@ export function TurnsBoard({ play, game, live, players }: { play: Play; game: Ga
           )
         })}
       </div>
+
+      <KeyHint
+        items={[
+          { keys: ['N', 'Enter'], label: started ? 'pasa el turno' : 'arranca' },
+          { keys: ['Z'], label: 'deshace' },
+        ]}
+      />
 
       {anyHelp && (
         <div className="board-tools">
