@@ -96,8 +96,9 @@ describe('logros por niveles', () => {
   })
 
   it('cada nivel tiene su ilustración', async () => {
-    const { PINGPONG_ART: ART } = await import('../art/pingpong')
-    for (const f of ACHIEVEMENT_FAMILIES) for (const l of f.levels) expect(ART[l.name], l.name).toBeTypeOf('function')
+    const { ART_REGISTRY, loadArt } = await import('../art')
+    await loadArt()
+    for (const f of ACHIEVEMENT_FAMILIES) for (const l of f.levels) expect(ART_REGISTRY[l.name], l.name).toBeTypeOf('function')
   })
 })
 
