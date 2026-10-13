@@ -1,0 +1,105 @@
+/* ---------- Anotar: elegir juego ---------- */
+
+.qp-page {
+  gap: 24px;
+}
+
+.qp-title {
+  margin: 0;
+}
+
+.qp-search {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.qp-search > label {
+  font-weight: 600;
+  font-size: 14px;
+  color: var(--muted);
+}
+
+/* Una sola superficie por sección; las filas se separan con una línea, no son tarjetas. */
+.qp-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  overflow: hidden;
+}
+
+.qp-list > li + li {
+  border-top: 1px solid var(--border);
+}
+
+.qp-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-height: 60px;
+  padding: 10px 12px 10px 14px;
+  color: var(--text);
+  text-decoration: none;
+}
+
+/* El foco se dibuja adentro: la lista recorta lo que sobresale. */
+.qp-row:focus-visible {
+  outline: 2px solid var(--accent-2);
+  outline-offset: -2px;
+  border-radius: var(--radius);
+}
+
+.qp-row:active {
+  background: var(--card-2);
+}
+
+@media (hover: hover) {
+  .qp-row:hover {
+    background: var(--card-2);
+  }
+}
+
+.qp-text {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.qp-name {
+  font-weight: 700;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.qp-meta {
+  font-size: 13px;
+  color: var(--muted);
+}
+
+.qp-caret {
+  flex-shrink: 0;
+  color: var(--muted);
+}
+
+.qp-empty {
+  gap: 8px;
+  padding: 20px 16px;
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+}
+
+.qp-empty h2,
+.qp-empty p {
+  margin: 0;
+}
+
+.qp-empty .btn {
+  margin-top: 8px;
+}

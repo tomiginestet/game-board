@@ -61,7 +61,7 @@ export const GLOBAL_FAMILIES: GlobalFamily[] = [
     id: 'streak',
     name: 'Racha',
     measures: 'Mejor racha de partidas ganadas seguidas, mezclando juegos',
-    unit: (n) => `${n} seguidas`,
+    unit: (n) => plural(n, 'victoria seguida', 'victorias seguidas'),
     value: (s) => s.bestStreak,
     levels: [
       { at: 3, name: 'Se pasó el agua', description: 'Empezás a calentar: la pava ya silba.' },
@@ -181,7 +181,7 @@ function streakFamily(game: GameDef): MedalFamily {
     id: 'gameStreak',
     name: 'Racha',
     measures: `Mejor racha de victorias seguidas en ${game.name}`,
-    unit: (n) => `${n} seguidas`,
+    unit: (n) => plural(n, 'victoria seguida', 'victorias seguidas'),
     levels: GLOBAL_FAMILIES[1].levels.slice(0, 4),
   }
 }
@@ -276,4 +276,46 @@ export function missingLabel(family: Pick<MedalFamily, 'unit'>, missing: number)
   const verb = missing === 1 ? 'Falta' : 'Faltan'
   const m = family.unit(missing).match(/^\+?(\d+)\s+(.+)$/)
   return m && Number(m[1]) === missing ? `${verb} ${missing} ${m[2]}` : `${verb} ${missing}`
+}
+
+// ---------------------------------------------------------------------------
+// Próximas medallas (para "Medallas a la vista" y para el resumen de una partida).
+
+export interface MedalInReach {
+  playerId: string
+  /** Dónde se gana: el nombre del juego, o "General". */
+  where: string
+  /** Id del juego, o undefined si es general. */
+  gameId?: string
+  progress: MedalProgress
+}
+
+/**
+ * Medallas por ganar de un jugador, de la más cercana a la más lejana: las generales y las de cada juego
+ * que jugó (o sólo las de `onlyGame`, si se pide).
+ */
+export function medalsInReach(
+  s: GlobalStats,
+  gameOf: (gameId: string) => GameDef | undefined,
+  opts: { onlyGame?: string; pp?: PPStats } = {},
+): MedalInReach[] {
+  const out: MedalInReach[] = globalMedals(s).map((progress) => ({ playerId: s.playerId, where: 'General', progress }))
+  for (const [gameId, gs] of s.perGame) {
+    if (opts.onlyGame && gameId !== opts.onlyGame) continue
+    const game = gameOf(gameId)
+    if (game) for (const progress of gameMedals(game, gs, opts.pp)) out.push({ playerId: s.playerId, where: game.name, gameId, progress })
+  }
+  return closestFirst(out)
+}
+
+/**
+ * "A Caro le falta 1 victoria para «Ya no sos turista»", "… para «Le agarraste la mano» en Truco".
+ * Para una medalla que todavía no se ganó (con `next`).
+ */
+export function nextMedalHint(name: string, near: Pick<MedalInReach, 'where' | 'gameId' | 'progress'>): string {
+  const { family, next, value } = near.progress
+  if (!next) return ''
+  const label = missingLabel(family, next.at - value)
+  const where = near.gameId ? ` en ${near.where}` : ''
+  return `A ${name} le ${label.charAt(0).toLowerCase()}${label.slice(1)} para «${next.name}»${where}.`
 }

@@ -1,6 +1,6 @@
 import { ArrowRightIcon, CaretLeftIcon, CaretRightIcon, CheckCircleIcon, GearSixIcon, PlusIcon, SparkleIcon, TrashIcon, TrophyIcon, UsersIcon } from '@phosphor-icons/react'
 import { useRef, useState } from 'react'
-import { Link } from 'react-router-dom'
+import { Link, useNavigate, type NavigateFunction } from 'react-router-dom'
 import { Avatar } from '../components/Avatar'
 import { toast } from '../lib/feedback'
 import { HeroCard, ShelfCard, Shelf } from '../components/GameCard'
@@ -15,7 +15,8 @@ import { FEATURED, findGame, HERO, pickGames } from '../lib/games'
 import type { Category, GameDef } from '../lib/games/schema'
 import { gameOrMissing, useBoard, useGames, usePlayerMap } from '../lib/hooks'
 import { tournamentChampion } from '../lib/pingpong/stats'
-import { actions, useData } from '../lib/store'
+import { groupingOf, joinNames, planRematch, type RematchPlan } from '../lib/rematch'
+import { actions, getData, useData } from '../lib/store'
 import { syncAvailable, useSyncState } from '../lib/sync'
 import type { Play, PPMatch as Match } from '../lib/types'
 import { playPath } from './GameDetail'
@@ -43,6 +44,26 @@ function discardPlay(play: Play, gameName: string) {
   toast(`Descartaste la partida de ${gameName}.`, { label: 'Deshacer', run: () => actions.restorePlay(play) })
 }
 
+/**
+ * Revancha directa desde "Jugar de nuevo": arranca con los mismos lados y reglas que la última
+ * vez y ofrece "Cambiar", que descarta la partida recién creada y lleva al armado.
+ */
+function startRematch(game: GameDef, plan: RematchPlan, navigate: NavigateFunction) {
+  const p = actions.createPlay(game.id, plan.sides, plan.config)
+  navigate(`/partida/${p.id}`)
+  const same = groupingOf(game, plan.from) === 'teams' ? 'Mismos equipos que la última vez' : 'Mismos jugadores que la última vez'
+  toast(same, {
+    label: 'Cambiar',
+    run: () => {
+      const now = getData().plays.find((x) => x.id === p.id)
+      actions.deletePlay(p.id)
+      navigate(playPath(game), { replace: true })
+      // Si ya se había anotado algo, se puede recuperar.
+      if (now && now.log.length > 0) toast(`Descartaste la partida de ${game.name}.`, { label: 'Deshacer', run: () => actions.restorePlay(now) })
+    },
+  })
+}
+
 function discardMatch(match: Match) {
   actions.deleteMatch(match.id)
   toast('Descartaste el partido de ping pong.', { label: 'Deshacer', run: () => actions.restoreMatch(match) })
@@ -54,6 +75,7 @@ export function Home() {
   const players = usePlayerMap()
   const games = useGames()
   const sync = useSyncState()
+  const navigate = useNavigate()
   const [stepsClosed, setStepsClosed] = useState(() => readFlag(FIRST_STEPS_KEY))
 
   const live = [
@@ -156,7 +178,7 @@ export function Home() {
             </li>
           </ol>
           {hasPlayers ? (
-            <Link to="/juegos" className="btn primary block">
+            <Link to="/anotar" className="btn primary block">
               <PlusIcon /> Anotar la primera partida
             </Link>
           ) : (
@@ -170,7 +192,7 @@ export function Home() {
         </section>
       ) : (
         <section className="quick-start" aria-label="Anotar una partida">
-          <Link to="/juegos" className="btn primary big block">
+          <Link to="/anotar" className="btn primary big block">
             <PlusIcon /> Anotar una partida
           </Link>
           {againGames.length > 0 && (
@@ -179,14 +201,36 @@ export function Home() {
                 Jugar de nuevo
               </span>
               <ul className="again-list" aria-labelledby="again-label">
-                {againGames.map((g) => (
-                  <li key={g.id}>
-                    <Link to={playPath(g)} className="again-chip">
+                {againGames.map((g) => {
+                  // Con la última partida completa y válida, el chip arranca la revancha; si no, va al armado.
+                  // Si ya hay una partida de este juego en curso, el chip la retoma en vez de abrir otra.
+                  const ongoing = data.plays.find((p) => p.gameId === g.id && p.status === 'live' && !p.cupId)
+                  const plan = ongoing ? undefined : planRematch(g, data.plays, players.keys())
+                  const content = (
+                    <>
                       <GameBadge game={g} size={26} />
                       <span className="ellipsis">{g.name}</span>
-                    </Link>
-                  </li>
-                ))}
+                    </>
+                  )
+                  return (
+                    <li key={g.id}>
+                      {plan ? (
+                        <button
+                          type="button"
+                          className="again-chip"
+                          onClick={() => startRematch(g, plan, navigate)}
+                          aria-label={`Revancha de ${g.name} con ${joinNames(plan.playerIds.map((id) => players.get(id)?.name ?? '?'))}`}
+                        >
+                          {content}
+                        </button>
+                      ) : (
+                        <Link to={ongoing ? `/partida/${ongoing.id}` : playPath(g)} className="again-chip" aria-label={ongoing ? `Seguir la partida de ${g.name}` : undefined}>
+                          {content}
+                        </Link>
+                      )}
+                    </li>
+                  )
+                })}
               </ul>
             </div>
           )}

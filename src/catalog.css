@@ -73,7 +73,8 @@
   -webkit-line-clamp: 3;
   -webkit-box-orient: vertical;
   overflow: hidden;
-  font-size: var(--ts);
+  /* Nunca menos de 12px, aunque la carátula sea chica (el renglón extra lo recorta el clamp). */
+  font-size: max(12px, var(--ts));
   font-weight: 900;
   line-height: 0.98;
   letter-spacing: -0.02em;
@@ -90,7 +91,7 @@
 }
 
 .gcover-landscape .gcover-title {
-  font-size: calc(var(--ts) * 0.6);
+  font-size: max(12px, calc(var(--ts) * 0.6));
   left: 5cqi;
   right: 40cqi;
   bottom: 5cqi;
@@ -594,7 +595,7 @@
   border-radius: 999px;
   background: var(--accent-fill);
   color: var(--on-fill);
-  box-shadow: 0 6px 16px rgba(201, 68, 18, 0.5);
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.45);
 }
 
 @media (hover: hover) {
