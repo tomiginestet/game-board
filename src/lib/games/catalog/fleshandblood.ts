@@ -37,7 +37,7 @@ export const fleshandblood: GameDef = {
       levels: [
         { at: 3, name: 'Espada de madera', description: 'Tres partidas ganadas. Entrenás en el patio con una espada de palo.', glyph: 'sword', color: '#862E2E' },
         { at: 15, name: 'Arena de Rathe', description: 'Quince victorias: la arena corea tu nombre.', glyph: 'sword', color: '#862E2E' },
-        { at: 40, name: 'Leyenda viviente', description: 'Cuarenta partidas. Te hacen estatua en la plaza del pueblo.', glyph: 'sword', color: '#862E2E' },
+        { at: 40, name: 'Estatua de Rathe', description: 'Cuarenta partidas. Te hacen estatua en la plaza del pueblo.', glyph: 'sword', color: '#862E2E' },
       ],
     },
     {
