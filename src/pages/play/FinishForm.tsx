@@ -1,8 +1,8 @@
-import { ConfettiIcon, FlagCheckeredIcon } from '@phosphor-icons/react'
-import { useState } from 'react'
+import { ConfettiIcon, FlagCheckeredIcon, WarningIcon } from '@phosphor-icons/react'
+import { useEffect, useRef, useState } from 'react'
 import { TeamAvatar } from '../../components/Avatar'
 import { sideName, sidePlayersOf } from '../../components/GameBits'
-import { placesFromScores, type LiveState } from '../../lib/engine'
+import { eliminateOf, placesFromScores, roundsOf, targetOf, type LiveState } from '../../lib/engine'
 import { vibrate } from '../../lib/vibrate'
 import type { GameDef } from '../../lib/games/schema'
 import { actions, useData } from '../../lib/store'
@@ -10,6 +10,14 @@ import type { Id, Play, PlayResult, Player } from '../../lib/types'
 
 export function FinishForm({ play, game, live, players, onCancel }: { play: Play; game: GameDef; live: LiveState; players: Map<Id, Player>; onCancel?: () => void }) {
   const data = useData()
+  // Al abrir el cierre desde la partida, se arranca desde arriba y el foco no queda perdido.
+  const rootRef = useRef<HTMLDivElement>(null)
+  const fromPlay = !!onCancel
+  useEffect(() => {
+    if (!fromPlay) return
+    window.scrollTo({ top: 0 })
+    rootRef.current?.focus({ preventScroll: true })
+  }, [fromPlay])
   // En eliminación directa alguien tiene que pasar de ronda: no hay empate.
   const knockout = !!play.cupId && data.cups.find((c) => c.id === play.cupId)?.format === 'knockout'
   const n = play.sides.length
@@ -61,6 +69,20 @@ export function FinishForm({ play, game, live, players, onCancel }: { play: Play
   const rolesReady = !roles || (winnerRole !== null && allPlayers.every((id) => roleOf[id]) && new Set(Object.values(roleOf)).size >= 1)
   const ready = roles ? rolesReady : !!places && (!tieAtTop || tieBreak !== null || (!knockout && (draw || game.scoring.allowDraw === true)))
 
+  // La partida se puede cerrar antes de tiempo, pero que sea a propósito: se avisa y el botón lo dice.
+  const totalRounds = game.mode === 'rounds' ? roundsOf(game, play.config) : undefined
+  const missingRounds = totalRounds !== undefined && eliminateOf(game, play.config) === undefined ? totalRounds - live.roundsPlayed : 0
+  const target = targetOf(game, play.config)
+  const typedScores = scores.filter((v): v is number => v !== null)
+  const short =
+    hasLiveScore && !coop && target !== undefined && !lowWins && eliminateOf(game, play.config) === undefined && typedScores.length > 0 && Math.max(...typedScores) < target
+  const warning =
+    missingRounds > 0
+      ? `${missingRounds === 1 ? 'Falta 1 mano' : `Faltan ${missingRounds} manos`}: ¿guardar igual?`
+      : short
+        ? `Nadie llegó a ${target} ${game.scoring.pointsName ?? 'puntos'}: ¿guardar igual?`
+        : undefined
+
   const finish = () => {
     if (!ready) return
     vibrate(40)
@@ -88,7 +110,7 @@ export function FinishForm({ play, game, live, players, onCancel }: { play: Play
   const sidesForStats = coop ? [{ players: allPlayers, name: 'El equipo' }] : play.sides
 
   return (
-    <div className="finish-form">
+    <div className="finish-form" ref={rootRef} tabIndex={-1} role="region" aria-label="Cerrar la partida">
       {coop && (
         <section className="card">
           <h2>¿Cómo les fue?</h2>
@@ -142,6 +164,7 @@ export function FinishForm({ play, game, live, players, onCancel }: { play: Play
                 className="input score-input"
                 type="number"
                 inputMode="numeric"
+                aria-label={`Puntaje de ${coop ? 'todos' : sideName(side, players)}`}
                 value={scores[i] ?? ''}
                 placeholder={game.scoring.maxScore ? `de ${game.scoring.maxScore}` : '0'}
                 onChange={(e) => setScores(scores.map((v, k) => (k === i ? (e.target.value === '' ? null : Number(e.target.value)) : v)))}
@@ -207,6 +230,7 @@ export function FinishForm({ play, game, live, players, onCancel }: { play: Play
                   {st.type === 'choice' ? (
                     <select
                       className="input"
+                      aria-label={`${st.label}: ${coop ? 'equipo' : sideName(side, players)}`}
                       value={(stats[st.id][i] as string) ?? ''}
                       onChange={(e) => setStats({ ...stats, [st.id]: stats[st.id].map((v, k) => (k === i ? e.target.value || null : v)) })}
                     >
@@ -222,6 +246,7 @@ export function FinishForm({ play, game, live, players, onCancel }: { play: Play
                       className="input score-input"
                       type="number"
                       inputMode="numeric"
+                      aria-label={`${st.label}: ${coop ? 'equipo' : sideName(side, players)}`}
                       value={(stats[st.id][i] as number) ?? ''}
                       onChange={(e) => setStats({ ...stats, [st.id]: stats[st.id].map((v, k) => (k === i ? (e.target.value === '' ? null : Number(e.target.value)) : v)) })}
                     />
@@ -233,15 +258,22 @@ export function FinishForm({ play, game, live, players, onCancel }: { play: Play
         </section>
       )}
 
-      <div className="sticky-actions row">
-        {onCancel && (
-          <button className="btn" onClick={onCancel}>
-            Seguir jugando
-          </button>
+      <div className="sticky-actions finish-actions">
+        {warning && (
+          <p className="finish-warning" role="status">
+            <WarningIcon weight="fill" aria-hidden="true" /> {warning}
+          </p>
         )}
-        <button className="btn primary big grow" disabled={!ready} onClick={finish}>
-          <FlagCheckeredIcon /> Guardar resultado
-        </button>
+        <div className="finish-buttons">
+          {onCancel && (
+            <button className="btn big" onClick={onCancel}>
+              Seguir jugando
+            </button>
+          )}
+          <button className="btn primary big finish-save" disabled={!ready} onClick={finish}>
+            <FlagCheckeredIcon aria-hidden="true" /> {warning ? 'Guardar igual' : 'Guardar resultado'}
+          </button>
+        </div>
       </div>
     </div>
   )

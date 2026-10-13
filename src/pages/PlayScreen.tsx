@@ -1,16 +1,19 @@
-import { ArrowCounterClockwiseIcon, ArrowLeftIcon, FlagCheckeredIcon, TrashIcon } from '@phosphor-icons/react'
-import { useMemo, useState } from 'react'
+import { ArrowCounterClockwiseIcon, ArrowLeftIcon, FlagCheckeredIcon, TrashIcon, TrophyIcon } from '@phosphor-icons/react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 import { GameBadge } from '../components/GameBits'
-import { computeLive, eliminateOf, roundsOf, targetOf, type LiveState } from '../lib/engine'
+import { computeLive, eliminateOf, isDraw, roundsOf, targetOf, winnerSides, type LiveState } from '../lib/engine'
 import { confirmAction, toast } from '../lib/feedback'
 import { vibrate } from '../lib/vibrate'
 import type { GameDef } from '../lib/games/schema'
 import { formatDate, gameOrMissing, usePlayerMap } from '../lib/hooks'
-import { actions, useData } from '../lib/store'
-import type { Play } from '../lib/types'
+import { sideName } from '../components/GameBits'
+import { actions, getData, useData } from '../lib/store'
+import type { Id, Play, Player } from '../lib/types'
 import { ScoreAnnouncer } from './play/shared'
+import { entryText, useReducedMotion } from './play/playHooks'
 import { CounterBoard } from './play/CounterBoard'
+import '../styles/playscreen.css'
 import { RoundsBoard } from './play/RoundsBoard'
 import { TurnsBoard } from './play/TurnsBoard'
 import { FinishForm } from './play/FinishForm'
@@ -33,6 +36,9 @@ export function PlayScreen() {
   return <PlayView key={play.id} play={play} game={gameOrMissing(data, play.gameId)} />
 }
 
+/** Cuánto dura la pausa del punto final antes de pasar al resumen. */
+const BEAT_MS = 2500
+
 function PlayView({ play, game }: { play: Play; game: GameDef }) {
   const navigate = useNavigate()
   const players = usePlayerMap()
@@ -40,6 +46,40 @@ function PlayView({ play, game }: { play: Play; game: GameDef }) {
   const [finishing, setFinishing] = useState(false)
   const backTo = play.cupId ? `/torneos/${play.cupId}` : '/'
   const finished = play.status === 'finished'
+  const scored = game.mode === 'counter' || game.mode === 'rounds' || game.mode === 'turns'
+
+  // Pausa del punto final: si un punto cierra la partida sola, no se salta directo al resumen.
+  // Se muestra "¡Ganó X!" unos segundos con "Deshacer" por si fue un toque de más.
+  const [beat, setBeat] = useState(false)
+  const [prevStatus, setPrevStatus] = useState(play.status)
+  if (prevStatus !== play.status) {
+    setPrevStatus(play.status)
+    if (play.status === 'finished') {
+      if (!finishing && (game.mode === 'counter' || game.mode === 'rounds')) setBeat(true)
+      setFinishing(false)
+    } else setBeat(false)
+  }
+  const showLive = !finished || beat
+
+  // Mientras se juega, la navegación de abajo se esconde (un pulgar distraído no te saca de la partida).
+  useEffect(() => {
+    if (!showLive) return
+    document.body.classList.add('in-play')
+    return () => document.body.classList.remove('in-play')
+  }, [showLive])
+
+  // Al pasar al resumen, se arranca desde arriba.
+  useEffect(() => {
+    if (finished && !beat) window.scrollTo({ top: 0 })
+  }, [finished, beat])
+
+  const undo = () => {
+    const last = play.log[play.log.length - 1]
+    if (!last) return
+    vibrate(30)
+    actions.undo(play.id)
+    toast(`Deshiciste: ${entryText(play, game, players, last)}`)
+  }
 
   const discard = async () => {
     if (play.cupId) {
@@ -60,56 +100,109 @@ function PlayView({ play, game }: { play: Play; game: GameDef }) {
   }
 
   return (
-    <div className="page play-page" style={{ ['--gc' as string]: game.color }}>
+    <div className={'page play-page' + (showLive ? ' is-live' : '')} style={{ ['--gc' as string]: game.color }}>
       <header className="play-head">
-        <button className="icon-btn" onClick={() => navigate(backTo)} aria-label="Volver">
+        <button className="icon-btn" onClick={() => navigate(backTo)} aria-label={play.cupId ? 'Volver al torneo' : 'Volver al inicio'}>
           <ArrowLeftIcon />
         </button>
         <GameBadge game={game} size={36} />
-        <div className="grow">
-          <strong>{game.name}</strong>
+        <div className="grow play-title">
+          {showLive ? <h1 className="play-h1">{game.name}</h1> : <strong>{game.name}</strong>}
           <span className="muted small block">{describePlay(game, play, live)}</span>
         </div>
-        {!finished && play.log.length > 0 && (
-          <button
-            className="icon-btn"
-            onClick={() => {
-              vibrate(30)
-              actions.undo(play.id)
-            }}
-            aria-label="Deshacer"
-            title="Deshacer lo último"
-          >
-            <ArrowCounterClockwiseIcon />
-          </button>
-        )}
       </header>
 
-      {finished ? (
+      {!showLive ? (
         <Summary play={play} game={game} live={live} players={players} />
       ) : finishing ? (
         <FinishForm play={play} game={game} live={live} players={players} onCancel={() => setFinishing(false)} />
       ) : (
         <>
-          {(game.mode === 'counter' || game.mode === 'rounds' || game.mode === 'turns') && <ScoreAnnouncer play={play} live={live} players={players} />}
-          {game.mode === 'counter' && <CounterBoard play={play} game={game} live={live} players={players} />}
-          {game.mode === 'rounds' && <RoundsBoard play={play} game={game} live={live} players={players} />}
-          {game.mode === 'turns' && <TurnsBoard play={play} game={game} live={live} players={players} />}
-          {(game.mode === 'result' || game.mode === 'coop') && (
-            <FinishForm play={play} game={game} live={live} players={players} />
-          )}
-          {game.mode !== 'result' && game.mode !== 'coop' && (
-            <div className="play-actions">
-              <button className={'btn block' + (game.mode === 'turns' ? ' primary' : '')} onClick={() => setFinishing(true)}>
-                <FlagCheckeredIcon /> Terminar partida
+          {/* Durante la pausa final el marcador queda a la vista pero no se puede tocar. */}
+          <div className="play-board" inert={beat || undefined}>
+            {scored && <ScoreAnnouncer play={play} live={live} players={players} />}
+            {game.mode === 'counter' && <CounterBoard play={play} game={game} live={live} players={players} />}
+            {game.mode === 'rounds' && <RoundsBoard play={play} game={game} live={live} players={players} />}
+            {game.mode === 'turns' && <TurnsBoard play={play} game={game} live={live} players={players} />}
+            {(game.mode === 'result' || game.mode === 'coop') && <FinishForm play={play} game={game} live={live} players={players} />}
+            {!beat && (
+              <button className="link-btn danger-text small center-block" onClick={discard}>
+                <TrashIcon /> {play.cupId ? 'Borrar lo anotado' : 'Descartar partida'}
               </button>
-            </div>
+            )}
+          </div>
+          {beat ? (
+            <FinalBeat play={play} players={players} onUndo={() => {
+              actions.undo(play.id)
+              // Si deshacer no alcanzó para reabrirla (p. ej. la cerró otra cosa), se reabre igual.
+              if (getData().plays.find((p) => p.id === play.id)?.status === 'finished') actions.reopenPlay(play.id)
+            }} onDone={() => setBeat(false)} />
+          ) : (
+            scored && (
+              <div className="play-dock">
+                <button type="button" className="btn big dock-undo" onClick={undo} disabled={!play.log.length}>
+                  <ArrowCounterClockwiseIcon aria-hidden="true" /> Deshacer
+                </button>
+                <button type="button" className={'btn big dock-finish' + (game.mode === 'turns' ? ' primary' : '')} onClick={() => setFinishing(true)}>
+                  <FlagCheckeredIcon aria-hidden="true" /> Terminar partida
+                </button>
+              </div>
+            )
           )}
-          <button className="link-btn danger-text small center-block" onClick={discard}>
-            <TrashIcon /> {play.cupId ? 'Borrar lo anotado' : 'Descartar partida'}
-          </button>
         </>
       )}
+    </div>
+  )
+}
+
+/** "¡Ganó X!" a todo lo ancho, unos segundos, con "Deshacer" a mano antes del resumen. */
+function FinalBeat({ play, players, onUndo, onDone }: { play: Play; players: Map<Id, Player>; onUndo: () => void; onDone: () => void }) {
+  const reduce = useReducedMotion()
+  const seeRef = useRef<HTMLButtonElement>(null)
+  const winners = winnerSides(play)
+  const title = isDraw(play) || !winners.length ? '¡Empate!' : `¡Ganó ${winners.map((i) => sideName(play.sides[i], players)).join(' y ')}!`
+  const score = play.result?.scores?.length ? play.result.scores.join(' a ') : ''
+  const [paused, setPaused] = useState(false)
+  const doneRef = useRef(onDone)
+  useEffect(() => {
+    doneRef.current = onDone
+  })
+
+  useEffect(() => {
+    vibrate(60)
+    // El foco estaba en el marcador (que queda inerte): pasa al aviso, sin mover la página.
+    seeRef.current?.focus({ preventScroll: true })
+  }, [])
+  useEffect(() => {
+    if (paused) return
+    const t = window.setTimeout(() => doneRef.current(), BEAT_MS)
+    return () => window.clearTimeout(t)
+  }, [paused])
+
+  return (
+    <div
+      className={'final-beat' + (reduce ? ' reduce' : '') + (paused ? ' paused' : '')}
+      role="status"
+      // Si alguien lo está por tocar o lo recorre con el teclado, no se va solo.
+      onPointerDown={() => setPaused(true)}
+      onFocus={(e) => (e.target as HTMLElement) !== seeRef.current && setPaused(true)}
+    >
+      <div className="fb-text">
+        <TrophyIcon weight="fill" className="fb-icon" aria-hidden="true" />
+        <div>
+          <strong className="fb-title">{title}</strong>
+          {score && <span className="fb-score num">{score}</span>}
+        </div>
+      </div>
+      <div className="fb-actions">
+        <button type="button" className="btn big" onClick={onUndo}>
+          <ArrowCounterClockwiseIcon aria-hidden="true" /> Deshacer
+        </button>
+        <button type="button" ref={seeRef} className="btn primary big" onClick={onDone}>
+          Ver resumen
+        </button>
+      </div>
+      {!reduce && !paused && <span className="fb-timer" style={{ animationDuration: `${BEAT_MS}ms` }} aria-hidden="true" />}
     </div>
   )
 }

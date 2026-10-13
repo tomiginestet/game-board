@@ -1,23 +1,56 @@
-import { useState } from 'react'
+import { CaretDownIcon } from '@phosphor-icons/react'
+import { useId, useMemo, useState } from 'react'
 import { TeamAvatar } from '../../components/Avatar'
 import { sideColor, sideName, sidePlayersOf } from '../../components/GameBits'
 import { Tally } from '../../components/Tally'
-import { targetOf, type LiveState } from '../../lib/engine'
+import { optionValue, targetOf, type LiveState } from '../../lib/engine'
 import { vibrate } from '../../lib/vibrate'
 import type { EventDef, GameDef } from '../../lib/games/schema'
-import { actions } from '../../lib/store'
-import type { Id, Play, Player } from '../../lib/types'
-import { PointsDialog } from './shared'
+import { actions, useData } from '../../lib/store'
+import type { Id, Play, PlaySide, Player } from '../../lib/types'
+import { entryText, usePlayToggle, useTapGuard } from './playHooks'
+import { HelpToggle, PointsDialog } from './shared'
+
+/** Cuántas jugadas se muestran de entrada por lado; el resto queda detrás de "Ver todo". */
+const PRIMARY_EVENTS = 4
 
 export function CounterBoard({ play, game, live, players }: { play: Play; game: GameDef; live: LiveState; players: Map<Id, Player> }) {
+  const data = useData()
   const target = targetOf(game, play.config)
   const quick = game.scoring.quick?.length ? game.scoring.quick : [1]
-  // Los eventos de flor sólo aparecen si se juega con flor.
-  const events = game.events.filter((e) => !e.global && !(e.id.toLowerCase().includes('flor') && play.config.flor === false))
+  // Los eventos de flor sólo aparecen si se juega con flor (la opción puede venir del valor por defecto).
+  const flor = optionValue(game, play.config, 'flor')
+  const events = game.events.filter((e) => !e.global && !(e.id.toLowerCase().includes('flor') && flor === false))
   const globals = game.events.filter((e) => e.global)
   const two = play.sides.length === 2
   const leader = Math.max(...live.scores)
   const [asking, setAsking] = useState<{ s: number; e: EventDef; suggestion?: number } | null>(null)
+  const [expanded, setExpanded] = usePlayToggle(`more:${play.id}`)
+  const [help, setHelp] = usePlayToggle(`help:${game.id}`)
+  const helpId = useId()
+
+  // Jugadas de entrada: las más usadas en las partidas anteriores de este juego (si no hay historial,
+  // las primeras de la ficha) más las que ya se usaron en esta. Se fija al abrir, para que nada salte de lugar.
+  const history = useMemo(() => {
+    const freq: Record<string, number> = {}
+    for (const p of data.plays) {
+      if (p.gameId !== game.id || p.id === play.id) continue
+      for (const e of p.log) if (e.k === 'ev') freq[e.e] = (freq[e.e] ?? 0) + 1
+    }
+    return freq
+  }, [data.plays, game.id, play.id])
+  const [primaryIds] = useState(() => {
+    const ranked = events.map((e, i) => ({ e, i })).sort((a, b) => (history[b.e.id] ?? 0) - (history[a.e.id] ?? 0) || a.i - b.i)
+    const ids = new Set(ranked.slice(0, PRIMARY_EVENTS).map((x) => x.e.id))
+    for (const e of events) if (live.counts[e.id]?.some((n) => n > 0)) ids.add(e.id)
+    // Esconder una sola jugada no ahorra nada.
+    if (events.length - ids.size <= 1) for (const e of events) ids.add(e.id)
+    return ids
+  })
+  const primary = events.filter((e) => primaryIds.has(e.id))
+  const rare = events.filter((e) => !primaryIds.has(e.id))
+  const shown = expanded ? [...primary, ...rare] : primary
+  const withHelp = events.filter((e) => e.help)
 
   const tap = (s: number, e?: EventDef) => {
     vibrate()
@@ -44,48 +77,73 @@ export function CounterBoard({ play, game, live, players }: { play: Play; game: 
         />
       )}
       <div className={'counter-board' + (two ? ' two' : '')}>
-        {play.sides.map((side, s) => {
-          const color = sideColor(side, players)
-          const malas = game.scoring.tally === 'matches' && target && target >= 20 ? target / 2 : undefined
-          return (
-            <div key={s} className="counter-side" style={{ ['--pc' as string]: color }}>
-              <button className="counter-main" onPointerDown={(e) => e.button === 0 && tap(s)} onContextMenu={(e) => e.preventDefault()}>
-                <span className="cs-name">
-                  <TeamAvatar team={sidePlayersOf(side, players)} size={28} /> {sideName(side, players)}
-                </span>
-                <span key={live.scores[s]} className="cs-score">
-                  {live.scores[s]}
-                </span>
-                {malas !== undefined && <span className="cs-sub">{live.scores[s] < malas ? 'en las malas' : 'en las buenas'}</span>}
-                {game.scoring.tally === 'matches' && <Tally value={live.scores[s]} target={target ?? 30} />}
-                <span className="cs-hint">
-                  +{quick[0]} {game.scoring.quickLabel ?? ''}
-                </span>
-              </button>
-              {(events.length > 0 || quick.length > 1) && (
-                <div className="cs-events">
-                  {quick.slice(1).map((n) => (
-                    <button key={n} className="chip" onClick={() => actions.log(play.id, { k: 'pt', s, n })}>
-                      +{n}
-                    </button>
-                  ))}
-                  {events.map((e) => (
-                    <button key={e.id} className="chip" onClick={() => tap(s, e)} title={e.help}>
-                      {e.emoji} {e.name}
-                      {e.points && !e.askPoints ? <span className="muted"> +{e.points}</span> : null}
-                      {live.counts[e.id]?.[s] ? <b className="chip-count">{live.counts[e.id][s]}</b> : null}
-                    </button>
-                  ))}
-                </div>
-              )}
-            </div>
-          )
-        })}
+        {play.sides.map((side, s) => (
+          <div key={s} className="counter-side" style={{ ['--pc' as string]: sideColor(side, players) }}>
+            <SideScore side={side} score={live.scores[s]} game={game} target={target} quick={quick[0]} players={players} onTap={() => tap(s)} />
+            {(shown.length > 0 || quick.length > 1) && (
+              <div className="ev-grid" role="group" aria-label={`Jugadas de ${sideName(side, players)}`}>
+                {quick.slice(1).map((n) => (
+                  <button key={n} type="button" className="ev-tile" onClick={() => (vibrate(), actions.log(play.id, { k: 'pt', s, n }))}>
+                    <span className="ev-tile-name">+{n}</span>
+                  </button>
+                ))}
+                {shown.map((e) => (
+                  <button key={e.id} type="button" className="ev-tile" onClick={() => tap(s, e)} aria-describedby={help && e.help ? `${helpId}-${e.id}` : undefined}>
+                    <span className="ev-tile-name">
+                      <span aria-hidden="true">{e.emoji}</span> {e.name}
+                    </span>
+                    {e.points && !e.askPoints ? <span className="ev-tile-pts">+{e.points}</span> : null}
+                    {live.counts[e.id]?.[s] ? (
+                      <b className="ev-tile-count">
+                        <span className="sr-only">, anotado </span>
+                        {live.counts[e.id][s]}
+                        <span className="sr-only"> {live.counts[e.id][s] === 1 ? 'vez' : 'veces'}</span>
+                      </b>
+                    ) : null}
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
+        ))}
+      </div>
+      {(rare.length > 0 || withHelp.length > 0) && (
+        <div className="board-tools">
+          {rare.length > 0 && (
+            <button type="button" className="more-toggle" aria-expanded={expanded} onClick={() => setExpanded(!expanded)}>
+              <CaretDownIcon className={expanded ? 'flip' : undefined} aria-hidden="true" />
+              {expanded ? 'Ver menos' : `Ver todo (${rare.length} más)`}
+            </button>
+          )}
+          {withHelp.length > 0 && <HelpToggle on={help} onChange={setHelp} controls={helpId} />}
+        </div>
+      )}
+      <div id={helpId} hidden={!help}>
+        {help && (
+          <dl className="ev-help">
+            {(expanded ? [...primary, ...rare] : primary).filter((e) => e.help).map((e) => (
+              <div key={e.id} id={`${helpId}-${e.id}`}>
+                <dt>
+                  <span aria-hidden="true">{e.emoji}</span> {e.name}
+                </dt>
+                <dd>{e.help}</dd>
+              </div>
+            ))}
+            {globals.filter((e) => e.help).map((e) => (
+              <div key={e.id}>
+                <dt>
+                  <span aria-hidden="true">{e.emoji}</span> {e.name}
+                </dt>
+                <dd>{e.help}</dd>
+              </div>
+            ))}
+          </dl>
+        )}
       </div>
       {globals.length > 0 && (
         <div className="chips center">
           {globals.map((e) => (
-            <button key={e.id} className="chip" onClick={() => actions.log(play.id, { k: 'ev', s: -1, e: e.id, n: 1 })} title={e.help}>
+            <button key={e.id} type="button" className="chip" onClick={() => (vibrate(), actions.log(play.id, { k: 'ev', s: -1, e: e.id, n: 1 }))}>
               {e.emoji} {e.name} {live.globalCounts[e.id] ? <b className="chip-count">{live.globalCounts[e.id]}</b> : null}
             </button>
           ))}
@@ -96,25 +154,39 @@ export function CounterBoard({ play, game, live, players }: { play: Play; game: 
   )
 }
 
+/** Zona grande de cada lado: un toque suma; un arrastre o un scroll, no. */
+function SideScore({ side, score, game, target, quick, players, onTap }: { side: PlaySide; score: number; game: GameDef; target?: number; quick: number; players: Map<Id, Player>; onTap: () => void }) {
+  const guard = useTapGuard(onTap)
+  const malas = game.scoring.tally === 'matches' && target && target >= 20 ? target / 2 : undefined
+  const name = sideName(side, players)
+  return (
+    <button type="button" className="counter-main" {...guard}>
+      <span className="cs-name">
+        <TeamAvatar team={sidePlayersOf(side, players)} size={28} /> <span className="ellipsis">{name}</span>
+      </span>
+      <span key={score} className="cs-score">
+        {score}
+      </span>
+      {malas !== undefined && <span className="cs-sub">{score < malas ? 'en las malas' : 'en las buenas'}</span>}
+      {game.scoring.tally === 'matches' && <Tally value={score} target={target ?? 30} />}
+      <span className="cs-hint">
+        +{quick} {game.scoring.quickLabel ?? ''}
+      </span>
+    </button>
+  )
+}
+
 /** Últimas cosas anotadas (para saber qué se deshace). */
 export function LogList({ play, game, players }: { play: Play; game: GameDef; players: Map<Id, Player> }) {
   const items = play.log.slice(-6).reverse()
   if (!items.length) return null
-  const label = (i: number) => (i < 0 ? 'Mesa' : sideName(play.sides[i], players))
   return (
     <details className="log-list">
       <summary className="muted small">Lo último anotado</summary>
       <ul>
-        {items.map((e, k) => {
-          let text = ''
-          if (e.k === 'pt') text = `${label(e.s)} +${e.n}`
-          else if (e.k === 'ev') {
-            const def = game.events.find((x) => x.id === e.e)
-            text = `${def?.emoji ?? ''} ${def?.name ?? e.e}: ${label(e.s)}${e.p !== undefined ? ` (+${e.p})` : ''}${e.n < 0 ? ' (−1)' : ''}`
-          } else if (e.k === 'turn') text = `Turno de ${label(e.s)}`
-          else text = `Mano: ${e.sc.join(' / ')}`
-          return <li key={k}>{text}</li>
-        })}
+        {items.map((e, k) => (
+          <li key={k}>{entryText(play, game, players, e)}</li>
+        ))}
       </ul>
     </details>
   )
