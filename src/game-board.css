@@ -630,78 +630,8 @@
   font-size: 32px;
 }
 
-.award-list {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-}
-
-.award-row {
-  display: flex;
-  gap: 12px;
-  align-items: center;
-}
-
-.award-row + .award-row {
-  margin-top: 12px;
-}
-
-.award-list .award-row + .award-row {
-  margin-top: 0;
-}
-
-.award-medals {
-  display: flex;
-  align-items: center;
-  flex-shrink: 0;
-}
-
-.award-medals .medal-btn + .medal-btn {
-  margin-left: -10px;
-}
-
-.award-medals .medal-btn:hover {
-  position: relative;
-  z-index: 1;
-}
-
-.award-more {
-  margin-left: 2px;
-  padding: 3px 7px;
-  border-radius: 99px;
-  border: 1px solid var(--border);
-  background: var(--bg-2);
-  color: var(--muted);
-  font: inherit;
-  font-size: 12px;
-  font-weight: 700;
-  cursor: pointer;
-}
-
-.award-info {
-  min-width: 0;
-  padding: 0;
-  border: 0;
-  background: none;
-  color: inherit;
-  font: inherit;
-  text-align: left;
-  cursor: pointer;
-}
-
-.award-info:focus-visible,
-.award-more:focus-visible {
-  outline: 2px solid var(--accent-2);
-  outline-offset: 2px;
-}
-
-.award-leader {
-  margin-top: 4px;
-  color: var(--accent-2);
-}
-
-/* Medallas en la ficha del juego: filas separadas por una línea (como los datos de la ficha de
-   la medalla), con las medallas en una columna fija para que los textos queden alineados. */
+/* Medallas (ficha del juego y vista previa): filas separadas por una línea, como los datos de la
+   ficha de la medalla, con las medallas en una columna fija para que los textos queden alineados. */
 .section-lead {
   margin: -4px 0 12px;
 }
@@ -806,6 +736,13 @@
   margin-top: 2px;
 }
 
+.medal-list-levels {
+  margin-top: 4px;
+  color: var(--text-soft);
+  font-size: 14px;
+  line-height: 1.35;
+}
+
 .medal-list-leader.none {
   color: var(--muted);
   font-weight: 400;
@@ -843,7 +780,7 @@
   grid-template-columns: 24px minmax(0, 1fr);
   gap: 12px;
   align-items: start;
-  padding: 12px 0;
+  padding: 14px 0;
   border-bottom: 1px solid var(--border);
   line-height: 1.45;
   text-wrap: pretty;
@@ -866,27 +803,28 @@
   display: inline-flex;
   align-items: center;
   align-self: flex-start;
-  gap: 8px;
+  /* El libro (20px) queda centrado bajo los números (24px) y el texto, en la columna de las reglas (36px). */
+  gap: 14px;
   min-height: 44px;
   margin-top: 4px;
+  padding-left: 2px;
   border-radius: 8px;
   font-weight: 600;
 }
 
+.rule-link svg {
+  width: 20px;
+  height: 20px;
+  flex-shrink: 0;
+}
+
 .rule-link-out {
+  margin-left: -6px;
   color: var(--muted);
 }
 
 .rule-foot {
-  margin: 0;
-}
-
-.rules {
-  margin: 0 0 10px;
-  padding-left: 20px;
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
+  margin: 4px 0 0 36px;
 }
 
 .game-stats {
@@ -947,7 +885,12 @@
 .game-preview {
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 20px;
+}
+
+.game-preview > section {
+  display: flex;
+  flex-direction: column;
 }
 
 /* Inicio: medallas que están por caer. */
