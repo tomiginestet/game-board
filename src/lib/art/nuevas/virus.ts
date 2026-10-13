@@ -181,7 +181,7 @@ export const VIRUS_NUEVAS_ART: Record<string, (u: number) => string> = {
     const lid = 'M44.6 47.6C44.6 45.6 45.4 44.6 47 44.4L48.4 40.6H71.6L73 44.4C74.6 44.6 75.4 45.6 75.4 47.6C75.4 48.8 74.6 49.4 73.4 49.4H46.6C45.4 49.4 44.6 48.8 44.6 47.6Z'
     const lidTop = ellipse(60, 40.6, 11.6, 2.2)
     const ear = (x: number, y: number, r: number) => `<ellipse cx="${x}" cy="${y}" rx="2.2" ry="1.5" transform="rotate(${r} ${x} ${y})" fill="${P.ink}"/><ellipse cx="${f(x - 0.4)}" cy="${f(y - 0.4)}" rx="1.5" ry=".9" transform="rotate(${r} ${x} ${y})" fill="${P.mid}"/>`
-    const tube = 'M48.6 82C44.4 90 52 96.4 62 95.6C70 95 76.4 92.4 79.6 88.6'
+    const tube = 'M42.6 87.4C46 93.6 54 96.4 63 95.6C71 95 76.4 92.4 79.6 88.6'
     const bell = ellipse(83.6, 85.6, 6.2, 6.2)
     const ribs = Array.from({ length: 9 }, (_, i) => { const x = 49.4 + i * 2.65; return `<path d="M${f(x)} 61V79" stroke="${P.brown}" stroke-width=".35" opacity=".7"/>` }).join('')
     return (
@@ -189,9 +189,7 @@ export const VIRUS_NUEVAS_ART: Record<string, (u: number) => string> = {
       k.sun(60, 58, 16, 48, 28, false) +
       k.shade(ellipse(60, 60, 30, 28), k.rad(P.goldL, 0.5, 0.5, 0.5, 0.75, 0), P.goldL, 0.45) +
       laurel(48, 100, 28, 92, 25, 64, 8) + laurel(72, 100, 92, 92, 95, 64, 8, true) +
-      // Los auriculares de metal, por detrás del vaso, como colgados del cuello.
-      rod('M50 57C42 55 36.4 48 38.4 38.6', P.sky1, 1.5, '#fff') + rod('M70 57C78 55 83.6 48 81.6 38.6', P.sky1, 1.5, '#fff') +
-      ear(39.4, 36.6, -60) + ear(80.6, 36.6, 60) +
+      `<g transform="translate(3 -4)">` +
       k.floor(60, 93, 18, 2.6, LIMA_D) +
       k.draw([
         {
@@ -213,9 +211,13 @@ export const VIRUS_NUEVAS_ART: Record<string, (u: number) => string> = {
       ], 0.7) +
       `<path d="M57.6 63.4H62.4V67.6H66.6V72.4H62.4V76.6H57.6V72.4H53.4V67.6H57.6Z" fill="${LIMA}" stroke="${P.ink}" stroke-width=".45"/><path d="M58.2 64H61.4" stroke="${LIMA_L}" stroke-width=".5"/>` +
       `<text x="60" y="86.4" ${GEORGIA} font-style="italic" font-size="4.2" fill="${P.mid}" text-anchor="middle">jefe</text>` +
-      hair(64.4, 37.6, 61, 31, 65, 24.6, 0.9, P.blue) + hair(67, 37.4, 70.6, 32, 67.4, 26, 0.7, P.blue) + hair(61.6, 38, 58.6, 34, 60, 29.4, 0.55, P.blue) +
-      // El tubo de goma, que sale de atrás y da la vuelta por delante, y la campana de oro, grabada.
+      hair(64.4, 37.6, 61, 31, 65, 25.6, 0.9, P.blue) + hair(67, 37.4, 70.6, 32, 67.4, 27, 0.7, P.blue) + hair(61.6, 38, 58.6, 34, 60, 30.4, 0.55, P.blue) +
+      `</g>` +
+      // El estetoscopio echado al pie del vaso: los auriculares de metal, el tubo que da la vuelta y la campana de oro.
+      rod('M42.6 87.4L30.4 76.6', P.sky1, 1.4, '#fff') + rod('M42.6 87.4L36.4 71.8', P.sky1, 1.4, '#fff') + rod('M33 79L38 74.2', P.sky2, 0.6) +
+      ear(29.6, 75.6, 40) + ear(36, 70.6, 70) +
       rod(tube, P.mid, 2.4, P.sky) +
+      `<circle cx="42.6" cy="87.4" r="1.6" fill="${P.sky2}" stroke="${P.ink}" stroke-width=".45"/>` +
       rod('M79.6 88.6L80.4 87.8', P.sky1, 1.4, '#fff') +
       k.cast([bell], 1.4, 1.6, LIMA_D) +
       k.draw([{
@@ -225,7 +227,7 @@ export const VIRUS_NUEVAS_ART: Record<string, (u: number) => string> = {
       `<circle cx="83.6" cy="85.6" r="4.2" fill="${P.white}" stroke="${P.goldD}" stroke-width=".6"/>` + k.shade(ellipse(83.6, 85.6, 4.2, 4.2), k.lin(P.sky2, 0, 0, 1, 1, 0, 0.9), P.blue, 0.3) +
       `<circle cx="83.6" cy="85.6" r="2.8" fill="none" stroke="${P.sky2}" stroke-width=".35"/><circle cx="83.6" cy="85.6" r="1.4" fill="none" stroke="${P.sky2}" stroke-width=".3"/>` +
       `<circle cx="83.6" cy="85.6" r="5.3" fill="none" stroke="${P.goldD}" stroke-width=".4" stroke-dasharray=".01 1" stroke-linecap="round"/>` +
-      sparkle(45, 54, 2.2, '#fff') + sparkle(88, 50, 1.8) + sparkle(30, 66, 1.4) +
+      sparkle(47, 50, 2.2, '#fff') + sparkle(88, 50, 1.8) + sparkle(32, 56, 1.4) +
       k.defs()
     )
   },
@@ -371,7 +373,7 @@ export const VIRUS_NUEVAS_ART: Record<string, (u: number) => string> = {
   'Riñón prestado': (u) => {
     const k = kit(u)
     const kidney = 'M58 35.6C48 33.6 37.6 40 35.6 52C33.6 64 37.6 78 48 84C56 88.6 66 86 70 78C73 72 70 66 65 63C61 60.6 60 57.4 62 54C65 49 66 39 58 35.6Z'
-    const tag = 'M0 -4.6H13.6L16.6 -1.6V1.6L13.6 4.6H0Z'
+    const tag = 'M-3.6 -4.6H13.6L16.6 -1.6V1.6L13.6 4.6H-3.6Z'
     return (
       fondo(k) +
       placa(k, 60, 60, 33) +
@@ -391,9 +393,9 @@ export const VIRUS_NUEVAS_ART: Record<string, (u: number) => string> = {
       // La etiqueta de préstamo, de papel madera, atada con hilo.
       `<path d="M72.6 78C76 77 79 75.4 80.6 73.6" fill="none" stroke="${P.ink}" stroke-width=".5"/>` +
       `<g transform="translate(80.6 73.6) rotate(-150) translate(-13.4 0)">` +
-      k.draw([{ d: tag, fill: MADERA, inner: k.sh(tag, 0, 0, 1, 1, 0, 0.75, P.brown, 0.4) + `<path d="M1.6 -3.2H12.4M1.6 3.2H12.4" stroke="${P.brown}" stroke-width=".3" stroke-dasharray=".8 .5"/>` }], 0.45) +
+      k.draw([{ d: tag, fill: MADERA, inner: k.sh(tag, 0, 0, 1, 1, 0, 0.75, P.brown, 0.4) + `<path d="M-2 -3.2H12.4M-2 3.2H12.4" stroke="${P.brown}" stroke-width=".3" stroke-dasharray=".8 .5"/>` }], 0.45) +
       `<circle cx="13.4" cy="0" r="1.2" fill="${P.white}" stroke="${P.brown}" stroke-width=".5"/><circle cx="13.4" cy="0" r=".5" fill="${PALIDO_G}"/>` +
-      `<text x="6.4" y="1.2" ${GEORGIA} font-style="italic" font-weight="700" font-size="3.2" fill="${P.red}" text-anchor="middle" transform="rotate(180 6.4 0)">prestado</text>` +
+      `<text x="4.6" y="1.1" ${GEORGIA} font-style="italic" font-weight="700" font-size="3" fill="${P.red}" text-anchor="middle" transform="rotate(180 4.6 0)">prestado</text>` +
       `</g>` +
       sparkle(38, 36, 2.2, '#fff') + sparkle(88, 78, 1.6) + sparkle(45.6, 48, 1.4, '#fff') +
       k.defs()

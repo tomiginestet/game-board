@@ -289,15 +289,15 @@ export const COUP_NUEVAS_ART: Record<string, (u: number) => string> = {
       k.draw([{ d: stick, fill: P.gold, inner: k.sh(stick, 0, 0, 1, 0, 0, 0.9, P.goldD, 0.5) + Array.from({ length: 6 }, (_, i) => `<path d="M${f(84 + i * 1.4)} ${f(68 + i * 4.4)}l3.6 -1.4" stroke="${CP}" stroke-width="1.1"/>`).join('') }], 0.55) +
       k.cast([mask], 2, 2.4, CP_D) +
       k.draw([{
-        d: mask, fill: CP,
+        d: mask, fill: CP_L,
         inner:
-          k.sh(mask, 0, 0, 1, 1, 0, 0.85, CP_D, 0.5) + `<path d="M30 40H50V72H30Z" fill="${k.lin(CP_XL, 0, 0, 1, 0, 0.45, 0)}"/>` +
+          k.sh(mask, 0, 0, 1, 1, 0, 0.9, CP, 0.5) + `<path d="M30 40H50V72H30Z" fill="${k.lin(CP_XL, 0, 0, 1, 0, 0.5, 0)}"/>` +
           `<path d="M35.4 54.6C35.6 48 42 45.4 49.6 47.2C54 48.2 57.2 49.8 60 49.8C63 49.8 64.4 46.6 66.8 43.6C70.6 38.8 77.4 38.4 81 42C84 45.2 84.8 49.6 84.4 54.2C83.6 62 78.6 68.2 70.2 68.2C65.6 68.2 63 64.4 60 64.4C57 64.4 54.4 68.2 49.8 68.2C41 68.2 35.4 61.6 35.4 54.6Z" fill="none" stroke="${P.gold}" stroke-width=".55" stroke-dasharray="1.2 .7"/>` +
-          hair(42, 66, 46, 68, 52, 68, 0.45, CP_D) + hair(68, 68, 74, 68.4, 80, 66, 0.45, CP_D),
+          hair(42, 66, 46, 68, 52, 68, 0.45, CP) + hair(68, 68, 74, 68.4, 80, 66, 0.45, CP) + hair(70, 41, 76, 39, 81, 42.6, 0.4, CP_XL),
       }], 0.8) +
       `<path d="${eyeL}" fill="${P.night}" stroke="${P.ink}" stroke-width=".6"/><path d="${eyeR}" fill="${P.night}" stroke="${P.ink}" stroke-width=".6"/>` +
       `<path d="M41.8 56C44.6 53.6 50 53.4 53.2 55.4" fill="none" stroke="${P.gold}" stroke-width=".5"/><path d="M66.8 53.8C69.4 50.6 75.8 50.4 78.2 53.6" fill="none" stroke="${P.gold}" stroke-width=".5"/>` +
-      `<path d="${browR}" fill="${P.night}"/><path d="${browL}" fill="${P.night}"/>` +
+      k.draw([{ d: browR, fill: P.night }, { d: browL, fill: P.night }], 0.25) +
       hair(66.4, 44.4, 70.8, 37.8, 77, 39.2, 0.35, P.mid) +
       filig + gems +
       `<path d="M38.6 49C41 46.4 45 45.4 49 46" fill="none" stroke="#fff" stroke-width=".8" stroke-linecap="round" opacity=".65"/>` +
@@ -405,41 +405,42 @@ export const COUP_NUEVAS_ART: Record<string, (u: number) => string> = {
 
   // ── Chamuyero ──────────────────────────────────────────────────────
 
-  // Tres mentiras descubiertas: la nariz te delata. La nariz postiza de madera, larga, con el elástico y una ramita
-  // que le brotó en la punta.
+  // Tres mentiras descubiertas: la nariz te delata. La nariz postiza de madera, de frente con sus dos agujeros, el
+  // elástico, y el palo que le creció con una ramita en la punta.
   'Nariz de Pinocho': (u) => {
     const k = kit(u)
-    const nose = 'M0 -13.4C3.2 -11.4 6.4 -8.4 9 -5.6C20 -4.4 36 -2.6 49 -1.6C52.4 -1.3 53.2 1.8 50.4 2.8C38 5.4 24 6.4 13.6 6.8C12.8 9 10.6 10.4 7.6 10.4C4.6 10.4 1.6 9.4 0 7.8Z'
-    const face = 'M0 -13.4V7.8C-.9 7.2 -1.4 6 -1.4 4.6V-11.4C-1.4 -12.6 -.8 -13.2 0 -13.4Z'
-    const wing = 'M13.4 3.6C10.4 2.6 6.8 4.2 6 7.6'
-    const twig = 'M30 -3.6C30.6 -7.4 31.4 -10.6 33.6 -13.4'
+    const base = 'M-2.2 -13C-2.8 -7 -4.2 -3 -7.4 1C-10 4.4 -9 9 -5.6 9.8C-3.6 10.2 -2 9.2 0 9.2C2 9.2 3.6 10.2 5.6 9.8C9 9 10 4.4 7.4 1C4.2 -3 2.8 -7 2.2 -13C1.4 -14.2 -1.4 -14.2 -2.2 -13Z'
+    const stick = taper(0, 1.6, 22, -0.4, 48, -6.4, 7.4, 2.8)
+    const twig = 'M32 -4.4C32.6 -8.2 33.4 -11.4 35.6 -14.2'
     const leafA = 'M0 0C2 -3.2 6.6 -3.6 9 -.8C6.4 2.2 2 2 0 0Z'
-    const band = 'M-1 -10C-10 -13 -20 -14 -32 -12M-1 4.6C-10 6.6 -20 8.6 -32 8'
-    const grain = [[11, -3.8, 46, -0.6], [12, -0.2, 47, 1.2], [14, 3.6, 40, 4.4], [16, 1.6, 34, 2.8], [3, -9, 8, -3], [2, -4, 4, 4]].map(([x0, y0, x1, y1]) => hair(x0, y0, (x0 + x1) / 2, (y0 + y1) / 2 - 0.5, x1, y1, 0.35, P.brownD)).join('')
+    const strap = 'M-7 -1.6C-14 -3 -22 -3.6 -32 -2.4'
+    const grain = [[8, -1.8, 44, -6.6], [8, 2.2, 46, -4.2], [10, 4.4, 38, 1.4], [14, 0.4, 30, -1]].map(([x0, y0, x1, y1]) => hair(x0, y0, (x0 + x1) / 2, (y0 + y1) / 2 - 0.4, x1, y1, 0.35, P.brownD)).join('')
     const leaf = (x: number, y: number, r: number, s: number) => `<g transform="translate(${x} ${y}) rotate(${r}) scale(${s})">` + k.draw([{ d: leafA, fill: P.green, inner: k.sh(leafA, 0, 0, 1, 1, 0, 0.8, P.greenD, 0.45) + `<path d="M.6 -.2Q4.4 -1 8 -.8" fill="none" stroke="${P.greenD}" stroke-width=".4"/>` }], f(0.4 / s)) + `</g>`
     return (
       field(k) +
       k.sun(60, 58, 15, 46, 32, false) +
       glow(k, 60, 58, 28, 26, 0.6) +
-      k.floor(64, 84, 26, 2.4, CP_D) +
-      `<g transform="translate(37 62) rotate(-10) scale(1.06)">` +
-      `<path d="${band}" fill="none" stroke="${P.ink}" stroke-width="1.8" stroke-linecap="round"/><path d="${band}" fill="none" stroke="${CP}" stroke-width=".9" stroke-linecap="round"/>` +
-      k.cast([nose], 1.6, 2.2, CP_D) +
-      k.draw([
-        { d: face, fill: P.brownD },
-        {
-          d: nose, fill: P.brown,
-          inner: k.sh(nose, 0, 0, 0, 1, 0, 0.9, P.brownD, 0.5) + `<path d="M0 -14C3 -12 6 -9 9 -6.4C20 -5.2 36 -3.4 49 -2.4L48.6 -.4C36 -1.4 20 -2.6 8 -3.2C5 -6 2.6 -8.6 0 -10Z" fill="${P.goldL}" opacity=".5"/>` + grain +
-            `<ellipse cx="24" cy="2.6" rx="1.4" ry=".8" fill="${P.brownD}" opacity=".6"/><ellipse cx="24" cy="2.6" rx="2.6" ry="1.4" fill="none" stroke="${P.brownD}" stroke-width=".3"/>` +
-            `<path d="${wing}" fill="none" stroke="${P.brownD}" stroke-width=".7" stroke-linecap="round"/>`,
-        },
-      ], 0.75) +
-      `<ellipse cx="8.8" cy="8.6" rx="2.2" ry=".9" fill="${P.night}" transform="rotate(-8 8.8 8.6)"/>` +
-      `<path d="M2 -11C4.6 -9.4 7 -7.2 8.6 -5.4" fill="none" stroke="#fff" stroke-width=".7" stroke-linecap="round" opacity=".7"/><path d="M20 -4C30 -3 40 -2 47 -1.2" fill="none" stroke="#fff" stroke-width=".55" stroke-linecap="round" opacity=".6"/>` +
+      k.floor(60, 84, 26, 2.4, CP_D) +
+      `<g transform="translate(37 62) rotate(-4) scale(1.12)">` +
+      `<path d="${strap}" fill="none" stroke="${P.ink}" stroke-width="1.9" stroke-linecap="round"/><path d="${strap}" fill="none" stroke="${CP}" stroke-width="1" stroke-linecap="round"/>` +
+      `<path d="M7 -1.6C9.6 -2.2 11.4 -2.6 13 -2.8" fill="none" stroke="${P.ink}" stroke-width="1.9" stroke-linecap="round"/><path d="M7 -1.6C9.6 -2.2 11.4 -2.6 13 -2.8" fill="none" stroke="${CP}" stroke-width="1" stroke-linecap="round"/>` +
+      k.cast([base, stick], 1.6, 2.2, CP_D) +
+      k.draw([{
+        d: base, fill: P.brown,
+        inner: k.sh(base, 0, 0, 1, 0, 0, 0.9, P.brownD, 0.5) + `<path d="M-10 -14H-1V10H-10Z" fill="${k.lin(P.goldL, 0, 0, 1, 0, 0.55, 0)}"/>` +
+          `<path d="M-6.2 2.4C-4.6 3.8 -4.4 6 -5.4 7.6M6.2 2.4C4.6 3.8 4.4 6 5.4 7.6" fill="none" stroke="${P.brownD}" stroke-width=".55" stroke-linecap="round"/>` +
+          hair(-1, -12, -1.6, -6, -3.4, -1, 0.4, P.brownD),
+      }], 0.75) +
+      `<ellipse cx="-3.2" cy="7.8" rx="1.7" ry=".95" fill="${P.night}" transform="rotate(14 -3.2 7.8)"/><ellipse cx="3.2" cy="7.8" rx="1.7" ry=".95" fill="${P.night}" transform="rotate(-14 3.2 7.8)"/>` +
+      k.draw([{
+        d: stick, fill: P.brown,
+        inner: k.sh(stick, 0, 0, 0, 1, 0, 0.9, P.brownD, 0.5) + grain + `<path d="M4 -2.6C20 -3.6 36 -6 47 -7.8" fill="none" stroke="${P.goldL}" stroke-width="1" stroke-linecap="round" opacity=".6"/>` +
+          `<ellipse cx="26" cy="-.4" rx="1.4" ry=".8" fill="${P.brownD}" opacity=".6"/><ellipse cx="26" cy="-.4" rx="2.6" ry="1.4" fill="none" stroke="${P.brownD}" stroke-width=".3"/>`,
+      }], 0.7) +
       `<path d="${twig}" fill="none" stroke="${P.ink}" stroke-width="1.8" stroke-linecap="round"/><path d="${twig}" fill="none" stroke="${P.brown}" stroke-width=".8" stroke-linecap="round"/>` +
-      leaf(32.6, -11.6, -40, 0.9) + leaf(31, -8, 200, 0.8) + leaf(33.6, -13.4, -110, 0.6) +
+      leaf(34.6, -12.4, -40, 0.9) + leaf(33, -8.8, 200, 0.8) + leaf(35.6, -14.2, -110, 0.6) +
       `</g>` +
-      hair(91, 40, 95, 44, 96, 49, 0.6, CP) + hair(89, 34, 94, 36, 97, 40, 0.5, CP) +
+      hair(91, 44, 94, 47, 95, 52, 0.6, CP) + hair(89, 38, 93, 40, 96, 44, 0.5, CP) +
       sparkle(80, 30, 2) + sparkle(32, 40, 1.6, P.goldL) +
       k.defs()
     )
