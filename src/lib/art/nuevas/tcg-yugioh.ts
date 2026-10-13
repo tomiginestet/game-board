@@ -123,58 +123,65 @@ export const TCG_YUGIOH_NUEVAS_ART: Record<string, (u: number) => string> = {
   // Quince victorias: el disco de duelo atado al brazo hasta para ir al chino, con la bolsa de los mandados.
   'Disco de duelo': (u) => {
     const k = kit(u)
-    const sleeve = 'M44 8H71L69.4 32.6C62.4 35.4 53 35.4 46 32.6Z'
-    const cuff = 'M45.8 29C53 31.6 62.6 31.6 69.6 29L69.4 33.4C62.4 36.2 53 36.2 46 33.4Z'
-    const arm = 'M50.4 33H65.6L64.8 57H51.2Z'
+    const sleeve = 'M42 6H72L70.2 31.6C62.6 34.6 52.8 34.6 45.4 31.6Z'
+    const cuff = 'M45.2 28C52.8 30.8 62.8 30.8 70.4 28L70.2 32.6C62.6 35.6 52.8 35.6 45.4 32.6Z'
+    const arm = 'M50 32H65.6L64.8 57H51.2Z'
     const back = 'M50.8 55H65.2C66 58.6 66 62 65.4 65H50.8C50.2 62 50.2 58.6 50.8 55Z'
     const fingers = [50.8, 54.5, 58.2, 61.9].map((x, i) => roundRect(f(x), 63.4, f(x + 3.7 - (i === 3 ? 0.3 : 0)), i === 0 || i === 3 ? 69.6 : 70.6, 1.8))
     const thumb = 'M51 57.6C48.6 58.4 47.6 61.4 48.2 64.2C48.8 66.8 50.6 68 52.4 67.6L52.6 60Z'
-    const strap = 'M50.8 50.4H65.6V54.4H50.8Z'
-    const hub = ellipse(57.6, 42, 10.4, 10.4)
-    const blade = 'M64 38.6L91.6 36.6C94 36.4 95.4 37.8 95.4 40V52C95.4 54.2 94 55.6 91.6 55.4L64 50.6Z'
+    const hub = ellipse(56.6, 43, 13, 13)
+    const blade = 'M62 36.8L92.6 41C95 41.3 96.4 43 96.2 45.4L95.6 57.4C95.4 59.8 93.6 61 91.2 60.6L62 52.4Z'
+    const rim = 'M62 36.8L92.6 41C95 41.3 96.4 43 96.2 45.4L96.1 47.4L62 41.4Z'
+    const zone = (x: number, i: number) => `M${x} ${f(44.6 + i * 0.6)}H${x + 7.6}V${f(57.4 + i * 0.9)}H${x}Z`
     const bag = 'M45.4 72.6C44.4 80 44.8 88 47 94.6C54.6 96.8 63.4 96.8 70.8 94.8C73 88 73.4 80 72.4 72.6C64 71 54 71 45.4 72.6Z'
     const bread = 'M0 -3.2C8 -3.6 18 -3.4 24 -2.6C27.4 -2.2 28.6 2.2 25 2.8C18 3.6 8 3.6 0 3.2Z'
+    const handles = 'M48.4 73.4C49 69 51.4 66.6 53 66.4M69.4 73.4C68.8 69 66.4 66.6 64.4 66.6'
     return (
       k.day() +
       k.stage(60, 58, 41) +
-      // la bolsa con el pan, colgada del puño
+      // la bolsa del chino con el pan, colgada del puño
       `<g transform="translate(51 76) rotate(-128)">` + k.draw([{ d: bread, fill: P.goldL, inner: k.sh(bread, 0, 0, 0, 1, 0, 0.9, P.brown, 0.5) + `<path d="M6 -1.4L9 1.4M11.4 -1.6L14.4 1.2M16.8 -1.6L19.8 1" stroke="${P.brownD}" stroke-width=".55" stroke-linecap="round"/>` }], 0.55) + `</g>` +
       k.cast([bag], 2, 1.6) +
       k.draw([{
         d: bag, fill: P.white,
         inner: k.sh(bag, 0, 0, 1, 0, 0, 0.7, P.blue, 0.35) + k.sh('M40 86H78V98H40Z', 0, 0, 0, 1, 0, 0.6, P.blue, 0.3) +
           hair(50, 74, 52, 82, 50, 92, 0.45, P.blue) + hair(66, 74, 64, 84, 67, 93, 0.45, P.blue) + hair(57, 75, 58, 80, 56.6, 86, 0.35, P.blue) +
-          `<text x="59" y="86" font-family="Georgia, serif" font-style="italic" font-size="3.6" fill="${P.red}" text-anchor="middle" transform="rotate(-4 59 86)">¡gracias!</text>`,
+          `<text x="59" y="87" font-family="Georgia, serif" font-style="italic" font-size="3.8" fill="${P.red}" text-anchor="middle" transform="rotate(-4 59 87)">¡gracias!</text>`,
       }], 0.6) +
-      `<path d="M48.4 73.4C49 69 51.4 66.6 53 66.4M69.4 73.4C68.8 69 66.4 66.6 64.4 66.6" fill="none" stroke="${P.ink}" stroke-width="1.7" stroke-linecap="round"/><path d="M48.4 73.4C49 69 51.4 66.6 53 66.4M69.4 73.4C68.8 69 66.4 66.6 64.4 66.6" fill="none" stroke="${P.white}" stroke-width=".8" stroke-linecap="round"/>` +
+      `<path d="${handles}" fill="none" stroke="${P.ink}" stroke-width="1.7" stroke-linecap="round"/><path d="${handles}" fill="none" stroke="${P.white}" stroke-width=".8" stroke-linecap="round"/>` +
       // el brazo con la manga de la campera violeta
-      k.cast([sleeve, arm, back], 2.2, 1.6) +
+      k.cast([sleeve, arm, back, blade], 2.2, 1.8) +
       k.draw([
         { d: arm, fill: P.skin, inner: k.sh(arm, 0, 0, 1, 0, 0, 0.8, P.blue, 0.35) },
-        { d: sleeve, fill: VIO, inner: k.sh(sleeve, 0, 0, 1, 0, 0, 0.85, VIOD, 0.5) + `<path d="M44 8H51V34H44Z" fill="${k.lin(VIOL, 0, 0, 1, 0, 0.6, 0)}"/>` + hair(52, 14, 51, 22, 53, 30, 0.5, VIOD) + hair(63, 12, 64.4, 20, 62.6, 29, 0.5, VIOD) },
-        { d: cuff, fill: VIOD, inner: `<circle cx="66.4" cy="31.4" r=".8" fill="${P.gold}"/>` },
+        { d: sleeve, fill: VIO, inner: k.sh(sleeve, 0, 0, 1, 0, 0, 0.85, VIOD, 0.5) + `<path d="M42 6H50V34H42Z" fill="${k.lin(VIOL, 0, 0, 1, 0, 0.6, 0)}"/>` + hair(52, 14, 50.6, 21, 52.6, 29, 0.55, VIOD) + hair(64, 12, 65.4, 20, 63.4, 28, 0.55, VIOD) + hair(58, 22, 59, 25, 58.4, 29, 0.4, VIOD) },
+        { d: cuff, fill: VIOD, inner: `<circle cx="67" cy="30.6" r=".8" fill="${P.gold}"/>` + hair(47, 31, 57, 33.2, 69, 31, 0.4, VIOL, 0.7) },
         { d: back, fill: P.skin, line: 0.3, inner: k.sh(back, 0, 0, 1, 0, 0, 0.8, P.blue, 0.35) + hair(53, 59, 55, 58, 57, 59, 0.35, P.brown) },
         ...fingers.map((d) => ({ d, fill: P.skin, line: 0.3, inner: k.sh(d, 0, 0, 0, 1, 0, 0.7, P.blue, 0.35) })),
         { d: thumb, fill: P.skin, inner: k.sh(thumb, 0, 0, 0, 1, 0, 0.7, P.blue, 0.35) },
-        { d: strap, fill: P.brown, line: 0.3, inner: k.sh(strap, 0, 0, 1, 0, 0, 0.8, P.brownD, 0.4) },
       ], 0.65) +
-      `<path d="M55 50.4H59.4V54.4H55Z" fill="none" stroke="${P.gold}" stroke-width=".9"/>` +
-      // la bandeja de cartas y el cubo con el contador de vida
+      // la bandeja de cartas: filo dorado, el contador de vida y las zonas, con una carta jugada
       k.draw([{
         d: blade, fill: P.sky1,
-        inner: k.sh(blade, 0, 0, 0, 1, 0, 0.8, P.blue, 0.4) + `<path d="M64 38.6L91.6 36.6C94 36.4 95.4 37.8 95.4 40V41L64 42.4Z" fill="${P.white}"/>` +
-          [70, 78, 86].map((x, i) => `<path d="${roundRect(x - 3.2, f(41.8 - i * 0.6), x + 3.2, f(51 + i * 0.6), 0.6)}" fill="${P.sky}" stroke="${P.mid}" stroke-width=".4"/>`).join('') +
-          `<path d="${roundRect(74.6, 40.8, 81.4, 52, 0.6)}" fill="${VIO}" stroke="${P.ink}" stroke-width=".4"/><path d="${roundRect(75.6, 42, 80.4, 47, 0.3)}" fill="${VIOLL}"/><path d="${starPath(78, 44.5, 1.8, 0.7, 5)}" fill="${P.gold}"/>`,
+        inner: k.sh(blade, 0, 0, 0, 1, 0, 0.8, P.blue, 0.4) + `<path d="${rim}" fill="${P.gold}"/>` + k.sh(rim, 0, 0, 1, 0, 0, 0.8, P.goldD, 0.4) + `<path d="M62 41.4L96.1 47.4" stroke="${P.ink}" stroke-width=".45"/>` +
+          `<path d="${zone(86.6, 1)}" fill="${VIO}" stroke="${P.ink}" stroke-width=".45"/>` +
+          `<path d="M88 47H92.8V52.6H88Z" fill="${VIOLL}"/><path d="${starPath(90.4, 49.8, 2, 0.8, 5)}" fill="${P.gold}"/><path d="M88 54.4H92.8M88 55.8H91.6" stroke="${VIOLL}" stroke-width=".4"/>` +
+          `<path d="${roundRect(71.4, 45, 83.4, 51.4, 0.8)}" fill="${P.night}" stroke="${P.goldD}" stroke-width=".4"/>` +
+          `<text x="77.4" y="49.9" font-family="Georgia, serif" font-weight="700" font-size="4.2" fill="${P.goldL}" text-anchor="middle">8000</text>` +
+          hair(64, 53, 76, 55.6, 92, 58.6, 0.4, P.mid),
       }], 0.65) +
+      // el cubo redondo atado al antebrazo
       k.draw([{
         d: hub, fill: P.gold,
-        inner: k.sh(hub, 0, 0, 1, 1, 0, 0.9, P.goldD, 0.5) + `<circle cx="57.6" cy="42" r="7.6" fill="${VIO}" stroke="${P.ink}" stroke-width=".4"/>` + k.sh(ellipse(57.6, 42, 7.6, 7.6), 0, 0, 1, 1, 0, 0.8, VIOD, 0.5) +
-          Array.from({ length: 16 }, (_, i) => { const a = (i / 16) * Math.PI * 2; return `<path d="M${f(57.6 + Math.cos(a) * 8.4)} ${f(42 + Math.sin(a) * 8.4)}L${f(57.6 + Math.cos(a) * 9.6)} ${f(42 + Math.sin(a) * 9.6)}" stroke="${P.goldD}" stroke-width=".4"/>` }).join(''),
+        inner: k.sh(hub, 0, 0, 1, 1, 0, 0.9, P.goldD, 0.5) + `<path d="M43 30H56V56H43Z" fill="${k.lin(P.goldL, 0, 0, 1, 0, 0.6, 0)}"/>` +
+          `<circle cx="56.6" cy="43" r="9.8" fill="${VIO}" stroke="${P.ink}" stroke-width=".45"/>` + k.sh(ellipse(56.6, 43, 9.8, 9.8), 0, 0, 1, 1, 0, 0.85, VIOD, 0.5) +
+          `<circle cx="56.6" cy="43" r="7.6" fill="none" stroke="${VIOL}" stroke-width=".4" stroke-dasharray="1.6 1"/>` +
+          Array.from({ length: 20 }, (_, i) => { const a = (i / 20) * Math.PI * 2; return `<path d="M${f(56.6 + Math.cos(a) * 10.8)} ${f(43 + Math.sin(a) * 10.8)}L${f(56.6 + Math.cos(a) * 12.2)} ${f(43 + Math.sin(a) * 12.2)}" stroke="${P.goldD}" stroke-width=".45"/>` }).join(''),
       }], 0.7) +
-      `<path d="${roundRect(51.8, 39.4, 63.4, 44.6, 0.8)}" fill="${P.night}" stroke="${P.goldL}" stroke-width=".4"/>` +
-      `<text x="57.6" y="43.6" font-family="Georgia, serif" font-weight="700" font-size="4" fill="${P.goldL}" text-anchor="middle">8000</text>` +
-      `<path d="M52 38C53.4 35.8 55.4 34.6 57.6 34.4" fill="none" stroke="#fff" stroke-width=".7" stroke-linecap="round"/>` +
-      sparkle(88, 30, 2.2) + sparkle(30, 46, 1.6) +
+      // el mazo en el centro del cubo
+      `<path d="M52.4 46.6V39.2H60.8V46.6Z" fill="${P.white}" stroke="${P.ink}" stroke-width=".45"/><path d="M52.4 46.6H60.8M52.4 45.6H60.8" stroke="${P.sky}" stroke-width=".4"/>` +
+      `<path d="M53.2 38.4H61.6V45.4H53.2Z" fill="${P.night}" stroke="${P.ink}" stroke-width=".45"/><path d="M54.2 39.4H60.6V44.4H54.2Z" fill="none" stroke="${P.gold}" stroke-width=".45"/><path d="${starPath(57.4, 41.9, 1.9, 0.75, 4)}" fill="${P.gold}"/>` +
+      `<path d="M47 37.4C48.4 34.4 51.4 32.2 54.8 31.6" fill="none" stroke="#fff" stroke-width=".8" stroke-linecap="round"/>` +
+      sparkle(32, 34, 2) + sparkle(88, 76, 1.8) +
       k.defs()
     )
   },
@@ -252,41 +259,48 @@ export const TCG_YUGIOH_NUEVAS_ART: Record<string, (u: number) => string> = {
   // Primer OTK: el mago de confianza hizo el trabajo. El báculo con el orbe todavía humeando, como un revólver.
   'Mago Oscuro': (u) => {
     const k = kit(u)
-    const shaft = 'M-1.9 -24H1.9L2.4 46H-2.4Z'
-    const collar = roundRect(-3.8, -27.4, 3.8, -21.4, 1.2)
-    const grip = roundRect(-2.8, -4, 2.8, 12, 0.6)
-    const ring = (y: number) => roundRect(-3.3, y, 3.3, f(y + 2.4), 0.8)
-    const prong = 'M-2.6 -26.6C-8.4 -28.4 -11 -33.4 -10 -38.4C-9.4 -41.4 -7.4 -44 -4.6 -45.2C-6.6 -42.4 -7.4 -39.4 -7 -36.4C-6.6 -32.6 -4.4 -30 -1 -28.6Z'
-    const orb = ellipse(0, -36, 7.4, 7.4)
-    const wrap = Array.from({ length: 8 }, (_, i) => `M-2.8 ${f(-3.4 + i * 2)}L2.8 ${f(-2 + i * 2)}`).join('')
-    const smoke = (d: string, w: number, op: number) => `<path d="${d}" fill="none" stroke="${P.sky1}" stroke-width="${w}" stroke-linecap="round" opacity="${op}"/>`
+    const shaft = 'M-2 -24H2L2.5 48H-2.5Z'
+    const collar = roundRect(-4, -27.6, 4, -21.4, 1.2)
+    const grip = roundRect(-2.9, -2, 2.9, 15, 0.6)
+    const ring = (y: number) => roundRect(-3.4, y, 3.4, f(y + 2.4), 0.8)
+    const prong = 'M-2.6 -26.6C-8.8 -28.4 -11.6 -33.4 -10.6 -38.6C-10 -41.8 -7.8 -44.6 -4.6 -46C-6.8 -43 -7.6 -39.8 -7.2 -36.6C-6.8 -32.6 -4.6 -30 -1 -28.6Z'
+    const fin = 'M0 -27C-1.4 -24.6 -1.4 -22 0 -19.6C1.4 -22 1.4 -24.6 0 -27Z'
+    const orb = ellipse(0, -36.4, 7.6, 7.6)
+    const wrap = Array.from({ length: 9 }, (_, i) => `M-2.9 ${f(-1.4 + i * 1.9)}L2.9 ${f(0 + i * 1.9)}`).join('')
+    const smoke = (d: string, w: number) => `<path d="${d}" fill="none" stroke="${P.paper}" stroke-width="${w}" stroke-linecap="round" opacity=".22"/><path d="${d}" fill="none" stroke="${P.paper}" stroke-width="${f(w * 0.45)}" stroke-linecap="round" opacity=".35"/>`
+    const w1 = 'M63.4 31C59.6 28.4 64.4 25.4 61.4 22.4C59.6 20.6 57 21 55.6 19.6'
+    const w2 = 'M66.4 31.4C69.6 28.8 66.8 26 69 23.4'
+    const crack = (x: number, y: number, r: number) => `<path d="M0 0L2.4 1.6L1.6 3.2L4.4 5.6" transform="translate(${x} ${y}) rotate(${r})" fill="none" stroke="${VIOLL}" stroke-width=".7" stroke-linejoin="round" stroke-linecap="round"/>`
     return (
       k.night() +
-      [[30, 36], [86, 30], [26, 70], [93, 80], [40, 24], [82, 92], [36, 88], [92, 56]].map(([x, y], i) => `<circle cx="${x}" cy="${y}" r="${i % 2 ? 0.5 : 0.7}" fill="${P.paper}"/>`).join('') +
-      k.shade(ellipse(66, 38, 24, 24), k.rad(VIOL, 0.5, 0.5, 0.5, 0.85, 0), VIO, 0.5) +
-      // el humo que sale del orbe
-      smoke('M68 30C64 27 70 24 66 21C63.6 19.4 62 19.6 60.6 18.6', 3.4, 0.35) + smoke('M68 30C64 27 70 24 66 21C63.6 19.4 62 19.6 60.6 18.6', 1.4, 0.7) +
-      smoke('M70.4 31C73 28 70 25 72.6 22.4', 2.4, 0.3) + smoke('M70.4 31C73 28 70 25 72.6 22.4', 1, 0.6) +
-      `<g transform="translate(54 72) rotate(20)">` +
-      k.cast([shaft, orb], 2.2, 1.8, '#0F1736') +
+      [[30, 36], [86, 34], [26, 70], [93, 80], [42, 26], [82, 92], [36, 88], [92, 56], [78, 24]].map(([x, y], i) => `<circle cx="${x}" cy="${y}" r="${i % 2 ? 0.5 : 0.7}" fill="${P.paper}"/>`).join('') +
+      k.shade(ellipse(62, 42, 28, 28), k.rad(VIOL, 0.5, 0.5, 0.5, 0.9, 0), VIO, 0.55) +
+      `<circle cx="62" cy="40.6" r="14.4" fill="none" stroke="${VIOL}" stroke-width=".6" stroke-dasharray=".01 1.8" stroke-linecap="round"/>` +
+      `<circle cx="62" cy="40.6" r="17.6" fill="none" stroke="${VIOL}" stroke-width=".4" stroke-dasharray="4 2.4" opacity=".6"/>` +
+      // el humo que sale del orbe, como del caño de un revólver
+      smoke(w1, 5) + smoke(w2, 3.6) + hair(63.4, 31, 59.4, 27, 62, 24.4, 0.6, P.paper, 0.8) + hair(62, 24.4, 61.4, 21, 56, 19.8, 0.5, P.paper, 0.7) + hair(66.4, 31.4, 69.8, 28.4, 68.4, 25.4, 0.5, P.paper, 0.7) +
+      `<g transform="translate(49.4 82.1) rotate(16.7) scale(1.22)">` +
+      k.cast([shaft, orb], 1.8, 1.4, '#0F1736') +
       k.draw([
-        { d: shaft, fill: P.brownD, inner: k.sh(shaft, 0, 0, 1, 0, 0, 0.9, P.night, 0.5) + `<path d="M-1.9 -24H-.6V46H-2.4Z" fill="${P.brown}"/>` + Array.from({ length: 12 }, (_, i) => hair(-2.4, -18 + i * 5.4, 0, -16.6 + i * 5.4, 2.4, -15.4 + i * 5.4, 0.4, P.night)).join('') },
-        { d: grip, fill: VIO, line: 0.3, inner: k.sh(grip, 0, 0, 1, 0, 0, 0.8, VIOD, 0.5) + `<path d="${wrap}" stroke="${VIOD}" stroke-width=".55"/><path d="${wrap}" stroke="${VIOL}" stroke-width=".25" transform="translate(0 -.5)"/>` },
-        { d: ring(-6.4), fill: P.gold, inner: k.sh(ring(-6.4), 0, 0, 1, 0, 0, 0.8, P.goldD, 0.4) },
-        { d: ring(12), fill: P.gold, inner: k.sh(ring(12), 0, 0, 1, 0, 0, 0.8, P.goldD, 0.4) },
-        { d: prong, fill: P.gold, inner: k.sh(prong, 0, 0, 1, 1, 0, 0.9, P.goldD, 0.5) + hair(-3.4, -28.6, -8.4, -32, -7.4, -40, 0.4, P.goldL) },
+        { d: shaft, fill: P.brownD, inner: k.sh(shaft, 0, 0, 1, 0, 0, 0.9, P.night, 0.5) + `<path d="M-2 -24H-.6V48H-2.5Z" fill="${P.brown}"/>` + Array.from({ length: 12 }, (_, i) => hair(-2.4, -18 + i * 5.6, 0, -16.6 + i * 5.6, 2.4, -15.4 + i * 5.6, 0.4, P.night)).join('') },
+        { d: grip, fill: VIO, line: 0.25, inner: k.sh(grip, 0, 0, 1, 0, 0, 0.8, VIOD, 0.5) + `<path d="${wrap}" stroke="${VIOD}" stroke-width=".55"/><path d="${wrap}" stroke="${VIOL}" stroke-width=".25" transform="translate(0 -.5)"/>` },
+        { d: ring(-4.4), fill: P.gold, inner: k.sh(ring(-4.4), 0, 0, 1, 0, 0, 0.8, P.goldD, 0.4) },
+        { d: ring(15), fill: P.gold, inner: k.sh(ring(15), 0, 0, 1, 0, 0, 0.8, P.goldD, 0.4) },
+        { d: prong, fill: P.gold, inner: k.sh(prong, 0, 0, 1, 1, 0, 0.9, P.goldD, 0.5) + hair(-3.4, -28.6, -8.8, -32, -7.6, -40.6, 0.4, P.goldL) },
         { d: prong, t: 'scale(-1 1)', fill: P.gold, inner: k.sh(prong, 0, 0, 0, 1, 0, 0.95, P.goldD, 0.55) },
-        { d: collar, fill: P.gold, line: 0.3, inner: k.sh(collar, 0, 0, 1, 0, 0, 0.8, P.goldD, 0.45) + `<path d="M-3.8 -24.4H3.8" stroke="${P.goldD}" stroke-width=".4"/>` },
-      ], 0.7) +
+        { d: collar, fill: P.gold, line: 0.3, inner: k.sh(collar, 0, 0, 1, 0, 0, 0.8, P.goldD, 0.45) + `<path d="M-4 -24.4H4" stroke="${P.goldD}" stroke-width=".4"/>` },
+      ], 0.62) +
+      `<path d="${fin}" fill="${VIO}" stroke="${P.ink}" stroke-width=".3"/>` +
+      `<circle cx="-7.4" cy="-45.4" r="1.1" fill="${P.goldL}" stroke="${P.ink}" stroke-width=".3"/><circle cx="7.4" cy="-45.4" r="1.1" fill="${P.goldL}" stroke="${P.ink}" stroke-width=".3"/>` +
       k.draw([{
         d: orb, fill: VIO,
-        inner: `<circle cx="0" cy="-36" r="7.4" fill="${k.rad(VIOLL, 0.35, 0.3, 0.6, 0.9, 0)}"/>` + k.sh(orb, 0, 0, 1, 1, 0, 0.9, VIOD, 0.5) +
-          hair(-4, -36, -1, -40, 3, -37, 0.5, VIOLL, 0.8) + hair(-2, -32, 2, -31, 4.6, -34.4, 0.45, VIOLL, 0.7),
-      }], 0.6) +
-      `<path d="M-4.6 -39.4C-3.6 -41.2 -1.8 -42.2 0 -42.2" fill="none" stroke="#fff" stroke-width="1" stroke-linecap="round"/>` +
-      `<circle cx="0" cy="-12" r=".7" fill="${P.goldL}"/>` +
+        inner: `<circle cx="0" cy="-36.4" r="7.6" fill="${k.rad(VIOLL, 0.35, 0.3, 0.6, 0.9, 0)}"/>` + k.sh(orb, 0, 0, 1, 1, 0, 0.9, VIOD, 0.5) +
+          hair(-4.4, -36, -1, -41, 3.4, -37.4, 0.55, VIOLL, 0.85) + hair(-2.6, -32, 2, -30.6, 5, -34.6, 0.5, VIOLL, 0.75) + hair(-1, -38.4, 1.6, -36, 0, -33.6, 0.4, '#fff', 0.7),
+      }], 0.55) +
+      `<path d="M-4.8 -39.8C-3.8 -41.8 -1.8 -42.8 0 -42.8" fill="none" stroke="#fff" stroke-width="1" stroke-linecap="round"/>` +
       `</g>` +
-      sparkle(84, 46, 2.4, VIOLL) + sparkle(44, 34, 1.6, P.paper) + sparkle(78, 22, 1.4, P.paper) +
+      crack(72, 36, -20) + crack(50, 44, 160) + crack(73, 48, 30) +
+      sparkle(84, 46, 2.4, VIOLL) + sparkle(44, 34, 1.8, P.paper) + sparkle(40, 60, 1.4, VIOLL) +
       k.defs()
     )
   },
@@ -362,7 +376,7 @@ export const TCG_YUGIOH_NUEVAS_ART: Record<string, (u: number) => string> = {
     const wing = (flip: boolean) => {
       let out = ''
       for (let i = 6; i >= 0; i--) {
-        const L = 29.4 - i * 2.1, h = 4.2, a = 188 - i * 5.4
+        const L = 28 - i * 2, h = 4.2, a = 188 - i * 5.4
         const d = feather(L, h)
         const barbs = Array.from({ length: Math.floor((L - 6) / 2.4) }, (_, j) => `M${f(5 + j * 2.4)} -.3L${f(6.8 + j * 2.4)} ${f(-h / 2 + 0.4)}M${f(5 + j * 2.4)} .3L${f(6.8 + j * 2.4)} ${f(h / 2 - 0.4)}`).join('')
         out += `<g transform="translate(-5 ${f(-6.6 + i * 2.2)}) rotate(${f(a)})">` +
@@ -373,11 +387,6 @@ export const TCG_YUGIOH_NUEVAS_ART: Record<string, (u: number) => string> = {
         k.draw([{ d: coverts, fill: VIO, inner: k.sh(coverts, 0, 0, 0, 1, 0, 0.8, VIOD, 0.5) + `<path d="${scales}" fill="none" stroke="${P.goldL}" stroke-width=".5"/>` + `<path d="M-27.8 -6.8C-20 -5.4 -12 -3.8 -5.6 -1" fill="none" stroke="${P.gold}" stroke-width=".9"/>` }], 0.5) +
         `</g>`
     }
-    // Las dos cobras del sol alado, a los costados del disco.
-    const cobra = (sx: number) =>
-      `<g transform="translate(${cx} ${cy}) scale(${sx} 1)">` +
-      k.draw([{ d: 'M-7.6 2C-9.6 4.6 -9.4 7.6 -7.6 10C-6.6 11.4 -6.8 13.2 -8.2 14.2L-7 15C-5 13.8 -4.6 11.4 -5.6 9.6C-7 7.4 -7.2 5 -5.6 3Z', fill: P.gold, inner: k.sh('M-10 0H-4V16H-10Z', 0, 0, 1, 0, 0, 0.8, P.goldD, 0.4) }, { d: 'M-10.8 -.6C-11.2 -3 -10 -5 -8.2 -5.2C-6.4 -5 -5.4 -3 -5.8 -.6C-6.2 1.4 -7.2 2.6 -8.2 2.8C-9.4 2.6 -10.4 1.4 -10.8 -.6Z', fill: P.gold, inner: `<path d="M-8.2 -3.6V1.6" stroke="${VIO}" stroke-width="1.2"/>` + k.sh('M-12 -6H-5V3H-12Z', 0, 0, 1, 0, 0, 0.8, P.goldD, 0.4) }], 0.4) +
-      `</g>`
     const disk = ellipse(cx, cy, 9, 9)
     const light = `M${cx - 6} ${cy + 8}L${cx + 6} ${cy + 8}L82 84H38Z`
     const top = 'M40 81C40 78.8 49 77.4 60 77.4C71 77.4 80 78.8 80 81C80 83.2 71 84.6 60 84.6C49 84.6 40 83.2 40 81Z'
@@ -401,7 +410,7 @@ export const TCG_YUGIOH_NUEVAS_ART: Record<string, (u: number) => string> = {
       `<ellipse cx="60" cy="80.2" rx="9.8" ry="1.6" fill="none" stroke="${P.sky2}" stroke-width=".35" stroke-dasharray=".8 .6"/>` +
       `<path d="M55.4 80.8L58.6 78.6H65.2L62 80.8Z" fill="${VIO}" stroke="${P.ink}" stroke-width=".35"/><path d="M57.2 80.2L59.2 79.1H63L61 80.2Z" fill="${VIOLL}"/>` +
       // el sol alado, con sus cobras
-      wing(false) + wing(true) + cobra(1) + cobra(-1) +
+      wing(false) + wing(true) +
       k.draw([{
         d: disk, fill: P.gold,
         inner: k.sh(disk, 0, 0, 1, 1, 0, 0.9, P.goldD, 0.5) + `<circle cx="${cx}" cy="${cy}" r="6.4" fill="${P.red}" stroke="${P.ink}" stroke-width=".4"/>` + k.sh(ellipse(cx, cy, 6.4, 6.4), 0, 0, 1, 1, 0, 0.9, P.wine, 0.45) +

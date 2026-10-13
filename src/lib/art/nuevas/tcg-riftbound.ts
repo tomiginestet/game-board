@@ -154,7 +154,7 @@ function wyrmHead(k: Kit) {
 export const TCG_RIFTBOUND_NUEVAS_ART: Record<string, (u: number) => string> = {
   // ── Invocador ──────────────────────────────────────────────────────
 
-  // Tres ganadas: tu primera runa ya brilla. La piedra parada con el signo tallado que se enciende.
+  // Tres ganadas: tu primera runa ya brilla. La piedra flota y el signo tallado se enciende.
   'Runa': (u) => {
     const k = kit(u)
     const stone =

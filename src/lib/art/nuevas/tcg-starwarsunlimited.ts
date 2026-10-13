@@ -164,8 +164,7 @@ export const TCG_STARWARSUNLIMITED_NUEVAS_ART: Record<string, (u: number) => str
     )
   },
 
-  // Quince ganadas: hiciste el corredor de Kessel en menos de doce pársecs. El carguero redondo a toda máquina y
-  // el cronómetro con la aguja antes de las doce (los pársecs son distancia, pero nadie le dice nada).
+  // Quince ganadas: el corredor de Kessel en menos de doce pársecs. El carguero redondo y el cronómetro antes de las doce.
   'Halcón Milenario': (u) => {
     const k = kit(u)
     const streaks = [[-4, 0.7], [0, 0.9], [4, 0.6], [7.4, 0.5], [-7, 0.5], [10, 0.4]].map(([y, w]) => hair(26, y, 44, y, 64, y, w, '#fff', 0.8)).join('')
@@ -325,8 +324,7 @@ export const TCG_STARWARSUNLIMITED_NUEVAS_ART: Record<string, (u: number) => str
     )
   },
 
-  // Sesenta bases: respirás fuerte detrás de una máscara negra. La máscara de laca negra con filigrana de oro,
-  // el sable rojo atravesado detrás, la gloria roja y el vapor de cada respiración.
+  // Sesenta bases: respirás fuerte detrás de una máscara negra. La máscara de laca, el sable rojo y el vapor.
   'Lado oscuro': (u) => {
     const k = kit(u)
     const mask = 'M60 32.4C71 32.4 77.4 39.6 77.8 50.4C78.2 59.6 75.8 68 71.4 74.2C68 79 64 81.6 60 81.6C56 81.6 52 79 48.6 74.2C44.2 68 41.8 59.6 42.2 50.4C42.6 39.6 49 32.4 60 32.4Z'
