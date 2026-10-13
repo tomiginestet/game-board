@@ -52,26 +52,26 @@ const coin = (x: number, y: number, rx: number, ry: number, rot = 0) =>
   `<ellipse cx="0" cy="0" rx="${f(rx * 0.64)}" ry="${f(ry * 0.6)}" fill="none" stroke="${P.goldD}" stroke-width=".3"/>` +
   `<path d="M${f(-rx * 0.62)} ${f(-ry * 0.25)}Q${f(-rx * 0.3)} ${f(-ry * 0.82)} ${f(rx * 0.25)} ${f(-ry * 0.78)}" fill="none" stroke="${P.goldL}" stroke-width=".45"/></g>`
 
-/** Llave antigua parada: el ojo abajo en (0,23), la caña hacia arriba y el paletón a la derecha en la punta. */
+/** Llave antigua parada: el ojo calado (cuatro lóbulos y un anillo) abajo en (0,22), la caña hacia arriba y el paletón
+ * con sus guardas a la derecha, en la punta. */
 function oldKey(k: Kit, metal: string, dark: string, light: string) {
-  const bow = ring(0, 23, 7.4, 3.6)
-  const lobes = [[-6.8, 19.4], [6.8, 19.4], [0, 31]].map(([x, y]) => ring(x, y, 2.4, 0.9)).join('')
-  const collar = 'M-3.2 12.6H3.2L2.6 16.4H-2.6Z'
-  const shaft = 'M-1.6 13V-21H1.6V13Z'
-  const bit = 'M1.4 -25H9.4V-21.4H6.6V-19.2H9.4V-14.6H6.6V-12.6H1.4Z'
-  const tip = 'M-2.4 -25H2.4V-22.4H-2.4Z'
+  const lobes = [[-4.6, 22], [4.6, 22], [0, 17.4], [0, 26.6]].map(([x, y]) => ring(x, y, 2.2, 0.8)).join('')
+  const bow = ring(0, 22, 4.1, 2.1)
+  const collar = 'M-2.9 11.2H2.9V13.2H-2.9ZM-2.2 14.2H2.2V15.6H-2.2Z'
+  const shaft = 'M-1.3 15V-19.6A1.3 1.3 0 0 1 1.3 -19.6V15Z'
+  const bit = 'M1.1 -19H8.6V-15.4H6.2V-13.6H8.6V-10H5.2V-8.4H1.1Z'
   const sh = (d: string) => k.sh(d, 0, 0, 1, 1, 0, 0.9, dark, 0.45)
   return (
     k.draw([
       { d: lobes, fill: metal, inner: sh(lobes) },
-      { d: bow, fill: metal, inner: sh(bow) + `<path d="M-5 17.6C-3 16 3 16 5 17.6" fill="none" stroke="${light}" stroke-width=".6"/>` },
-      { d: shaft, fill: metal, inner: k.sh(shaft, 0, 0, 1, 0, 0, 0.9, dark, 0.45) + `<path d="M-.7 11V-20" stroke="${light}" stroke-width=".5"/>` },
-      { d: bit, fill: metal, inner: sh(bit) + `<path d="M3 -23.6V-14" stroke="${dark}" stroke-width=".4"/>` },
-      { d: tip, fill: metal, inner: sh(tip) },
-      { d: collar, fill: metal, inner: sh(collar) + `<path d="M-3 14.4H3" stroke="${dark}" stroke-width=".4"/>` },
-    ], 0.55) +
-    `<circle cx="0" cy="23" r="5.4" fill="none" stroke="${dark}" stroke-width=".4" stroke-dasharray=".01 1.1" stroke-linecap="round"/>` +
-    `<path d="M-4.6 20C-3.6 18.4 -1.6 17.6 0 17.8" fill="none" stroke="#fff" stroke-width=".6" stroke-linecap="round"/>`
+      { d: bow, fill: metal, inner: sh(bow) },
+      { d: shaft, fill: metal, inner: k.sh(shaft, 0, 0, 1, 0, 0, 0.9, dark, 0.45) + `<path d="M-.5 13V-19" stroke="${light}" stroke-width=".5"/>` },
+      { d: bit, fill: metal, inner: sh(bit) + `<path d="M2.6 -18V-9.4" stroke="${dark}" stroke-width=".35"/>` },
+      { d: collar, fill: metal, inner: sh(collar) },
+    ], 0.5) +
+    [[-4.6, 22], [4.6, 22], [0, 17.4], [0, 26.6]].map(([x, y]) => `<path d="M${f(x - 1.5)} ${f(y - 0.5)}A1.6 1.6 0 0 1 ${f(x - 0.3)} ${f(y - 1.5)}" fill="none" stroke="${light}" stroke-width=".4" stroke-linecap="round"/>`).join('') +
+    `<circle cx="0" cy="22" r="3.1" fill="none" stroke="${dark}" stroke-width=".35" stroke-dasharray=".01 .9" stroke-linecap="round"/>` +
+    `<path d="M-3 20.6C-2.6 19.4 -1.4 18.8 0 18.8" fill="none" stroke="#fff" stroke-width=".5" stroke-linecap="round"/>`
   )
 }
 
@@ -210,9 +210,10 @@ export const MONOPOLY_NUEVAS_ART: Record<string, (u: number) => string> = {
       tablero(k) +
       k.sun(60, 56, 16, 47, 28, false) +
       k.shade(ellipse(60, 56, 26, 26), k.rad(P.goldL, 0.5, 0.5, 0.5, 0.75, 0), P.goldL, 0.45) +
-      `<g transform="translate(60 59) rotate(-40) scale(1.22)">` + k.cast(['M-1.6 13V-21H1.6V13Z'], 1.6, 1.6, VERDE_D) + oldKey(k, P.sky1, P.blue, '#fff') + `</g>` +
-      `<g transform="translate(60 59) rotate(40) scale(-1.22 1.22)">` + oldKey(k, P.gold, P.goldD, P.goldL) + `</g>` +
-      k.floor(60, 74, 20, 3.4, VERDE_D) +
+      `<g transform="translate(60 70) rotate(-42) scale(1.22) translate(0 -8.3)">` + k.cast(['M-1.3 15V-19.6H1.3V15Z'], 1, 1, P.mid) + oldKey(k, P.sky1, P.blue, '#fff') + `</g>` +
+      `<g transform="translate(60 70) rotate(42) scale(-1.22 1.22) translate(0 -8.3)">` + k.cast(['M-1.3 15V-19.6H1.3V15Z'], -1, 1, P.mid) + oldKey(k, P.gold, P.goldD, P.goldL) + `</g>` +
+      `<g transform="translate(0 -6.4)">` +
+      k.floor(60, 74.6, 18, 2.6, VERDE_D) +
       k.draw([{ d: cap, fill: P.white, inner: `<path d="${capStripes}" fill="${P.night}"/>` + k.sh(cap, 0, 0, 1, 1, 0, 0.9, P.blue, 0.45) + `<path d="M46 50C48 47 51 45.6 54 45" fill="none" stroke="#fff" stroke-width="1" stroke-linecap="round" opacity=".7"/>` }], 0.7) +
       arch('M45.4 63C45 52 51.4 45 60 44.2') + arch('M74.6 63C75 52 68.6 45 60 44.2') + arch('M60 64.6V44.2') +
       pearls([45.4, 63, 46, 47, 60, 44.2]) + pearls([74.6, 63, 74, 47, 60, 44.2]) +
@@ -229,7 +230,8 @@ export const MONOPOLY_NUEVAS_ART: Record<string, (u: number) => string> = {
       k.draw([{ d: ellipse(60, 41, 3.4, 3.4), fill: P.gold, inner: k.sh(ellipse(60, 41, 3.4, 3.4), 0, 0, 1, 1, 0, 0.9, P.goldD, 0.45) + `<path d="M56.6 41H63.4" stroke="${P.goldD}" stroke-width=".4"/>` }], 0.5) +
       `<path d="M58.8 31.4H61.2V33.8H63.4V36.2H61.2V38H58.8V36.2H56.6V33.8H58.8Z" fill="${P.gold}" stroke="${P.ink}" stroke-width=".5"/>` +
       `<circle cx="58.8" cy="40" r=".7" fill="#fff"/>` +
-      sparkle(60, 24, 2.8, '#fff') + sparkle(33, 46, 2) + sparkle(88, 70, 1.6) +
+      `</g>` +
+      sparkle(84, 30, 2.4, '#fff') + sparkle(33, 62, 2) + sparkle(88, 70, 1.6) +
       k.defs()
     )
   },
@@ -245,21 +247,32 @@ export const MONOPOLY_NUEVAS_ART: Record<string, (u: number) => string> = {
     const milk = ellipse(62, 58.4, 12.2, 2.6)
     const foot = 'M56.4 80H67.6L67 82.8H57Z'
     const handle = 'M75.4 61.4C81 60.6 83.6 64 82.2 67.6C80.8 71 76.8 72.6 73 73.4L73.6 70.4C76 69.8 78.6 68.6 79.4 66.6C80.2 64.6 78.6 63.4 75.6 64.2Z'
-    const medialuna = (x: number, y: number, r: number, s: number) => {
-      const d = 'M-10 2.6C-10.8 -1.8 -6.6 -6 0 -6C6.6 -6 10.8 -1.8 10 2.6C8.4 3.2 7.2 1.6 5.8 1C4.2 .4 2 .2 0 .2C-2 .2 -4.2 .4 -5.8 1C-7.2 1.6 -8.4 3.2 -10 2.6Z'
-      return `<g transform="translate(${x} ${y}) rotate(${r}) scale(${s})">` +
-        k.draw([{
-          d, fill: P.gold,
-          inner:
-            k.sh(d, 0, 0, 0, 1, 0, 0.95, P.goldD, 0.5) + `<path d="M-9 -7H9V-3C4 -5 -4 -5 -9 -3Z" fill="${P.goldD}" opacity=".35"/>` +
-            hair(-6.4, 1.2, -5, -2, -3.4, -5.4, 0.55, P.brownD) + hair(-2.2, .4, -1.4, -2.8, -.6, -5.8, 0.55, P.brownD) + hair(2.2, .4, 1.4, -2.8, .6, -5.8, 0.55, P.brownD) + hair(6.4, 1.2, 5, -2, 3.4, -5.4, 0.55, P.brownD) +
-            `<path d="M-6 -3.4C-3 -5 3 -5 6 -3.4" fill="none" stroke="#fff" stroke-width=".8" stroke-linecap="round" opacity=".75"/>`,
-        }], 0.5 / s) + `</g>`
+    // Medialuna: media luna de cinco gajos enrollados (el borde de afuera ondulado) con las puntas finitas hacia abajo.
+    const pt = (r: number, a: number) => `${f(r * Math.sin(a))} ${f(5 - r * Math.cos(a))}`
+    const out: string[] = [], inn: string[] = []
+    for (let i = 0; i <= 30; i++) {
+      const t = i / 30, a = ((-80 + 160 * t) * Math.PI) / 180, h = 0.6 + 3.6 * Math.pow(Math.cos(a * 0.98), 1.6)
+      out.push(pt(9 + h + 0.7 * Math.abs(Math.sin(t * Math.PI * 5)) * (h / 4.2), a))
+      inn.push(pt(9 - h * 0.8, a))
     }
+    const croissant = `M${out.join('L')}L${inn.reverse().join('L')}Z`
+    const seams = [0.2, 0.4, 0.6, 0.8].map((t) => {
+      const a = ((-80 + 160 * t) * Math.PI) / 180, h = 0.6 + 3.6 * Math.pow(Math.cos(a * 0.98), 1.6), [x0, y0] = pt(9 - h * 0.8, a).split(' ').map(Number), [x1, y1] = pt(9 + h, a).split(' ').map(Number)
+      return hair(x0, y0, (x0 + x1) / 2 + (t < 0.5 ? 0.8 : -0.8), (y0 + y1) / 2, x1, y1, 0.6, P.brownD)
+    }).join('')
+    const glaze = [0.1, 0.3, 0.5, 0.7, 0.9].map((t) => {
+      const a = ((-80 + 160 * t) * Math.PI) / 180, h = 0.6 + 3.6 * Math.pow(Math.cos(a * 0.98), 1.6), r = 9 + h * 0.55
+      return `<path d="M${pt(r, a - 0.07)}L${pt(r, a + 0.05)}" stroke="#fff" stroke-width="${f(0.35 + h * 0.18)}" stroke-linecap="round" opacity=".8"/>`
+    }).join('')
+    const medialuna = (x: number, y: number, r: number, s: number) =>
+      `<g transform="translate(${x} ${y}) rotate(${r}) scale(${s})">` +
+      k.draw([{ d: croissant, fill: P.gold, inner: k.sh(croissant, 0, 0, 0, 1, 0, 0.95, P.brownD, 0.5) + `<path d="M-12 -10H12V-3C6 -6 -6 -6 -12 -3Z" fill="${P.goldD}" opacity=".3"/>` + seams }], 0.5 / s) +
+      glaze + `</g>`
     const tag = 'M0 0C2.6 0 3.6 2.4 3.4 5L2.8 13C2.6 15 1.6 16 0 16C-1.6 16 -2.6 15 -2.8 13L-3.4 5C-3.6 2.4 -2.6 0 0 0Z'
     return (
       tablero(k) +
       pano(k, 60, 62, 33) +
+      `<g transform="translate(1.4 -4.6)">` +
       k.floor(61, 88.6, 26, 3, VERDE_D) +
       k.draw([{ d: saucer, fill: P.white, inner: k.sh(saucer, 0, 0, 1, 1, 0, 0.8, P.blue, 0.35) + `<path d="${ellipse(60, 83.6, 21.4, 4.8)}" fill="none" stroke="${VERDE}" stroke-width=".7"/>` + `<path d="${ellipse(62, 83, 9.6, 2.4)}" fill="none" stroke="${P.blue}" stroke-width=".4"/>` }], 0.6) +
       k.draw([
@@ -276,13 +289,14 @@ export const MONOPOLY_NUEVAS_ART: Record<string, (u: number) => string> = {
       ], 0.65) +
       `<path d="${milk}" fill="none" stroke="${P.ink}" stroke-width=".4"/>` +
       hair(58, 54, 54.6, 48, 58.6, 42, 0.9, P.blue) + hair(64.4, 53.6, 67.6, 47, 64, 40, 0.8, P.blue) + hair(61.4, 50, 59.4, 44.4, 61.8, 37.4, 0.55, P.blue) +
-      medialuna(36.6, 80.6, -26, 1.02) + medialuna(44.6, 87.6, -6, 1.06) +
+      medialuna(39.6, 81.6, -24, 1) + medialuna(47.6, 88.4, -4, 1.04) +
       // La llave de la pieza 2, con su perita verde.
       `<g transform="translate(84 74) rotate(16)">` +
       rod('M0 -1.6V-6.4', P.gold, 0.8) + `<circle cx="0" cy="-7.4" r="1.4" fill="none" stroke="${P.ink}" stroke-width="1.3"/><circle cx="0" cy="-7.4" r="1.4" fill="none" stroke="${P.gold}" stroke-width=".55"/>` +
       k.draw([{ d: tag, fill: VERDE, inner: k.sh(tag, 0, 0, 1, 1, 0, 0.9, VERDE_D, 0.5) + `<path d="M-2 2.4C-2.4 6 -2.2 10 -1.4 13" fill="none" stroke="${VERDE_L}" stroke-width=".7" stroke-linecap="round"/>` }], 0.5) +
       `<circle cx="0" cy="2" r=".7" fill="${P.paper}" stroke="${P.ink}" stroke-width=".3"/>` +
       `<text x=".2" y="11" ${GEORGIA} font-weight="700" font-size="5.6" fill="${P.goldL}" text-anchor="middle">2</text>` +
+      `</g>` +
       `</g>` +
       sparkle(86, 42, 2.2) + sparkle(36, 44, 1.6) +
       k.defs()
@@ -345,65 +359,96 @@ export const MONOPOLY_NUEVAS_ART: Record<string, (u: number) => string> = {
     )
   },
 
-  // Veinte hoteles: el Llao Llao con sus techos verdes, entre el lago y los cerros nevados.
+  // Veinte hoteles: el Llao Llao, con sus techos verdes y su torre, entre el lago y los cerros nevados.
   'Llao Llao': (u) => {
     const k = kit(u)
-    const mount = 'M8 76L24 56L30 59L42 41L48 46L58 32L66 43L72 39L84 52L90 50L112 76Z'
-    const snowLine = 'M0 0H120V44L84 44L80 48.6L76 45.4L72 49L68 45.6L64 48.8L60 44.4L56 48.6L52 45.8L48 50L44 46.4L40 50.6L36 47L0 50Z'
-    const lake = 'M10 76H110V112H10Z'
-    const hill = 'M12 80C22 72 38 66.6 60 66C82 66.6 98 72 108 80Z'
-    const base = 'M33 64H87V70.4H33Z'
-    const wingL = 'M35 54H53V64H35Z', roofL = 'M33.6 54.4L38.2 45.6H50L54.4 54.4Z'
-    const wingR = 'M67 54H85V64H67Z', roofR = 'M65.6 54.4L70 45.6H81.8L86.4 54.4Z'
-    const tower = 'M53 39H67V64H53Z', towerRoof = 'M51.4 39.6L60 27.4L68.6 39.6Z'
-    const turret = 'M29 52H35V66H29Z', turretRoof = 'M28 52.4L32 43.4L36 52.4Z'
-    const shingles = (x0: number, x1: number, y0: number, y1: number, n: number) =>
-      Array.from({ length: n }, (_, i) => { const y = y0 + ((y1 - y0) * (i + 1)) / (n + 1); return hair(x0, y, (x0 + x1) / 2, y + 0.3, x1, y, 0.35, VERDE_D, 0.8) }).join('')
-    const timber = (x0: number, x1: number, y0: number, y1: number) =>
-      `<path d="M${x0} ${f((y0 + y1) / 2)}H${x1}" stroke="${P.brownD}" stroke-width=".45"/>` +
-      Array.from({ length: Math.round((x1 - x0) / 3.6) }, (_, i) => { const x = x0 + 1.8 + i * 3.6; return `<rect x="${f(x - 0.8)}" y="${f(y0 + 1.2)}" width="1.6" height="2.4" fill="${P.night}"/><rect x="${f(x - 0.8)}" y="${f((y0 + y1) / 2 + 1)}" width="1.6" height="2.4" fill="${P.night}"/>` }).join('')
+    const mount = 'M4 78L18 61L24 63L36 45L42 49L54 31L62 41L68 36L80 50L86 48L98 59L116 78Z'
+    const snowLine = 'M0 0H120V52L98 59L94 53.4L90 56L86 50.6L82 53.6L78 49L74 52L70 47.6L66 50.4L62 45.6L58 49L55 44.4L51 48.6L47 45.4L43 50.6L39 47.6L35 52L31 50L27 56L23 54.4L19 60L0 60Z'
+    const lake = 'M6 80H114V112H6Z'
+    const hill = 'M6 85C18 77.6 36 72.6 60 72.2C84 72.6 102 77.6 114 85Z'
+    const base = 'M30.6 66H89.4V73.4H30.6Z'
+    const wingL = 'M34 55.8H53V66H34Z', roofL = 'M32.4 56.2L37.4 45.4H50.4L54.6 56.2Z'
+    const wingR = 'M67 55.8H86V66H67Z', roofR = 'M65.4 56.2L69.6 45.4H82.6L87.6 56.2Z'
+    const tower = 'M52.6 38.4H67.4V66H52.6Z', towerRoof = 'M50.4 39L60 25.6L69.6 39Z'
+    const turret = 'M28.2 54.4H34.6V67H28.2Z', turretRoof = 'M27.2 54.8L31.4 44.4L35.6 54.8Z'
+    // Tejas: hileras de escamas sobre los techos.
+    const shingles = (x0: number, x1: number, y0: number, y1: number, n: number, inset: number) =>
+      Array.from({ length: n }, (_, i) => {
+        const t = (i + 1) / (n + 1), y = y0 + (y1 - y0) * t, a = x0 + inset * (1 - t), b = x1 - inset * (1 - t)
+        const ticks = Array.from({ length: Math.max(2, Math.round((b - a) / 2.6)) }, (_, j) => { const x = a + 1.3 + j * 2.6 + (i % 2) * 1.3; return x < b - 0.6 ? `M${f(x)} ${f(y - 1.6)}V${f(y)}` : '' }).join('')
+        return hair(a, y, (a + b) / 2, y + 0.3, b, y, 0.4, VERDE_D, 0.9) + `<path d="${ticks}" stroke="${VERDE_D}" stroke-width=".3" opacity=".7"/>`
+      }).join('')
+    // Muros de madera: viga del entrepiso, postes y dos pisos de ventanas con marco blanco.
+    const timber = (x0: number, x1: number, y0: number, y1: number) => {
+      const n = Math.round((x1 - x0) / 4.2), w = (x1 - x0) / n, mid = (y0 + y1) / 2
+      let out = `<path d="M${x0} ${f(mid)}H${x1}" stroke="${P.brownD}" stroke-width=".55"/>`
+      for (let i = 0; i < n; i++) {
+        const x = x0 + i * w
+        if (i) out += `<path d="M${f(x)} ${y0}V${y1}" stroke="${P.brownD}" stroke-width=".35"/>`
+        for (const y of [y0 + 1.1, mid + 1]) out += `<rect x="${f(x + w / 2 - 1)}" y="${f(y)}" width="2" height="2.8" fill="${P.night}" stroke="${P.paper}" stroke-width=".3"/>`
+      }
+      return out
+    }
+    const dormer = (x: number, y: number) => `<path d="M${x} ${y}V${f(y - 2.6)}L${f(x + 1.7)} ${f(y - 4.2)}L${f(x + 3.4)} ${f(y - 2.6)}V${y}Z" fill="${P.white}" stroke="${P.ink}" stroke-width=".35"/><rect x="${f(x + 1)}" y="${f(y - 2.4)}" width="1.4" height="2" fill="${P.night}"/>`
+    const chimney = (x: number, y: number) => `<path d="M${x} ${y}V${f(y - 4)}H${f(x + 2.4)}V${y}Z" fill="${P.sky2}" stroke="${P.ink}" stroke-width=".4"/><path d="M${f(x - 0.4)} ${f(y - 4)}H${f(x + 2.8)}" stroke="${P.ink}" stroke-width=".8"/>`
     const cypress = (x: number, y: number, h: number) => {
       const d = `M${x} ${f(y - h)}C${f(x + 2.6)} ${f(y - h * 0.6)} ${f(x + 3.6)} ${f(y - h * 0.2)} ${f(x + 2.4)} ${y}H${f(x - 2.4)}C${f(x - 3.6)} ${f(y - h * 0.2)} ${f(x - 2.6)} ${f(y - h * 0.6)} ${x} ${f(y - h)}Z`
-      return k.draw([{ d, fill: P.greenD, inner: k.sh(d, 0, 0, 1, 0, 0, 0.9, '#2F4419', 0.5) + hair(x - 1, y - h * 0.7, x - 1.8, y - h * 0.4, x - 1.2, y - 2, 0.4, P.green) }], 0.5)
+      return k.draw([{ d, fill: P.greenD, inner: k.sh(d, 0, 0, 1, 0, 0, 0.9, '#2F4419', 0.5) + hair(x - 1, y - h * 0.7, x - 1.8, y - h * 0.4, x - 1.2, y - 2, 0.45, P.green) + hair(x + 0.6, y - h * 0.5, x + 1.4, y - h * 0.3, x + 1, y - h * 0.1, 0.35, '#2F4419') }], 0.5)
     }
+    const crowns = Array.from({ length: 30 }, (_, i) => {
+      const r = Math.floor(i / 10), c = i % 10, x = 12 + c * 10.4 + (r % 2) * 5.2, y = 79 + r * 2.4 - Math.sin(((x - 6) / 108) * Math.PI) * (6 - r * 1.4)
+      return `M${f(x)} ${f(y)}a1.8 1.6 0 0 1 3.6 0`
+    }).join('')
+    const silhouette = `<path d="${tower} ${towerRoof} ${wingL} ${roofL} ${wingR} ${roofR}" fill="${VERDE_D}"/>`
     return (
       tablero(k) +
-      k.sun(60, 42, 12, 44, 28, false) +
-      k.shade(ellipse(60, 42, 20, 18), k.rad(P.goldL, 0.5, 0.5, 0.5, 0.7, 0), P.goldL, 0.4) +
+      k.sun(60, 40, 12, 46, 28, false) +
+      k.shade(ellipse(60, 40, 20, 18), k.rad(P.goldL, 0.5, 0.5, 0.5, 0.75, 0), P.goldL, 0.45) +
       k.draw([{
         d: mount, fill: P.sky,
         inner:
-          k.sh(mount, 0, 0, 1, 0, 0, 0.7, P.blue, 0.4) + k.clip(mount, `<path d="${snowLine}" fill="${P.white}"/>`) + k.sh('M58 30H90V60H58Z', 0, 0, 1, 0, 0, 0.6, P.sky2, 0.4) +
-          hair(58, 33, 56, 42, 50, 52, 0.5, P.mid) + hair(42, 42, 40, 50, 34, 58, 0.45, P.mid) + hair(72, 40, 73, 48, 70, 56, 0.45, P.mid) + hair(66, 44, 64, 54, 66, 64, 0.4, P.blue),
+          k.sh(mount, 0, 0, 1, 0, 0, 0.7, P.blue, 0.4) + k.clip(mount, `<path d="${snowLine}" fill="${P.white}"/>` + k.sh('M54 28H120V64H54Z', 0, 0, 1, 0, 0, 0.75, P.sky2, 0.45)) +
+          hair(54, 32, 52, 42, 46, 52, 0.55, P.mid) + hair(36, 46, 34, 54, 28, 62, 0.5, P.mid) + hair(68, 37, 70, 46, 66, 56, 0.5, P.mid) + hair(62, 42, 60, 52, 62, 62, 0.45, P.blue) +
+          hair(80, 51, 82, 58, 78, 66, 0.45, P.mid) + hair(24, 63, 22, 68, 18, 72, 0.4, P.mid) + hair(86, 49, 90, 56, 92, 64, 0.4, P.blue),
       }], 0.6) +
-      k.draw([{ d: lake, fill: P.sky, inner: k.sh(lake, 0, 0, 0, 1, 0.5, 0, P.white, 0.35) + k.sh(lake, 0, 0, 0, 1, 0, 0.8, P.mid, 0.4) + hair(36, 86, 46, 85.4, 56, 86.2, 0.5, '#fff') + hair(62, 90, 72, 89.4, 82, 90.4, 0.5, '#fff') + hair(44, 95, 52, 94.6, 60, 95.4, 0.45, '#fff') }], 0.5) +
-      k.draw([{ d: hill, fill: VERDE_D, inner: k.sh(hill, 0, 0, 1, 1, 0, 0.8, '#08402C', 0.5) + Array.from({ length: 14 }, (_, i) => { const x = 18 + i * 6.4, y = 78 - Math.sin((i / 13) * Math.PI) * 9; return `<path d="M${f(x)} ${f(y)}L${f(x + 1.4)} ${f(y - 3.4)}L${f(x + 2.8)} ${f(y)}Z" fill="${VERDE}"/>` }).join('') }], 0.6) +
-      // Reflejo del hotel en el lago.
-      `<g opacity=".3">` + [44, 52, 60, 68, 76].map((x) => hair(x - 4, 82 + (x % 3), x, 81.6, x + 4, 82 + (x % 3), 0.7, VERDE_D)).join('') + `</g>` +
+      k.draw([{
+        d: lake, fill: P.sky,
+        inner:
+          k.sh(lake, 0, 0, 0, 1, 0, 0.85, P.mid, 0.4) +
+          `<g transform="matrix(1 0 0 -.4 0 109.4)" opacity=".28">${silhouette}</g>` +
+          [[30, 86, 46], [52, 88.6, 70], [36, 92, 52], [64, 94.4, 84], [44, 98, 62]].map(([x0, y, x1]) => hair(x0, y, (x0 + x1) / 2, y - 0.4, x1, y, 0.55, '#fff')).join(''),
+      }], 0.5) +
+      k.draw([{ d: hill, fill: VERDE_D, inner: k.sh(hill, 0, 0, 1, 1, 0, 0.8, '#08402C', 0.5) + `<path d="${crowns}" fill="none" stroke="${VERDE}" stroke-width=".7" stroke-linecap="round"/>` }], 0.6) +
+      chimney(39.4, 48) + chimney(78.6, 48) +
       k.draw([
-        { d: turretRoof, fill: VERDE, inner: k.sh(turretRoof, 0, 0, 1, 0, 0, 0.9, VERDE_D, 0.5) },
-        { d: turret, fill: P.white, inner: k.sh(turret, 0, 0, 1, 0, 0, 0.7, P.blue, 0.4) + timber(29, 35, 52, 64) },
-        { d: roofL, fill: VERDE, inner: k.sh(roofL, 0, 0, 1, 1, 0, 0.8, VERDE_D, 0.45) + shingles(36, 52, 45.6, 54.4, 3) + `<path d="M41 54V50.6A1.4 1.4 0 0 1 43.8 50.6V54Z" fill="${P.white}" stroke="${P.ink}" stroke-width=".3"/>` },
-        { d: wingL, fill: P.white, inner: k.sh(wingL, 0, 0, 1, 0, 0, 0.6, P.blue, 0.35) + timber(35, 53, 54, 64) },
-        { d: roofR, fill: VERDE, inner: k.sh(roofR, 0, 0, 1, 1, 0, 0.9, VERDE_D, 0.5) + shingles(68, 84, 45.6, 54.4, 3) + `<path d="M75 54V50.6A1.4 1.4 0 0 1 77.8 50.6V54Z" fill="${P.white}" stroke="${P.ink}" stroke-width=".3"/>` },
-        { d: wingR, fill: P.white, inner: k.sh(wingR, 0, 0, 1, 0, 0, 0.9, P.blue, 0.4) + timber(67, 85, 54, 64) },
-        { d: towerRoof, fill: VERDE, inner: k.sh(towerRoof, 0, 0, 1, 0, 0, 0.9, VERDE_D, 0.5) + shingles(54, 66, 30, 39.6, 3) + `<path d="M51.4 39.6H60V27.4Z" fill="${k.lin('#ffffff', 0, 0, 1, 0, 0.35, 0)}"/>` },
+        { d: turretRoof, fill: VERDE, inner: k.sh(turretRoof, 0, 0, 1, 0, 0, 0.9, VERDE_D, 0.5) + shingles(28, 35, 44.4, 54.8, 2, 3) },
+        { d: turret, fill: P.white, inner: k.sh(turret, 0, 0, 1, 0, 0, 0.7, P.blue, 0.4) + `<rect x="30.4" y="56.6" width="2" height="2.8" fill="${P.night}"/><rect x="30.4" y="61.6" width="2" height="2.8" fill="${P.night}"/>` },
+        { d: roofL, fill: VERDE, inner: k.sh(roofL, 0, 0, 1, 1, 0, 0.8, VERDE_D, 0.45) + shingles(33, 54, 45.4, 56.2, 3, 4.4) },
+        { d: wingL, fill: P.white, inner: k.sh(wingL, 0, 0, 1, 0, 0, 0.6, P.blue, 0.35) + timber(34, 53, 55.8, 66) },
+        { d: roofR, fill: VERDE, inner: k.sh(roofR, 0, 0, 1, 1, 0, 0.95, VERDE_D, 0.5) + shingles(66, 87, 45.4, 56.2, 3, 4.4) },
+        { d: wingR, fill: P.white, inner: k.sh(wingR, 0, 0, 1, 0, 0, 0.9, P.blue, 0.4) + timber(67, 86, 55.8, 66) },
+        { d: towerRoof, fill: VERDE, inner: k.sh(towerRoof, 0, 0, 1, 0, 0, 0.9, VERDE_D, 0.5) + shingles(51, 69, 25.6, 39, 4, 8.4) + `<path d="M50.4 39H60V25.6Z" fill="${k.lin('#ffffff', 0, 0, 1, 0, 0.35, 0)}"/>` },
         {
           d: tower, fill: P.white,
-          inner: k.sh(tower, 0, 0, 1, 0, 0, 0.8, P.blue, 0.4) + `<path d="M53 39H67V41H53Z" fill="${P.brownD}"/>` +
-            [44, 50.6, 57.2].map((y) => `<rect x="55" y="${y}" width="2.2" height="3.6" fill="${P.night}"/><rect x="58.9" y="${y}" width="2.2" height="3.6" fill="${P.night}"/><rect x="62.8" y="${y}" width="2.2" height="3.6" fill="${P.night}"/>`).join('') +
-            `<path d="M53 48.4H67M53 55H67" stroke="${P.brownD}" stroke-width=".45"/>`,
+          inner:
+            k.sh(tower, 0, 0, 1, 0, 0, 0.8, P.blue, 0.4) + `<path d="M52.6 38.4H67.4V40.2H52.6Z" fill="${P.brownD}"/>` +
+            `<circle cx="60" cy="44" r="2" fill="${P.night}" stroke="${P.paper}" stroke-width=".4"/>` +
+            [55, 58.9, 62.8].map((x) => `<rect x="${x}" y="48" width="2.2" height="3.4" fill="${P.night}" stroke="${P.paper}" stroke-width=".3"/>`).join('') +
+            `<path d="M52.6 53H67.4V66H52.6Z" fill="${P.sky2}"/>` + k.sh('M52.6 53H67.4V66H52.6Z', 0, 0, 1, 0, 0, 0.8, P.blue, 0.4) +
+            [55.6, 58.2, 60.8, 63.4].map((y, i) => `<path d="M52.6 ${y}H67.4" stroke="${P.blue}" stroke-width=".3"/>` + [0, 1, 2, 3].map((j) => `<path d="M${f(54 + j * 4 + (i % 2) * 2)} ${f(y - 2.6)}V${y}" stroke="${P.blue}" stroke-width=".3"/>`).join('')).join('') +
+            `<path d="M57.4 66V61.6A2.6 2.6 0 0 1 62.6 61.6V66Z" fill="${P.night}"/>`,
         },
         {
           d: base, fill: P.sky2,
-          inner: k.sh(base, 0, 0, 1, 0, 0, 0.7, P.blue, 0.4) + `<path d="M33 67.2H87" stroke="${P.blue}" stroke-width=".35"/>` +
-            Array.from({ length: 13 }, (_, i) => `<path d="M${f(35 + i * 4.2)} 64V67.2M${f(37 + i * 4.2)} 67.2V70.4" stroke="${P.blue}" stroke-width=".3"/>`).join('') +
-            `<path d="M57.6 70.4V67A2.4 2.4 0 0 1 62.4 67V70.4Z" fill="${P.night}"/>`,
+          inner: k.sh(base, 0, 0, 1, 0, 0, 0.75, P.blue, 0.4) + `<path d="M30.6 68.4H89.4M30.6 70.9H89.4" stroke="${P.blue}" stroke-width=".3"/>` +
+            Array.from({ length: 14 }, (_, i) => `<path d="M${f(32.4 + i * 4.2)} 66V68.4M${f(34.4 + i * 4.2)} 68.4V70.9M${f(32.4 + i * 4.2)} 70.9V73.4" stroke="${P.blue}" stroke-width=".3"/>`).join(''),
         },
       ], 0.6) +
-      rod('M60 27.6V22.6', P.gold, 0.6) + `<circle cx="60" cy="22.2" r=".9" fill="${P.gold}" stroke="${P.ink}" stroke-width=".35"/>` +
-      cypress(25, 82, 18) + cypress(95, 82, 16) + cypress(30.6, 84, 12) +
-      sparkle(86, 30, 2.2, '#fff') + sparkle(34, 34, 1.6) +
+      `<path d="M52.4 52.4H67.6V53.4H52.4Z" fill="${P.brownD}"/>` + Array.from({ length: 8 }, (_, i) => `<path d="M${f(53.2 + i * 1.94)} 53.4V55.2" stroke="${P.brownD}" stroke-width=".35"/>`).join('') + `<path d="M52.4 55.2H67.6" stroke="${P.brownD}" stroke-width=".45"/>` +
+      dormer(40.2, 53.6) + dormer(45.4, 53.6) + dormer(71.4, 53.6) + dormer(76.6, 53.6) +
+      rod('M60 25.8V21.4', P.gold, 0.6) + `<circle cx="60" cy="21" r=".9" fill="${P.gold}" stroke="${P.ink}" stroke-width=".35"/>` +
+      cypress(23.6, 84, 19) + cypress(29.6, 85, 13) + cypress(95.6, 84, 17) +
+      sparkle(88, 30, 2.2, '#fff') + sparkle(32, 32, 1.6) +
       k.defs()
     )
   },
@@ -448,7 +493,7 @@ export const MONOPOLY_NUEVAS_ART: Record<string, (u: number) => string> = {
       `</g>` +
       hair(35, 46, 38.4, 41, 44, 38.6, 0.6, P.mid) + hair(32, 52, 35, 47, 40, 44.4, 0.5, P.mid) +
       [[-150, 5], [-120, 6], [-40, 5], [-10, 6], [20, 5]].map(([a, l]) => { const r = (a * Math.PI) / 180; return hair(51.4 + Math.cos(r) * 2.6, 68.8 + Math.sin(r) * 2.6, 51.4 + Math.cos(r) * (2.6 + l / 2), 68.8 + Math.sin(r) * (2.6 + l / 2), 51.4 + Math.cos(r) * (2.6 + l), 68.8 + Math.sin(r) * (2.6 + l), 0.6, P.goldD) }).join('') +
-      `<text x="30" y="34" ${GEORGIA} font-style="italic" font-size="5.4" fill="${P.ink}" transform="rotate(-10 30 34)">¡a la una!</text>` +
+      `<text x="38" y="32.4" ${GEORGIA} font-style="italic" font-size="5.2" fill="${P.ink}" transform="rotate(-8 38 32.4)">¡a la una!</text>` +
       sparkle(88, 70, 1.8) +
       k.defs()
     )
@@ -490,7 +535,8 @@ export const MONOPOLY_NUEVAS_ART: Record<string, (u: number) => string> = {
       spokes +
       `<circle cx="${cx}" cy="${cy + 8}" r="3.2" fill="${P.gold}" stroke="${P.ink}" stroke-width=".55"/>` +
       // La cadena en cruz y el candado.
-      chain(31, 33, 60, 58, 89, 83, 15, 1.25) + chain(89, 33, 60, 58, 31, 83, 15, 1.25) +
+      [[40.6, 38.6], [79.4, 38.6], [40.6, 77.4], [79.4, 77.4]].map(([x, y]) => `<circle cx="${x}" cy="${y}" r="2.2" fill="${P.sky2}" stroke="${P.ink}" stroke-width=".5"/><circle cx="${x}" cy="${y}" r="1" fill="${P.night}"/>`).join('') +
+      chain(40.6, 38.6, 60, 58, 79.4, 77.4, 11, 1.25) + chain(79.4, 38.6, 60, 58, 40.6, 77.4, 11, 1.25) +
       rod('M55.2 66.4V61.6C55.2 55.2 64.8 55.2 64.8 61.6V66.4', P.sky1, 1.9, '#fff') +
       k.draw([{ d: lockBody, fill: P.gold, inner: k.sh(lockBody, 0, 0, 1, 1, 0, 0.95, P.goldD, 0.5) + `<path d="M52 66H56V81H52Z" fill="${k.lin('#ffffff', 0, 0, 1, 0, 0.6, 0)}"/>` + `<path d="M52.4 68.4H67.6M52.4 77.6H67.6" stroke="${P.goldD}" stroke-width=".45"/>` }], 0.6) +
       `<circle cx="60" cy="72" r="1.5" fill="${P.ink}"/><path d="M59.3 72.4L58.8 75.6H61.2L60.7 72.4Z" fill="${P.ink}"/>` +
@@ -502,41 +548,52 @@ export const MONOPOLY_NUEVAS_ART: Record<string, (u: number) => string> = {
   // Doce quiebras: la pileta llena de monedas de oro, el trampolín y el chapuzón que las hace saltar.
   'Tío Rico': (u) => {
     const k = kit(u)
-    const outer = ellipse(60, 76, 32, 13.2)
-    const inner = ellipse(60, 75.2, 27, 9.8)
-    const pile: string[] = []
-    for (let i = 0; i < 70; i++) {
-      const x = 60 + (((i * 37) % 54) - 27) + ((i * 7) % 5) * 0.3, y = 66.4 + ((i * 13) % 19)
-      if (((x - 60) / 26) ** 2 + ((y - 75.6) / 9.2) ** 2 < 0.9) pile.push(`${f(x)},${f(y)},${(i * 29) % 40 - 20}`)
+    const outer = ellipse(60, 79, 33, 13.4)
+    const inner = ellipse(60, 78.4, 27.4, 9.8)
+    const mound = 'M87 78.4C82 70 72 64.6 60 64.4C48 64.6 38 70 33 78.4Z'
+    const top = (x: number) => 64.4 + 14 * ((x - 60) / 27) ** 2
+    const inside = (x: number, y: number) => ((x - 60) / 26) ** 2 + ((y - 78.4) / 8.8) ** 2 < 1 || (Math.abs(x - 60) < 25 && y > top(x) + 0.6 && y < 79)
+    let pile = ''
+    for (let r = 0; r < 13; r++) {
+      const y = 65.4 + r * 2
+      for (let c = 0; c < 13; c++) {
+        const x = 29 + c * 5.2 + (r % 2) * 2.6 + ((r * 7 + c * 3) % 5) * 0.3
+        if (inside(x, y)) pile += coin(x, y, 2.7, 1.25, ((r * 11 + c * 17) % 26) - 13)
+      }
     }
-    pile.sort((a, b) => +a.split(',')[1] - +b.split(',')[1])
-    const pileSvg = pile.map((s) => { const [x, y, r] = s.split(',').map(Number); return coin(x, y, 2.5, 1.15, r) }).join('')
     const fly: [number, number, number, number, number][] = [
-      [57, 61, 2.6, 1.2, -10], [62.4, 56, 2.4, 1.4, 30], [55, 50, 2.2, 2.2, 0], [61, 45, 2.4, 0.8, -60], [66.6, 49, 2.2, 1.8, 20],
-      [51, 56, 2.2, 1, -30], [58, 39, 2, 2, 0], [70, 58, 2.2, 1.2, 40], [48.6, 46, 2, 1.4, 50], [65, 36, 1.8, 0.9, -20],
+      [56, 59, 3, 1.4, -10], [63.4, 54, 2.8, 2.2, 20], [52.6, 49, 2.8, 1, -50], [60, 44, 2.6, 2.6, 0], [67.4, 46.4, 2.4, 1, 60], [49.6, 40.4, 2.4, 1.8, -20],
+      [65, 36.4, 2.4, 1.2, 30], [57, 33, 2.2, 2.2, 0], [72.4, 55, 2.6, 1.4, -30], [45.6, 55, 2.6, 1.6, 20], [71, 41, 2, 0.8, -60], [51.4, 30.6, 1.8, 1.2, 40],
     ]
     const bill = (x: number, y: number, r: number) =>
-      `<g transform="translate(${x} ${y}) rotate(${r})"><rect x="-5" y="-2.4" width="10" height="4.8" fill="${VERDE_L}" stroke="${P.ink}" stroke-width=".4"/><rect x="-4.2" y="-1.7" width="8.4" height="3.4" fill="none" stroke="${VERDE}" stroke-width=".35"/><circle cx="0" cy="0" r="1.2" fill="${VERDE}"/><text x="0" y=".9" ${GEORGIA} font-size="2.2" font-weight="700" fill="${P.paper}" text-anchor="middle">$</text></g>`
-    const board = 'M68.4 61.4L96 68.4V71L68.4 63.8Z'
+      `<g transform="translate(${x} ${y}) rotate(${r})"><rect x="-5.4" y="-2.5" width="10.8" height="5" fill="${VERDE_L}" stroke="${P.ink}" stroke-width=".4"/><rect x="-4.6" y="-1.8" width="9.2" height="3.6" fill="none" stroke="${VERDE}" stroke-width=".35"/><circle cx="0" cy="0" r="1.3" fill="${VERDE}"/><text x="0" y=".9" ${GEORGIA} font-size="2.3" font-weight="700" fill="${P.paper}" text-anchor="middle">$</text></g>`
+    const board = 'M66.4 60.8L94.6 66.6C95.6 66.8 96 67.6 95.8 68.4L95.6 69.2L66.4 63.2C65.6 63 65.6 61 66.4 60.8Z'
+    const stand = 'M86.4 66L89.2 66.6L91.4 79.6H84.2Z'
     return (
       tablero(k) +
-      k.sun(60, 50, 14, 47, 28, false) +
-      k.shade(ellipse(60, 50, 22, 20), k.rad(P.goldL, 0.5, 0.5, 0.5, 0.8, 0), P.goldL, 0.45) +
-      k.floor(60, 82, 36, 6, VERDE_D) +
+      k.sun(60, 47, 14, 48, 28, false) +
+      k.shade(ellipse(60, 46, 22, 20), k.rad(P.goldL, 0.5, 0.5, 0.5, 0.8, 0), P.goldL, 0.45) +
+      k.floor(61, 85, 37, 6, VERDE_D) +
       k.draw([{ d: outer, fill: P.white, inner: k.sh(outer, 0, 0, 1, 1, 0, 0.7, P.blue, 0.35) }], 0.75) +
-      `<path d="${ellipse(60, 75.6, 29.5, 11.5)}" fill="none" stroke="${VERDE}" stroke-width="2.6" stroke-dasharray="2.4 2.4"/>` +
+      `<path d="${ellipse(60, 78.7, 30.2, 11.6)}" fill="none" stroke="${VERDE}" stroke-width="2.6" stroke-dasharray="2.4 2.4"/>` +
+      `<path d="${ellipse(60, 78.7, 30.2, 11.6)}" fill="none" stroke="${P.ink}" stroke-width=".25" opacity=".5"/>` +
       `<path d="${inner}" fill="${P.goldD}" stroke="${P.ink}" stroke-width=".7"/>` +
-      k.clip(inner, `<path d="${inner}" fill="${P.gold}" transform="translate(0 1.6)"/>` + pileSvg + bill(46, 77, -14) + bill(72, 79.4, 10) + k.sh(inner, 0, 0, 0, 1, 0.4, 0, P.goldD, 0.3)) +
-      // Escalerita de caños al costado.
-      rod('M35.4 82V73.4C35.4 69.6 38 68 41 68.6', P.sky1, 1.1, '#fff') + rod('M40 84V75.6C40 71.8 42.6 70.2 45.6 70.8', P.sky1, 1.1, '#fff') +
+      // Escalera de caños, del borde de atrás hacia adentro.
+      rod('M38.4 66.6V60C38.4 57.4 41.4 56.4 43.4 58.4V71', P.sky1, 1.1, '#fff') + rod('M44.6 65V58.4C44.6 55.8 47.6 54.8 49.6 56.8V69.6', P.sky1, 1.1, '#fff') +
+      rod('M43.4 62.6L49.6 61.2M43.4 66.4L49.6 65', P.sky2, 0.7) +
+      `<path d="${mound}" fill="${P.goldD}" stroke="${P.ink}" stroke-width=".7"/>` +
+      k.clip(`${inner} ${mound}`, `<path d="M20 60H100V92H20Z" fill="${P.gold}"/>` + pile + bill(44.6, 76.6, -14) + bill(74, 80.6, 10) + k.sh('M30 62H90V90H30Z', 0, 0, 0, 1, 0, 0.5, P.goldD, 0.3)) +
       // Trampolín.
-      rod('M90 70.4V82M94 71.4V81', P.sky2, 1.2) +
-      k.draw([{ d: board, fill: P.white, inner: `<path d="M68.4 62.6L96 69.6" stroke="${VERDE}" stroke-width=".9"/>` + k.sh(board, 0, 0, 0, 1, 0, 0.7, P.blue, 0.35) }], 0.6) +
-      // El chapuzón: monedas que saltan.
-      hair(54, 66, 50, 58, 52, 48, 0.6, P.goldD) + hair(66, 66, 70, 58, 68, 48, 0.6, P.goldD) + hair(60, 64, 59, 54, 61, 42, 0.5, P.goldD) +
+      k.draw([
+        { d: stand, fill: P.sky1, inner: k.sh(stand, 0, 0, 1, 0, 0, 0.9, P.blue, 0.45) + `<path d="M86 70.4H89.8M85.4 75H90.6" stroke="${P.blue}" stroke-width=".4"/>` },
+        { d: board, fill: P.white, inner: `<path d="M67 61.4L94.6 67.1" stroke="${VERDE}" stroke-width="1.3"/>` + k.sh(board, 0, 0, 0, 1, 0, 0.7, P.blue, 0.35) },
+      ], 0.6) +
+      // El chapuzón: las monedas saltan.
+      hair(54, 64, 48.6, 56, 49.6, 44, 0.65, P.goldD) + hair(66, 64, 71.6, 56, 70, 44, 0.65, P.goldD) + hair(60, 62, 58.6, 50, 60.6, 38, 0.55, P.goldD) +
+      hair(50, 64.6, 44, 60, 40.6, 52, 0.5, P.goldD) + hair(70, 64.6, 76, 60, 79.4, 52, 0.5, P.goldD) +
       fly.map(([x, y, rx, ry, r]) => coin(x, y, rx, ry, r)).join('') +
-      `<path d="M50 68C52 64.6 55 63 58 63.4C61 62.6 65 63.6 69.6 67.4" fill="none" stroke="${P.goldL}" stroke-width="1" stroke-linecap="round"/>` +
-      sparkle(60, 30, 3, '#fff') + sparkle(34, 48, 2) + sparkle(88, 50, 1.8) + sparkle(46, 38, 1.4, P.goldL) +
+      coin(50.4, 64.4, 2.4, 1.6, -40) + coin(69.6, 64.4, 2.4, 1.6, 40) + coin(46.4, 62.6, 2, 1, -60) + coin(73.6, 62.6, 2, 1, 60) +
+      sparkle(60, 24.6, 2.8, '#fff') + sparkle(34, 46, 2) + sparkle(87, 48, 1.8) + sparkle(42, 34, 1.4, P.goldL) +
       k.defs()
     )
   },
