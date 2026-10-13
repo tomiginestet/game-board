@@ -102,8 +102,8 @@ function wasabiDab(k: Kit, s = 1) {
 function greenFlame(k: Kit, t: string) {
   const layer = (sc: number, fill: string, grain: string) =>
     `<g transform="translate(60 90) scale(${sc}) translate(-60 -90)"><path d="${FLAME}" fill="${fill}"/>${k.shade(FLAME, k.lin(grain, 0, 0, 0, 1, 0, 0.8), grain, 0.3)}</g>`
-  return `<g transform="${t}">` + k.draw([{ d: FLAME, fill: WASABI_D, inner: k.sh(FLAME, 0, 0, 1, 1, 0, 0.7, '#3F5A17', 0.4) }], 1.8) +
-    layer(0.78, WASABI, WASABI_D) + layer(0.56, WASABI_L, WASABI) + layer(0.32, '#F6FADF', WASABI_L) + `</g>`
+  return `<g transform="${t}">` + k.draw([{ d: FLAME, fill: WASABI, inner: k.sh(FLAME, 0, 0, 1, 1, 0, 0.7, WASABI_D, 0.4) }], 1.8) +
+    layer(0.78, '#C4DC66', WASABI) + layer(0.56, '#E6F3A4', '#C4DC66') + layer(0.32, '#FFFBE2', WASABI_L) + `</g>`
 }
 
 /** Farolito chino de papel rojo, colgado de su hilo, con la borla dorada. Centro en (0,0). */
@@ -336,7 +336,8 @@ export const SUSHIGO_NUEVAS_ART: Record<string, (u: number) => string> = {
       // Las chispas de la fiesta de Año Nuevo.
       [[34, 30, P.red], [86, 26, NAR], [30, 84, NAR], [44, 92, P.red]].map(([x, y, c]) => `<path d="M${x} ${f(+y - 2.6)}V${f(+y + 2.6)}M${f(+x - 2.6)} ${y}H${f(+x + 2.6)}" stroke="${c}" stroke-width=".8" stroke-linecap="round"/><circle cx="${x}" cy="${y}" r=".8" fill="${P.goldL}"/>`).join('') +
       // El fuego de wasabi, que sale de la boca hacia la izquierda.
-      greenFlame(k, 'translate(47.6 55.2) rotate(80) scale(.32 .46) translate(-60 -18)') +
+      k.shade(ellipse(36, 55, 16, 14), k.rad(WASABI_L, 0.5, 0.5, 0.5, 0.9, 0), WASABI, 0.4) +
+      greenFlame(k, 'translate(50.6 55.6) rotate(-84) scale(.4 .4) translate(-60 -90)') +
       [[26.6, 44.6, 0.9], [28, 67.4, 0.7], [33.6, 70.4, 0.6], [32.4, 40.4, 0.5]].map(([x, y, r]) => `<circle cx="${x}" cy="${y}" r="${r}" fill="${WASABI_L}" stroke="${P.ink}" stroke-width=".3"/>`).join('') +
       // La cabeza del dragón de la fiesta.
       `<g transform="translate(68.4 51.6) scale(.84)">` +

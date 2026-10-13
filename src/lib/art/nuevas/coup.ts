@@ -281,10 +281,6 @@ export const COUP_NUEVAS_ART: Record<string, (u: number) => string> = {
     const browR = taper(64.4, 46.4, 70.8, 35.2, 82.8, 43.2, 2.8, 0.9)
     const browL = taper(56, 50.4, 47, 48.4, 38.4, 50.8, 2.4, 0.9)
     const stick = taper(83.4, 64, 90, 78, 92, 96, 3.4, 2.6)
-    const plume = 'M0 0C-2.2 -4 -2.8 -11 0 -18C2.8 -11 2.2 -4 0 0Z'
-    const feather = (x: number, y: number, r: number, s: number, c: string, cd: string) =>
-      `<g transform="translate(${x} ${y}) rotate(${r}) scale(${s})">` + k.draw([{ d: plume, fill: c, inner: k.sh(plume, 0, 0, 1, 0, 0, 0.9, cd, 0.5) + Array.from({ length: 7 }, (_, i) => `<path d="M0 ${f(-2 - i * 2.2)}L${f(-1.6 + (i > 4 ? 0.4 : 0))} ${f(-4 - i * 2.2)}M0 ${f(-2 - i * 2.2)}L${f(1.6 - (i > 4 ? 0.4 : 0))} ${f(-4 - i * 2.2)}" stroke="${cd}" stroke-width=".3"/>`).join('') }], f(0.45 / s)) +
-      `<path d="M0 0V-17" stroke="${P.goldL}" stroke-width="${f(0.35 / s)}"/></g>`
     const filig = `<path d="M36.4 60C37.6 63 40 65 43 65.6M84 59C82.8 62.4 80.4 64.6 77.4 65.2" fill="none" stroke="${P.gold}" stroke-width=".6" stroke-linecap="round"/>`
     const gems = [[60, 52.4, 1.4, CP_L], [36.4, 53, 0.7, P.goldL], [85.2, 50, 0.7, P.goldL]]
       .map(([x, y, r, c]) => `<circle cx="${x}" cy="${y}" r="${r}" fill="${c}" stroke="${P.ink}" stroke-width=".3"/>`).join('')
@@ -293,7 +289,6 @@ export const COUP_NUEVAS_ART: Record<string, (u: number) => string> = {
       stageR(k, 60, 60, 33) +
       k.floor(61, 90, 22, 2.4, CP_D) +
       k.draw([{ d: stick, fill: P.gold, inner: k.sh(stick, 0, 0, 1, 0, 0, 0.9, P.goldD, 0.5) + Array.from({ length: 6 }, (_, i) => `<path d="M${f(84 + i * 1.4)} ${f(68 + i * 4.4)}l3.6 -1.4" stroke="${CP}" stroke-width="1.1"/>`).join('') }], 0.55) +
-      feather(37, 48.4, -50, 1.05, CP, CP_D) + feather(38, 48, -24, 0.95, P.gold, P.goldD) +
       k.cast([mask], 2, 2.4, CP_D) +
       k.draw([{
         d: mask, fill: CP_L,
@@ -307,7 +302,6 @@ export const COUP_NUEVAS_ART: Record<string, (u: number) => string> = {
       k.draw([{ d: browR, fill: P.night }, { d: browL, fill: P.night }], 0.25) +
       hair(66.4, 44.4, 70.8, 37.8, 77, 39.2, 0.35, P.mid) +
       filig + gems +
-      `<circle cx="37.4" cy="48.4" r="1.6" fill="${P.gold}" stroke="${P.ink}" stroke-width=".4"/><circle cx="37" cy="48" r=".5" fill="${P.goldL}"/>` +
       `<path d="M38.6 49C41 46.4 45 45.4 49 46" fill="none" stroke="#fff" stroke-width=".8" stroke-linecap="round" opacity=".65"/>` +
       `<path d="M33.6 54.6C30 54 27.6 52 26.4 49.4M86.4 53.6C90 53 92.4 51 93.6 48.4" fill="none" stroke="${P.ink}" stroke-width="1.4" stroke-linecap="round"/><path d="M33.6 54.6C30 54 27.6 52 26.4 49.4M86.4 53.6C90 53 92.4 51 93.6 48.4" fill="none" stroke="${CP_L}" stroke-width=".7" stroke-linecap="round"/>` +
       hair(84, 30, 86, 26, 89, 24, 0.6, CP) + hair(87.6, 33, 91, 31, 94, 31, 0.5, CP) +
