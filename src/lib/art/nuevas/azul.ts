@@ -418,7 +418,8 @@ export const AZUL_NUEVAS_ART: Record<string, (u: number) => string> = {
       const c0 = [S0[0] + ux * half * 1.2, S0[1] + uy * half * 1.2], c1 = [S1[0] + ux * half * 1.2, S1[1] + uy * half * 1.2]
       return `M${f(P0[0])} ${f(P0[1])}L${f(S0[0])} ${f(S0[1])}Q${f(c0[0])} ${f(c0[1])} ${f(T[0])} ${f(T[1])}Q${f(c1[0])} ${f(c1[1])} ${f(S1[0])} ${f(S1[1])}L${f(P1[0])} ${f(P1[1])}Z`
     }
-    const glassCols = [COB, P.red, COB, P.gold, COB, P.red, COB, P.green, COB, P.red, COB, P.gold]
+    const LUZ = '#3E92E2'
+    const glassCols = [LUZ, P.red, LUZ, P.gold, LUZ, P.red, LUZ, P.green, LUZ, P.red, LUZ, P.gold]
     let glass = '', leads = ''
     for (let i = 0; i < N; i++) {
       const d = lancet(i, 12.6, 28.6, 4.3), a = -Math.PI / 2 + i * step
@@ -440,10 +441,10 @@ export const AZUL_NUEVAS_ART: Record<string, (u: number) => string> = {
       // El vidrio de fondo, oscuro, con su resplandor; los pétalos, los medallones y la estrella del óculo.
       `<circle cx="${cx}" cy="${cy}" r="${R}" fill="${VIDRIO_N}"/>` +
       k.clip(ellipse(cx, cy, R, R),
-        `<circle cx="${cx}" cy="${cy}" r="${R}" fill="${COB_D}"/>` + glass +
+        `<circle cx="${cx}" cy="${cy}" r="${R}" fill="${COB}"/>` + glass +
         `<circle cx="${cx}" cy="${cy}" r="12" fill="${P.red}"/><path d="${star}" fill="${P.gold}"/><circle cx="${cx}" cy="${cy}" r="3.2" fill="${COB}"/>` +
         k.shade(ellipse(cx, cy, R, R), k.rad('#ffffff', 0.4, 0.36, 0.7, 0.75, 0), '#ffffff', 0.5) +
-        k.shade(ellipse(cx, cy, R, R), k.rad(VIDRIO_N, 0.62, 0.68, 0.6, 0, 0.7), VIDRIO_N, 0.3) +
+        k.shade(ellipse(cx, cy, R, R), k.rad(VIDRIO_N, 0.62, 0.68, 0.6, 0, 0.5), VIDRIO_N, 0.25) +
         `<g fill="none" stroke="${NEGRO}" stroke-width=".55">${leads}<path d="${star}"/><circle cx="${cx}" cy="${cy}" r="6.4"/><circle cx="${cx}" cy="${cy}" r="3.2"/></g>` +
         Array.from({ length: 24 }, (_, i) => { const a = (i / 24) * Math.PI * 2; return `<path d="M${pt(12, a)}L${pt(R, a)}" stroke="${NEGRO}" stroke-width=".4" opacity=".7"/>` }).join('') +
         `<path d="M${pt(23.8, 0)}A23.8 23.8 0 1 1 ${pt(23.8, Math.PI)}A23.8 23.8 0 1 1 ${pt(23.8, 0)}" fill="none" stroke="${NEGRO}" stroke-width=".4" opacity=".7"/>`) +
