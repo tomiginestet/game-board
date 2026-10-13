@@ -626,7 +626,9 @@ function locoFront(k: Kit) {
       {
         d: cab, fill: ROJO,
         inner: k.sh(cab, 0, 0, 1, 0, 0, 0.9, ROJO_D, 0.5) + `<path d="M-26 -70H-14V-26H-26Z" fill="${k.lin(ROJO_L, 0, 0, 1, 0, 0.5, 0)}"/>` +
-          `<path d="M-25 -64.6C-14 -67.6 14 -67.6 25 -64.6" fill="none" stroke="${P.goldL}" stroke-width=".6"/><path d="M-21.6 -63V-29M21.6 -63V-29" stroke="${ROJO_D}" stroke-width=".5"/>` +
+          `<path d="M-26 -71C-14 -68.4 14 -68.4 26 -71V-64.6C14 -67.4 -14 -67.4 -26 -64.6Z" fill="${P.night}"/><path d="M-25 -64.6C-14 -67.4 14 -67.4 25 -64.6" fill="none" stroke="${P.goldL}" stroke-width=".7"/>` +
+          `<path d="M-21.6 -63V-29M21.6 -63V-29M-25 -45H-16M16 -45H25" stroke="${ROJO_D}" stroke-width=".5"/>` +
+          [0, 1, 2, 3, 4, 5, 6].map((i) => hair(19 + i * 0.9, -60, 19.4 + i * 0.9, -46, 19 + i * 0.9, -30, 0.35, ROJO_D, 0.8)).join('') +
           [-60, -54, -48, -42, -36, -30].map((y) => rivet(-23.4, y, 0.42) + rivet(23.4, y, 0.42)).join(''),
       },
       { d: lip, fill: P.night, inner: `<path d="M-5.6 -72H5.6" stroke="${P.mid}" stroke-width=".6"/>` },
@@ -636,12 +638,20 @@ function locoFront(k: Kit) {
         inner: k.sh(box, 0, 0, 1, 1, 0, 0.8, '#0F1736', 0.45) + `<path d="M-16 -59H-6V-27H-16Z" fill="${k.lin(P.mid, 0, 0, 1, 0, 0.9, 0)}"/>`,
       },
     ], 0.75) +
+    // Nieve sobre el techo de la cabina y los deflectores de humo, de canto.
+    steam(k, -17, -68.6, 6, 2, 7, 0, 0.4) + steam(k, 17, -68.6, 6, 2, 7, 0.5, 0.4) +
+    k.draw([
+      { d: 'M-19.4 -62.4L-15.8 -61V-27H-19.4Z', fill: ROJO_D, inner: `<path d="M-18.6 -61.8V-27" stroke="${P.gold}" stroke-width=".5"/>` },
+      { d: 'M19.4 -62.4L15.8 -61V-27H19.4Z', fill: ROJO_D, inner: `<path d="M18.6 -61.8V-27" stroke="${P.gold}" stroke-width=".5"/>` },
+    ], 0.5) +
     `<path d="${ellipse(0, -43, 14.4, 14.4)}" fill="none" stroke="${P.sky2}" stroke-width=".5"/>` +
+    [0, 1, 2, 3].map((i) => hair(8 + i * 1.4, -31 - i * 0.6, 13 + i * 0.6, -36 - i * 0.6, 14 - i * 0.2, -44 - i * 0.4, 0.35, P.mid, 0.9)).join('') +
     Array.from({ length: 20 }, (_, i) => { const a = (i / 20) * Math.PI * 2; return rivet(Math.cos(a) * 13.8, -43 + Math.sin(a) * 13.8, 0.38, P.sky1) }).join('') +
     k.draw([{ d: door, fill: P.night, inner: k.sh(door, 0, 0, 1, 1, 0, 0.7, '#0F1736', 0.4) + `<path d="M-9 -51C-6 -53.6 -2 -54.4 2 -54" fill="none" stroke="${P.sky}" stroke-width=".9" stroke-linecap="round"/>` }], 0.4) +
     hinge(-47) + hinge(-38) +
     `<path d="M-6.6 -42.4H6.6" stroke="${P.ink}" stroke-width="2.2" stroke-linecap="round"/><path d="M-6.6 -42.4H6.6" stroke="${P.gold}" stroke-width="1" stroke-linecap="round"/>` +
     `<circle cx="0" cy="-42.4" r="2.6" fill="${P.gold}" stroke="${P.ink}" stroke-width=".5"/><circle cx="0" cy="-42.4" r="1.2" fill="${P.goldD}"/><circle cx="-.8" cy="-43.2" r=".5" fill="#fff"/>` +
+    `<path d="${roundRect(-3.4, -52.4, 3.4, -47.4, 1.6)}" fill="${P.gold}" stroke="${P.ink}" stroke-width=".45"/><text x="0" y="-48.4" ${GEORGIA} font-weight="700" font-size="4.4" fill="${P.ink}" text-anchor="middle">7</text>` +
     // El pasamanos que abraza la caja de humo.
     `<path d="M-17.4 -36C-19 -46 -14 -57 -4 -60.4M17.4 -36C19 -46 14 -57 4 -60.4" fill="none" stroke="${P.ink}" stroke-width="1.2" stroke-linecap="round"/><path d="M-17.4 -36C-19 -46 -14 -57 -4 -60.4M17.4 -36C19 -46 14 -57 4 -60.4" fill="none" stroke="${P.goldL}" stroke-width=".45" stroke-linecap="round"/>` +
     // El faro, encendido.

@@ -129,7 +129,7 @@ export const LOVELETTER_NUEVAS_ART: Record<string, (u: number) => string> = {
       stageL(k, 60, 60, 34) +
       k.floor(48, 84, 20, 2.8) + k.floor(77, 76, 9, 1.8) +
       `<g transform="translate(47 69) rotate(-9)">` + k.cast([roundRect(-17, -11, 17, 11, 1.4)], 2, 2, LL) + envelope(k, 34, 22, 4.4) + `</g>` +
-      hair(40, 55, 36, 49, 40, 43, 0.8, LL) + hair(48, 53, 52, 47, 48, 40, 0.7, LL) + hair(55.4, 54, 52.6, 49, 56, 44, 0.6, LL) +
+      [[38, 56, 1], [46.4, 53.4, 1.15], [54.4, 55.4, 0.9]].map(([x, y, sc]) => `<path d="M${x} ${y}c-2.4 -2.4 -2.4 -4.6 0 -6.8s2.4 -4.6 0 -7c-1.4 -1.4 -1.6 -2.6 -.8 -3.8" fill="none" stroke="${LL}" stroke-width="${f(0.7 * sc)}" stroke-linecap="round" opacity=".8" transform="rotate(${f((x - 46) * 0.6)} ${x} ${y})"/>`).join('') +
       mist + bottle +
       sparkle(30, 76, 1.8) + sparkle(88, 36, 2.2) +
       k.defs()
@@ -167,30 +167,33 @@ export const LOVELETTER_NUEVAS_ART: Record<string, (u: number) => string> = {
     // El balcón: la fachada de piedra, la ventana en arco encendida con la cortina corrida y la baranda con volutas.
     const wall = 'M66 0H120V130H66Z'
     const win = 'M71 62V40C71 33.4 75.4 29.6 80.6 29.6C85.8 29.6 90.2 33.4 90.2 40V62Z'
-    const curtL = 'M71 39C72.6 33.6 76.4 30.6 80.6 30.2C78 37 75.6 48 76.8 62H71Z', curtR = 'M90.2 39C88.6 33.6 84.8 30.6 80.6 30.2C82.4 34 83.4 38 84 42C86 48 87.4 54 87 62H90.2Z'
+    const curtL = 'M71 39C72.2 34 75 31 78.4 30.2C76 35 74.4 42 74.8 48C75 54 74.6 58 74.4 62H71Z', curtR = 'M90.2 39C89 34 86.2 31 82.8 30.2C85.2 35 86.8 42 86.4 48C86.2 54 86.6 58 86.8 62H90.2Z'
     const slab = 'M63 62H99V66H63Z'
     const curl = (x: number, sg: number) => `M${x} 62C${x} 58.4 ${f(x + sg * 3)} 58 ${f(x + sg * 3)} 55.4C${f(x + sg * 3)} 53.4 ${f(x + sg * 0.9)} 53.2 ${f(x + sg * 1.1)} 54.8`
     const rail = `M64.6 51.6H98M64.6 62V51.6` + [68.6, 76, 83.4, 90.8].map((x) => curl(x, 1) + curl(x + 7.4, -1)).join('')
     const stones = 'M66 24H120M66 44H70M92 44H120M66 76H120M66 92H120M74 0V24M96 0V24M84 76V92M104 76V92M70 92V108M92 92V108M104 24V44M108 44V62'
-    const rose = (x: number, y: number, r: number) =>
-      `<g transform="translate(${x} ${y}) rotate(${r})"><path d="M0 0C3 4 3 9 1 14" fill="none" stroke="${P.greenD}" stroke-width=".9"/><path d="M1.4 7C3.6 6 5.4 6.6 5.8 8C4 9 2.6 8.6 1.4 7Z" fill="${P.green}" stroke="${P.ink}" stroke-width=".3"/>` +
-      k.draw([{ d: 'M0 1.4C-2.8 1 -4 -1.4 -3 -3.4C-2 -5.4 1 -5.6 2.6 -4.2C4.2 -2.8 4 -.4 2.6 .8C1.8 1.4 .8 1.6 0 1.4Z', fill: LL, inner: `<path d="M-1.4 -2.4C-.4 -3.6 1.6 -3.2 1.6 -1.6C1.6 -.4 0 -.2 -.4 -1.2" fill="none" stroke="${LL_D}" stroke-width=".45"/>` }], 0.35) + `</g>`
+    // El abanico abierto de la princesa, asomado sobre la baranda.
+    const fan = (x: number, y: number) => {
+      const d = `M${x} ${y}L${f(x - 8.6)} ${f(y - 4.4)}A9.6 9.6 0 0 1 ${f(x + 8.6)} ${f(y - 4.4)}Z`
+      const ribs = Array.from({ length: 9 }, (_, i) => { const a = Math.PI + 0.47 + (i / 8) * (Math.PI - 0.94); return `M${x} ${y}L${f(x + Math.cos(a) * 9.4)} ${f(y + Math.sin(a) * 9.4)}` }).join('')
+      return k.draw([{ d, fill: LL_L, inner: k.sh(d, 0, 0, 1, 1, 0, 0.8, LL, 0.4) + `<path d="${ribs}" stroke="${LL_D}" stroke-width=".4"/>` + `<path d="M${f(x - 8)} ${f(y - 5.6)}A8.8 8.8 0 0 1 ${f(x + 8)} ${f(y - 5.6)}" fill="none" stroke="${P.gold}" stroke-width=".6"/>` }], 0.5) +
+        `<circle cx="${x}" cy="${y}" r=".9" fill="${P.gold}" stroke="${P.ink}" stroke-width=".3"/>`
+    }
     return (
       dusk(k, 0.36) +
       [[34, 48, 0.6], [52, 30, 0.5], [28, 62, 0.45], [56, 46, 0.4], [44, 24, 0.35]].map(([x, y, r]) => `<circle cx="${x}" cy="${y}" r="${r}" fill="${P.paper}"/>`).join('') +
-      glow(k, 44, 38, 16, 16, 0.5, LL_L) +
-      k.draw([{ d: ellipse(44, 38, 8.4, 8.4), fill: P.paper, inner: k.shade(ellipse(44, 38, 8.4, 8.4), k.rad(LL_L, 0.36, 0.34, 0.75, 0, 0.6), LL_L, 0.3) + `<circle cx="41.4" cy="36" r="1.6" fill="${LL_XL}"/><circle cx="46.6" cy="41" r="1.1" fill="${LL_XL}"/>` }], 0.45) +
+      glow(k, 37, 45, 16, 16, 0.5, LL_L) +
+      k.draw([{ d: ellipse(37, 45, 8, 8), fill: P.paper, inner: k.shade(ellipse(37, 45, 8, 8), k.rad(LL_L, 0.36, 0.34, 0.75, 0, 0.6), LL_L, 0.3) + `<circle cx="34.6" cy="43" r="1.6" fill="${LL_XL}"/><circle cx="39.6" cy="48" r="1.1" fill="${LL_XL}"/>` }], 0.45) +
       k.draw([{ d: wall, fill: LL_D, inner: k.sh(wall, 0, 0, 1, 0, 0, 0.8, LL_N, 0.45) + `<path d="${stones}" stroke="${LL_N}" stroke-width=".6" opacity=".8"/>` + `<path d="M66 0H70V130H66Z" fill="${LL}" opacity=".5"/>` }], 0.7) +
       `<path d="${win}" fill="${P.gold}"/>` + k.clip(win, glow(k, 80.6, 46, 12, 18, 0.95, '#ffffff') + k.sh(win, 0, 0, 0, 1, 0.4, 0, P.goldD, 0.3)) +
       k.draw([
-        { d: curtL, fill: LL, inner: k.sh(curtL, 0, 0, 1, 0, 0, 0.8, LL_D, 0.45) + hair(73, 40, 74, 50, 73.4, 61, 0.5, LL_D) },
-        { d: curtR, fill: LL, inner: k.sh(curtR, 0, 0, 1, 0, 0, 0.9, LL_D, 0.45) + hair(88.6, 40, 88, 50, 88.6, 61, 0.5, LL_D) },
+        { d: curtL, fill: LL, inner: k.sh(curtL, 0, 0, 1, 0, 0, 0.8, LL_D, 0.45) + hair(72.6, 40, 73.4, 50, 72.8, 61, 0.45, LL_D) },
+        { d: curtR, fill: LL, inner: k.sh(curtR, 0, 0, 1, 0, 0, 0.9, LL_D, 0.45) + hair(88.6, 40, 87.8, 50, 88.4, 61, 0.45, LL_D) },
       ], 0.5) +
-      `<path d="M83 40C84.4 38.6 86 38.4 87 39" fill="none" stroke="${P.gold}" stroke-width=".9" stroke-linecap="round"/>` +
       `<path d="${win}" fill="none" stroke="${P.ink}" stroke-width=".9"/><path d="M69.4 62V40C69.4 32.6 74.4 28 80.6 28C86.8 28 91.8 32.6 91.8 40V62" fill="none" stroke="${LL_L}" stroke-width="1.1"/>` +
       `<path d="${rail}" fill="none" stroke="${P.ink}" stroke-width="1.2" stroke-linecap="round"/><path d="${rail}" fill="none" stroke="${CLOTH_L}" stroke-width=".4" stroke-linecap="round"/>` +
       k.draw([{ d: slab, fill: LL_L, inner: k.sh(slab, 0, 0, 0, 1, 0, 0.9, LL_D, 0.45) }], 0.6) +
-      rose(70.6, 49.4, -40) +
+      fan(80.6, 52.4) +
       k.floor(42, 95, 16, 2.2, '#000') +
       guitar +
       note(56, 56, -10, LL_L) + note(60, 44, 8, P.paper) + note(50, 50, -6, LL_L) +
@@ -283,7 +286,7 @@ export const LOVELETTER_NUEVAS_ART: Record<string, (u: number) => string> = {
         { d: plate, fill: CLOTH, inner: k.sh(plate, 0, 0, 1, 0, 0, 0.5, '#000', 0.3) + `<path d="${roundRect(37, 58, 65, 64.6, 0.5)}" fill="none" stroke="${P.paper}" stroke-width=".45"/>` },
       ], 0.5) +
       `<text x="51" y="63.2" ${GEORGIA} font-weight="700" font-size="4" letter-spacing=".3" fill="${P.paper}" text-anchor="middle">FLORIDA</text>` +
-      `<text font-family="Georgia, serif" font-weight="700" font-size="2.35" fill="${P.paper}" transform="matrix(1 -.33 0 1 64.2 60.4)">CORRIENTES</text>` +
+      `<text font-family="Georgia, serif" font-weight="700" font-size="2.35" fill="${P.paper}" transform="matrix(1 -.33 0 1 64.4 60.6)" textLength="18" lengthAdjust="spacingAndGlyphs">CORRIENTES</text>` +
       cord('M44 65.6C44 70 46 74 49.4 76.4', LL, 0.9) +
       `<g transform="translate(52 78) rotate(28)">` +
       k.draw([{ d: whistle, fill: P.gold, inner: k.sh(whistle, 0, 0, 0, 1, 0, 0.9, P.goldD, 0.5) + `<path d="M-7.6 -1.4H2.6" stroke="#fff" stroke-width=".6" opacity=".8"/>` }], 0.5) +
@@ -315,7 +318,7 @@ export const LOVELETTER_NUEVAS_ART: Record<string, (u: number) => string> = {
     const glass = 'M-6.4 -8.6H6.4L5.4 9H-5.4Z', base = 'M-7.2 9H7.2L6 13.4H-6Z', top = roundRect(-8.2, -10, 8.2, -8, 0.8)
     const flameD = 'M0 -5C2.2 -2 3 0 3 2C3 4.4 1.6 6 0 6C-1.6 6 -3 4.4 -3 2C-3 0 -2.2 -2 0 -5Z'
     const lantern =
-      `<g transform="translate(44 50) rotate(-8)">` +
+      `<g transform="translate(45 55) rotate(-8) scale(.95)">` +
       `<path d="M0 -19.4C-5 -20 -6.6 -25.6 -3 -28.4C0 -30.6 4 -29.8 5 -26.4" fill="none" stroke="${P.ink}" stroke-width="1.8" stroke-linecap="round"/><path d="M0 -19.4C-5 -20 -6.6 -25.6 -3 -28.4C0 -30.6 4 -29.8 5 -26.4" fill="none" stroke="${CHROME}" stroke-width=".7" stroke-linecap="round"/>` +
       glow(k, 0, 1, 22, 22, 0.9) +
       k.draw([
@@ -334,7 +337,7 @@ export const LOVELETTER_NUEVAS_ART: Record<string, (u: number) => string> = {
       `<g transform="translate(-6.6 18.6) rotate(18)"><path d="M0 0V8M0 5.6H1.8M0 7.4H1.4" stroke="${P.ink}" stroke-width="1.4" stroke-linecap="round"/><path d="M0 0V8M0 5.6H1.8M0 7.4H1.4" stroke="${P.gold}" stroke-width=".6" stroke-linecap="round"/></g>` +
       `<g transform="translate(-4.4 18.8) rotate(-16)"><path d="M0 0V6.6M0 4.6H1.6" stroke="${P.ink}" stroke-width="1.3" stroke-linecap="round"/><path d="M0 0V6.6M0 4.6H1.6" stroke="${CHROME}" stroke-width=".55" stroke-linecap="round"/></g>` +
       `</g>`
-    const cone = 'M49 56L98 80L90 98L45 66Z'
+    const cone = 'M50 60L98 80L90 98L46 70Z'
     const table = 'M18 88C40 82 80 78 104 82V110H18Z'
     return (
       dusk(k, 0.5) +
@@ -355,7 +358,7 @@ export const LOVELETTER_NUEVAS_ART: Record<string, (u: number) => string> = {
     const lx = 54, ly = 58, R = 17
     const lens = ellipse(lx, ly, R, R)
     const rim = `${ellipse(lx, ly, R + 3.4, R + 3.4)} ${ellipse(lx, ly, R, R)}`
-    const ferrule = 'M-3.4 0H3.4L3 5H-3Z', handle = 'M-3 5H3C3.6 9 3.8 16 3.4 23C3.2 25 2 26 0 26C-2 26 -3.2 25 -3.4 23C-3.8 16 -3.6 9 -3 5Z'
+    const ferrule = 'M-3.4 0H3.4L3 5H-3Z', handle = 'M-3 5H3C3.6 9 3.8 14 3.4 19C3.2 21 2 22 0 22C-2 22 -3.2 21 -3.4 19C-3.8 14 -3.6 9 -3 5Z'
     // El mate agrandado adentro de la lupa: la calabaza, la virola de alpaca, la yerba y la bombilla.
     const gourd = 'M-11 -4C-14.6 1 -15.4 9 -12 15.4C-9 21 -4.6 23.6 0 23.6C4.6 23.6 9 21 12 15.4C15.4 9 14.6 1 11 -4Z'
     const virola = 'M-11.6 -8.6H11.6V-3.4C6 -1.8 -6 -1.8 -11.6 -3.4Z'
@@ -397,9 +400,9 @@ export const LOVELETTER_NUEVAS_ART: Record<string, (u: number) => string> = {
       hat +
       `<g transform="translate(70.6 73.6) rotate(-42)">` + k.cast([handle], 1.6, 1.6, LL_D) +
       k.draw([
-        { d: handle, fill: LL_D, inner: k.sh(handle, 0, 0, 1, 0, 0, 0.8, LL_N, 0.45) + `<path d="M-1.6 7V24" stroke="${LL_L}" stroke-width=".8" stroke-linecap="round" opacity=".8"/>` + [10, 16].map((y) => `<path d="M-3.4 ${y}H3.4M-3.4 ${y + 1.2}H3.4" stroke="${P.gold}" stroke-width=".6"/>`).join('') },
+        { d: handle, fill: LL_D, inner: k.sh(handle, 0, 0, 1, 0, 0, 0.8, LL_N, 0.45) + `<path d="M-1.6 7V20" stroke="${LL_L}" stroke-width=".8" stroke-linecap="round" opacity=".8"/>` + [9, 14.6].map((y) => `<path d="M-3.4 ${y}H3.4M-3.4 ${y + 1.2}H3.4" stroke="${P.gold}" stroke-width=".6"/>`).join('') },
         { d: ferrule, fill: P.gold, inner: k.sh(ferrule, 0, 0, 1, 0, 0, 0.9, P.goldD, 0.45) + `<path d="M-3.2 2.4H3.2" stroke="${P.goldD}" stroke-width=".4"/>` },
-      ], 0.6) + `<circle cx="0" cy="26.4" r="1.4" fill="${P.gold}" stroke="${P.ink}" stroke-width=".4"/></g>` +
+      ], 0.6) + `<circle cx="0" cy="22.4" r="1.4" fill="${P.gold}" stroke="${P.ink}" stroke-width=".4"/></g>` +
       k.clip(lens, `<rect width="120" height="130" fill="${LL_XL}"/>` + k.shade(lens, k.rad(LL_L, 0.5, 0.5, 0.5, 0, 0.9), LL_L, 0.4) + mate + `<path d="${lens}" fill="${k.rad('#ffffff', 0.32, 0.28, 0.5, 0.5, 0)}"/>`) +
       `<path d="${rim}" fill-rule="evenodd" fill="${P.ink}" transform="translate(.6 .7)"/><path d="${rim}" fill-rule="evenodd" fill="${P.gold}" stroke="${P.ink}" stroke-width=".7"/>` +
       k.clip(`${ellipse(lx, ly, R + 3.4, R + 3.4)}`, k.sh(ellipse(lx, ly, R + 3.4, R + 3.4), 0, 0, 1, 1, 0, 0.9, P.goldD, 0.45)) +

@@ -252,16 +252,19 @@ function wreath(k: Kit, x: number, y: number) {
 export const MARIOKART_NUEVAS_ART: Record<string, (u: number) => string> = {
   // ── Piloto ─────────────────────────────────────────────────────────
 
-  // Tres copas: casco prestado y mucho entusiasmo. El kart de alquiler con un casco que le queda enorme.
+  // Tres copas: casco prestado y mucho entusiasmo. El kart de alquiler con la butaca vacía y, en el piso, el casco
+  // prestado con su cinta de papel.
   'Karting de Ezeiza': (u) => {
     const k = kit(u)
     return (
       fondo(k) +
       escenario(k, 60, 60, 34) +
-      hair(24, 60, 30, 59.4, 36, 60, 0.7, MK_D, 0.8) + hair(22, 66, 29, 65.4, 35, 66, 0.6, MK_D, 0.7) + hair(26, 72, 31, 71.6, 35, 72, 0.5, MK_D, 0.6) +
-      k.floor(60, 84.4, 30, 2.6, P.mid) +
-      `<g transform="translate(59 84)">` + kart(k, '7') + `<g transform="translate(-8.6 -35.6) rotate(-8) scale(1.12)">` + kartHelmet(k) + `</g></g>` +
-      sparkle(86, 38, 2.2) + sparkle(36, 40, 1.6) +
+      hair(26, 52, 31, 51.4, 36, 52, 0.7, MK_D, 0.8) + hair(24, 58, 30, 57.4, 35, 58, 0.6, MK_D, 0.7) + hair(28, 64, 32, 63.6, 35, 64, 0.5, MK_D, 0.6) +
+      k.floor(64, 80.4, 28, 2.4, P.mid) +
+      `<g transform="translate(64 80) scale(.9)">` + kart(k, '7') + `</g>` +
+      k.floor(40, 89.6, 10.6, 1.8, P.mid) +
+      `<g transform="translate(39.6 81) rotate(-12) scale(.74)">` + kartHelmet(k) + `</g>` +
+      sparkle(86, 38, 2.2) + sparkle(38, 40, 1.6) +
       k.defs()
     )
   },

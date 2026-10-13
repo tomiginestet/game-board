@@ -375,7 +375,7 @@ export const PISTASCRUZADAS_NUEVAS_ART: Record<string, (u: number) => string> = 
       k.draw([{
         d: handle, fill: P.sky1,
         inner: k.sh(handle, 0, 0, 1, 0, 0, 0.9, P.blue, 0.5) + hair(-0.6, 3, -0.9, 14, -0.8, 24, 0.6, '#fff') +
-          `<path d="M0 27C-1.6 28.8 -1.4 31 0 32.4C1.4 31 1.6 28.8 0 27Z" fill="${PC_XL}" stroke="${P.blue}" stroke-width=".4"/><circle cx="0" cy="29.8" r=".6" fill="${PC}"/>` +
+          `<path d="M-1.4 27.4C-.6 28.6 .6 28.6 1.4 27.4M0 28.8V32.6" fill="none" stroke="${P.blue}" stroke-width=".4"/>` +
           `<path d="M0 6V22" stroke="${P.blue}" stroke-width=".3" stroke-dasharray="1 .8"/>`,
       }], 0.6) +
       // El cuello torcido: la cuchara se vence hacia abajo, a la derecha.
@@ -399,31 +399,36 @@ export const PISTASCRUZADAS_NUEVAS_ART: Record<string, (u: number) => string> = 
   // Veinte pistas adivinadas sin dudar: ya ven el futuro. El turbante de adivino, con la joya que es una bola de cristal.
   'Turbante de adivino': (u) => {
     const k = kit(u)
-    const dome = 'M-24.6 6C-27 -6 -20 -20 -8 -24.4C-4 -25.8 4 -25.8 8 -24.4C20 -20 27 -6 24.6 6Z'
+    const back = 'M-21 4C-23 -8 -15 -20 0 -21C15 -20 23 -8 21 4Z'
     const roll = 'M-26.6 6.6C-27 1.4 -14 -.6 0 -.6C14 -.6 27 1.4 26.6 6.6C26.2 12.4 14 15.2 0 15.2C-14 15.2 -26.2 12.4 -26.6 6.6Z'
     const opening = 'M-21 12.6C-12 16 12 16 21 12.6C13 17.6 -13 17.6 -21 12.6Z'
-    // Las vueltas de tela: bandas que se cruzan adelante, donde va la joya.
-    const bands: [number, number, number, number, number, number, number, string][] = [
-      [-28, -10, -6, -16, 14, -32, 8, '#1569BC'], [28, -10, 6, -16, -14, -32, 8, '#2A8BE0'],
-      [-28, 4, -6, -4, 22, -24, 9, '#2A8BE0'], [28, 4, 6, -4, -22, -24, 9, '#3A95E4'],
-    ]
-    const wraps = bands.map(([x0, y0, cx, cy, x1, y1, w, c]) => {
-      const d = taper(x0, y0, cx, cy, x1, y1, w, w)
-      return `<path d="${d}" fill="${c}"/>` + k.sh(d, 0, 0, 1, 1, 0, 0.7, PC_D, 0.4) + `<path d="${d}" fill="none" stroke="${P.ink}" stroke-width=".55"/>` +
-        hair(x0 + (cx - x0) * 0.3, y0 + (cy - y0) * 0.3 - w * 0.3, cx, cy - w * 0.32, x1 - (x1 - cx) * 0.3, y1 - (y1 - cy) * 0.3 - w * 0.3, 0.6, PC_L, 0.85)
-    }).join('')
+    // Las vueltas de tela: bandas gordas que se cruzan adelante y dejan el contorno abollado.
+    const puff = taper(-15, -20, 0, -31, 15, -20, 9.6, 9.6)
+    const b1 = taper(-27.4, 3, -6, -6, 18, -25, 11, 9.4)
+    const b2 = taper(27.4, 3, 6, -6, -18, -25, 11, 9.4)
+    const tail = taper(22, 8, 30, 13, 26, 22, 7.4, 6)
+    const shine = (d: string, c: string) => k.sh(d, 0, 0, 1, 1, 0, 0.8, PC_N, 0.45) + c
     const twist = Array.from({ length: 13 }, (_, i) => { const x = -23 + i * 3.8, b = 14.4 - Math.pow(x / 27, 2) * 6, t = 0.4 - Math.pow(x / 27, 2) * 2.4; return hair(x - 1.6, b, x - 0.2, (b + t) / 2, x + 1.6, t + 0.6, 0.55, PC_D, 0.85) }).join('')
-    const feather = taper(-1, -12, 1, -24, 9, -32, 2.6, 5.2)
+    // El penacho: tres plumitas finas que se abren.
+    const plume = (x1: number, y1: number, cx: number, cy: number, w: number) => {
+      const d = taper(0, -12, cx, cy, x1, y1, 1.6, w)
+      return k.draw([{ d, fill: P.white, inner: k.sh(d, 0, 0, 1, 1, 0, 0.7, PC_L, 0.45) + `<path d="M0 -12Q${cx} ${cy} ${x1} ${y1}" fill="none" stroke="${PC_L}" stroke-width=".4"/>` }], 0.45) +
+        `<circle cx="${x1}" cy="${y1}" r="${f(w * 0.36)}" fill="${PC}" stroke="${P.ink}" stroke-width=".35"/>`
+    }
     return (
       graph(k) +
       k.sun(60, 56, 22, 50, 36, false) +
       glow(k, 60, 52, 32, 30, 0.75) +
       k.floor(60, 80, 26, 3, PC_D) +
-      `<g transform="translate(60 59)">` +
-      k.cast([dome, roll], 2.2, 2.6, PC_D) +
-      k.draw([{ d: feather, fill: P.white, inner: k.sh(feather, 0, 0, 1, 1, 0, 0.7, PC_L, 0.45) + hair(0, -14, 2, -24, 8, -30.4, 0.5, PC_L) + [0, 1, 2, 3].map((i) => hair(1.6 + i * 1.4, -16 - i * 3.6, -0.4 + i * 1.4, -18 - i * 3.6, -1.4 + i * 1.6, -19 - i * 3.6, 0.35, PC_L, 0.8)).join('') }], 0.5) +
+      `<g transform="translate(60 60)">` +
+      plume(-9, -36, -6, -26, 3.6) + plume(10, -36, 6, -26, 3.6) + plume(1, -41, 0, -30, 4.2) +
+      k.cast([back, roll, b1, b2, puff, tail], 2.2, 2.6, PC_D) +
       k.draw([
-        { d: dome, fill: PC_D, inner: wraps + k.sh(dome, 0, 0, 1, 1, 0, 0.6, PC_N, 0.4) + `<path d="M-30 -30H-8V8H-30Z" fill="${k.lin('#fff', 0, 0, 1, 0, 0.35, 0)}"/>` },
+        { d: back, fill: PC_D },
+        { d: tail, fill: PC, inner: shine(tail, hair(23, 10, 27, 13, 25.6, 19, 0.6, PC_L, 0.9)) },
+        { d: puff, fill: '#2A8BE0', inner: shine(puff, hair(-12, -24, 0, -32, 12, -25, 0.8, PC_L, 0.9)) },
+        { d: b2, fill: PC, inner: shine(b2, hair(24, -1, 6, -10, -15, -27, 0.8, PC_L, 0.85)) },
+        { d: b1, fill: '#4DA3EC', inner: shine(b1, hair(-24, -1, -6, -10, 15, -27, 0.9, '#fff', 0.8) + hair(-22, 4, -4, -2, 14, -18, 0.5, PC_D, 0.7)) },
         {
           d: roll, fill: '#3A95E4',
           inner: twist + k.sh(roll, 0, 0, 1, 1, 0, 0.8, PC_D, 0.45) + `<path d="${opening}" fill="${PC_N}"/>` + hair(-22, 4.4, -12, 2.4, -2, 2.2, 0.8, '#fff', 0.8),
@@ -440,7 +445,7 @@ export const PISTASCRUZADAS_NUEVAS_ART: Record<string, (u: number) => string> = 
       // El futuro, que gira alrededor.
       `<path d="M30 70C24 56 32 40 46 34" fill="none" stroke="${P.goldD}" stroke-width=".5" stroke-dasharray="1.2 1.2" stroke-linecap="round"/><path d="M90 70C96 56 88 40 74 34" fill="none" stroke="${P.goldD}" stroke-width=".5" stroke-dasharray="1.2 1.2" stroke-linecap="round"/>` +
       `<path d="${starPath(30, 70, 2.6, 0.9, 4)}" fill="${P.goldL}" stroke="${P.ink}" stroke-width=".35"/><path d="${starPath(90, 70, 2.6, 0.9, 4)}" fill="${P.goldL}" stroke="${P.ink}" stroke-width=".35"/>` +
-      sparkle(36, 36, 1.8, '#fff') + sparkle(86, 32, 1.6, '#fff') + sparkle(60, 90, 1.6, P.goldD) +
+      sparkle(36, 36, 1.8, '#fff') + sparkle(86, 32, 1.6, '#fff') + sparkle(60, 92, 1.6, P.goldD) +
       k.defs()
     )
   },
