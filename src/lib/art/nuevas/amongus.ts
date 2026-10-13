@@ -79,7 +79,7 @@ function vent(k: Kit, glow = 1) {
     `<path d="${hole}" fill="#0B1029"/>` +
     k.clip(hole, `<path d="${ribs}" stroke="${AU_D}" stroke-width=".7"/>` + k.shade(hole, k.rad(AU, 0.5, 0.75, 0.6, 0.95 * glow, 0), AU, 0.5) + k.shade(hole, k.rad(AU_L, 0.5, 0.8, 0.3, 0.8 * glow, 0), AU_M, 0.3)) +
     `<path d="${hole}" fill="none" stroke="${P.ink}" stroke-width=".7"/>` + bolts +
-    k.shade('M37.6 87.2H82.4L86 30H34Z', k.lin(AU_M, 0, 1, 0, 0, 0.55 * glow, 0), AU_M, 0.35) +
+    k.shade('M42.4 65.6H77.6L84 30H36Z', k.lin(AU_M, 0, 1, 0, 0, 0.5 * glow, 0), AU_M, 0.3) +
     k.draw([{
       d: lid, fill: P.sky2,
       inner: k.sh(lid, 0, 0, 1, 0, 0, 0.8, P.mid, 0.45) + `<path d="${lidIn}" fill="#141A3A"/>` + k.clip(lidIn, `<path d="${slats}" fill="${P.sky1}" stroke="${P.ink}" stroke-width=".35"/>` + k.sh(lidIn, 0, 1, 0, 0, 0, 0.85 * glow, AU, 0.45)) +

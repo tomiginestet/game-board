@@ -10,13 +10,13 @@ const FULL = 'M0 0H120V130H0Z'
 /** El violeta de la ficha (#7048E8), con su sombra y su luz. */
 const VIO = '#7048E8', VIO_D = '#3A1F9A', VIO_L = '#B9A6F7'
 /** La noche violeta del fondo. */
-const NOCHE = '#1D1448'
+const NOCHE = '#22175A'
 /** El rosado del cerebro y del loto. */
 const ROSA = '#EBC4E4', ROSA_D = '#B97BB8'
 
 /** Fondo de The Mind: la noche violeta con el resplandor en el medio y estrellitas sueltas. */
 const noche = (k: Kit, cx = 0.5, cy = 0.44) =>
-  `<rect width="120" height="130" fill="${NOCHE}"/>` + k.shade(FULL, k.rad(VIO, cx, cy, 0.56, 0.85, 0), VIO, 0.45) +
+  `<rect width="120" height="130" fill="${NOCHE}"/>` + `<path d="${FULL}" fill="${k.rad(VIO_D, cx, cy, 0.7, 0.9, 0)}"/>` + k.shade(FULL, k.rad(VIO, cx, cy, 0.5, 0.7, 0), VIO, 0.5) +
   [[28, 34, 0.6], [92, 32, 0.7], [24, 62, 0.45], [96, 66, 0.5], [40, 24, 0.45], [80, 22, 0.5], [34, 86, 0.4], [88, 88, 0.45]].map(([x, y, r]) => `<circle cx="${x}" cy="${y}" r="${r}" fill="${P.paper}"/>`).join('')
 
 /** Varilla entintada: la tinta gruesa y el color encima, con un brillo opcional. */

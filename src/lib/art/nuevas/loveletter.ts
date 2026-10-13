@@ -23,7 +23,7 @@ const dusk = (k: Kit, cy = 0.42) => `<rect width="120" height="130" fill="${LL_N
 
 /** Escenario rosa: un disco pálido con el borde granulado. */
 const stageL = (k: Kit, cx: number, cy: number, r: number) =>
-  `<circle cx="${cx}" cy="${cy}" r="${r}" fill="${LL_XL}"/>` + k.shade(ellipse(cx, cy, r, r), k.rad(LL_L, 0.5, 0.5, 0.5, 0, 1), LL_L, 0.6) +
+  `<circle cx="${cx}" cy="${cy}" r="${r}" fill="#FCEAF0"/>` + k.shade(ellipse(cx, cy, r, r), k.rad('#F0A6C2', 0.5, 0.5, 0.5, 0, 1), '#EC9ABA', 0.55) +
   `<circle cx="${cx}" cy="${cy}" r="${r}" fill="none" stroke="${LL}" stroke-width=".5" stroke-dasharray=".01 1.6" stroke-linecap="round"/>`
 
 /** Resplandor suave de un color. */
@@ -102,7 +102,7 @@ export const LOVELETTER_NUEVAS_ART: Record<string, (u: number) => string> = {
     const bulb = ellipse(15.6, -1.6, 4.2, 5.2)
     const net = Array.from({ length: 4 }, (_, i) => `M${f(12 + i * 2.2)} -6.4Q${f(13 + i * 2)} -1.6 ${f(12.4 + i * 2.2)} 3.4`).join('') + 'M11.6 -3.6Q15.6 -2.4 19.6 -3.6M11.4 .2Q15.6 1.4 19.8 .2'
     const bottle =
-      `<g transform="translate(82 64) rotate(6)">` +
+      `<g transform="translate(75 61) rotate(6) scale(.92)">` +
       cord('M3.8 -11.6C9 -13 14 -10 15.4 -6.6', LL_D, 1) +
       k.draw([{ d: bulb, fill: LL, inner: k.sh(bulb, 0, 0, 1, 1, 0, 0.9, LL_D, 0.5) + `<path d="${net}" fill="none" stroke="${P.goldL}" stroke-width=".35" opacity=".85"/>` }], 0.55) +
       `<path d="M15.6 3.6V6" stroke="${P.goldD}" stroke-width=".7"/><circle cx="15.6" cy="6.4" r="1" fill="${P.gold}" stroke="${P.ink}" stroke-width=".35"/><path d="M14.6 7L13.8 12.4H17.4L16.6 7Z" fill="${P.gold}" stroke="${P.ink}" stroke-width=".35"/><path d="M14.8 8.4V12M15.6 8.4V12.2M16.4 8.4V12" stroke="${P.goldD}" stroke-width=".25"/>` +
@@ -121,15 +121,15 @@ export const LOVELETTER_NUEVAS_ART: Record<string, (u: number) => string> = {
       `<path d="${roundRect(-5.4, -1.6, 5.4, 4.4, 0.6)}" fill="${P.white}" stroke="${P.goldD}" stroke-width=".35"/>` +
       `<text x="0" y="2.4" ${GEORGIA} font-style="italic" font-size="2.6" fill="${LL_D}" text-anchor="middle">Colonia</text>` +
       `</g>`
-    const mist = [[70, 47.6, 0.6], [67, 46, 0.5], [64.4, 48, 0.45], [66.6, 50.4, 0.4], [62, 45.6, 0.35], [60.6, 49.4, 0.35], [69, 44.2, 0.4]]
-      .map(([x, y, r]) => `<circle cx="${x}" cy="${y}" r="${r}" fill="${LL_L}"/>`).join('') +
-      hair(72, 47.4, 66, 45.6, 58, 46.6, 0.5, LL_L, 0.8) + hair(72, 48.6, 66, 49.4, 59, 51.6, 0.45, LL_L, 0.7)
+    const mist = [[66, 45, 0.6], [63, 43.4, 0.5], [60.4, 45.4, 0.45], [62.6, 47.8, 0.4], [58, 43, 0.35], [56.6, 46.8, 0.35], [65, 41.6, 0.4]]
+      .map(([x, y, r]) => `<circle cx="${x}" cy="${y}" r="${r}" fill="${LL}"/>`).join('') +
+      hair(68, 44.6, 62, 43, 54, 44, 0.5, LL, 0.8) + hair(68, 46, 62, 47, 55, 49.4, 0.45, LL, 0.7)
     return (
       field(k) +
       stageL(k, 60, 60, 34) +
-      k.floor(46, 84, 24, 3) + k.floor(84, 80.6, 10, 2) +
-      `<g transform="translate(44 66) rotate(-9)">` + k.cast([roundRect(-20, -13, 20, 13, 1.4)], 2, 2, LL) + envelope(k, 40, 26) + `</g>` +
-      hair(36, 50, 32, 44, 36, 38, 0.8, LL_L) + hair(44, 47, 48, 41, 44, 34, 0.7, LL_L) + hair(52, 49, 49, 44, 52.6, 39, 0.6, LL_L) +
+      k.floor(48, 84, 20, 2.8) + k.floor(77, 76, 9, 1.8) +
+      `<g transform="translate(47 69) rotate(-9)">` + k.cast([roundRect(-17, -11, 17, 11, 1.4)], 2, 2, LL) + envelope(k, 34, 22, 4.4) + `</g>` +
+      hair(40, 55, 36, 49, 40, 43, 0.8, LL) + hair(48, 53, 52, 47, 48, 40, 0.7, LL) + hair(55.4, 54, 52.6, 49, 56, 44, 0.6, LL) +
       mist + bottle +
       sparkle(30, 76, 1.8) + sparkle(88, 36, 2.2) +
       k.defs()

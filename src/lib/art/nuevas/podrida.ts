@@ -16,7 +16,7 @@ const MOHO = '#8FA86A', MOHO_D = '#566C3A'
 /** La banana y sus pintas. */
 const BAN = '#F6D35C', BAN_D = '#D19C2C', PINTA = '#6B4424'
 /** La pasta del queso y la cáscara. */
-const PASTA = '#F6EDD4', CASCARA = '#E2D3AE'
+const PASTA = '#F7E7B8', CASCARA = '#D9BE84'
 /** El esmalte de la heladera. */
 const ESMALTE = '#ECE2F2'
 /** El cartón del carnet. */
