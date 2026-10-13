@@ -1,3 +1,4 @@
+import type { PlanillaCell, PlanillaDef } from '../planilla'
 import type { GameDef } from '../schema'
 
 export const generala: GameDef = {
@@ -74,4 +75,35 @@ export const generala: GameDef = {
   ],
   rulesUrl: 'https://www.oia.unsam.edu.ar/wp-content/uploads/2020/04/generala.pdf',
   source: 'builtin',
+}
+
+const numero = (n: number): PlanillaCell => ({
+  values: [1, 2, 3, 4, 5].map((k) => k * n),
+  help: `Sumá los dados que muestran ${n}.`,
+})
+
+const juego = (base: number): PlanillaCell => ({
+  values: [base, base + 5],
+  help: `Vale ${base}; servido (de una tirada), ${base + 5}.`,
+  events: (v) => (v === base + 5 ? ['servido'] : []),
+})
+
+const servida = { events: ['generalaServida', 'generala'], value: 50, label: 'Generala servida', help: 'Cinco iguales de una sola tirada: gana la partida en el acto.' }
+
+/** Planilla de la generala: cada uno llena sus 11 casillas en el orden que quiera (ver `lib/games/planilla.ts`). */
+export const generalaPlanilla: PlanillaDef = {
+  cells: [
+    numero(1),
+    numero(2),
+    numero(3),
+    numero(4),
+    numero(5),
+    numero(6),
+    juego(20),
+    juego(30),
+    juego(40),
+    { values: [50], help: 'Cinco dados iguales.', events: (v) => (v > 0 ? ['generala'] : []), instantWin: servida },
+    { values: [100], help: 'La segunda generala de la partida.', events: (v) => (v > 0 ? ['generala', 'dobleGenerala'] : []), instantWin: servida },
+  ],
+  zeroEvent: 'tachada',
 }

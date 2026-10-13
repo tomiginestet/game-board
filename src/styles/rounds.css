@@ -1,0 +1,352 @@
+/* Por manos (RoundsBoard) y planilla por categorías (PlanillaBoard). */
+
+.manos-head,
+.planilla-head {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.manos-head h2,
+.planilla-head h2 {
+  font-size: 20px;
+  line-height: 1.2;
+}
+
+.manos-table,
+.planilla-table {
+  /* Columnas parejas aunque un nombre sea largo; con muchos jugadores, la tabla se desplaza. */
+  table-layout: fixed;
+  min-width: calc(84px + var(--n, 2) * 76px);
+}
+
+.manos-table th,
+.manos-table td {
+  min-width: 0;
+  max-width: none;
+}
+
+.manos-table tr > :first-child,
+.planilla-table tr > :first-child {
+  width: 84px;
+}
+
+.manos-table tbody th,
+.manos-table tfoot th {
+  text-align: left;
+  font-weight: 600;
+}
+
+.manos-table tfoot th,
+.planilla-table tfoot th {
+  font-size: 14px;
+  color: var(--muted);
+}
+
+.pl-lead {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--accent-2);
+}
+
+/* ---------- Planilla ---------- */
+
+.planilla {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.planilla-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-variant-numeric: tabular-nums;
+}
+
+.planilla-table th,
+.planilla-table td {
+  padding: 3px 4px;
+  border-bottom: 1px solid var(--border);
+  text-align: center;
+}
+
+.planilla-table thead th {
+  padding: 10px 4px 8px;
+  font-size: 13px;
+  font-weight: 700;
+  vertical-align: bottom;
+}
+
+.planilla-table thead th > :first-child {
+  margin: 0 auto 4px;
+}
+
+/* La columna de categorías queda fija si hay muchos jugadores y la tabla se desplaza. */
+.planilla-table tr > th:first-child {
+  position: sticky;
+  left: 0;
+  z-index: 1;
+  background: var(--bg);
+  text-align: left;
+  padding-left: 12px;
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 1.2;
+}
+
+.planilla-table tbody tr:last-child > * {
+  border-bottom: 1px solid var(--border-strong);
+}
+
+.planilla-table tfoot th,
+.planilla-table tfoot td {
+  border-bottom: none;
+  padding-top: 10px;
+  padding-bottom: 10px;
+}
+
+.planilla-table tfoot td b {
+  font-size: 20px;
+}
+
+.planilla-table tfoot td.lead b {
+  color: var(--accent-2);
+}
+
+.pl-cell {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  min-height: 44px;
+  border-radius: 10px;
+  border: 1px solid transparent;
+  background: transparent;
+  color: var(--text);
+  font: inherit;
+  font-size: 18px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.pl-cell.is-empty {
+  background: var(--bg-2);
+  border-color: var(--border);
+  color: var(--muted);
+  font-size: 16px;
+}
+
+.pl-cell.is-empty.is-quiet svg {
+  opacity: 0.35;
+}
+
+.pl-cell.is-saved svg {
+  color: var(--muted);
+}
+
+/* Anotado en esta mano pero sin guardar: el borde punteado es la pista que no depende del color. */
+.pl-cell.is-draft {
+  border: 2px dashed var(--accent-2);
+  background: color-mix(in srgb, var(--accent-2) 12%, transparent);
+}
+
+@media (hover: hover) {
+  .pl-cell:hover {
+    background: var(--card-2);
+  }
+}
+
+.pl-legend {
+  margin-top: -4px;
+}
+
+/* Hoja para anotar una casilla */
+.pl-sheet .confirm-body {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.pl-sheet h2 {
+  line-height: 1.25;
+}
+
+.pl-sheet p {
+  margin: 0;
+}
+
+.pl-note {
+  font-size: 14px;
+  color: var(--text-soft);
+}
+
+.pl-values {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(64px, 1fr));
+  gap: 8px;
+}
+
+.pl-value {
+  min-height: 52px;
+  font-size: 20px;
+  font-weight: 800;
+  padding: 8px;
+}
+
+.pl-value.pl-zero {
+  grid-column: span 2;
+  font-size: 16px;
+  font-weight: 700;
+}
+
+.pl-value[aria-pressed='true'] {
+  background: var(--accent-fill);
+  border-color: var(--accent-fill);
+  color: var(--on-fill);
+}
+
+.pl-other {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.pl-other-row {
+  display: flex;
+  gap: 8px;
+}
+
+.pl-other-row .input {
+  flex: 1;
+  min-width: 0;
+  font-size: 18px;
+}
+
+.pl-win {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding-top: 14px;
+  border-top: 1px solid var(--border);
+}
+
+.pl-win .btn svg {
+  color: var(--accent-2);
+}
+
+.pl-actions {
+  display: grid;
+  gap: 10px;
+}
+
+.pl-actions.two {
+  grid-template-columns: 1fr 1fr;
+}
+
+/* ---------- Formulario de una mano ---------- */
+
+.mini-field label {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-soft);
+}
+
+.mini-input {
+  display: flex;
+  gap: 6px;
+}
+
+.mini-input .input {
+  flex: 1;
+  min-width: 0;
+  min-height: 44px;
+  font-size: 18px;
+}
+
+.sign-btn {
+  min-width: 44px;
+  padding: 0 10px;
+  font-size: 20px;
+  font-weight: 800;
+}
+
+.rf-evs {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.rf-ev {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  min-height: 44px;
+}
+
+.rf-ev-name {
+  font-size: 14px;
+  line-height: 1.3;
+  min-width: 0;
+}
+
+.rf-ev .stepper {
+  flex: none;
+}
+
+.rf-ev .stepper button {
+  width: 44px;
+  height: 44px;
+}
+
+.rf-more summary {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 44px;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+  list-style: none;
+}
+
+.rf-more summary::-webkit-details-marker {
+  display: none;
+}
+
+.rf-more summary::before {
+  content: '';
+  flex: none;
+  width: 8px;
+  height: 8px;
+  margin: 0 4px 0 2px;
+  border-right: 2px solid currentColor;
+  border-bottom: 2px solid currentColor;
+  transform: rotate(-45deg);
+  transition: transform 0.15s ease-out;
+}
+
+.rf-more[open] summary::before {
+  transform: rotate(45deg);
+}
+
+.rf-more summary .muted {
+  font-weight: 400;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  min-width: 0;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .rf-more summary::before {
+    transition: none;
+  }
+}
