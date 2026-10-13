@@ -234,31 +234,17 @@ function ostrich(k: Kit, x0: number, y0: number, cx: number, cy: number, x1: num
   return k.draw([{ d, fill, inner: k.sh(d, 0, 0, 1, 1, 0, 0.75, dk, 0.4) + barbs + hair(x0, y0, cx, cy, x1, y1, 0.75, '#fff', 0.8) }], 0.5)
 }
 
-/** Corona de carnaval (cilindro visto de arriba): aro con piedras, puntas con flor de lis y perlas. Centro del aro en (0,0). */
+/** Flor de lis con la base en (0,0) y la punta en y=-15.4. */
+const FLEUR = 'M0 0C-1.6 -1.8 -4.6 -2.4 -5.8 -4.8C-6.8 -6.8 -5.2 -8.6 -3.4 -7.8C-2.4 -7.4 -2.2 -6.2 -2.8 -5.4C-1.4 -6.8 -1.2 -9.4 -2 -11.2C-1.2 -13.4 0 -15.4 0 -15.4C0 -15.4 1.2 -13.4 2 -11.2C1.2 -9.4 1.4 -6.8 2.8 -5.4C2.2 -6.2 2.4 -7.4 3.4 -7.8C5.2 -8.6 6.8 -6.8 5.8 -4.8C4.6 -2.4 1.6 -1.8 0 0Z'
+
+/** Corona de carnaval (cilindro visto de arriba): bonete de terciopelo, aro con perlas, lentejuelas y piedras, y flores
+ * de lis entre perlas en pie. Centro de la boca del aro en (0,0). */
 function momoCrown(k: Kit) {
   const RX = 21, RY = 4.6, H = 13
   const fy = (u: number) => RY * Math.sqrt(Math.max(0, 1 - u * u))
-  const tipsF = [-0.8, -0.4, 0, 0.4, 0.8], tipsB = [-0.6, -0.2, 0.2, 0.6]
-  // Frente del aro con las puntas
-  let top = ''
-  const us = [-1, -0.8, -0.6, -0.4, -0.2, 0, 0.2, 0.4, 0.6, 0.8, 1]
-  us.forEach((u, i) => {
-    const x = u * RX, y = fy(u)
-    const isTip = tipsF.includes(u)
-    const hh = isTip ? (u === 0 ? 16 : Math.abs(u) > 0.5 ? 11.6 : 14) : 0
-    top += (i ? 'L' : 'M') + `${f(x)} ${f(y - hh)}`
-  })
-  const front = `${top}L${RX} ${H}A${RX} ${RY} 0 0 1 ${-RX} ${H}Z`
-  let back = ''
-  ;[-1, -0.6, -0.2, 0.2, 0.6, 1].forEach((u, i) => {
-    const x = u * RX, y = -fy(u), hh = tipsB.includes(u) ? (Math.abs(u) < 0.5 ? 7.4 : 6) : 0
-    if (i) {
-      const pu = [-1, -0.6, -0.2, 0.2, 0.6, 1][i - 1], mu = (pu + u) / 2
-      back += `L${f(mu * RX)} ${f(-fy(mu) + 1.2)}`
-    }
-    back += (i ? 'L' : 'M') + `${f(x)} ${f(y - hh)}`
-  })
-  const backD = `${back}L${RX} 0A${RX} ${RY} 0 0 1 ${-RX} 0Z`
+  const front = `M${-RX} 0A${RX} ${RY} 0 0 0 ${RX} 0V${H}A${RX} ${RY} 0 0 1 ${-RX} ${H}Z`
+  const backRim = `M${-RX} 0A${RX} ${RY} 0 0 1 ${RX} 0L${RX - 1.4} 0A${RX - 1.4} ${RY - 1} 0 0 0 ${-RX + 1.4} 0Z`
+  const cap = `M${-RX + 1.6} .4C${-RX + 2} -10 -8 -14.6 0 -14.6C8 -14.6 ${RX - 2} -10 ${RX - 1.6} .4Z`
   const band = `M${-RX} ${f(H - 5.6)}A${RX} ${RY} 0 0 0 ${RX} ${f(H - 5.6)}V${H}A${RX} ${RY} 0 0 1 ${-RX} ${H}Z`
   const gems = [-0.7, -0.35, 0, 0.35, 0.7].map((u, i) => {
     const x = u * RX, y = H - 2.8 + fy(u) * 0.95
@@ -266,22 +252,30 @@ function momoCrown(k: Kit) {
       ? `<path d="M${f(x)} ${f(y - 2)}L${f(x + 1.5)} ${f(y)}L${f(x)} ${f(y + 2)}L${f(x - 1.5)} ${f(y)}Z" fill="${P.sky}" stroke="${P.ink}" stroke-width=".35"/><path d="M${f(x - 0.5)} ${f(y - 0.8)}L${f(x)} ${f(y - 1.5)}" stroke="#fff" stroke-width=".35"/>`
       : `<ellipse cx="${f(x)}" cy="${f(y)}" rx="${u === 0 ? 2.6 : 1.8}" ry="${u === 0 ? 2.2 : 1.6}" fill="${P.red}" stroke="${P.ink}" stroke-width=".4"/><ellipse cx="${f(x - 0.5)}" cy="${f(y - 0.6)}" rx=".6" ry=".4" fill="#fff"/>`
   }).join('')
-  const pearls = (yy: number) => Array.from({ length: 15 }, (_, i) => { const u = -0.93 + i * (1.86 / 14); return `<circle cx="${f(u * RX)}" cy="${f(yy + fy(u))}" r=".6" fill="${P.white}" stroke="${P.goldD}" stroke-width=".2"/>` }).join('')
+  const pearls = (yy: number) => Array.from({ length: 17 }, (_, i) => { const u = -0.94 + i * (1.88 / 16); return `<circle cx="${f(u * RX)}" cy="${f(yy + fy(u))}" r=".62" fill="${P.white}" stroke="${P.goldD}" stroke-width=".2"/>` }).join('')
   const sequins = [H - 3.9, H - 1.5].map((yy, r) => Array.from({ length: 22 }, (_, i) => { const u = -0.95 + (i + r * 0.5) * (1.9 / 22); return u > 0.97 ? '' : `<circle cx="${f(u * RX)}" cy="${f(yy + fy(u))}" r=".5" fill="${P.goldL}" stroke="${P.goldD}" stroke-width=".18"/>` }).join('')).join('')
-  const fleur = tipsF.map((u) => {
-    const x = u * RX, y = fy(u) - (u === 0 ? 16 : Math.abs(u) > 0.5 ? 11.6 : 14)
-    return `<circle cx="${f(x)}" cy="${f(y - 1.2)}" r="${u === 0 ? 2 : 1.5}" fill="${P.white}" stroke="${P.ink}" stroke-width=".4"/><circle cx="${f(x - 0.5)}" cy="${f(y - 1.7)}" r=".5" fill="#fff"/>` +
-      hair(x, y + 2, x - 2.4, y + 4.4, x - 3.4, y + 7.4, 0.5, P.goldD) + hair(x, y + 2, x + 2.4, y + 4.4, x + 3.4, y + 7.4, 0.5, P.goldD)
-  }).join('')
+  const fleuron = (u: number, s: number) => {
+    const sx = f((0.5 + 0.5 * Math.sqrt(1 - u * u)) * s), w = f(0.5 / s)
+    return `<g transform="translate(${f(u * RX)} ${f(fy(u) + 0.8)}) scale(${sx} ${s})">` +
+      k.draw([{ d: FLEUR, fill: P.gold, inner: k.sh(FLEUR, 0, 0, 1, 0, 0, 0.9, P.goldD, 0.5) + `<path d="M-7 -16H-1V1H-7Z" fill="${k.lin('#ffffff', 0, 0, 1, 0, 0.5, 0)}"/>` + `<path d="M0 -13.6V-6" stroke="${P.goldD}" stroke-width="${w}"/>` }], f(0.55 / s)) +
+      `<path d="M-3.4 -4.6H3.4V-2.8H-3.4Z" fill="${P.goldL}" stroke="${P.ink}" stroke-width="${w}"/><circle cx="0" cy="-8.6" r="1.1" fill="${P.red}" stroke="${P.ink}" stroke-width="${f(0.35 / s)}"/>` + `</g>`
+  }
+  const post = (u: number, h: number) => {
+    const x = f(u * RX), y = fy(u)
+    return `<path d="M${x} ${f(y + 0.4)}V${f(y - h)}" stroke="${P.ink}" stroke-width="1.6"/><path d="M${x} ${f(y + 0.4)}V${f(y - h)}" stroke="${P.gold}" stroke-width=".7"/>` +
+      `<circle cx="${x}" cy="${f(y - h - 1)}" r="1.25" fill="${P.white}" stroke="${P.ink}" stroke-width=".4"/><circle cx="${f(Number(x) - 0.4)}" cy="${f(y - h - 1.4)}" r=".4" fill="#fff"/>`
+  }
   return (
-    k.draw([{ d: backD, fill: P.goldD, inner: k.sh(backD, 0, 0, 1, 0, 0.2, 0.9, P.brownD, 0.45) }], 0.55) +
-    `<path d="${ellipse(0, 0, RX - 0.6, RY - 0.4)}" fill="${P.wine}"/>` +
+    k.draw([{ d: backRim, fill: P.goldD }], 0.4) +
+    k.draw([{ d: cap, fill: P.red, inner: k.sh(cap, 0, 0, 1, 1, 0, 0.9, P.wine, 0.5) + `<path d="M-14 -6C-12 -10 -7 -12.6 -2 -13" fill="none" stroke="#fff" stroke-width=".8" stroke-linecap="round" opacity=".6"/>` + hair(-8, 0, -6, -6, -3, -11, 0.5, P.wine) + hair(8, 0, 6, -6, 3, -11, 0.5, P.wine) + hair(0, 0, 0, -6, 0, -12.6, 0.45, P.wine) }], 0.6) +
     k.draw([{
       d: front, fill: P.gold,
-      inner: k.sh(front, 0, 0, 1, 0, 0, 0.95, P.goldD, 0.5) + `<path d="M${-RX - 2} -20H-8V20H${-RX - 2}Z" fill="${k.lin('#ffffff', 0, 0, 1, 0, 0.45, 0)}"/>` +
+      inner: k.sh(front, 0, 0, 1, 0, 0, 0.95, P.goldD, 0.5) + `<path d="M${-RX - 2} -2H-8V20H${-RX - 2}Z" fill="${k.lin('#ffffff', 0, 0, 1, 0, 0.45, 0)}"/>` +
         `<path d="${band}" fill="${P.goldD}" opacity=".35"/>` + `<path d="M${-RX} ${f(H - 5.6)}A${RX} ${RY} 0 0 0 ${RX} ${f(H - 5.6)}" fill="none" stroke="${P.ink}" stroke-width=".4"/>` +
-        pearls(H - 7.2) + sequins + gems + fleur,
-    }], 0.75)
+        pearls(1.6) + sequins + gems,
+    }], 0.75) +
+    post(-0.95, 4.4) + post(-0.6, 5.6) + post(-0.2, 6.2) + post(0.2, 6.2) + post(0.6, 5.6) + post(0.95, 4.4) +
+    fleuron(-0.8, 0.66) + fleuron(0.8, 0.66) + fleuron(-0.4, 0.84) + fleuron(0.4, 0.84) + fleuron(0, 1.04)
   )
 }
 
@@ -623,27 +617,19 @@ export const POKER_NUEVAS_ART: Record<string, (u: number) => string> = {
   // Cuatro escaleras reales: sos el rey del carnaval. La corona de Momo con su penacho de plumas, serpentinas y papel picado.
   'Rey Momo': (u) => {
     const k = kit(u)
-    const serp = (x0: number, y0: number, dx: number, dy: number, r: number, turns: number, c: string) => {
-      const N = 60
-      const d = Array.from({ length: N + 1 }, (_, i) => {
-        const t = i / N, a = t * turns * Math.PI * 2
-        return `${i ? 'L' : 'M'}${f(x0 + dx * t + Math.cos(a) * r * (1 - t * 0.3))} ${f(y0 + dy * t + Math.sin(a) * r * 0.55)}`
-      }).join('')
-      return `<path d="${d}" fill="none" stroke="${P.ink}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="${d}" fill="none" stroke="${c}" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"/>`
-    }
-    const confetti = [[30, 50, P.red, 20], [90, 44, P.sky, -30], [38, 32, P.white, 50], [86, 28, P.gold, 10], [26, 70, P.sky, 70], [94, 66, P.red, -10], [48, 22, P.sky, 30], [73, 20, P.red, -40]]
+    const curl = (d: string, c: string) => `<path d="${d}" fill="none" stroke="${P.ink}" stroke-width="1.8" stroke-linecap="round"/><path d="${d}" fill="none" stroke="${c}" stroke-width=".8" stroke-linecap="round"/>`
+    const confetti = [[31, 60, P.red, 20], [89, 58, P.sky, -30], [38, 32, P.white, 50], [84, 30, P.gold, 10], [28, 74, P.sky, 70], [92, 72, P.red, -10], [50, 20.6, P.sky, 30], [72, 21, P.red, -40], [34, 46, P.gold, -20], [87, 44, P.white, 40]]
       .map(([x, y, c, r]) => `<rect x="-1.3" y="-.75" width="2.6" height="1.5" fill="${c}" stroke="${P.ink}" stroke-width=".3" transform="translate(${x} ${y}) rotate(${r})"/>`).join('')
     return (
       felt(k, 54) +
       k.sun(60, 54, 15, 46, 28, false) +
       k.shade(ellipse(60, 50, 26, 26), k.rad(P.goldL, 0.5, 0.5, 0.5, 0.75, 0), P.goldL, 0.45) +
-      ostrich(k, 58, 66, 42, 30, 28, 46, 6, P.red, P.wine) +
-      ostrich(k, 62, 66, 78, 30, 92, 46, 6, P.sky, P.blue) +
+      ostrich(k, 58, 66, 43, 32, 31, 48, 6, P.red, P.wine) +
+      ostrich(k, 62, 66, 77, 32, 89, 48, 6, P.sky, P.blue) +
       ostrich(k, 60, 66, 56, 30, 68, 24, 6.8, P.white, P.sky2) +
       k.floor(60, 89, 24, 3, FELT_D) +
       `<g transform="translate(60 72)">` + momoCrown(k) + `</g>` +
-      serp(41.6, 77, -16, -10, 4.6, 1.5, P.sky) + serp(78.4, 77, 16, -10, 4.6, 1.5, P.red) +
-      confetti +
+      confetti + curl('M30.6 84C28.6 80.6 32 78.6 33.6 80.6C35 82.4 32.4 84 31.4 82', P.sky) + curl('M89.4 84C91.4 80.6 88 78.6 86.4 80.6C85 82.4 87.6 84 88.6 82', P.red) +
       sparkle(46, 36, 2, '#fff') + sparkle(34, 80, 1.6) + sparkle(88, 80, 1.4) +
       k.defs()
     )
@@ -706,7 +692,7 @@ export const POKER_NUEVAS_ART: Record<string, (u: number) => string> = {
   // Treinta y cinco bluffs: un misterio de piedra que nadie descifra. La esfinge echada sobre su pedestal, con los palos en el cartucho.
   'Esfinge': (u) => {
     const k = kit(u)
-    const slab = 'M27.4 77.8H92.6V81.6H27.4Z'
+    const slab = 'M29 77.8H91V81.6H29Z'
     const ped = 'M33.4 81.6H86.6L81.6 90.6H38.4Z'
     const cart = ellipse(60, 86.2, 13.6, 3.2)
     return (
@@ -715,13 +701,13 @@ export const POKER_NUEVAS_ART: Record<string, (u: number) => string> = {
       k.shade(ellipse(72, 42, 22, 22), k.rad(P.goldL, 0.5, 0.5, 0.5, 0.75, 0), P.goldL, 0.45) +
       k.draw([
         { d: ped, fill: SAND, inner: k.sh(ped, 0, 0, 1, 0, 0, 0.8, SAND_D, 0.45) + `<path d="M36 84H84" stroke="${SAND_D}" stroke-width=".35"/>` },
-        { d: slab, fill: P.goldL, inner: k.sh(slab, 0, 0, 1, 1, 0, 0.7, SAND_D, 0.45) + `<path d="M27.4 79.4H92.6" stroke="${SAND_D}" stroke-width=".35"/>` },
+        { d: slab, fill: P.goldL, inner: k.sh(slab, 0, 0, 1, 1, 0, 0.7, SAND_D, 0.45) + `<path d="M29 79.4H91" stroke="${SAND_D}" stroke-width=".35"/>` },
       ], 0.7) +
       `<path d="${cart}" fill="${P.goldL}" stroke="${P.ink}" stroke-width=".5"/><path d="${ellipse(60, 86.2, 12.4, 2.4)}" fill="none" stroke="${P.goldD}" stroke-width=".35"/>` +
       `<path d="M73.6 84.2V88.2" stroke="${P.ink}" stroke-width=".7"/>` +
       pip('s', 51.6, 86.2, 0.36) + pip('h', 57.2, 86.2, 0.36) + pip('d', 62.8, 86.2, 0.36) + pip('c', 68.4, 86.2, 0.36) +
       k.floor(58, 78, 30, 1.6, SAND_D) +
-      `<g transform="translate(57.4 77.8)">` + sphinx(k) + `</g>` +
+      `<g transform="translate(59 77.8) scale(.95)">` + sphinx(k) + `</g>` +
       sparkle(36, 40, 2.4, '#fff') + sparkle(30, 58, 1.4) +
       k.defs()
     )
