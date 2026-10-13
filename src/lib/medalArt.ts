@@ -115,6 +115,8 @@ export interface MedalOpts {
   /** Dibujo genérico y color, para medallas sin ilustración propia. */
   glyph?: Glyph
   color?: string
+  /** Las ilustraciones todavía están cargando: sin ilustración propia, la cara queda vacía. */
+  pending?: boolean
 }
 
 /** SVG completo de una medalla: pin hexagonal del metal del nivel + ilustración + plaqueta con el número. */
@@ -125,9 +127,10 @@ export function medalSvg(art: string, tier: number, opts: MedalOpts = {}): strin
   // Los colores pueden venir de juegos agregados por el grupo (sincronizados): sólo se aceptan colores hex.
   const hex = (c: string | undefined) => (c && /^#[0-9a-f]{3,8}$/i.test(c) ? c : undefined)
   const face = hex(opts.face) ?? T.face
-  // Ilustración propia por nombre; si no hay, un dibujo genérico (para juegos agregados a mano o por la IA).
+  // Ilustración propia por nombre; si no hay, un dibujo genérico (para juegos agregados a mano o por la IA). Mientras
+  // las ilustraciones cargan (`pending`, ver `loadArt`), la cara queda vacía para no mostrar el genérico y después cambiarlo.
   const own = ART_REGISTRY[art]
-  const icon = own ? own(u) : glyphArt(opts.glyph ?? 'star', hex(opts.color) ?? '#FFD43B', art)
+  const icon = own ? own(u) : opts.pending ? '' : glyphArt(opts.glyph ?? 'star', hex(opts.color) ?? '#FFD43B', art)
   const label = (opts.label ?? `${art}, nivel ${T.roman}`).replace(/[&<>"]/g, (c) => `&#${c.charCodeAt(0)};`)
   const [dk, md, lt, rf] = T.metal
   const mm = `url(#mm${u})`, line = T.line
