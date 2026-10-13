@@ -81,6 +81,27 @@ La app funciona offline: todo se guarda en el navegador y, si el dispositivo est
   (`/unirse/:code`, `/juegos/:id`), nunca la dirección real, que puede llevar el código secreto del club
   (`src/lib/visits.ts`). Hay que activar Web Analytics en el proyecto de Vercel; en desarrollo no se manda nada.
 
+## Panel de administración
+
+`#/admin` (también desde Perfil → Panel de admin). Sólo lo ven las cuentas de la tabla `app_admins` que entraron con
+Google; cada función `admin_*` lo verifica en el servidor (`supabase/migrations/20261015000000_admin.sql`).
+
+- **Resumen**: cuentas, personas activas por día, clubes, partidas, juegos agregados, gasto de IA, retención y
+  los juegos más anotados (con las vistas de `metricas`).
+- **Personas, clubes y juegos agregados**: ver todo, editar clubes, cambiar el dueño, sacar a alguien, bloquear una
+  cuenta, cortarle la IA, bajar sus datos en JSON y borrar.
+- **Papelera**: lo que se borra desde el panel se puede recuperar durante 30 días; después se borra para siempre
+  (se revisa cada vez que se abre el panel). Juegos, partidas, jugadores y torneos se marcan como borrados, igual que
+  desde la app, para que el borrado llegue a todos los dispositivos. Al borrar una cuenta, sus jugadores quedan en los
+  clubes como jugadores sin cuenta y sus clubes pasan al admin más antiguo.
+- **Reportes**: con cuenta se puede reportar un club público o una persona desde el buscador.
+- **Control**: apagar la IA o cambiar sus topes (la función `generate-game` lo respeta), un anuncio arriba de la app
+  y mensajes a todas las cuentas, a un club o a una persona (llegan a las notificaciones).
+- **Salud**: clubes vacíos, abandonados o sin dueño, cuentas sin perfil y partidas rotas o colgadas.
+- **Registro**: todo lo que se hizo desde el panel (`admin_log`).
+- Desde esta versión se guarda quién sube cada cosa (`entities.created_by`): lo anterior figura como "autor desconocido".
+- Para sumar otro admin: `insert into public.app_admins (user_id) select id from auth.users where email = '…';`
+
 ## Desarrollo
 
 ```bash

@@ -38,6 +38,8 @@ function text(n: AppNotification): string {
       return `${from} aceptó tu solicitud de amistad`
     case 'removed':
       return `Ya no sos parte de ${group}`
+    case 'admin_message':
+      return n.data.title ?? 'Mensaje de Game Board'
     default:
       return 'Novedad'
   }
@@ -111,7 +113,7 @@ export function Notifications() {
               )}
               <div className="grow">
                 <p className="notif-text">{text(n)}</p>
-                {n.data.message && <p className="small muted">“{n.data.message}”</p>}
+                {n.data.message && <p className="small muted">{n.kind === 'admin_message' ? n.data.message : `“${n.data.message}”`}</p>}
                 <span className="muted small">{formatDate(new Date(n.created_at).getTime())}</span>
                 {done[n.id] && <span className="pill tiny">{done[n.id]}</span>}
                 <div className="row gap wrap notif-actions">

@@ -529,3 +529,42 @@ button.group-row:hover {
     animation: none;
   }
 }
+/* Anuncio para todos (arriba de la app). */
+.announcement {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  margin: 12px 16px 0;
+  padding: 10px 12px 10px 14px;
+  border-radius: 12px;
+  background: color-mix(in srgb, var(--info) 16%, var(--card));
+  border: 1px solid color-mix(in srgb, var(--info) 40%, var(--border));
+  font-size: 14px;
+}
+
+.announcement.warn {
+  background: color-mix(in srgb, var(--accent-2) 16%, var(--card));
+  border-color: color-mix(in srgb, var(--accent-2) 45%, var(--border));
+}
+
+.announcement p {
+  margin: 0;
+  flex: 1;
+  overflow-wrap: anywhere;
+}
+
+.announcement button {
+  flex: none;
+  min-width: 44px;
+  min-height: 44px;
+  margin: -10px -8px -10px 0;
+  border: none;
+  background: transparent;
+  color: var(--muted);
+  cursor: pointer;
+}
+
+.confirm-body textarea {
+  width: 100%;
+  margin: 4px 0 12px;
+}

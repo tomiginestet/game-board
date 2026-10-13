@@ -1,6 +1,7 @@
 import { HouseIcon, RankingIcon, SquaresFourIcon, TrophyIcon, UsersIcon, UsersThreeIcon } from '@phosphor-icons/react'
 import { createRoutesFromElements, HashRouter, Link, NavLink, Outlet, Route, Routes, useLocation } from 'react-router-dom'
 import { lazy, Suspense, type ComponentType } from 'react'
+import { Announcement } from './components/Announcement'
 import { ErrorBoundary } from './components/ErrorBoundary'
 import { FeedbackHost } from './components/Feedback'
 import { Loader, Logo } from './components/Logo'
@@ -45,6 +46,19 @@ const NewGroupPage = page(() => import('./pages/social/Groups'), 'NewGroupPage')
 const SearchGroupsPage = page(() => import('./pages/social/Groups'), 'SearchGroupsPage')
 const Notifications = page(() => import('./pages/social/Notifications'), 'Notifications')
 const Profile = page(() => import('./pages/social/Profile'), 'Profile')
+const AdminLayout = page(() => import('./pages/admin/Admin'), 'AdminLayout')
+const AdminOverview = page(() => import('./pages/admin/Admin'), 'AdminOverview')
+const AdminPeople = page(() => import('./pages/admin/AdminPeople'), 'AdminPeople')
+const AdminPerson = page(() => import('./pages/admin/AdminPeople'), 'AdminPerson')
+const AdminClubs = page(() => import('./pages/admin/AdminClubs'), 'AdminClubs')
+const AdminClub = page(() => import('./pages/admin/AdminClubs'), 'AdminClub')
+const AdminGames = page(() => import('./pages/admin/AdminGames'), 'AdminGames')
+const AdminGame = page(() => import('./pages/admin/AdminGames'), 'AdminGame')
+const AdminReports = page(() => import('./pages/admin/AdminTools'), 'AdminReports')
+const AdminTrash = page(() => import('./pages/admin/AdminTools'), 'AdminTrash')
+const AdminLog = page(() => import('./pages/admin/AdminTools'), 'AdminLog')
+const AdminControl = page(() => import('./pages/admin/AdminTools'), 'AdminControl')
+const AdminHealth = page(() => import('./pages/admin/AdminTools'), 'AdminHealth')
 
 function PageLoader() {
   const location = useLocation()
@@ -75,6 +89,7 @@ const TITLES: [RegExp, string][] = [
   [/^\/amigos/, 'Amigos'],
   [/^\/notificaciones/, 'Notificaciones'],
   [/^\/(perfil|cuenta)/, 'Perfil'],
+  [/^\/admin/, 'Admin'],
 ]
 
 function Layout() {
@@ -89,6 +104,7 @@ function Layout() {
         Saltar al contenido
       </a>
       <TopBar />
+      <Announcement />
       <main className="content" id="contenido" tabIndex={-1}>
         {/* Se reinicia al cambiar de pantalla. */}
         <ErrorBoundary key={location.pathname}>
@@ -170,6 +186,20 @@ const routes = (
       <Route path="/amigos" element={<Friends />} />
       <Route path="/notificaciones" element={<Notifications />} />
       <Route path="/perfil" element={<Profile />} />
+      <Route path="/admin" element={<AdminLayout />}>
+        <Route index element={<AdminOverview />} />
+        <Route path="personas" element={<AdminPeople />} />
+        <Route path="personas/:id" element={<AdminPerson />} />
+        <Route path="clubes" element={<AdminClubs />} />
+        <Route path="clubes/:code" element={<AdminClub />} />
+        <Route path="juegos" element={<AdminGames />} />
+        <Route path="juegos/:code/:id" element={<AdminGame />} />
+        <Route path="reportes" element={<AdminReports />} />
+        <Route path="papelera" element={<AdminTrash />} />
+        <Route path="registro" element={<AdminLog />} />
+        <Route path="control" element={<AdminControl />} />
+        <Route path="salud" element={<AdminHealth />} />
+      </Route>
       <Route path="*" element={<NotFound />} />
     </Route>
   </>
