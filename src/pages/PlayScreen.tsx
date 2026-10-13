@@ -1,11 +1,13 @@
-import { ArrowCounterClockwiseIcon, ArrowLeftIcon, FlagCheckeredIcon, TrashIcon } from '@phosphor-icons/react'
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { ArrowCounterClockwiseIcon, ArrowLeftIcon, FlagCheckeredIcon, TrashIcon, WarningIcon } from '@phosphor-icons/react'
+import { useEffect, useId, useMemo, useRef, useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 import { TeamAvatar } from '../components/Avatar'
-import { GameBadge, sidePlayersOf } from '../components/GameBits'
+import { GameBadge, sideName, sidePlayersOf } from '../components/GameBits'
 import { computeLive, eliminateOf, isDraw, roundsOf, targetOf, winnerSides, type LiveState } from '../lib/engine'
 import { planillaOf } from '../lib/games/planilla'
-import { confirmAction, toast } from '../lib/feedback'
+import { clearToast, confirmAction, toast } from '../lib/feedback'
+import { directResult, finishShortfall } from '../lib/finish'
+import { clearPlanillaDraft, hasPlanilla, pendingPlanillaSides } from '../lib/games/planilla'
 import { vibrate } from '../lib/vibrate'
 import type { GameDef } from '../lib/games/schema'
 import { formatDate, gameOrMissing, usePlayerMap } from '../lib/hooks'
@@ -52,18 +54,55 @@ function PlayView({ play, game }: { play: Play; game: GameDef }) {
   const finished = play.status === 'finished'
   const scored = game.mode === 'counter' || game.mode === 'rounds' || game.mode === 'turns'
 
-  // Pausa del punto final: si un punto cierra la partida sola, no se salta directo al resumen.
-  // Se muestra "¡Ganó X!" unos segundos con "Deshacer" por si fue un toque de más.
-  const [beat, setBeat] = useState(false)
+  // "Terminar partida" con la partida incompleta: se pregunta ahí mismo, en la barra (no en un diálogo).
+  const [confirming, setConfirming] = useState(false)
+
+  // Pausa del punto final: si un punto cierra la partida sola (o se termina con "Terminar partida" y el
+  // tablero ya sabe quién ganó), no se salta directo al resumen. Se muestra "¡Ganó X!" unos segundos con
+  // "Deshacer". `auto` deshace el último punto; `manual`, sólo reabre la partida.
+  const [beat, setBeat] = useState<false | 'auto' | 'manual'>(false)
   const [prevStatus, setPrevStatus] = useState(play.status)
   if (prevStatus !== play.status) {
     setPrevStatus(play.status)
+    setConfirming(false)
     if (play.status === 'finished') {
-      if (!finishing && (game.mode === 'counter' || game.mode === 'rounds')) setBeat(true)
+      if (!finishing && !beat && (game.mode === 'counter' || game.mode === 'rounds')) setBeat('auto')
       setFinishing(false)
     } else setBeat(false)
   }
-  const showLive = !finished || beat
+  const showLive = !finished || !!beat
+
+  // Si el tablero ya sabe el resultado, se cierra sin formulario; si no (empate arriba, roles…), se abre.
+  const direct = !finished ? directResult(game, play, live) : undefined
+  const shortfall = direct ? finishShortfall(game, play, live) : undefined
+  // Generala: lo anotado en la mano en curso (falta que anoten otros) no entra en el resultado.
+  const pending = confirming && hasPlanilla(game) ? pendingPlanillaSides(play.id) : []
+  const pendingNote = pending.length
+    ? ` Lo anotado en esta mano por ${pending.map((i) => sideName(play.sides[i], players)).join(' y ')} no se guarda.`
+    : ''
+  const finishNow = () => {
+    if (!direct) return
+    vibrate(40)
+    setConfirming(false)
+    setBeat('manual')
+    actions.finishPlay(play.id, direct)
+    if (hasPlanilla(game)) clearPlanillaDraft(play.id)
+  }
+  // Ningún aviso viejo (p. ej. "Cambiar" de la revancha) puede quedar encima del festejo, de la pregunta
+  // o del formulario de cierre.
+  useEffect(() => {
+    if (beat || confirming || finishing) clearToast()
+  }, [beat, confirming, finishing])
+  const askFinish = () => {
+    if (!direct) setFinishing(true)
+    else if (shortfall) setConfirming(true)
+    else finishNow()
+  }
+  const finishBtnRef = useRef<HTMLButtonElement>(null)
+  const keepPlaying = () => {
+    setConfirming(false)
+    requestAnimationFrame(() => finishBtnRef.current?.focus())
+  }
 
   // Mientras se juega, la navegación de abajo se esconde (un pulgar distraído no te saca de la partida).
   useEffect(() => {
@@ -117,7 +156,7 @@ function PlayView({ play, game }: { play: Play; game: GameDef }) {
 
   return (
     <div ref={pageRef} className={'page play-page' + (showLive ? ' is-live' : '') + (beat ? ' has-beat' : '')} style={{ ['--gc' as string]: game.color }}>
-      <header ref={headRef} className="play-head" inert={beat || undefined}>
+      <header ref={headRef} className="play-head" inert={!!beat || undefined}>
         <button className="icon-btn" onClick={() => navigate(backTo)} aria-label={play.cupId ? 'Volver al torneo' : 'Volver al inicio'}>
           <ArrowLeftIcon />
         </button>
@@ -135,7 +174,7 @@ function PlayView({ play, game }: { play: Play; game: GameDef }) {
       ) : (
         <>
           {/* Durante la pausa final el marcador queda a la vista pero no se puede tocar. */}
-          <div className="play-board" inert={beat || undefined}>
+          <div className="play-board" inert={!!beat || undefined}>
             {scored && <ScoreAnnouncer play={play} live={live} players={players} />}
             {game.mode === 'counter' && <CounterBoard play={play} game={game} live={live} players={players} />}
             {game.mode === 'rounds' && <RoundsBoard play={play} game={game} live={live} players={players} />}
@@ -149,25 +188,64 @@ function PlayView({ play, game }: { play: Play; game: GameDef }) {
           </div>
           {beat ? (
             <FinalBeat play={play} players={players} onUndo={() => {
-              actions.undo(play.id)
+              // Terminada a mano: sólo se reabre (lo anotado queda como estaba).
+              if (beat === 'auto') actions.undo(play.id)
               // Si deshacer no alcanzó para reabrirla (p. ej. la cerró otra cosa), se reabre igual.
               if (getData().plays.find((p) => p.id === play.id)?.status === 'finished') actions.reopenPlay(play.id)
             }} onDone={() => setBeat(false)} />
           ) : (
-            scored && (
+            scored &&
+            (confirming && shortfall ? (
+              <FinishConfirm text={`${shortfall}.${pendingNote} ¿Terminar igual?`} onKeep={keepPlaying} onFinish={finishNow} />
+            ) : (
               <div className="play-dock">
-                <button type="button" className="btn big dock-undo" onClick={undo} disabled={!play.log.length}>
+                <button type="button" className="btn big dock-undo" onClick={undo} disabled={!play.log.length} aria-keyshortcuts={game.mode === 'rounds' ? undefined : 'Z Backspace'}>
                   <ArrowCounterClockwiseIcon aria-hidden="true" /> Deshacer
                 </button>
                 {/* Secundario en todos los modos: el único naranja de la pantalla es la acción de anotar (o "Pasar turno"). */}
-                <button type="button" className="btn big dock-finish" onClick={() => setFinishing(true)}>
+                <button ref={finishBtnRef} type="button" className="btn big dock-finish" onClick={askFinish}>
                   <FlagCheckeredIcon aria-hidden="true" /> Terminar partida
                 </button>
               </div>
-            )
+            ))
           )}
         </>
       )}
+    </div>
+  )
+}
+
+/**
+ * "Faltan 8 manos. ¿Terminar igual?" en la misma barra del pulgar: el tablero sigue a la vista y se puede
+ * seguir anotando. El foco arranca en "Seguir jugando" (lo que no cambia nada); Escape también vuelve.
+ */
+function FinishConfirm({ text, onKeep, onFinish }: { text: string; onKeep: () => void; onFinish: () => void }) {
+  const keepRef = useRef<HTMLButtonElement>(null)
+  const textId = useId()
+  useEffect(() => {
+    keepRef.current?.focus({ preventScroll: true })
+  }, [])
+  return (
+    <div
+      className="play-dock dock-confirm"
+      role="group"
+      aria-labelledby={textId}
+      onKeyDown={(e) => {
+        if (e.key === 'Escape') {
+          e.stopPropagation()
+          onKeep()
+        }
+      }}
+    >
+      <p id={textId} className="dock-confirm-text">
+        <WarningIcon weight="fill" aria-hidden="true" /> {text}
+      </p>
+      <button ref={keepRef} type="button" className="btn big" onClick={onKeep}>
+        Seguir jugando
+      </button>
+      <button type="button" className="btn big dock-finish" onClick={onFinish}>
+        <FlagCheckeredIcon aria-hidden="true" /> Terminar igual
+      </button>
     </div>
   )
 }
@@ -189,7 +267,13 @@ function FinalBeat({ play, players, onUndo, onDone }: { play: Play; players: Map
   // El del ganador primero: "30 a 2".
   const raw = play.result?.scores
   const order = draw ? play.sides.map((_, i) => i) : [...winners, ...play.sides.map((_, i) => i).filter((i) => !winners.includes(i))]
-  const score = raw?.length && raw.every((v) => typeof v === 'number') ? order.map((i) => raw[i]).join(' a ') : ''
+  // Entre dos, "30 a 2"; con más, cada uno con su nombre ("Ana 26 · Beto 11 · Caro 8").
+  const score =
+    raw?.length && raw.every((v) => typeof v === 'number')
+      ? order.length > 2
+        ? order.map((i) => `${sideName(play.sides[i], players)} ${raw[i]}`).join(' · ')
+        : order.map((i) => raw[i]).join(' a ')
+      : ''
   const [paused, setPaused] = useState(false)
   const doneRef = useRef(onDone)
   useEffect(() => {

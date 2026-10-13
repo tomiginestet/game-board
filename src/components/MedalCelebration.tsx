@@ -56,6 +56,7 @@ export function MedalCelebration({
   finishedAt,
   medals,
   delay = 1800,
+  auto = true,
   requested = 0,
 }: {
   id: string
@@ -63,6 +64,8 @@ export function MedalCelebration({
   medals: NewMedal[]
   /** Cuánto se espera antes de abrirse sola, para que primero se vea el resultado. */
   delay?: number
+  /** Si se abre sola después de `delay`. Con `false` sólo se abre al pedirla (`requested`). */
+  auto?: boolean
   requested?: number
 }) {
   const [step, setStep] = useState<number | null>(null)
@@ -70,7 +73,7 @@ export function MedalCelebration({
   const opened = useRef(false)
 
   useEffect(() => {
-    if (!medals.length || !finishedAt || Date.now() - finishedAt > FRESH_MS || seen().includes(id)) return
+    if (!auto || !medals.length || !finishedAt || Date.now() - finishedAt > FRESH_MS || seen().includes(id)) return
     // Se marca como vista recién al abrirse (si se marcara antes, el doble efecto de StrictMode
     // la cancelaría para siempre).
     const t = setTimeout(() => {
@@ -80,7 +83,7 @@ export function MedalCelebration({
       setStep(0)
     }, delay)
     return () => clearTimeout(t)
-  }, [id, finishedAt, medals.length, delay])
+  }, [id, finishedAt, medals.length, delay, auto])
 
   // Pedido a mano: se abre ya, aunque ya se haya festejado (se ajusta al cambiar el contador).
   const [handled, setHandled] = useState(requested)

@@ -5,7 +5,7 @@ import { ErrorText } from '../../components/Feedback'
 import { sideColor, sideName, sidePlayersOf } from '../../components/GameBits'
 import type { LiveState } from '../../lib/engine'
 import { useModal } from '../../lib/feedback'
-import { correctCell, planillaGrid, planillaRound, type PlanillaDef, type PlanillaPick } from '../../lib/games/planilla'
+import { correctCell, planillaGrid, planillaRound, type PlanillaDef, planillaDraftKey, type PlanillaPick } from '../../lib/games/planilla'
 import type { GameDef } from '../../lib/games/schema'
 import { actions } from '../../lib/store'
 import type { Id, Play, Player } from '../../lib/types'
@@ -15,7 +15,7 @@ import '../../styles/rounds.css'
 
 // Lo anotado en la mano que todavía no se guardó (falta que anoten otros) vive
 // en este dispositivo, para no perderlo si se cierra la pantalla.
-const draftKey = (playId: Id) => `game-board-planilla:${playId}`
+const draftKey = (playId: Id) => planillaDraftKey(playId)
 
 function readDraft(playId: Id, n: number): (PlanillaPick | null)[] {
   try {

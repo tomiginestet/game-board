@@ -7,6 +7,7 @@ import type { MedalProgress } from '../lib/medals'
 import type { Id, Play, Player } from '../lib/types'
 import { TeamAvatar } from './Avatar'
 import { sideName, sidePlayersOf } from './GameBits'
+import { spokenNames } from '../pages/play/winnerText'
 import { Logo } from './Logo'
 import { Medal } from './Medal'
 import '../styles/celebration.css'
@@ -67,7 +68,8 @@ export function WinnerHero({
     faces = sides.map((i) => sidePlayersOf(play.sides[i], players))
   } else {
     outcome = lowWins ? 'lowWin' : 'win'
-    title = joinNames(winners.map((i) => sideName(play.sides[i], players)))
+    // Igual que en la pausa del punto final: 'Ana y Beto', no 'Ana & Beto'.
+    title = joinNames(winners.flatMap((i) => spokenNames(play.sides[i], players)))
     const many = winners.length > 1 || play.sides[winners[0]].players.length > 1 || !!play.sides[winners[0]].name
     verdict = winners.length > 1 ? 'comparten el primer puesto' : many ? 'ganaron la partida' : 'ganó la partida'
     if (lowWins && hasScores) verdict += ' con el puntaje más bajo'

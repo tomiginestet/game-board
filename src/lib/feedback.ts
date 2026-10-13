@@ -46,6 +46,13 @@ export function confirmAction(opts: Omit<Confirm, 'resolve'>): Promise<boolean> 
   })
 }
 
+/** Saca cualquier aviso en pantalla (p. ej. al abrir el festejo, para que no tape sus botones). */
+export function clearToast() {
+  if (!toastState) return
+  toastState = null
+  emit()
+}
+
 export function closeToast(id: number) {
   if (toastState?.id !== id) return
   toastState = null

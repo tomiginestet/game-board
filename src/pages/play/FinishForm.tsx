@@ -2,7 +2,8 @@ import { ConfettiIcon, FlagCheckeredIcon, WarningIcon } from '@phosphor-icons/re
 import { useEffect, useRef, useState } from 'react'
 import { TeamAvatar } from '../../components/Avatar'
 import { sideName, sidePlayersOf } from '../../components/GameBits'
-import { eliminateOf, placesFromScores, roundsOf, targetOf, type LiveState } from '../../lib/engine'
+import { placesFromScores, type LiveState } from '../../lib/engine'
+import { finishShortfall, hasLiveScore as liveScored, liveFinalScores } from '../../lib/finish'
 import { vibrate } from '../../lib/vibrate'
 import type { GameDef } from '../../lib/games/schema'
 import { actions, useData } from '../../lib/store'
@@ -22,11 +23,10 @@ export function FinishForm({ play, game, live, players, onCancel }: { play: Play
   const knockout = !!play.cupId && data.cups.find((c) => c.id === play.cupId)?.format === 'knockout'
   const n = play.sides.length
   const coop = game.mode === 'coop'
-  const hasLiveScore = game.mode === 'counter' || game.mode === 'rounds' || game.mode === 'turns'
+  const hasLiveScore = liveScored(game)
   const askScores = coop ? game.scoring.maxScore !== undefined || !!game.scoring.finalScores : hasLiveScore || !!game.scoring.finalScores
   const initialScores = (): (number | null)[] => {
-    if (game.mode === 'turns') return live.scores.map((s, i) => s + live.hiddenScores[i])
-    if (hasLiveScore) return [...live.scores]
+    if (hasLiveScore) return liveFinalScores(game, live)
     return new Array(coop ? 1 : n).fill(null)
   }
   const [scores, setScores] = useState<(number | null)[]>(initialScores)
@@ -35,9 +35,6 @@ export function FinishForm({ play, game, live, players, onCancel }: { play: Play
   const [order, setOrder] = useState<number[]>([])
   const [roleOf, setRoleOf] = useState<Record<Id, string>>({})
   const [winnerRole, setWinnerRole] = useState<string | null>(null)
-  const [stats, setStats] = useState<Record<string, (number | string | null)[]>>(() =>
-    Object.fromEntries(game.stats.map((s) => [s.id, new Array(coop ? 1 : n).fill(null)])),
-  )
   const roles = game.roles
   const lowWins = !!game.scoring.lowWins
   const allPlayers = play.sides.flatMap((s) => s.players)
@@ -80,18 +77,8 @@ export function FinishForm({ play, game, live, players, onCancel }: { play: Play
           : 'Elegí quién ganó el desempate'
 
   // La partida se puede cerrar antes de tiempo, pero que sea a propósito: se avisa y el botón lo dice.
-  const totalRounds = game.mode === 'rounds' ? roundsOf(game, play.config) : undefined
-  const missingRounds = totalRounds !== undefined && eliminateOf(game, play.config) === undefined ? totalRounds - live.roundsPlayed : 0
-  const target = targetOf(game, play.config)
-  const typedScores = scores.filter((v): v is number => v !== null)
-  const short =
-    hasLiveScore && !coop && target !== undefined && !lowWins && eliminateOf(game, play.config) === undefined && typedScores.length > 0 && Math.max(...typedScores) < target
-  const warning =
-    missingRounds > 0
-      ? `${missingRounds === 1 ? 'Falta 1 mano' : `Faltan ${missingRounds} manos`}: ¿guardar igual?`
-      : short
-        ? `Nadie llegó a ${target} ${game.scoring.pointsName ?? 'puntos'}: ¿guardar igual?`
-        : undefined
+  const shortfall = finishShortfall(game, play, live, scores)
+  const warning = shortfall && `${shortfall}. ¿Guardar igual?`
 
   const finish = () => {
     if (!ready) return
@@ -101,7 +88,6 @@ export function FinishForm({ play, game, live, players, onCancel }: { play: Play
       const used = roles.filter((r) => allPlayers.some((id) => roleOf[id] === r))
       const sides = used.map((r) => ({ players: allPlayers.filter((id) => roleOf[id] === r), name: r, role: r }))
       const result: PlayResult = { places: used.map((r) => (r === winnerRole ? 1 : 2)) }
-      if (game.stats.length) result.stats = stats
       actions.patchPlay(play.id, { sides })
       actions.finishPlay(play.id, result)
       return
@@ -109,7 +95,6 @@ export function FinishForm({ play, game, live, players, onCancel }: { play: Play
     const result: PlayResult = { places: places! }
     if (coop) result.coopWin = !!coopWin
     if (askScores) result.scores = scores
-    if (game.stats.length && Object.values(stats).some((arr) => arr.some((v) => v !== null && v !== ''))) result.stats = stats
     actions.finishPlay(play.id, result)
   }
 
@@ -117,7 +102,6 @@ export function FinishForm({ play, game, live, players, onCancel }: { play: Play
     setDraw(false)
     setOrder((o) => (o.includes(i) ? o.filter((x) => x !== i) : [...o, i]))
   }
-  const sidesForStats = coop ? [{ players: allPlayers, name: 'El equipo' }] : play.sides
 
   return (
     <div className="finish-form" ref={rootRef} tabIndex={-1} role="region" aria-label="Cerrar la partida">
@@ -227,47 +211,7 @@ export function FinishForm({ play, game, live, players, onCancel }: { play: Play
         </section>
       )}
 
-      {game.stats.length > 0 && (
-        <section className="card">
-          <h2>Para las medallas</h2>
-          {game.stats.map((st) => (
-            <div key={st.id} className="field">
-              <label>{st.label}</label>
-              {st.help && <span className="hint">{st.help}</span>}
-              {sidesForStats.map((side, i) => (
-                <div key={i} className="row-between score-row">
-                  <span className="ellipsis">{coop ? 'Equipo' : sideName(side, players)}</span>
-                  {st.type === 'choice' ? (
-                    <select
-                      className="input"
-                      aria-label={`${st.label}: ${coop ? 'equipo' : sideName(side, players)}`}
-                      value={(stats[st.id][i] as string) ?? ''}
-                      onChange={(e) => setStats({ ...stats, [st.id]: stats[st.id].map((v, k) => (k === i ? e.target.value || null : v)) })}
-                    >
-                      <option value="">—</option>
-                      {st.choices?.map((c) => (
-                        <option key={c} value={c}>
-                          {c}
-                        </option>
-                      ))}
-                    </select>
-                  ) : (
-                    <input
-                      className="input score-input"
-                      type="number"
-                      inputMode="numeric"
-                      aria-label={`${st.label}: ${coop ? 'equipo' : sideName(side, players)}`}
-                      value={(stats[st.id][i] as number) ?? ''}
-                      onChange={(e) => setStats({ ...stats, [st.id]: stats[st.id].map((v, k) => (k === i ? (e.target.value === '' ? null : Number(e.target.value)) : v)) })}
-                    />
-                  )}
-                </div>
-              ))}
-            </div>
-          ))}
-        </section>
-      )}
-
+      {/* Los datos para las medallas se piden en el resumen: no frenan el cierre. */}
       <div className="sticky-actions finish-actions">
         {warning && (
           <p className="finish-warning" role="status">
@@ -288,6 +232,3 @@ export function FinishForm({ play, game, live, players, onCancel }: { play: Play
     </div>
   )
 }
-
-// ---------------------------------------------------------------------------
-// Resumen

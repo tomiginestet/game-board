@@ -6,7 +6,7 @@
 
 import { generalaPlanilla } from './catalog/generala'
 import type { GameDef } from './schema'
-import type { LogEntry } from '../types'
+import type { LogEntry, Play } from '../types'
 
 /** Una categoría de la planilla (fila). El nombre sale de `scoring.roundLabels`. */
 export interface PlanillaCell {
@@ -40,6 +40,11 @@ export function planillaOf(game: GameDef): PlanillaDef | undefined {
   const labels = game.scoring.roundLabels
   if (!def || !labels || labels.length !== def.cells.length || game.mode !== 'rounds') return undefined
   return def
+}
+
+/** Si el juego se anota en planilla por categorías (para mostrarla al final de la partida). */
+export function hasPlanilla(game: GameDef): boolean {
+  return planillaOf(game) !== undefined
 }
 
 type RoundEntry = Extract<LogEntry, { k: 'round' }>
@@ -133,4 +138,61 @@ export function correctCell(def: PlanillaDef, log: LogEntry[], logIndex: number,
     }
     return { ...e, sc, in: { ...e.in, value: values.map((v, i) => (i === side ? value : v)) }, ev }
   })
+}
+
+export interface PlanillaSummaryRow {
+  /** Nombre de la categoría (de `scoring.roundLabels`). */
+  label: string
+  /** Lo anotado por lado: número (0 = tachada) o `null` si quedó libre. */
+  values: (number | null)[]
+}
+
+export interface PlanillaSummaryData {
+  rows: PlanillaSummaryRow[]
+  /** Total por lado (suma de sus casillas). */
+  totals: number[]
+  /** Lados que ganaron: los primeros del resultado guardado o, sin resultado, los de más puntos. */
+  leaders: number[]
+}
+
+/**
+ * La planilla final de una partida, lista para mostrar: filas por categoría,
+ * columnas por lado y totales. `undefined` si el juego no se anota por planilla.
+ */
+export function planillaSummary(game: GameDef, play: Pick<Play, 'log' | 'sides' | 'result'>): PlanillaSummaryData | undefined {
+  if (!planillaOf(game)) return undefined
+  const labels = game.scoring.roundLabels ?? []
+  const n = play.sides.length
+  const grid = planillaGrid(play.log, labels.length, n)
+  const rows = labels.map((label, c) => ({ label, values: grid.value[c] }))
+  const totals = play.sides.map((_, i) => rows.reduce((sum, r) => sum + (r.values[i] ?? 0), 0))
+  const places = play.result?.places
+  let leaders: number[]
+  if (places && places.length === n) leaders = places.flatMap((p, i) => (p === 1 ? [i] : []))
+  else {
+    const best = game.scoring.lowWins ? Math.min(...totals) : Math.max(...totals)
+    leaders = totals.some((t) => t !== 0) ? totals.flatMap((t, i) => (t === best ? [i] : [])) : []
+  }
+  return { rows, totals, leaders }
+}
+
+/** Dónde se guarda en el dispositivo lo anotado en la mano en curso que todavía no se guardó. */
+export const planillaDraftKey = (playId: string) => `game-board-planilla:${playId}`
+
+/** Lados con algo anotado en la mano en curso (se pierde si se termina la partida antes). */
+export function pendingPlanillaSides(playId: string): number[] {
+  try {
+    const raw = JSON.parse(localStorage.getItem(planillaDraftKey(playId)) ?? 'null')
+    return Array.isArray(raw) ? raw.map((p, i) => (p && typeof p.value === 'number' ? i : -1)).filter((i) => i >= 0) : []
+  } catch {
+    return []
+  }
+}
+
+export function clearPlanillaDraft(playId: string) {
+  try {
+    localStorage.removeItem(planillaDraftKey(playId))
+  } catch {
+    // Sin almacenamiento: no había nada guardado.
+  }
 }

@@ -17,6 +17,9 @@ import { closestFirst, gameMedals, globalMedals, levelUps, medalsInReach, nextMe
 import { computeBoard, gameStatsOf } from '../../lib/stats'
 import { actions, useData } from '../../lib/store'
 import type { Id, Play, Player } from '../../lib/types'
+import { MedalDataCard } from './MedalDataCard'
+import { PlanillaSummary } from './PlanillaSummary'
+import { joinNames } from './winnerText'
 
 /** Hasta cuánto después de terminarla se festeja como recién terminada (igual que las medallas). */
 const FRESH_MS = 15 * 60 * 1000
@@ -112,25 +115,37 @@ export function Summary({ play, game, live, players }: { play: Play; game: GameD
           Ver {game.name}
         </Link>
       )}
+      {/* Después de los botones: completar los datos nunca empuja "Revancha" fuera de la primera pantalla. */}
+      <MedalDataCard play={play} game={game} players={players} />
+      {/* Generala: la planilla completa queda a la vista al terminar (no rinde nada en otros juegos). */}
+      <PlanillaSummary play={play} game={game} players={players} />
 
-      <MedalCelebration id={play.id} finishedAt={play.finishedAt} medals={newMedals} delay={2000} requested={celebrate} />
+      {/* El festejo del punto final ya celebró: las medallas se abren con "Ver medallas nuevas", no solas. */}
+      <MedalCelebration id={play.id} finishedAt={play.finishedAt} medals={newMedals} auto={false} requested={celebrate} />
       {ups.length > 0 && (
         <section className="card new-achievements">
           <h2 className="summary-subtitle">
             <ConfettiIcon className="inline-icon" /> ¡Medallas nuevas!
           </h2>
-          {ups.map(({ player, medal }, k) => (
+          {/* La misma medalla ganada por varios (un equipo) va en una sola fila: "Ana y Beto". */}
+          {ups
+            .map((u, k) => ({ ...u, k }))
+            .filter((u, i, all) => all.findIndex((x) => x.medal.family.id === u.medal.family.id && x.medal.level === u.medal.level) === i)
+            .map(({ medal, k }) => {
+              const who = ups.filter((x) => x.medal.family.id === medal.family.id && x.medal.level === medal.level).map((x) => x.player.name)
+              return (
             <button key={k} type="button" className="medal-up" aria-haspopup="dialog" onClick={() => setShownUp(k)}>
               <Medal family={medal.family} level={medal.level} size={56} />
               <div>
                 <b>{medal.family.levels[medal.level].name}</b>
                 <span className="muted small block">
-                  {player.name} · {medal.family.name} · {TIERS[medal.level].name}
+                  {joinNames(who)} · {medal.family.name} · {TIERS[medal.level].name}
                 </span>
                 <span className="small">{medal.family.levels[medal.level].description}</span>
               </div>
             </button>
-          ))}
+              )
+            })}
           {shown && (
             <MedalSheet
               family={shown.medal.family}

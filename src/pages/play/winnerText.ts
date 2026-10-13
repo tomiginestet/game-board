@@ -7,7 +7,7 @@ import type { Id, Play, PlaySide, Player } from '../../lib/types'
 export const joinNames = (names: string[]) => (names.length < 2 ? names.join('') : `${names.slice(0, -1).join(', ')} y ${names[names.length - 1]}`)
 
 /** Nombres de un lado para decirlos en voz alta: el del equipo si tiene, si no cada jugador ("Ana y Beto", no "Ana & Beto"). */
-function spokenNames(side: PlaySide, players: Map<Id, Player>): string[] {
+export function spokenNames(side: PlaySide, players: Map<Id, Player>): string[] {
   if (side.name || side.role) return [sideName(side, players)]
   return side.players.map((id) => players.get(id)?.name ?? '?')
 }
