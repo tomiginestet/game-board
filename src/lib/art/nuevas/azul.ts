@@ -128,10 +128,27 @@ function cracks(cx: number, cy: number, R: number, angles: number[], seed: numbe
   })
 }
 
-/** Trozo de plato: el polígono entre dos grietas, cerrado por fuera del borde. */
-function shard(cs: [number, number][][], i: number) {
+/** Trozo de plato: el pedazo entre dos grietas, cerrado por el borde redondo del plato (radio R, centro en 0,0). */
+function shard(cs: [number, number][][], i: number, R: number) {
   const a = cs[i], b = cs[(i + 1) % cs.length]
-  return `M${a.map(([x, y]) => `${f(x)} ${f(y)}`).join('L')}L${[...b].reverse().map(([x, y]) => `${f(x)} ${f(y)}`).join('L')}Z`
+  const exit = (c: [number, number][]) => {
+    const [px, py] = c[c.length - 2], [qx, qy] = c[c.length - 1], dx = qx - px, dy = qy - py
+    const A = dx * dx + dy * dy, B = 2 * (px * dx + py * dy), C = px * px + py * py - R * R
+    const t = (-B + Math.sqrt(B * B - 4 * A * C)) / (2 * A)
+    return [px + dx * t, py + dy * t]
+  }
+  const ea = exit(a), eb = exit(b)
+  let da = Math.atan2(eb[1], eb[0]) - Math.atan2(ea[1], ea[0])
+  while (da < 0) da += Math.PI * 2
+  const inner = (c: [number, number][]) => c.slice(0, -1).map(([x, y]) => `${f(x)} ${f(y)}`)
+  return `M${inner(a).join('L')}L${f(ea[0])} ${f(ea[1])}A${R} ${R} 0 ${da > Math.PI ? 1 : 0} 1 ${f(eb[0])} ${f(eb[1])}L${inner(b).reverse().join('L')}Z`
+}
+
+/** El canto de bizcocho de un trozo: sólo los bordes rotos (las dos grietas), no el borde esmaltado del plato. */
+function shardEdge(k: Kit, cs: [number, number][][], i: number, R: number, w: number) {
+  const d = shard(cs, i, R), arcAt = d.indexOf('A'), lAfter = d.indexOf('L', arcAt)
+  const edges = d.slice(0, arcAt) + 'M' + d.slice(lAfter + 1, -1)
+  return k.clip(d, `<path d="${edges}" fill="none" stroke="${BIZ}" stroke-width="${w}" stroke-linejoin="round"/>`)
 }
 
 /** Crayón parado con la base en (0,0) y la punta gastada arriba: cera de color, papel con fajas y etiqueta. */
@@ -468,7 +485,7 @@ export const AZUL_NUEVAS_ART: Record<string, (u: number) => string> = {
     const sideR = 'M81.4 60.6V65.6L88 84L90 82.4Z'
     const lip = 'M28 82.4L30 84H88L90 82.4L89.6 85.6C89.4 86.4 88.8 86.8 88 86.8H30C29.2 86.8 28.6 86.4 28.4 85.6Z'
     const grip = taper(54, 58, 50, 46, 44, 34, 5, 3.8)
-    const cs = cracks(0, 0, 13, [-1.9, -0.5, 0.9, 2.3], 2)
+    const R = 13, cs = cracks(0, 0, R, [-1.9, -0.5, 0.9, 2.3], 2)
     const shards: [number, number, number, number][] = [[44, 75, -24, 0], [58, 70.6, 12, 1], [73, 76, -8, 2], [57.6, 80.6, 30, 3]]
     const block = roundRect(-3.2, -15, 3.2, 5, 1.8)
     const bristles = 'M-3.8 4.6H3.8L4.6 13.4H-4.6Z'
@@ -496,7 +513,7 @@ export const AZUL_NUEVAS_ART: Record<string, (u: number) => string> = {
       ], 0.75) +
       `<circle cx="42" cy="78" r=".55" fill="${P.white}"/><circle cx="68" cy="81" r=".5" fill="${P.white}"/><circle cx="50" cy="70" r=".45" fill="${P.white}"/>` +
       // Los pedazos, cada uno con su parte de la pintura del plato.
-      shards.map(([x, y, r, i]) => `<g transform="translate(${x} ${y}) rotate(${r})">` + k.draw([{ d: shard(cs, i), fill: P.white, inner: plateArt(k, 0, 0, 13, false) }], 0.5) + k.clip(shard(cs, i), `<path d="${shard(cs, i)}" fill="none" stroke="${BIZ}" stroke-width="1.2"/>`) + `</g>`).join('') +
+      shards.map(([x, y, r, i]) => `<g transform="translate(${x} ${y}) rotate(${r})">` + k.draw([{ d: shard(cs, i, R), fill: P.white, inner: plateArt(k, 0, 0, R, false) }], 0.5) + shardEdge(k, cs, i, R, 1.2) + `</g>`).join('') +
       // Un pedacito que todavía cae.
       `<g transform="translate(66 44) rotate(20)">` + k.draw([{ d: 'M-3 -2L3.4 -2.6L2 2.6L-2.4 2Z', fill: P.white, inner: `<path d="M-3 -1H3" stroke="${COB}" stroke-width="1"/>` }], 0.45) + `</g>` +
       hair(64, 38, 63, 41, 64.6, 42, 0.5, P.blue) + hair(69, 37.6, 69.4, 40, 68.6, 41.6, 0.45, P.blue) +
@@ -552,7 +569,7 @@ export const AZUL_NUEVAS_ART: Record<string, (u: number) => string> = {
       const a0 = Math.atan2(cs[i][4][1], cs[i][4][0]), a1 = Math.atan2(cs[(i + 1) % cs.length][4][1], cs[(i + 1) % cs.length][4][0])
       let mid = (a0 + a1) / 2
       if (Math.abs(a1 - a0) > Math.PI) mid += Math.PI
-      return { i, dx: Math.cos(mid) * 3.2, dy: Math.sin(mid) * 3.2, r: (i % 2 ? 1 : -1) * (1.6 + i * 0.4) }
+      return { i, dx: Math.cos(mid) * 3.6, dy: Math.sin(mid) * 3.6, r: (i % 2 ? 1 : -1) * (1.6 + i * 0.4) }
     })
     const flecks = [[34, 32, 20], [88, 36, -30], [26, 62, 60], [96, 64, -10], [44, 88, 15], [80, 90, -40]]
     return (
@@ -561,12 +578,11 @@ export const AZUL_NUEVAS_ART: Record<string, (u: number) => string> = {
       k.shade(ellipse(60, 56, 28, 28), k.rad(P.goldL, 0.5, 0.5, 0.5, 0.85, 0), P.goldL, 0.5) +
       laurel(50, 100, 29, 92, 25, 64, 8) + laurel(70, 100, 91, 92, 95, 64, 8, true) +
       `<g transform="translate(60 55)">` +
-      pieces.map(({ i, dx, dy, r }) => `<g transform="translate(${f(dx)} ${f(dy)}) rotate(${r})">` + k.cast([shard(cs, i)], 1.6, 1.8, COB_D) + `</g>`).join('') +
+      pieces.map(({ i, dx, dy, r }) => `<g transform="translate(${f(dx)} ${f(dy)}) rotate(${r})">` + k.cast([shard(cs, i, R)], 1.6, 1.8, COB_D) + `</g>`).join('') +
       pieces.map(({ i, dx, dy, r }) => `<g transform="translate(${f(dx)} ${f(dy)}) rotate(${r})">` +
-        k.draw([{ d: shard(cs, i), fill: P.white, inner: `<circle r="${R}" fill="${P.white}"/>` + plateArt(k, 0, 0, R, true) }], 0.6) +
-        k.clip(shard(cs, i), `<path d="${shard(cs, i)}" fill="none" stroke="${BIZ}" stroke-width="1.4"/>`) + `</g>`).join('') +
+        k.draw([{ d: shard(cs, i, R), fill: P.white, inner: `<circle r="${R}" fill="${P.white}"/>` + plateArt(k, 0, 0, R, true) }], 0.45) +
+        shardEdge(k, cs, i, R, 1) + `</g>`).join('') +
       `</g>` +
-      `<g transform="translate(60 55)"><path d="M${f(-R - 3)} 0A${R + 3} ${R + 3} 0 0 1 0 ${f(-R - 3)}" fill="none" stroke="#fff" stroke-width=".9" stroke-linecap="round" opacity=".0"/></g>` +
       flecks.map(([x, y, r]) => `<g transform="translate(${x} ${y}) rotate(${r})"><path d="M-2.2 -1.4L2.4 -2L1.2 1.8L-1.6 1.2Z" fill="${P.white}" stroke="${P.ink}" stroke-width=".4"/><path d="M-1.4 -.6L1.4 -1" stroke="${COB}" stroke-width=".6"/></g>`).join('') +
       hair(30, 40, 33, 43, 37, 44, 0.5, COB_D) + hair(90, 44, 87, 46, 83, 46.4, 0.5, COB_D) + hair(30, 70, 34, 69, 37, 67, 0.45, COB_D) + hair(90, 72, 86, 70.6, 83, 68, 0.45, COB_D) +
       `<text x="60" y="94" ${GEORGIA} font-style="italic" font-weight="700" font-size="8" fill="${COB_D}" text-anchor="middle">¡Opa!</text>` +
