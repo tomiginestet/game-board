@@ -71,6 +71,16 @@ La app funciona offline: todo se guarda en el navegador y, si el dispositivo est
   resumida del esquema (`sources.ts`, más barata por llamada): si cambia el esquema, actualizarla. Después de
   cambiar el pedido: `npm run build:ai` y volver a publicar la función.
 
+## Métricas
+
+- **Uso de los clubes** (Supabase): el esquema `metricas` (`supabase/migrations/20261014000000_metricas.sql`) tiene
+  vistas para el editor SQL: `metricas.resumen` (lo principal en una fila), `metricas.semanal` (clubes activos,
+  partidas, clubes y cuentas nuevas, IA), `metricas.juegos` (los más anotados) y `metricas.retencion` (si los clubes
+  vuelven 1 a 4 semanas después). No está en la API: la app no lo puede leer. Sólo cuenta lo que se sincronizó.
+- **Visitas** (Vercel Web Analytics, sin cookies): `src/components/Visits.tsx`. Se manda sólo la pantalla genérica
+  (`/unirse/:code`, `/juegos/:id`), nunca la dirección real, que puede llevar el código secreto del club
+  (`src/lib/visits.ts`). Hay que activar Web Analytics en el proyecto de Vercel; en desarrollo no se manda nada.
+
 ## Desarrollo
 
 ```bash

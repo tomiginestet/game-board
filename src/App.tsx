@@ -1,10 +1,11 @@
 import { HouseIcon, RankingIcon, SquaresFourIcon, TrophyIcon, UsersIcon, UsersThreeIcon } from '@phosphor-icons/react'
-import { HashRouter, Link, NavLink, Outlet, Route, Routes, useLocation } from 'react-router-dom'
+import { createRoutesFromElements, HashRouter, Link, NavLink, Outlet, Route, Routes, useLocation } from 'react-router-dom'
 import { lazy, Suspense, type ComponentType } from 'react'
 import { ErrorBoundary } from './components/ErrorBoundary'
 import { FeedbackHost } from './components/Feedback'
 import { Loader, Logo } from './components/Logo'
 import { TopBar } from './components/TopBar'
+import { Visits } from './components/Visits'
 import { useAuth } from './lib/auth'
 import { useDocumentTitle } from './lib/hooks'
 import { loaderForPath } from './lib/logo'
@@ -132,52 +133,59 @@ function JoinRoute() {
   return auth.session ? <JoinByLink /> : <ClubPage />
 }
 
+/** Las rutas de la app. De acá sale también la pantalla genérica que se cuenta en las visitas. */
+const routes = (
+  <>
+    {/* Marcador del ping pong a pantalla completa (el mismo del Ping Pong Club). */}
+    <Route path="/partido/:id" element={<MatchScreen />} />
+    <Route element={<Layout />}>
+      <Route index element={<Home />} />
+      <Route path="/anotar" element={<QuickPick />} />
+      <Route path="/juegos" element={<Games />} />
+      <Route path="/juegos/nuevo" element={<AddGame />} />
+      <Route path="/juegos/:id" element={<GameDetail />} />
+      <Route path="/juegos/:id/editar" element={<EditGame />} />
+      <Route path="/jugar/:gameId" element={<NewPlay />} />
+      <Route path="/partida/:id" element={<PlayScreen />} />
+      <Route path="/ping-pong/nuevo" element={<NewMatch />} />
+      <Route path="/partido/nuevo" element={<NewMatch />} />
+      <Route path="/ping-pong/torneo/nuevo" element={<NewTournament />} />
+      <Route path="/ping-pong/torneos/:id" element={<TournamentDetail />} />
+      <Route path="/torneos" element={<Cups />} />
+      <Route path="/torneos/nuevo" element={<NewCup />} />
+      <Route path="/torneos/:id" element={<CupDetail />} />
+      <Route path="/ranking" element={<Ranking />} />
+      <Route path="/medallas" element={<Medals />} />
+      <Route path="/jugadores" element={<Players />} />
+      <Route path="/jugadores/:id" element={<PlayerDetail />} />
+      <Route path="/historial" element={<History />} />
+      <Route path="/ajustes" element={<Settings />} />
+      <Route path="/club" element={<GroupPage />} />
+      <Route path="/cuenta" element={<Profile />} />
+      <Route path="/unirse/:code" element={<JoinRoute />} />
+      <Route path="/grupo" element={<GroupPage />} />
+      <Route path="/grupos" element={<Groups />} />
+      <Route path="/grupos/nuevo" element={<NewGroupPage />} />
+      <Route path="/grupos/buscar" element={<SearchGroupsPage />} />
+      <Route path="/amigos" element={<Friends />} />
+      <Route path="/notificaciones" element={<Notifications />} />
+      <Route path="/perfil" element={<Profile />} />
+      <Route path="*" element={<NotFound />} />
+    </Route>
+  </>
+)
+const ROUTES = createRoutesFromElements(routes)
+
 export default function App() {
   return (
     <HashRouter>
       <Gate>
         <Suspense fallback={<PageLoader />}>
-          <Routes>
-            {/* Marcador del ping pong a pantalla completa (el mismo del Ping Pong Club). */}
-            <Route path="/partido/:id" element={<MatchScreen />} />
-            <Route element={<Layout />}>
-              <Route index element={<Home />} />
-              <Route path="/anotar" element={<QuickPick />} />
-              <Route path="/juegos" element={<Games />} />
-              <Route path="/juegos/nuevo" element={<AddGame />} />
-              <Route path="/juegos/:id" element={<GameDetail />} />
-              <Route path="/juegos/:id/editar" element={<EditGame />} />
-              <Route path="/jugar/:gameId" element={<NewPlay />} />
-              <Route path="/partida/:id" element={<PlayScreen />} />
-              <Route path="/ping-pong/nuevo" element={<NewMatch />} />
-              <Route path="/partido/nuevo" element={<NewMatch />} />
-              <Route path="/ping-pong/torneo/nuevo" element={<NewTournament />} />
-              <Route path="/ping-pong/torneos/:id" element={<TournamentDetail />} />
-              <Route path="/torneos" element={<Cups />} />
-              <Route path="/torneos/nuevo" element={<NewCup />} />
-              <Route path="/torneos/:id" element={<CupDetail />} />
-              <Route path="/ranking" element={<Ranking />} />
-              <Route path="/medallas" element={<Medals />} />
-              <Route path="/jugadores" element={<Players />} />
-              <Route path="/jugadores/:id" element={<PlayerDetail />} />
-              <Route path="/historial" element={<History />} />
-              <Route path="/ajustes" element={<Settings />} />
-              <Route path="/club" element={<GroupPage />} />
-              <Route path="/cuenta" element={<Profile />} />
-              <Route path="/unirse/:code" element={<JoinRoute />} />
-              <Route path="/grupo" element={<GroupPage />} />
-              <Route path="/grupos" element={<Groups />} />
-              <Route path="/grupos/nuevo" element={<NewGroupPage />} />
-              <Route path="/grupos/buscar" element={<SearchGroupsPage />} />
-              <Route path="/amigos" element={<Friends />} />
-              <Route path="/notificaciones" element={<Notifications />} />
-              <Route path="/perfil" element={<Profile />} />
-              <Route path="*" element={<NotFound />} />
-            </Route>
-          </Routes>
+          <Routes>{routes}</Routes>
         </Suspense>
       </Gate>
       <FeedbackHost />
+      <Visits routes={ROUTES} />
     </HashRouter>
   )
 }
