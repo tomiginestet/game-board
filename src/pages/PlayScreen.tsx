@@ -214,7 +214,8 @@ function describePlay(game: GameDef, play: Play, live: LiveState): string {
   const burn = eliminateOf(game, play.config)
   if (burn !== undefined) parts.push(`se quema en ${burn}`)
   else if (target) parts.push(`a ${target} ${game.scoring.pointsName ?? 'puntos'}`)
-  if (rounds) parts.push(`${Math.min(live.roundsPlayed + (play.status === 'finished' ? 0 : 1), rounds)} de ${rounds} manos`)
+  // En juego, el tablero ya dice "Mano N de M"; terminada, se cuentan las jugadas.
+  if (rounds && play.status === 'finished') parts.push(`${Math.min(live.roundsPlayed, rounds)} de ${rounds} manos jugadas`)
   if (game.mode === 'turns' && live.turnCount) parts.push(`turno ${live.turnCount}`)
   if (!parts.length) parts.push(formatDate(play.startedAt ?? play.createdAt))
   return parts.join(' · ')

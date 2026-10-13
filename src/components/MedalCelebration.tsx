@@ -14,6 +14,20 @@ const SEEN_KEY = 'game-board-celebrated-v1'
 /** Sólo se festeja al terminar la partida, no al volver a mirarla días después. */
 const FRESH_MS = 15 * 60 * 1000
 
+/** Cuántas se festejan una por una; el resto queda en la lista del resumen. */
+const MAX_CELEBRATED = 3
+
+/**
+ * Si se ganaron muchas de golpe (la primera partida de una mesa grande), festeja las más altas,
+ * una por persona antes de repetir a alguien, para no hacer pasar quince hojas seguidas.
+ */
+function highlights(medals: NewMedal[]): NewMedal[] {
+  if (medals.length <= MAX_CELEBRATED) return medals
+  const sorted = [...medals].sort((a, b) => b.level - a.level)
+  const firstEach = sorted.filter((m, i) => sorted.findIndex((x) => x.who === m.who) === i)
+  return [...firstEach, ...sorted.filter((m) => !firstEach.includes(m))].slice(0, MAX_CELEBRATED)
+}
+
 function seen(): string[] {
   try {
     const list = JSON.parse(localStorage.getItem(SEEN_KEY) ?? '[]')
@@ -80,7 +94,8 @@ export function MedalCelebration({
     markSeen(id)
   }, [requested, id])
 
-  const m = step !== null ? medals[step] : undefined
+  const queue = highlights(medals)
+  const m = step !== null ? queue[step] : undefined
   if (!m) return null
   const close = () => setStep(null)
   return (
@@ -89,7 +104,7 @@ export function MedalCelebration({
       family={m.family}
       level={m.level}
       mine={{ name: m.who, value: m.value, level: m.level }}
-      celebrate={{ who: m.who, step: step! + 1, total: medals.length, onNext: () => (step! + 1 < medals.length ? setStep(step! + 1) : close()) }}
+      celebrate={{ who: m.who, step: step! + 1, total: queue.length, onNext: () => (step! + 1 < queue.length ? setStep(step! + 1) : close()) }}
       onClose={close}
     />
   )

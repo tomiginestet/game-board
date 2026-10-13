@@ -168,7 +168,7 @@ function Setup({ game }: { game: GameDef }) {
         {fromLast && selected.length > 0 && (
           <div className="row-between">
             <p className="hint">Marcamos a los de la última partida.</p>
-            <button className="link-btn" style={{ flexShrink: 0 }} onClick={() => setSelected([])}>
+            <button className="link-btn no-shrink" onClick={() => setSelected([])}>
               Desmarcar a todos
             </button>
           </div>

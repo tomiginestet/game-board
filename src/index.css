@@ -3004,3 +3004,7 @@ abbr.wl {
 .input[aria-invalid='true'] {
   border-color: var(--loss);
 }
+
+.no-shrink {
+  flex-shrink: 0;
+}
