@@ -199,17 +199,6 @@ function bill(k: Kit) {
   }], 0.4)
 }
 
-/** Moneda de oro en el aire: disco girado `rot` y achatado por `tilt`. */
-function coin(k: Kit, x: number, y: number, r: number, rot: number, tilt: number) {
-  const ry = Math.max(r * tilt, 0.4)
-  const face = ellipse(0, 0, r, ry)
-  const edge = `M${-r} 0A${r} ${f(ry)} 0 0 0 ${r} 0V${f(r * 0.24)}A${r} ${f(ry)} 0 0 1 ${-r} ${f(r * 0.24)}Z`
-  return `<g transform="translate(${x} ${y}) rotate(${rot})">` +
-    k.draw([
-      { d: edge, fill: P.goldD, inner: `<path d="M${-r} ${f(r * 0.12)}A${r} ${f(ry)} 0 0 0 ${r} ${f(r * 0.12)}" fill="none" stroke="${P.gold}" stroke-width=".3" stroke-dasharray=".3 .3"/>` },
-      { d: face, fill: P.gold, inner: k.sh(face, 0, 0, 1, 1, 0, 0.8, P.goldD, 0.45) + `<path d="${ellipse(0, 0, r * 0.72, ry * 0.72)}" fill="none" stroke="${P.goldD}" stroke-width=".35"/><path d="${ellipse(-r * 0.25, -ry * 0.3, r * 0.3, ry * 0.18)}" fill="#fff" opacity=".7"/>` },
-    ], 0.38) + `</g>`
-}
 
 /** Pluma de avestruz de carnaval a lo largo de una curva: borde ondulado y esponjoso, barbas que se enrulan y raquis claro. */
 function ostrich(k: Kit, x0: number, y0: number, cx: number, cy: number, x1: number, y1: number, W: number, fill: string, dk: string) {
@@ -446,8 +435,9 @@ export const POKER_NUEVAS_ART: Record<string, (u: number) => string> = {
     const handle = 'M48.6 79.4C48.6 85.8 61.4 85.8 61.4 79.4'
     return (
       felt(k, 60) +
+      `<g transform="translate(-1.4 1.6)">` +
       k.floor(60, 89, 30, 3, FELT_D) +
-      `<g transform="translate(29.6 50) rotate(-16)">` + bill(k) + `</g>` +
+      `<g transform="translate(31 50) rotate(-16)">` + bill(k) + `</g>` +
       k.draw([
         { d: lidTop, fill: P.white },
         { d: lid, fill: P.sky1, inner: k.sh(lid, 0, 0, 1, 0, 0, 0.6, P.blue, 0.35) + hair(85, 60, 86.4, 48, 86.6, 37, 0.4, '#fff', 0.8) },
@@ -473,12 +463,13 @@ export const POKER_NUEVAS_ART: Record<string, (u: number) => string> = {
       `<path d="M47.4 77.6H50.2V80.4H47.4ZM59.8 77.6H62.6V80.4H59.8Z" fill="${P.sky2}" stroke="${P.ink}" stroke-width=".4"/>` +
       `<path d="${handle}" fill="none" stroke="${P.ink}" stroke-width="3.6" stroke-linecap="round"/><path d="${handle}" fill="none" stroke="#33395A" stroke-width="2.1" stroke-linecap="round"/><path d="M50 82.6C52 84.2 56 84.4 58 83.4" fill="none" stroke="${P.sky}" stroke-width=".45" stroke-linecap="round"/>` +
       `<path d="M31 85.6A3.8 3.8 0 0 0 34.8 89.4H31ZM79 85.6A3.8 3.8 0 0 1 75.2 89.4H79Z" fill="${P.sky2}" stroke="${P.ink}" stroke-width=".4"/>` +
+      `</g>` +
       sparkle(84, 28, 2) + sparkle(27, 68, 1.6) + sparkle(64, 30, 1.4) +
       k.defs()
     )
   },
 
-  // Cuarenta all-in: nadás en fichas como el Tío Rico. La pileta llena de monedas, con el chapuzón que las hace saltar.
+  // Cuarenta all-in: nadás en fichas como el Tío Rico. La pileta llena de fichas, con el chapuzón que las hace saltar.
   'Pileta de monedas': (u) => {
     const k = kit(u)
     const outer = ellipse(60, 79, 31, 11), innerE = ellipse(60, 79, 26.4, 8.4)
@@ -489,19 +480,22 @@ export const POKER_NUEVAS_ART: Record<string, (u: number) => string> = {
       const a = (i / 24) * Math.PI * 2
       return `M${f(60 + Math.cos(a) * 26.4)} ${f(79 + Math.sin(a) * 8.4)}L${f(60 + Math.cos(a) * 31)} ${f(79 + Math.sin(a) * 11)}`
     }).join('')
+    // Fichas, no monedas: la pileta del póker se llena de fichas de colores.
+    const CHIPS = [[P.red, P.wine], [P.mid, P.night], [P.white, P.sky2], [P.gold, P.goldD]]
     const pile = Array.from({ length: 40 }, (_, i) => {
       const row = Math.floor(i / 10), c = i % 10, x = 36 + c * 5.2 + (row % 2) * 2.6, y = 77.6 + row * 2.4
       const inside = ((x - 60) / 25) ** 2 + ((y - 81) / 6.6) ** 2 < 1
-      return inside ? `<ellipse cx="${f(x)}" cy="${f(y)}" rx="2.3" ry=".9" fill="${(row + c) % 3 ? P.gold : P.goldL}" stroke="${P.goldD}" stroke-width=".35"/>` : ''
+      const [fc, dc] = CHIPS[(row * 3 + c) % 4]
+      return inside ? `<ellipse cx="${f(x)}" cy="${f(y)}" rx="2.3" ry=".9" fill="${fc}" stroke="${dc}" stroke-width=".35"/><ellipse cx="${f(x)}" cy="${f(y)}" rx="1.6" ry=".55" fill="none" stroke="#fff" stroke-width=".3" stroke-dasharray=".5 .5"/>` : ''
     }).join('')
     const moundCoins = [[50, 80], [55.4, 78.4], [61, 77.2], [66.4, 78.4], [71, 80], [53, 81.4], [58.4, 80.2], [63.8, 80.2], [68.8, 81.4]]
-      .map(([x, y]) => `<ellipse cx="${x}" cy="${y}" rx="2.4" ry="1" fill="${P.goldL}" stroke="${P.goldD}" stroke-width=".35"/>`).join('')
+      .map(([x, y], n) => { const [fc, dc] = CHIPS[n % 4]; return `<ellipse cx="${x}" cy="${y}" rx="2.4" ry="1" fill="${fc}" stroke="${dc}" stroke-width=".35"/><ellipse cx="${x}" cy="${y}" rx="1.7" ry=".6" fill="none" stroke="#fff" stroke-width=".3" stroke-dasharray=".5 .5"/>` }).join('')
     const ladder = (x: number) => `<path d="M${x} 75.6V66C${x} 62.6 ${f(x + 5)} 62.6 ${f(x + 5)} 66V78" fill="none" stroke="${P.ink}" stroke-width="2.2" stroke-linecap="round"/><path d="M${x} 75.6V66C${x} 62.6 ${f(x + 5)} 62.6 ${f(x + 5)} 66V78" fill="none" stroke="${P.white}" stroke-width="1" stroke-linecap="round"/><path d="M${f(x + 0.3)} 66.4V75" stroke="${P.sky}" stroke-width=".35"/>`
     const arcs: [number, number, number, number][] = [[59.4, 40, 60.4, 26], [49, 46, 37.6, 56], [71, 46, 82.4, 56]]
     const ts = [0.24, 0.42, 0.6, 0.78, 0.96]
     const splash = arcs.map(([cx, cy, x1, y1], i) =>
       along(60, 74, cx, cy, x1, y1, ts).map((q, j) => ({ q, i, j })).reverse().map(({ q, i: a, j }) =>
-        coin(k, f(q.x), f(q.y), f(3.4 - j * 0.34), (a * 47 + j * 61) % 180 - 90, 0.25 + ((a * 3 + j * 5) % 7) / 9)).join('')).join('')
+        flyingChip(k, f(q.x), f(q.y), f(3.2 - j * 0.32), [RED, BLUE, WHITE, GOLD][(a + j) % 4], (a * 47 + j * 61) % 180 - 90, 0.25 + ((a * 3 + j * 5) % 7) / 9)).join('')).join('')
     const trails = arcs.map(([cx, cy, x1, y1]) => hair(60, 72, cx, cy, x1, y1, 0.6, P.goldL, 0.7)).join('')
     return (
       felt(k, 54) +
@@ -511,11 +505,11 @@ export const POKER_NUEVAS_ART: Record<string, (u: number) => string> = {
       `<path d="${tiles}" stroke="${P.sky2}" stroke-width=".4"/>` + `<path d="${ellipse(60, 79, 28.7, 9.7)}" fill="none" stroke="${P.sky2}" stroke-width=".35"/>` +
       `<path d="${innerE}" fill="${P.sky}" stroke="${P.ink}" stroke-width=".5"/>` + `<path d="${wall}" fill="${P.sky}"/>` +
       `<path d="M36 79.4V81M40 77.6V79.6M45 76.4V78.8M50 75.6V78M55 75V77.6M60 74.8V77.4M65 75V77.6M70 75.6V78M75 76.4V78.8M80 77.6V79.6M84 79.4V81" stroke="${P.blue}" stroke-width=".3"/>` +
-      `<path d="${gold}" fill="${P.gold}"/>` + k.clip(gold, pile + k.sh(gold, 0, 0, 1, 1, 0, 0.6, P.goldD, 0.4)) +
+      `<path d="${gold}" fill="${P.wine}"/>` + k.clip(gold, pile + k.sh(gold, 0, 0, 1, 1, 0, 0.6, P.night, 0.35)) +
       `<path d="${innerE}" fill="none" stroke="${P.ink}" stroke-width=".5"/>` +
       ladder(82.4) +
       trails +
-      `<path d="${mound}" fill="${P.gold}"/>` + k.clip(mound, moundCoins + k.sh(mound, 0, 0, 1, 1, 0, 0.6, P.goldD, 0.4)) +
+      `<path d="${mound}" fill="${P.wine}"/>` + k.clip(mound, moundCoins + k.sh(mound, 0, 0, 1, 1, 0, 0.6, P.night, 0.35)) +
       `<path d="${ellipse(60, 81, 19, 3.2)}" fill="none" stroke="${P.goldL}" stroke-width=".7" stroke-dasharray="2.4 1.4"/>` +
       splash +
       flyingChip(k, 76, 38, 2.8, RED, 25, 0.55) + flyingChip(k, 44, 38.6, 2.6, BLUE, -35, 0.7) +
