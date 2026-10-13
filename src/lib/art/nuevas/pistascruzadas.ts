@@ -222,8 +222,11 @@ export const PISTASCRUZADAS_NUEVAS_ART: Record<string, (u: number) => string> = 
     return (
       graph(k) +
       k.shade(`M0 0H120V${SEA}H0Z`, k.lin(PC_L, 0, 0, 0, 1, 0, 0.6), PC_L, 0.35) +
-      // El humo del impacto.
-      `<path d="M58 44C52 40 54 32 60 32C60 26 68 24 71 29C76 26 82 30 80 36C84 38 82 44 77 44Z" fill="#5C6684" opacity=".35"/>` +
+      // El humo del impacto, que sube en bocanadas.
+      [[66, 46, 0.62], [70.6, 38.6, 0.8], [76.4, 30.4, 1]].map(([x, y, sc]) => {
+        const d = 'M-6 2.4C-8.6 2.4 -9 -1 -6.6 -1.8C-6.6 -5 -2.6 -6.4 -.6 -4.4C1 -6.6 5.4 -6 5.6 -2.6C8.4 -2.4 8.6 2 6 2.4Z'
+        return `<g transform="translate(${x} ${y}) scale(${sc})">` + k.draw([{ d, fill: '#B9C3D8', inner: k.sh(d, 0, 0, 1, 1, 0, 0.9, '#5C6684', 0.5) + hair(-6, -1, -3, -4.4, 1, -3.6, 0.6, '#fff', 0.8) }], 0.5 / sc) + `</g>`
+      }).join('') +
       `<g transform="translate(62 67) rotate(-20)">` + k.cast([hull], 1.6, 2, PC_D) + ship +
       // La clavija roja: tocado.
       `<g transform="translate(3.4 -2) rotate(10)">` + k.draw([{ d: peg, fill: P.red, inner: k.sh(peg, 0, 0, 1, 0, 0, 0.9, P.wine, 0.5) + `<path d="M-1 -7.6V-1" stroke="#fff" stroke-width=".5" opacity=".8"/>` }], 0.55) + `</g>` +
@@ -352,81 +355,92 @@ export const PISTASCRUZADAS_NUEVAS_ART: Record<string, (u: number) => string> = 
 
   // ── Telepatía ──────────────────────────────────────────────────────
 
-  // Cinco pistas al toque: la cucharita doblada con la mente, y las ondas que la torcieron.
+  // Cinco pistas al toque: Uri Geller está nervioso. La cucharita doblada con la mente, que se vence como una flor.
   'Cucharita doblada': (u) => {
     const k = kit(u)
-    const handle = 'M-1.1 0L-1.7 25.4C-3.9 27.6 -4.1 33 0 34.8C4.1 33 3.9 27.6 1.7 25.4L1.1 0Z'
-    const bowl = 'M0 1.4C-1 -.6 -5.6 -4 -5.6 -10.6C-5.6 -16.4 -2.8 -19.6 0 -19.6C2.8 -19.6 5.6 -16.4 5.6 -10.6C5.6 -4 1 -.6 0 1.4Z'
-    const wave = (r: number) => `M${f(30 + Math.cos(-0.2) * r)} ${f(40 + Math.sin(-0.2) * r)}A${r} ${r} 0 0 1 ${f(30 + Math.cos(1.1) * r)} ${f(40 + Math.sin(1.1) * r)}`
+    const handle = 'M-1.2 0L-1.9 25.6C-3.4 27.6 -3.2 31.4 0 34C3.2 31.4 3.4 27.6 1.9 25.6L1.2 0Z'
+    const bowl = 'M0 1.2C-1.4 -1 -6.8 -4 -6.8 -11.6C-6.8 -18.4 -3.4 -22 0 -22C3.4 -22 6.8 -18.4 6.8 -11.6C6.8 -4 1.4 -1 0 1.2Z'
+    const hollow = 'M0 -2.6C-1.4 -4.4 -4.8 -6.6 -4.8 -11.8C-4.8 -16.8 -2.4 -19.6 0 -19.6C2.4 -19.6 4.8 -16.8 4.8 -11.8C4.8 -6.6 1.4 -4.4 0 -2.6Z'
+    const src = { x: 32, y: 30 }
+    const wave = (r: number) => { const a0 = (10 * Math.PI) / 180, a1 = (72 * Math.PI) / 180; return `M${f(src.x + Math.cos(a0) * r)} ${f(src.y + Math.sin(a0) * r)}A${r} ${r} 0 0 1 ${f(src.x + Math.cos(a1) * r)} ${f(src.y + Math.sin(a1) * r)}` }
     return (
       graph(k) +
       stageB(k, 60, 60, 34) +
-      glow(k, 60, 56, 30, 28, 0.6) +
+      glow(k, 62, 56, 30, 28, 0.6) +
       // Las ondas de la mente, que llegan desde arriba a la izquierda.
-      [12, 18, 24].map((r, i) => `<path d="${wave(r)}" fill="none" stroke="${PC}" stroke-width="${1.4 - i * 0.3}" stroke-dasharray="${i ? '2 1.6' : '0'}" stroke-linecap="round" opacity="${1 - i * 0.2}"/>`).join('') +
-      k.floor(62, 93, 18, 2.6, PC_D) +
-      `<g transform="translate(58 58) rotate(-8)">` +
+      [10, 16.4, 22.8].map((r, i) => cord(wave(r), i ? PC_L : PC, 1.3 - i * 0.25)).join('') +
+      `<circle cx="${src.x}" cy="${src.y}" r="2" fill="${P.goldL}" stroke="${P.ink}" stroke-width=".45"/>` +
+      `<g transform="translate(66 46) rotate(38) scale(1.1)">` +
       k.cast([handle], 1.8, 2, PC_D) +
       k.draw([{
         d: handle, fill: P.sky1,
         inner: k.sh(handle, 0, 0, 1, 0, 0, 0.9, P.blue, 0.5) + hair(-0.6, 3, -0.9, 14, -0.8, 24, 0.6, '#fff') +
-          `<path d="M0 26.6C-1.8 28.6 -1.8 31.6 0 32.8C1.8 31.6 1.8 28.6 0 26.6Z" fill="none" stroke="${P.blue}" stroke-width=".45"/><circle cx="0" cy="29.8" r=".7" fill="${PC}"/>` +
-          hair(-1, 21, -0.4, 23, 0, 25, 0.4, P.blue),
+          `<path d="M0 27C-1.6 28.8 -1.4 31 0 32.4C1.4 31 1.6 28.8 0 27Z" fill="${PC_XL}" stroke="${P.blue}" stroke-width=".4"/><circle cx="0" cy="29.8" r=".6" fill="${PC}"/>` +
+          `<path d="M0 6V22" stroke="${P.blue}" stroke-width=".3" stroke-dasharray="1 .8"/>`,
       }], 0.6) +
-      // El cuello torcido: la cuchara se dobló para la derecha.
-      `<g transform="rotate(58)">` +
+      // El cuello torcido: la cuchara se vence hacia abajo, a la derecha.
+      `<g transform="rotate(118)">` +
       k.cast([bowl], 1.8, 2, PC_D) +
       k.draw([{
         d: bowl, fill: P.sky1,
-        inner: k.sh(bowl, 0, 0, 1, 1, 0, 0.9, P.blue, 0.5) + `<path d="${ellipse(0.6, -10.4, 3.6, 6.8)}" fill="${P.sky}" opacity=".6"/>` + hair(-3.6, -14, -3.8, -10, -2.4, -5.6, 0.9, '#fff') + `<ellipse cx="-2" cy="-15" rx="1" ry="1.8" fill="#fff" opacity=".9"/>`,
+        inner: `<path d="${hollow}" fill="${P.sky}"/>` + k.shade(hollow, k.rad(P.mid, 0.6, 0.55, 0.6, 0, 0.7), P.mid, 0.35) + k.sh(bowl, 0, 0, 1, 1, 0, 0.5, P.blue, 0.3) +
+          hair(-3.6, -16, -4, -11, -2.6, -6, 0.9, '#fff') + `<ellipse cx="2" cy="-14" rx="1" ry="2" fill="#fff" opacity=".9"/>`,
       }], 0.6) +
       `</g>` +
-      `<circle cx="0" cy="0" r="1.6" fill="${P.sky1}" stroke="${P.ink}" stroke-width=".5"/>` +
+      `<path d="M-1.4 -1.6C-.6 -2.6 .8 -2.6 1.6 -1.4" fill="none" stroke="${P.ink}" stroke-width=".5"/>` +
       `</g>` +
-      hair(64, 52, 67, 50, 70, 51, 0.6, PC_D) + hair(62.6, 56, 66.4, 56, 69, 58, 0.6, PC_D) +
-      sparkle(60.6, 57.4, 3.4, '#fff') + sparkle(88, 40, 2, PC) + sparkle(34, 80, 1.6, P.goldD) +
+      // El tironcito de la torcedura.
+      hair(70, 38, 74, 37, 77, 39.6, 0.6, PC_D) + hair(72, 42.6, 75.6, 43, 78, 45.6, 0.6, PC_D) +
+      sparkle(66, 46, 3.6, '#fff') + sparkle(90, 70, 2, PC) + sparkle(30, 76, 1.6, P.goldD) +
       k.defs()
     )
   },
 
-  // Veinte pistas adivinadas sin dudar: ya ven el futuro. El turbante con joya y pluma, sobre la bola de cristal.
+  // Veinte pistas adivinadas sin dudar: ya ven el futuro. El turbante de adivino, con la joya que es una bola de cristal.
   'Turbante de adivino': (u) => {
     const k = kit(u)
-    const ball = ellipse(60, 70, 14.4, 14.4)
-    const stand = 'M48.6 82C50 85 52 86.4 53.6 86.6L51 92.4H69L66.4 86.6C68 86.4 70 85 71.4 82C67 85.4 53 85.4 48.6 82Z'
-    const turban = 'M36.6 58C35 46 44 34.6 60 34.6C76 34.6 85 46 83.4 58C79 62.6 41 62.6 36.6 58Z'
-    const folds = 'M38 54C46 44 58 40 72 41M37.4 48C46 40 56 37 66 37.6M44 59.6C52 50 64 45 80 47.6M54 61C62 54 72 51 82.6 53.4'
-    const feather = taper(60.6, 45, 62, 34, 68.4, 22.6, 2.4, 4.6)
+    const dome = 'M-24.6 6C-27 -6 -20 -20 -8 -24.4C-4 -25.8 4 -25.8 8 -24.4C20 -20 27 -6 24.6 6Z'
+    const roll = 'M-26.6 6.6C-27 1.4 -14 -.6 0 -.6C14 -.6 27 1.4 26.6 6.6C26.2 12.4 14 15.2 0 15.2C-14 15.2 -26.2 12.4 -26.6 6.6Z'
+    const opening = 'M-21 12.6C-12 16 12 16 21 12.6C13 17.6 -13 17.6 -21 12.6Z'
+    // Las vueltas de tela: bandas que se cruzan adelante, donde va la joya.
+    const bands: [number, number, number, number, number, number, number, string][] = [
+      [-28, -10, -6, -16, 14, -32, 8, '#1569BC'], [28, -10, 6, -16, -14, -32, 8, '#2A8BE0'],
+      [-28, 4, -6, -4, 22, -24, 9, '#2A8BE0'], [28, 4, 6, -4, -22, -24, 9, '#3A95E4'],
+    ]
+    const wraps = bands.map(([x0, y0, cx, cy, x1, y1, w, c]) => {
+      const d = taper(x0, y0, cx, cy, x1, y1, w, w)
+      return `<path d="${d}" fill="${c}"/>` + k.sh(d, 0, 0, 1, 1, 0, 0.7, PC_D, 0.4) + `<path d="${d}" fill="none" stroke="${P.ink}" stroke-width=".55"/>` +
+        hair(x0 + (cx - x0) * 0.3, y0 + (cy - y0) * 0.3 - w * 0.3, cx, cy - w * 0.32, x1 - (x1 - cx) * 0.3, y1 - (y1 - cy) * 0.3 - w * 0.3, 0.6, PC_L, 0.85)
+    }).join('')
+    const twist = Array.from({ length: 13 }, (_, i) => { const x = -23 + i * 3.8, b = 14.4 - Math.pow(x / 27, 2) * 6, t = 0.4 - Math.pow(x / 27, 2) * 2.4; return hair(x - 1.6, b, x - 0.2, (b + t) / 2, x + 1.6, t + 0.6, 0.55, PC_D, 0.85) }).join('')
+    const feather = taper(-1, -12, 1, -24, 9, -32, 2.6, 5.2)
     return (
       graph(k) +
-      k.sun(60, 58, 18, 48, 32, false) +
-      glow(k, 60, 64, 28, 26, 0.7, '#fff') +
-      k.floor(60, 92.6, 16, 2.4, PC_D) +
-      k.draw([{ d: stand, fill: P.gold, inner: k.sh(stand, 0, 0, 1, 0, 0, 0.9, P.goldD, 0.5) + `<path d="M52.2 89.6H67.8" stroke="${P.goldD}" stroke-width=".4"/>` + hair(53, 88, 54, 86.6, 56, 86.4, 0.5, '#fff') }], 0.6) +
-      // La bola de cristal, con la niebla del futuro adentro.
-      k.draw([{
-        d: ball, fill: PC_XL,
-        inner:
-          k.shade(ball, k.rad(PC_L, 0.5, 0.5, 0.5, 0.1, 0.95), PC_L, 0.5) +
-          hair(50, 74, 56, 68, 64, 72, 1.2, '#fff', 0.85) + hair(54, 78, 62, 74, 70, 78, 0.9, '#fff', 0.7) + hair(56, 66, 62, 62, 68, 66, 0.7, PC, 0.6) +
-          `<path d="${starPath(63, 73, 2.6, 0.9, 4)}" fill="${P.goldL}"/>` + k.sh(ball, 0, 0, 1, 1, 0.3, 0.9, PC, 0.35),
-      }], 0.7) +
-      hair(48.6, 66, 49.4, 61, 53.4, 58.6, 1.2, '#fff', 0.95) +
-      // El turbante: tela azul enroscada, joya y pluma.
-      k.cast([turban], 2, 2.4, PC_D) +
-      k.draw([{ d: feather, fill: P.white, inner: k.sh(feather, 0, 0, 1, 1, 0, 0.7, PC_L, 0.45) + hair(61, 42, 63.6, 32, 67.6, 24, 0.5, PC_L) + [0, 1, 2, 3, 4].map((i) => hair(62 + i * 1.2, 40 - i * 3.4, 60.6 + i * 1.2, 38 - i * 3.4, 60 + i * 1.2, 36.4 - i * 3.4, 0.3, PC_L, 0.8)).join('') }], 0.5) +
-      k.draw([{
-        d: turban, fill: PC,
-        inner:
-          `<path d="${folds}" fill="none" stroke="${PC_D}" stroke-width="1.6" stroke-linecap="round"/>` + `<path d="${folds}" fill="none" stroke="${PC_L}" stroke-width=".6" stroke-linecap="round" transform="translate(-.4 -.9)"/>` +
-          k.sh(turban, 0, 0, 1, 1, 0, 0.9, PC_N, 0.5) + `<path d="M34 34H52V62C46 60 40 58 34 56Z" fill="${k.lin('#fff', 0, 0, 1, 1, 0.45, 0)}"/>` +
-          `<path d="M37.6 57.6C46 60.6 74 60.6 82.4 57.6" fill="none" stroke="${P.gold}" stroke-width=".8"/>`,
-      }], 0.75) +
-      // La joya del frente.
-      k.draw([{ d: starPath(60.4, 47.4, 6, 3.6, 8), fill: P.gold, inner: k.sh(starPath(60.4, 47.4, 6, 3.6, 8), 0, 0, 1, 1, 0, 0.9, P.goldD, 0.5) }], 0.45) +
-      `<circle cx="60.4" cy="47.4" r="2.6" fill="${P.red}" stroke="${P.ink}" stroke-width=".45"/><circle cx="59.6" cy="46.6" r=".7" fill="#fff"/>` +
-      `<path d="M58.6 53.4L57.6 57.6M62.2 53.4L63.2 57.6" stroke="${P.gold}" stroke-width=".8" stroke-linecap="round"/><circle cx="57.4" cy="58.2" r=".8" fill="${P.goldL}" stroke="${P.ink}" stroke-width=".3"/><circle cx="63.4" cy="58.2" r=".8" fill="${P.goldL}" stroke="${P.ink}" stroke-width=".3"/>` +
-      sparkle(36, 76, 2, '#fff') + sparkle(86, 70, 1.8, P.goldD) + sparkle(84, 34, 1.6, '#fff') +
+      k.sun(60, 56, 22, 50, 36, false) +
+      glow(k, 60, 52, 32, 30, 0.75) +
+      k.floor(60, 80, 26, 3, PC_D) +
+      `<g transform="translate(60 59)">` +
+      k.cast([dome, roll], 2.2, 2.6, PC_D) +
+      k.draw([{ d: feather, fill: P.white, inner: k.sh(feather, 0, 0, 1, 1, 0, 0.7, PC_L, 0.45) + hair(0, -14, 2, -24, 8, -30.4, 0.5, PC_L) + [0, 1, 2, 3].map((i) => hair(1.6 + i * 1.4, -16 - i * 3.6, -0.4 + i * 1.4, -18 - i * 3.6, -1.4 + i * 1.6, -19 - i * 3.6, 0.35, PC_L, 0.8)).join('') }], 0.5) +
+      k.draw([
+        { d: dome, fill: PC_D, inner: wraps + k.sh(dome, 0, 0, 1, 1, 0, 0.6, PC_N, 0.4) + `<path d="M-30 -30H-8V8H-30Z" fill="${k.lin('#fff', 0, 0, 1, 0, 0.35, 0)}"/>` },
+        {
+          d: roll, fill: '#3A95E4',
+          inner: twist + k.sh(roll, 0, 0, 1, 1, 0, 0.8, PC_D, 0.45) + `<path d="${opening}" fill="${PC_N}"/>` + hair(-22, 4.4, -12, 2.4, -2, 2.2, 0.8, '#fff', 0.8),
+        },
+      ], 0.8) +
+      `<path d="M-26.4 5.6C-24 1.6 -12 .2 0 .2C12 .2 24 1.6 26.4 5.6" fill="none" stroke="${P.gold}" stroke-width=".9" stroke-dasharray=".01 1.6" stroke-linecap="round"/>` +
+      // La joya: una bolita de cristal engarzada en oro, con la perla que cuelga.
+      k.draw([{ d: starPath(0, -6, 8.4, 5.2, 10), fill: P.gold, inner: k.sh(starPath(0, -6, 8.4, 5.2, 10), 0, 0, 1, 1, 0, 0.9, P.goldD, 0.5) }], 0.5) +
+      `<circle cx="0" cy="-6" r="5.4" fill="none" stroke="${P.goldD}" stroke-width=".5" stroke-dasharray=".01 1.2" stroke-linecap="round"/>` +
+      k.draw([{ d: ellipse(0, -6, 4, 4), fill: PC_XL, inner: k.shade(ellipse(0, -6, 4, 4), k.rad(PC, 0.5, 0.5, 0.5, 0, 0.9), PC, 0.45) + `<path d="${starPath(0.6, -5.4, 1.6, 0.5, 4)}" fill="${P.goldL}"/>` }], 0.4) +
+      `<circle cx="-1.4" cy="-7.4" r="1" fill="#fff"/>` +
+      `<path d="M0 -.4V4.6" stroke="${P.gold}" stroke-width=".6"/><circle cx="0" cy="6" r="1.6" fill="${P.white}" stroke="${P.ink}" stroke-width=".4"/><circle cx="-.5" cy="5.5" r=".45" fill="#fff"/>` +
+      `</g>` +
+      // El futuro, que gira alrededor.
+      `<path d="M30 70C24 56 32 40 46 34" fill="none" stroke="${P.goldD}" stroke-width=".5" stroke-dasharray="1.2 1.2" stroke-linecap="round"/><path d="M90 70C96 56 88 40 74 34" fill="none" stroke="${P.goldD}" stroke-width=".5" stroke-dasharray="1.2 1.2" stroke-linecap="round"/>` +
+      `<path d="${starPath(30, 70, 2.6, 0.9, 4)}" fill="${P.goldL}" stroke="${P.ink}" stroke-width=".35"/><path d="${starPath(90, 70, 2.6, 0.9, 4)}" fill="${P.goldL}" stroke="${P.ink}" stroke-width=".35"/>` +
+      sparkle(36, 36, 1.8, '#fff') + sparkle(86, 32, 1.6, '#fff') + sparkle(60, 90, 1.6, P.goldD) +
       k.defs()
     )
   },
@@ -449,6 +463,7 @@ export const PISTASCRUZADAS_NUEVAS_ART: Record<string, (u: number) => string> = 
       nightB(k, 0.5, 0.6) +
       k.sun(60, 62, 30, 52, 40, false) +
       glow(k, 60, 62, 34, 30, 0.6) +
+      `<g transform="translate(60 41) scale(.86) translate(-60 -44)">` +
       // La antena de conejo, con la señal.
       cord('M60 44L45.6 25', P.sky1, 0.9) + cord('M60 44L76.4 24', P.sky1, 0.9) +
       `<circle cx="45.4" cy="24.6" r="1.4" fill="${P.sky1}" stroke="${P.ink}" stroke-width=".45"/><circle cx="76.6" cy="23.6" r="1.4" fill="${P.sky1}" stroke="${P.ink}" stroke-width=".45"/>` +
@@ -475,11 +490,12 @@ export const PISTASCRUZADAS_NUEVAS_ART: Record<string, (u: number) => string> = 
           `<path d="M36 52H70M36 56H70M36 60H70M36 64H70M36 68H70M36 72H70M36 76H70" stroke="#fff" stroke-width=".3" opacity=".35"/>` +
           hair(39, 52, 38.4, 58, 39, 66, 1.1, '#fff', 0.9) + hair(42, 50.4, 46, 49.8, 52, 49.6, 0.7, '#fff', 0.8),
       }], 0.6) +
+      `</g>` +
       // La cinta con el grito de guerra.
-      k.draw([{ d: 'M33.6 88.6C44 91.4 76 91.4 86.4 88.6L85.4 95C76 97.6 44 97.6 34.6 95Z', fill: P.goldL, inner: k.sh('M33.6 88.6C44 91.4 76 91.4 86.4 88.6L85.4 95C76 97.6 44 97.6 34.6 95Z', 0, 0, 0, 1, 0, 0.7, P.goldD, 0.4) }], 0.5) +
-      `<path d="M33.6 88.6L28 87.6L30.6 91.4L28.6 95L34.6 95ZM86.4 88.6L92 87.6L89.4 91.4L91.4 95L85.4 95Z" fill="${P.gold}" stroke="${P.ink}" stroke-width=".45" stroke-linejoin="round"/>` +
-      `<path id="${rid}" d="M36 93.6C46 96 74 96 84 93.6" fill="none"/>` +
-      `<text ${GEORGIA} font-style="italic" font-weight="700" font-size="3.8" fill="${P.ink}"><textPath href="#${rid}" startOffset="50%" text-anchor="middle">¡pero qué sorpresa!</textPath></text>` +
+      `<path d="M39 82.6L34.4 82.2L36.6 85.6L35 88.8L39.6 88.4ZM81 82.6L85.6 82.2L83.4 85.6L85 88.8L80.4 88.4Z" fill="${P.gold}" stroke="${P.ink}" stroke-width=".45" stroke-linejoin="round"/>` +
+      k.draw([{ d: 'M39 82.6C47 85 73 85 81 82.6L80.4 88.4C73 90.6 47 90.6 39.6 88.4Z', fill: P.goldL, inner: k.sh('M39 82.6C47 85 73 85 81 82.6L80.4 88.4C73 90.6 47 90.6 39.6 88.4Z', 0, 0, 0, 1, 0, 0.7, P.goldD, 0.4) }], 0.5) +
+      `<path id="${rid}" d="M40.6 87C48 89.2 72 89.2 79.4 87" fill="none"/>` +
+      `<text ${GEORGIA} font-style="italic" font-weight="700" font-size="3.3" fill="${P.ink}"><textPath href="#${rid}" startOffset="50%" text-anchor="middle">¡pero qué sorpresa!</textPath></text>` +
       sparkle(30, 40, 2.2, '#fff') + sparkle(92, 52, 1.6, P.goldL) +
       k.defs()
     )

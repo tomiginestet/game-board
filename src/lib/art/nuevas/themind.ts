@@ -16,7 +16,7 @@ const ROSA = '#EBC4E4', ROSA_D = '#B97BB8'
 
 /** Fondo de The Mind: la noche violeta con el resplandor en el medio y estrellitas sueltas. */
 const noche = (k: Kit, cx = 0.5, cy = 0.44) =>
-  `<rect width="120" height="130" fill="${NOCHE}"/>` + `<path d="${FULL}" fill="${k.rad(VIO_D, cx, cy, 0.7, 0.9, 0)}"/>` + k.shade(FULL, k.rad(VIO, cx, cy, 0.5, 0.7, 0), VIO, 0.5) +
+  `<rect width="120" height="130" fill="${NOCHE}"/>` + `<path d="${FULL}" fill="${k.rad(VIO_D, cx, cy, 0.7, 0.9, 0)}"/>` + k.shade(FULL, k.rad(VIO, cx, cy, 0.4, 0.75, 0), VIO, 0.5) +
   [[28, 34, 0.6], [92, 32, 0.7], [24, 62, 0.45], [96, 66, 0.5], [40, 24, 0.45], [80, 22, 0.5], [34, 86, 0.4], [88, 88, 0.45]].map(([x, y, r]) => `<circle cx="${x}" cy="${y}" r="${r}" fill="${P.paper}"/>`).join('')
 
 /** Varilla entintada: la tinta gruesa y el color encima, con un brillo opcional. */
@@ -224,10 +224,11 @@ export const THEMIND_NUEVAS_ART: Record<string, (u: number) => string> = {
     const edges = (p: number[], q: number[]) => Array.from({ length: 5 }, (_, i) => `<path d="M${pt(p, 1.2 + i * 1.2)}L${pt(q, 1.2 + i * 1.2)}" stroke="${VIO_L}" stroke-width=".35"/>`).join('')
     // La carta de arriba en coordenadas de carta (14 de ancho por 20 de alto), llevada al paralelogramo.
     const m = `matrix(${f((B[0] - A[0]) / 14)} ${f((B[1] - A[1]) / 14)} ${f((D[0] - A[0]) / 20)} ${f((D[1] - A[1]) / 20)} ${A[0]} ${A[1]})`
+    // La carta de arriba, boca abajo: el dorso violeta con el filete dorado y una estrella en el medio.
     const face =
-      `<g transform="${m}"><path d="${roundRect(1.1, 1.1, 12.9, 18.9, 0.8)}" fill="none" stroke="${VIO}" stroke-width=".5"/>` +
-      `<text x="7" y="14.4" ${GEORGIA} font-weight="700" font-size="9" fill="${VIO_D}" text-anchor="middle">1</text>` +
-      `<text x="3.2" y="4.4" ${GEORGIA} font-size="2.6" fill="${VIO}" text-anchor="middle">1</text></g>`
+      `<g transform="${m}"><path d="${roundRect(0.6, 0.6, 13.4, 19.4, 1)}" fill="${VIO_D}"/><path d="${roundRect(1.6, 1.6, 12.4, 18.4, 0.7)}" fill="none" stroke="${P.gold}" stroke-width=".5"/>` +
+      `<path d="${roundRect(2.6, 2.6, 11.4, 17.4, 0.5)}" fill="none" stroke="${VIO_L}" stroke-width=".3" stroke-dasharray=".6 .5"/>` +
+      `<path d="${starPath(7, 10, 4.4, 1.2, 4)}" fill="${P.goldL}" stroke="${P.goldD}" stroke-width=".2"/><circle cx="7" cy="10" r="1" fill="${VIO}"/></g>`
     const hole = [A[0] + (B[0] - A[0]) * 0.5 + (D[0] - A[0]) * 0.3, A[1] + (B[1] - A[1]) * 0.5 + (D[1] - A[1]) * 0.3]
     const tip = [hole[0] + 1.6, 45]
     const smoke =

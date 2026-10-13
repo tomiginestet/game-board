@@ -11,7 +11,7 @@ const FULL = 'M0 0H120V130H0Z'
 
 // El cobalto de la ficha de Azul, con su sombra y su luz; el celeste cobalto del fondo.
 const COB = '#1971C2', COB_D = '#0D4A86', COB_L = '#86B4E6'
-const FONDO = '#A7C6EC', FONDO_G = '#6F9DD8'
+const FONDO = '#A9C7EC', FONDO_G = '#86ACDF'
 // Los otros esmaltes del juego: turquesa, naranja, violeta y el negro de la ficha.
 const TURQ = '#2FA3B0', TURQ_D = '#1C6F7A'
 const NAR = '#E8823A'
@@ -29,7 +29,7 @@ const pared = (k: Kit) => {
   let grid = ''
   for (let i = 0; i <= 10; i++) grid += `M${f(i * 12 - 0.4)} 0V130M0 ${f(i * 12 + 4.6)}H120`
   return `<rect width="120" height="130" fill="${P.paper}"/>` + k.shade(FULL, k.rad(FONDO, 0.5, 0.46, 0.7, 0, 1), FONDO_G, 0.5) +
-    `<path d="${grid}" stroke="#fff" stroke-width=".55" opacity=".55"/>`
+    `<path d="${grid}" stroke="#fff" stroke-width=".6" opacity=".5"/>`
 }
 
 /** Taller: un disco celeste cobalto con el borde granulado (el escenario del juego). */
@@ -190,9 +190,9 @@ export const AZUL_NUEVAS_ART: Record<string, (u: number) => string> = {
       k.floor(62, 89, 22, 3, COB_D) +
       rod('M44.6 59C43 38 81 38 79.4 59', P.sky2, 0.9, '#fff') +
       k.draw([{
-        d: body, fill: P.white,
+        d: body, fill: '#D5DCE6',
         inner:
-          k.sh(body, 0, 0, 1, 0, 0.1, 0.95, P.blue, 0.5) + `<path d="M42 56H52V90H42Z" fill="${k.lin('#ffffff', 0, 0, 1, 0, 0.6, 0)}"/>` +
+          k.sh(body, 0, 0, 1, 0, 0.05, 0.95, P.mid, 0.5) + `<path d="M42 56H52V90H42Z" fill="${k.lin('#ffffff', 0, 0, 1, 0, 0.6, 0)}"/>` +
           `<path d="M45 67C52 70 72 70 79.2 67M46.4 79C53 82 71 82 77.6 79" fill="none" stroke="${P.mid}" stroke-width="1"/><path d="M45 66.2C52 69.2 72 69.2 79.2 66.2M46.4 78.2C53 81.2 71 81.2 77.6 78.2" fill="none" stroke="#fff" stroke-width=".55"/>` +
           hair(56, 72, 58, 74, 57, 76, 0.35, P.blue) + hair(68, 84, 70, 85, 71, 87, 0.35, P.blue) + hair(50, 84, 52, 85.6, 51, 87.4, 0.3, P.blue),
       }], 0.75) +
@@ -532,6 +532,8 @@ export const AZUL_NUEVAS_ART: Record<string, (u: number) => string> = {
         { d: wrap, fill: ELEF, inner: k.sh(wrap, 0, 0, 0, 1, 0, 0.9, ELEF_D, 0.5) + hair(52.4, 51.6, 51, 55, 51.4, 58.4, 0.5, ELEF_D) + hair(47.6, 53, 46.6, 56, 47, 59.4, 0.5, ELEF_D) + hair(43.6, 52.2, 43, 55, 43.4, 58, 0.45, ELEF_D) },
         { d: tip, fill: ELEF, inner: k.sh(tip, 0, 0, 1, 1, 0, 0.8, ELEF_D, 0.45) },
       ], 0.8) +
+      // El colmillo de marfil, al costado de la trompa.
+      k.draw([{ d: taper(84, 26, 73, 38.6, 61.6, 35, 5.4, 1.2), fill: '#F4EEDF', inner: k.sh(taper(84, 26, 73, 38.6, 61.6, 35, 5.4, 1.2), 0, 0, 0, 1, 0, 0.9, P.goldD, 0.45) + hair(82, 27.4, 74, 35.4, 65, 34.6, 0.45, '#fff') + hair(80, 31, 73, 37.4, 67, 36.6, 0.35, PIEDRA_D) }], 0.6) +
       `<ellipse cx="37.6" cy="54.6" rx="1.1" ry="1.5" fill="${P.night}" transform="rotate(20 37.6 54.6)"/><path d="M36.6 52.4C37.4 51.6 38.6 51.4 39.6 51.8" fill="none" stroke="${ELEF_L}" stroke-width=".5" stroke-linecap="round"/>` +
       // Los pedazos que ya saltan.
       [[36, 84, -30], [82, 86, 40], [30, 72, 10]].map(([x, y, r]) => `<g transform="translate(${x} ${y}) rotate(${r})"><path d="M-2.4 -1.6L2.6 -2.2L1.4 2L-1.8 1.4Z" fill="${P.white}" stroke="${P.ink}" stroke-width=".4"/><path d="M-1.6 -.8L1.6 -1.2" stroke="${COB}" stroke-width=".7"/></g>`).join('') +
@@ -549,7 +551,7 @@ export const AZUL_NUEVAS_ART: Record<string, (u: number) => string> = {
       const a0 = Math.atan2(cs[i][4][1], cs[i][4][0]), a1 = Math.atan2(cs[(i + 1) % cs.length][4][1], cs[(i + 1) % cs.length][4][0])
       let mid = (a0 + a1) / 2
       if (Math.abs(a1 - a0) > Math.PI) mid += Math.PI
-      return { i, dx: Math.cos(mid) * 5.4, dy: Math.sin(mid) * 5.4, r: (i % 2 ? 1 : -1) * (2 + i * 0.6) }
+      return { i, dx: Math.cos(mid) * 3.2, dy: Math.sin(mid) * 3.2, r: (i % 2 ? 1 : -1) * (1.6 + i * 0.4) }
     })
     const flecks = [[34, 32, 20], [88, 36, -30], [26, 62, 60], [96, 64, -10], [44, 88, 15], [80, 90, -40]]
     return (

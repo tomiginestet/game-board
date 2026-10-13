@@ -151,8 +151,8 @@ export const PODRIDA_NUEVAS_ART: Record<string, (u: number) => string> = {
   'Queso azul': (u) => {
     const k = kit(u)
     const front = 'M34 82L80 82L80 47Z'
-    const top = 'M34 82L80 47L88.6 41.4L42.6 76.4Z'
-    const rind = 'M80 47L88.6 41.4C90 52 90 64 88.6 76.4L80 82Z'
+    const top = 'M34 82L80 47L86 39.2L40 74.2Z'
+    const rind = 'M80 47L86 39.2C87.4 50 87.4 62 86 74.2L80 82Z'
     const r = rng(41)
     // Cada veta: una grieta fina con manchones de moho azul a los costados, más cargados cerca de la grieta.
     const AZUL = ['#4F6FA0', '#6F8DBA', '#3E5A8A', CIR_L]
@@ -172,6 +172,8 @@ export const PODRIDA_NUEVAS_ART: Record<string, (u: number) => string> = {
     }
     const holes = [[60, 76, 2, 1.2], [71, 64, 1.5, 1], [74, 77.6, 1.3, 0.8], [50, 79.4, 1.2, 0.8]].map(([x, y, rx, ry]) => `<ellipse cx="${x}" cy="${y}" rx="${rx}" ry="${ry}" fill="${CASCARA}" stroke="${P.ink}" stroke-width=".35"/><path d="M${f(x - rx)} ${y}A${rx} ${ry} 0 0 1 ${f(x + rx)} ${y}" fill="${P.brownD}" opacity=".35"/>`).join('')
     const board = 'M36 87C36 84 46 82.4 60 82.4C74 82.4 84 84 84 87C84 90 74 92.4 60 92.4C46 92.4 36 90 36 87Z'
+    const blade = 'M1 -2.2H4.6L3.4 2.2H1Z'
+    const haft = 'M-1.4 -2.4H-12C-13.6 -2.4 -14.4 -1.4 -14.4 0C-14.4 1.4 -13.6 2.4 -12 2.4H-1.4Z'
     const smell = (x: number, y: number, s: number) =>
       `<g transform="translate(${x} ${y}) scale(${s})">` + hair(0, 0, -4, -6, 0, -12, 1.3, MOHO_D, 0.9) + hair(0, -12, 4, -17, 0.6, -23, 1.1, MOHO_D, 0.8) + `</g>`
     return (
@@ -186,19 +188,28 @@ export const PODRIDA_NUEVAS_ART: Record<string, (u: number) => string> = {
       k.draw([
         {
           d: rind, fill: CASCARA,
-          inner: k.sh(rind, 0, 0, 1, 0, 0, 0.9, P.brown, 0.45) + Array.from({ length: 14 }, () => `<circle cx="${f(81 + r() * 8)}" cy="${f(44 + r() * 36)}" r="${f(0.4 + r() * 0.7)}" fill="${r() > 0.5 ? '#fff' : CIR_L}" opacity=".85"/>`).join('') +
-            hair(84, 46, 85.4, 60, 84.6, 74, 0.5, P.brown, 0.7) + hair(87, 45, 88.4, 56, 87.6, 70, 0.4, '#fff', 0.7),
+          inner: k.sh(rind, 0, 0, 1, 0, 0, 0.9, P.brown, 0.45) + Array.from({ length: 14 }, () => `<circle cx="${f(80.6 + r() * 5.4)}" cy="${f(42 + r() * 38)}" r="${f(0.4 + r() * 0.7)}" fill="${r() > 0.5 ? '#fff' : CIR_L}" opacity=".85"/>`).join('') +
+            hair(83, 46, 84.4, 60, 83.6, 74, 0.5, P.brown, 0.7) + hair(85, 44, 86.2, 56, 85.6, 70, 0.4, '#fff', 0.7),
         },
         {
           d: top, fill: PASTA,
-          inner: `<path d="${top}" fill="${k.lin('#ffffff', 0, 0, 1, 1, 0.7, 0)}"/>` + vena(46, 72, -0.6, 9) + vena(62, 60, -0.4, 10) + vena(74, 52, -0.7, 6) + k.sh(top, 0, 0, 1, 1, 0.3, 0, CIR_L, 0.25),
+          inner: `<path d="${top}" fill="${k.lin('#ffffff', 0, 0, 1, 1, 0.7, 0)}"/>` + vena(44, 74, -0.66, 8) + vena(58, 63, -0.66, 8) + vena(72, 52, -0.66, 6) + k.sh(top, 0, 0, 1, 1, 0.3, 0, CIR_L, 0.25),
         },
         {
           d: front, fill: PASTA,
-          inner: k.sh(front, 0, 0, 1, 1, 0, 0.55, CIR_L, 0.4) + vena(46, 80, -0.3, 12) + vena(64, 72, -1.2, 10) + vena(70, 62, 1.6, 8) + vena(76, 54, 1.9, 7) + vena(56, 79, 0.2, 7) + holes,
+          inner: k.sh(front, 0, 0, 1, 1, 0, 0.55, CIR_L, 0.4) + vena(42, 80, -0.3, 10) + vena(56, 78, -1, 9) + vena(66, 70, -1.4, 9) + vena(72, 60, 1.7, 7) + vena(77, 52, 1.9, 6) + vena(60, 66, 0.4, 6) + vena(74, 76, -2.4, 6) + holes,
         },
       ], 0.75) +
       `<path d="M34 82L80 47" stroke="#fff" stroke-width=".8" opacity=".85"/><path d="M80 47V82" stroke="${CASCARA}" stroke-width=".6" opacity=".9"/>` +
+      // El cuchillo de queso, clavado en la cuña: la hoja calada con la punta en horqueta y el cabo de madera.
+      `<g transform="translate(56.4 63.6) rotate(38)">` +
+      k.draw([
+        { d: blade, fill: P.sky1, inner: k.sh(blade, 0, 0, 0, 1, 0, 0.85, P.blue, 0.45) + `<path d="M1 -1.2H4" stroke="#fff" stroke-width=".5"/>` },
+        { d: haft, fill: P.brown, inner: k.sh(haft, 0, 0, 0, 1, 0, 0.8, P.brownD, 0.45) + `<circle cx="-4" cy="0" r=".55" fill="${P.goldL}"/><circle cx="-9" cy="0" r=".55" fill="${P.goldL}"/>` + hair(-12, -1, -7, -1.6, -2, -1, 0.4, '#FFE3C2', 0.7) },
+        { d: 'M-1.4 -3.2H1V3.2H-1.4Z', fill: P.goldD },
+      ], 0.5) +
+      `</g>` +
+      `<path d="M58.6 64.4C59.6 66 61.4 66.4 62.6 65.4" fill="none" stroke="${P.brownD}" stroke-width=".5" opacity=".7"/>` +
       `</g>` +
       sparkle(86, 32, 2.2) + sparkle(32, 46, 1.6) + sparkle(30, 70, 1.2) +
       k.defs()
@@ -370,10 +381,10 @@ export const PODRIDA_NUEVAS_ART: Record<string, (u: number) => string> = {
   // Cuarenta ceros: el monje zen se resuelve con su cuenco vacío, sobre la arena rastrillada, y el ensō, el cero del zen.
   'Monje zen': (u) => {
     const k = kit(u)
-    const cx = 60, cy = 52, R = 27
+    const cx = 60, cy = 51, R = 25.4
     // El ensō: una pincelada que da casi toda la vuelta, cargada al empezar y que se seca y se abre en cerdas al final.
-    const a0 = (-58 * Math.PI) / 180, span = (318 * Math.PI) / 180, N = 72
-    const wAt = (t: number) => (t < 0.05 ? 4.4 + t * 56 : 7.2 * (1 - 0.52 * Math.pow((t - 0.05) / 0.95, 0.9)))
+    const a0 = (196 * Math.PI) / 180, span = (322 * Math.PI) / 180, N = 72
+    const wAt = (t: number) => (t < 0.08 ? 5.2 + t * 24 : 7.1 - 2.6 * Math.pow((t - 0.08) / 0.92, 1.2))
     const P_ = (a: number, rr: number) => `${f(cx + Math.cos(a) * rr)} ${f(cy + Math.sin(a) * rr)}`
     const L: string[] = [], Rr: string[] = []
     for (let i = 0; i <= N; i++) {
@@ -384,13 +395,18 @@ export const PODRIDA_NUEVAS_ART: Record<string, (u: number) => string> = {
     const enso = `M${L.join('L')}L${Rr.reverse().join('L')}Z`
     // Las vetas secas del pincel: hilos de papel que corren dentro del trazo en la segunda mitad.
     const dry = [-1.6, -0.4, 0.9, 2].map((off, j) => {
-      const pts = Array.from({ length: 16 }, (_, i) => { const t = 0.5 + j * 0.06 + (i / 15) * (0.46 - j * 0.06), a = a0 + span * t; return P_(a, R + Math.sin(t * 7) * 0.6 - t * 1.4 + off * wAt(t) * 0.22) })
+      const pts = Array.from({ length: 16 }, (_, i) => { const t = 0.68 + j * 0.05 + (i / 15) * (0.3 - j * 0.05), a = a0 + span * t; return P_(a, R + Math.sin(t * 7) * 0.6 - t * 1.4 + off * wAt(t) * 0.22) })
       return `<path d="M${pts.join('L')}" fill="none" stroke="#F3ECF6" stroke-width="${0.35 + (j % 2) * 0.2}" stroke-linecap="round"/>`
     }).join('')
     const bristles = [-2.4, -1.2, 0, 1.2, 2.2].map((off, j) => {
       const tS = 0.9, tE = 1.01 + (j % 3) * 0.015, rr = (t: number) => R + Math.sin(t * 7) * 0.6 - t * 1.4 + off * 0.5
       const aS = a0 + span * tS, aE = a0 + span * tE, aM = (aS + aE) / 2
       return hair(cx + Math.cos(aS) * rr(tS), cy + Math.sin(aS) * rr(tS), cx + Math.cos(aM) * rr(0.96), cy + Math.sin(aM) * rr(0.96), cx + Math.cos(aE) * rr(tE), cy + Math.sin(aE) * rr(tE), 0.5, P.ink, 0.9)
+    }).join('')
+    // Las marcas de las cerdas a lo largo de todo el trazo.
+    const streaks = [-0.34, -0.12, 0.1, 0.3].map((o, j) => {
+      const pts = Array.from({ length: 30 }, (_, i) => { const t = 0.04 + j * 0.03 + (i / 29) * (0.8 - j * 0.05), a = a0 + span * t; return P_(a, R + Math.sin(t * 7) * 0.6 - t * 1.4 + o * wAt(t)) })
+      return `<path d="M${pts.join('L')}" fill="none" stroke="${P.mid}" stroke-width=".35" stroke-linecap="round" opacity=".7"/>`
     }).join('')
     const splat = [[0.4, 7.4, 0.9], [-0.3, 8.6, 0.6], [0.8, 9.6, 0.45]].map(([da, dr, rr]) => `<circle cx="${f(cx + Math.cos(a0 + da * 0.1) * (R + dr))}" cy="${f(cy + Math.sin(a0 + da * 0.1) * (R + dr))}" r="${rr}" fill="${P.ink}"/>`).join('')
     const bowl = 'M40 76C40 86 49 91.4 60 91.4C71 91.4 80 86 80 76Z'
@@ -409,7 +425,7 @@ export const PODRIDA_NUEVAS_ART: Record<string, (u: number) => string> = {
       k.draw([{ d: sand, fill: '#EFE6F3', inner: k.sh(sand, 0, 0, 0, 1, 0, 0.7, LILA_G, 0.4) + Array.from({ length: 6 }, (_, i) => `<path d="M-2 ${72 + i * 3.2}H122" stroke="${CIR_L}" stroke-width=".55"/>`).join('') }], 0.4) +
       `<path d="${ellipse(60, 84, 50, 11)}" fill="#EFE6F3"/>` + ripples +
       // El ensō, entintado: la tinta y las cerdas secas.
-      `<path d="${enso}" fill="${CIR}" transform="translate(.8 .9)" opacity=".3"/><path d="${enso}" fill="${P.ink}"/>` + dry + bristles + splat +
+      `<path d="${enso}" fill="${CIR}" transform="translate(.8 .9)" opacity=".3"/><path d="${enso}" fill="${P.ink}"/>` + streaks + dry + bristles + splat +
       k.floor(60, 90.4, 22, 2.6, CIR_D) +
       k.draw([
         {

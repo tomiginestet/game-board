@@ -112,11 +112,11 @@ const GUN = 'M-14 -6H39.4V2.4H5.4V5.2H-1C-2 8 -5 9.8 -8.4 9.4L-13.6 6C-16.4 9.6 
   'M-13 -5.4L-14.6 -9.4C-15 -10.4 -16.4 -11 -17.6 -10.6L-17 -9.4C-16.2 -9.6 -15.8 -9.2 -15.6 -8.6L-14.4 -4.8Z'
 
 /** Humo del caño: un rulo que sube y se abre. */
-const smoke = (x: number, y: number, s = 1) =>
+const smoke = (x: number, y: number, s = 1, c: string = P.white) =>
   `<g transform="translate(${x} ${y}) scale(${s})" fill="none" stroke-linecap="round">` +
-  `<path d="M0 0C3 -1 4.6 -4 3 -6.4C1.6 -8.4 -1.6 -7.4 -1 -5.4C-.6 -4 1.2 -4.4 1.2 -5.6" stroke="${P.white}" stroke-width="1.6"/>` +
-  `<path d="M3 -6.4C5 -9 4 -12.4 1.4 -13.6C-1.4 -14.8 -3.6 -12.4 -2.6 -10.6" stroke="${P.white}" stroke-width="1.2" opacity=".85"/>` +
-  `<path d="M1.4 -13.6C3 -16 1.6 -18.6 -.6 -19.4" stroke="${P.white}" stroke-width=".8" opacity=".6"/></g>`
+  `<path d="M0 0C3 -1 4.6 -4 3 -6.4C1.6 -8.4 -1.6 -7.4 -1 -5.4C-.6 -4 1.2 -4.4 1.2 -5.6" stroke="${c}" stroke-width="1.6"/>` +
+  `<path d="M3 -6.4C5 -9 4 -12.4 1.4 -13.6C-1.4 -14.8 -3.6 -12.4 -2.6 -10.6" stroke="${c}" stroke-width="1.2" opacity=".85"/>` +
+  `<path d="M1.4 -13.6C3 -16 1.6 -18.6 -.6 -19.4" stroke="${c}" stroke-width=".8" opacity=".6"/></g>`
 
 /** Fogonazo dorado de ocho puntas. */
 const flash = (x: number, y: number, r: number) =>
@@ -190,24 +190,23 @@ export const DOBBLE_NUEVAS_ART: Record<string, (u: number) => string> = {
     )
   },
 
-  // Diez victorias: ves a través del mazo. Los anteojos de rayos X con sus espirales, y el mazo radiografiado.
+  // Diez victorias: ves a través del mazo. Los anteojos de rayos X, con una radiografía en cada vidrio, y el mazo atravesado.
   'Rayos X': (u) => {
     const k = kit(u)
     const LY = 45
-    const lens = (x: number) => {
-      const spiral = Array.from({ length: 4 }, (_, i) => `<circle cx="${x}" cy="${LY}" r="${f(1.2 + i * 1.5)}" fill="none" stroke="#fff" stroke-width=".55" stroke-dasharray="${f(3 + i * 2)} ${f(1 + i * 0.6)}" transform="rotate(${i * 50} ${x} ${LY})"/>`).join('')
-      return k.draw([{ d: ellipse(x, LY, 8.6, 8.6), fill: P.white, inner: k.sh(ellipse(x, LY, 8.6, 8.6), 0, 0, 1, 1, 0, 0.8, P.blue, 0.45) + `<circle cx="${x}" cy="${LY}" r="7.6" fill="none" stroke="${DB}" stroke-width=".6"/>` }], 0.75) +
-        `<circle cx="${x}" cy="${LY}" r="6.6" fill="${P.night}" stroke="${P.ink}" stroke-width=".5"/>` + spiral +
-        `<path d="M${x - 4.6} ${LY - 3.2}A5.6 5.6 0 0 1 ${x - 1.2} ${LY - 5.2}" fill="none" stroke="#fff" stroke-width="1" stroke-linecap="round" opacity=".8"/>`
-    }
+    // Radiografía: los símbolos de las cartas de abajo, sólo en contorno celeste.
+    const ghost = (n: string, x: number, y: number, s: number, o: number) =>
+      `<g transform="translate(${x} ${y}) scale(${s})" opacity="${o}">${SYM[n]().replace(/fill="[^"]*"/g, 'fill="none"').replace(/stroke="[^"]*"/g, 'stroke="#BFE2FF"')}</g>`
+    const lens = (x: number, n: string, r: number) =>
+      k.draw([{ d: ellipse(x, LY, 8.6, 8.6), fill: P.white, inner: k.sh(ellipse(x, LY, 8.6, 8.6), 0, 0, 1, 1, 0, 0.8, P.blue, 0.45) + `<circle cx="${x}" cy="${LY}" r="7.6" fill="none" stroke="${DB}" stroke-width=".6"/>` }], 0.75) +
+      `<circle cx="${x}" cy="${LY}" r="6.6" fill="#16234F" stroke="${P.ink}" stroke-width=".5"/>` +
+      k.clip(ellipse(x, LY, 6.4, 6.4), `<path d="M${x - 7} ${LY - 3}H${x + 7}M${x - 7} ${LY}H${x + 7}M${x - 7} ${LY + 3}H${x + 7}" stroke="#2E4380" stroke-width=".4"/>` + `<g transform="rotate(${r} ${x} ${LY})">${ghost(n, x, LY, 0.95, 1)}</g>` + k.shade(ellipse(x, LY, 6.4, 6.4), k.rad('#6FB4E8', 0.5, 0.5, 0.5, 0.6, 0), '#6FB4E8', 0.3)) +
+      `<path d="M${x - 4.6} ${LY - 3.2}A5.6 5.6 0 0 1 ${x - 1.2} ${LY - 5.2}" fill="none" stroke="#fff" stroke-width="1" stroke-linecap="round" opacity=".85"/>`
     const top = ellipse(60, 79, 27, 9.4)
     const side = 'M33 79V88A27 9.4 0 0 0 87 88V79A27 9.4 0 0 1 33 79Z'
     const edges = Array.from({ length: 6 }, (_, i) => `<path d="M33 ${f(80.4 + i * 1.3)}A27 9.4 0 0 0 87 ${f(80.4 + i * 1.3)}" fill="none" stroke="${P.sky2}" stroke-width=".4"/>`).join('')
     const spot = ellipse(60, 79, 17, 5.8)
     const ray = (x: number) => `M${x - 6} ${LY + 4}L${x + 6} ${LY + 4}L${x + 7.4 + (60 - x) * 0.3} 77L${x - 7.4 + (60 - x) * 0.3} 77Z`
-    // Radiografía: los símbolos de las cartas de abajo, sólo en contorno celeste, cada vez más tenues.
-    const ghost = (n: string, x: number, y: number, s: number, o: number) =>
-      `<g transform="translate(${x} ${y}) scale(${s})" opacity="${o}">${SYM[n]().replace(/fill="[^"]*"/g, 'fill="none"').replace(/stroke="[^"]*"/g, 'stroke="#BFE2FF"')}</g>`
     const ghosts = `<g transform="translate(60 79) scale(1 .36)">` + ghost('llave', -9, -3, 1.3, 0.95) + ghost('ancla', 8, 2, 1.3, 0.7) + ghost('corazon', -1, 6, 1.1, 0.5) + `</g>`
     return (
       lata(k) +
@@ -224,7 +223,7 @@ export const DOBBLE_NUEVAS_ART: Record<string, (u: number) => string> = {
       hair(47, 54, 49, 64, 52, 74, 0.5, '#fff', 0.7) + hair(73, 54, 71, 64, 68, 74, 0.5, '#fff', 0.7) +
       rod(`M41 ${LY - 1.6}L33.4 ${LY - 8.4}L31.6 ${LY - 6.6}M79 ${LY - 1.6}L86.6 ${LY - 8.4}L88.4 ${LY - 6.6}`, P.white, 1.5) +
       rod(`M57.6 ${LY - 1.4}C58.8 ${LY - 2.8} 61.2 ${LY - 2.8} 62.4 ${LY - 1.4}`, P.white, 1.6) +
-      lens(49.4) + lens(70.6) +
+      lens(49.4, 'llave', -20) + lens(70.6, 'ancla', 10) +
       `<circle cx="41.4" cy="${LY - 1.6}" r=".7" fill="${P.sky2}" stroke="${P.ink}" stroke-width=".3"/><circle cx="78.6" cy="${LY - 1.6}" r=".7" fill="${P.sky2}" stroke="${P.ink}" stroke-width=".3"/>` +
       `<text x="60" y="30" ${GEORGIA} font-style="italic" font-weight="700" font-size="5.6" fill="${P.white}" text-anchor="middle">rayos X</text>` +
       sparkle(88, 50, 2, '#fff') + sparkle(30, 56, 1.6, DB_L) +
@@ -288,7 +287,7 @@ export const DOBBLE_NUEVAS_ART: Record<string, (u: number) => string> = {
       `<g transform="translate(60 60)">` + carta(k, [], true) + `</g>` +
       hair(30, 84, 36, 76, 40, 72, 0.7, DB_L) + hair(34, 90, 40, 82, 45, 78, 0.6, DB_L) + hair(40, 94, 46, 87, 51, 84, 0.5, DB_L) +
       `<g transform="translate(47 67) rotate(-14) scale(.8)">` + k.cast([GUN], 1.6, 2, DB_D) + revolver(k) + `</g>` +
-      flash(78.6, 57.4, 5.4) + smoke(80, 52, 0.9) +
+      flash(78.6, 57.4, 5.4) + smoke(80, 52, 0.9, P.blue) +
       `<text x="62" y="38" ${GEORGIA} font-style="italic" font-weight="700" font-size="5.6" fill="${P.ink}" text-anchor="middle" transform="rotate(-10 62 38)">¡bang!</text>` +
       sparkle(32, 40, 1.8, '#fff') +
       k.defs()
