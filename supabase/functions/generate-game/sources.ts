@@ -4,7 +4,7 @@ export const SCHEMA = `Tipos (TypeScript) de una ficha GameDef:
 
 type PlayMode = 'counter' | 'rounds' | 'turns' | 'result' | 'coop'
 type SidesKind = 'individual' | 'teams' | 'either' | 'coop'
-type Category = 'deporte' | 'mesa' | 'cartas' | 'fiesta' | 'clasico' | 'dados' | 'video' | 'cooperativo'
+type Category = 'deporte' | 'mesa' | 'cartas' | 'tcg' | 'fiesta' | 'clasico' | 'dados' | 'video' | 'cooperativo'
 type OptionValue = number | boolean | string
 interface GameOption { id: string; label: string; type: 'number' | 'boolean' | 'select'; default: OptionValue; choices?: { value: OptionValue; label: string }[]; min?: number; max?: number; help?: string }
 // Evento registrable. count: se suma. holder: lo tiene uno solo y pasa de mano (camino más largo).

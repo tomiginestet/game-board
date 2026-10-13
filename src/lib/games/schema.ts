@@ -30,11 +30,12 @@ export type SidesKind =
   /** Todos en el mismo equipo contra el juego. */
   | 'coop'
 
-export type Category = 'deporte' | 'mesa' | 'cartas' | 'fiesta' | 'clasico' | 'dados' | 'video' | 'cooperativo'
+export type Category = 'deporte' | 'mesa' | 'cartas' | 'tcg' | 'fiesta' | 'clasico' | 'dados' | 'video' | 'cooperativo'
 
 export const CATEGORIES: { id: Category; name: string; emoji: string }[] = [
   { id: 'mesa', name: 'Juegos de mesa', emoji: '🎲' },
   { id: 'cartas', name: 'Cartas', emoji: '🃏' },
+  { id: 'tcg', name: 'Cartas coleccionables', emoji: '🐉' },
   { id: 'fiesta', name: 'De fiesta', emoji: '🎉' },
   { id: 'cooperativo', name: 'Cooperativos', emoji: '🤝' },
   { id: 'clasico', name: 'Clásicos', emoji: '♟️' },

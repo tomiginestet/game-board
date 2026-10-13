@@ -132,6 +132,8 @@ function motif(category: Category, c: MotifCtx): ReactNode {
       return hexTiles(c)
     case 'cartas':
       return fannedCards(c)
+    case 'tcg':
+      return tradingCards(c)
     case 'dados':
       return dice(c)
     case 'fiesta':
@@ -212,6 +214,45 @@ function fannedCards({ W, H, cx, cy, rnd, pal }: MotifCtx) {
           {suits[k % 4]}
         </text>
       ))}
+    </g>
+  )
+}
+
+/** Cartas coleccionables: cartas con marco (ilustración, caja de texto y costo) y brillitos de holo. */
+function tradingCards({ W, H, cx, cy, rnd, pal }: MotifCtx) {
+  const cw = Math.min(W, H) * 0.36
+  const ch = cw * 1.4
+  const spots = W > H
+    ? [[cx - 210, cy + 10, -14], [cx + 210, cy - 10, 12], [cx - 95, cy + 70, -6], [cx + 95, cy + 80, 7]]
+    : [[cx - 120, cy - 20, -16], [cx + 120, cy - 10, 14], [cx, cy + 110, 3]]
+  const card = (x: number, y: number, rot: number, k: number) => {
+    const x0 = -cw / 2
+    const y0 = -ch / 2
+    const pad = cw * 0.08
+    const hot = k % 2 === 0
+    return (
+      <g key={k} transform={`translate(${f(x)} ${f(y)}) rotate(${f(rot + (rnd() - 0.5) * 6)})`}>
+        <rect x={f(x0)} y={f(y0)} width={f(cw)} height={f(ch)} rx={f(cw * 0.07)} fill="#fff" fillOpacity={hot ? 0.16 : 0.1} stroke="#fff" strokeOpacity="0.5" strokeWidth="2" />
+        <rect x={f(x0 + pad)} y={f(y0 + pad * 1.9)} width={f(cw - pad * 2)} height={f(ch * 0.44)} rx="3" fill={hot ? pal.accent : '#fff'} fillOpacity={hot ? 0.35 : 0.12} stroke="#fff" strokeOpacity="0.35" strokeWidth="1.5" />
+        <rect x={f(x0 + pad)} y={f(y0 + pad * 2.6 + ch * 0.44)} width={f(cw - pad * 2)} height={f(ch * 0.3)} rx="3" fill="#fff" fillOpacity="0.09" stroke="#fff" strokeOpacity="0.3" strokeWidth="1.5" />
+        {[0.18, 0.3, 0.42].map((t) => (
+          <rect key={t} x={f(x0 + pad * 1.8)} y={f(y0 + pad * 2.6 + ch * (0.44 + t * 0.55))} width={f((cw - pad * 3.6) * (t === 0.42 ? 0.6 : 1))} height="3" rx="1.5" fill="#fff" fillOpacity="0.3" />
+        ))}
+        <circle cx={f(-x0 - pad * 1.3)} cy={f(y0 + pad * 1.05)} r={f(cw * 0.065)} fill={pal.glow} fillOpacity="0.7" stroke="#fff" strokeOpacity="0.6" strokeWidth="1.5" />
+        <path d={`M${f(x0 + pad)} ${f(y0 + pad * 1.9 + ch * 0.3)} L${f(-x0 - pad)} ${f(y0 + pad * 1.9 + ch * 0.06)}`} stroke="#fff" strokeOpacity="0.25" strokeWidth="6" />
+      </g>
+    )
+  }
+  const sparks = Array.from({ length: W > H ? 14 : 10 }, (_, k) => {
+    const x = rnd() * W
+    const y = rnd() * H * 0.9
+    const r = 4 + rnd() * 7
+    return <path key={'s' + k} d={`M${f(x)} ${f(y - r)} L${f(x + r * 0.3)} ${f(y - r * 0.3)} L${f(x + r)} ${f(y)} L${f(x + r * 0.3)} ${f(y + r * 0.3)} L${f(x)} ${f(y + r)} L${f(x - r * 0.3)} ${f(y + r * 0.3)} L${f(x - r)} ${f(y)} L${f(x - r * 0.3)} ${f(y - r * 0.3)}Z`} fill={k % 3 ? '#fff' : pal.accent} fillOpacity="0.35" />
+  })
+  return (
+    <g>
+      {sparks}
+      {spots.map(([x, y, rot], k) => card(x, y, rot, k))}
     </g>
   )
 }
