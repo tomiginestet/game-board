@@ -700,6 +700,187 @@
   color: var(--accent-2);
 }
 
+/* Medallas en la ficha del juego: filas separadas por una línea (como los datos de la ficha de
+   la medalla), con las medallas en una columna fija para que los textos queden alineados. */
+.section-lead {
+  margin: -4px 0 12px;
+}
+
+.medal-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  border-top: 1px solid var(--border);
+}
+
+.medal-list-row {
+  display: grid;
+  grid-template-columns: 124px minmax(0, 1fr);
+  align-items: center;
+  gap: 14px;
+  padding: 14px 0;
+  border-bottom: 1px solid var(--border);
+}
+
+.medal-list-art {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.medal-list-art .medal-btn + .medal-btn {
+  margin-left: -10px;
+}
+
+.medal-list-art .medal-btn:hover {
+  position: relative;
+  z-index: 1;
+}
+
+/* Cuántos niveles más hay: chapita sobre la última medalla, la ficha los muestra todos. */
+.medal-list-more {
+  position: absolute;
+  top: -4px;
+  right: -6px;
+  z-index: 2;
+  padding: 1px 6px;
+  border-radius: 999px;
+  border: 1px solid var(--border-strong);
+  background: var(--bg);
+  color: var(--text-soft);
+  font-size: 12px;
+  font-weight: 700;
+  line-height: 1.4;
+  pointer-events: none;
+}
+
+.medal-list-info {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+  min-height: 44px;
+  padding: 0;
+  border: 0;
+  border-radius: 8px;
+  background: none;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.medal-list-text {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.medal-list-name {
+  font-size: 18px;
+  font-weight: 700;
+  line-height: 1.25;
+}
+
+.medal-list-measure {
+  color: var(--muted);
+  font-size: 14px;
+  line-height: 1.35;
+}
+
+.medal-list-leader {
+  display: flex;
+  align-items: flex-start;
+  gap: 6px;
+  margin-top: 4px;
+  color: var(--accent-2);
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 1.35;
+}
+
+.medal-list-leader svg {
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+.medal-list-leader.none {
+  color: var(--muted);
+  font-weight: 400;
+}
+
+.medal-list-caret {
+  flex-shrink: 0;
+  color: var(--muted);
+  transition: transform 0.15s, color 0.15s;
+}
+
+@media (hover: hover) {
+  .medal-list-info:hover .medal-list-caret {
+    color: var(--text);
+    transform: translateX(2px);
+  }
+}
+
+.medal-list-info:focus-visible,
+.rule-link:focus-visible {
+  outline: 2px solid var(--accent-2);
+  outline-offset: 2px;
+}
+
+/* Reglas: pasos numerados con la misma línea divisoria, sin tarjeta. */
+.rule-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  border-top: 1px solid var(--border);
+}
+
+.rule-list li {
+  display: grid;
+  grid-template-columns: 24px minmax(0, 1fr);
+  gap: 12px;
+  align-items: start;
+  padding: 12px 0;
+  border-bottom: 1px solid var(--border);
+  line-height: 1.45;
+  text-wrap: pretty;
+}
+
+.rule-num {
+  width: 24px;
+  height: 24px;
+  display: grid;
+  place-items: center;
+  border-radius: 999px;
+  background: var(--card-2);
+  color: var(--text-soft);
+  font-size: 12px;
+  font-weight: 700;
+  line-height: 1;
+}
+
+.rule-link {
+  display: inline-flex;
+  align-items: center;
+  align-self: flex-start;
+  gap: 8px;
+  min-height: 44px;
+  margin-top: 4px;
+  border-radius: 8px;
+  font-weight: 600;
+}
+
+.rule-link-out {
+  color: var(--muted);
+}
+
+.rule-foot {
+  margin: 0;
+}
+
 .rules {
   margin: 0 0 10px;
   padding-left: 20px;
