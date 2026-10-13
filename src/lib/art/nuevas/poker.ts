@@ -275,7 +275,7 @@ function momoCrown(k: Kit) {
         pearls(1.6) + sequins + gems,
     }], 0.75) +
     post(-0.95, 4.4) + post(-0.6, 5.6) + post(-0.2, 6.2) + post(0.2, 6.2) + post(0.6, 5.6) + post(0.95, 4.4) +
-    fleuron(-0.8, 0.66) + fleuron(0.8, 0.66) + fleuron(-0.4, 0.84) + fleuron(0.4, 0.84) + fleuron(0, 1.04)
+    fleuron(-0.8, 0.78) + fleuron(0.8, 0.78) + fleuron(-0.4, 1) + fleuron(0.4, 1) + fleuron(0, 1.24)
   )
 }
 

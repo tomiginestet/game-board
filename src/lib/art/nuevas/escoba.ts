@@ -195,7 +195,7 @@ export const ESCOBA_NUEVAS_ART: Record<string, (u: number) => string> = {
   // Diez escobas: dejaste la vereda impecable. El escobillón sobre las baldosas, con los naipes barridos en un montoncito.
   'Escobillón': (u) => {
     const k = kit(u)
-    const floor = ellipse(60, 81, 35, 12)
+    const floor = ellipse(60, 81, 33, 11.6)
     const ys = [69, 72.2, 76, 80.6, 86, 92.4]
     const xa = (i: number, y: number) => 60 + i * 7 * (0.66 + ((y - 69) / 24) * 0.6)
     let grid = ys.map((y) => `M20 ${y}H100`).join('')
@@ -211,24 +211,25 @@ export const ESCOBA_NUEVAS_ART: Record<string, (u: number) => string> = {
     const block = 'M40.6 69.6H75.4V74.6H40.6Z', blockTop = 'M40.6 69.6L43.4 66.6H78.2L75.4 69.6Z', blockSide = 'M75.4 69.6L78.2 66.6V71.6L75.4 74.6Z'
     const bristle = 'M41.2 74.6H75L76.6 81.4C64 82.6 52 82.6 39.8 81.4Z'
     const fibers = Array.from({ length: 30 }, (_, i) => { const t = i / 29, x = 41.6 + t * 33; return hair(x, 75, x + (t - 0.5) * 0.6, 78, x + (t - 0.5) * 2.6, 81.6, 0.45, i % 3 ? MUST_D : P.brownD, 0.8) }).join('')
-    const handle = taper(60.6, 67.4, 70.4, 47, 78.6, 26.8, 3.4, 2.8)
+    const handle = taper(60.6, 67.4, 69.4, 49, 76.2, 31.6, 3.4, 2.8)
     const pile = [
-      naipe(k, 'bastos', 4, 'translate(35.6 76.8) scale(1 .62) rotate(-62) scale(1.06)'),
-      naipe(k, 'copas', 3, 'translate(41.8 80.4) scale(1 .62) rotate(24) scale(1.06)'),
-      naipe(k, 'espadas', 5, 'translate(37.6 72.6) scale(1 .62) rotate(-14) scale(1.06)'),
-      naipe(k, 'oros', 7, 'translate(43.6 75.6) scale(1 .62) rotate(52) scale(1.06)'),
+      naipe(k, 'bastos', 4, 'translate(37.6 77) scale(1 .62) rotate(-62) scale(1.06)'),
+      naipe(k, 'copas', 3, 'translate(43.6 80.4) scale(1 .62) rotate(24) scale(1.06)'),
+      naipe(k, 'espadas', 5, 'translate(39.6 72.8) scale(1 .62) rotate(-14) scale(1.06)'),
+      naipe(k, 'oros', 7, 'translate(45.4 75.8) scale(1 .62) rotate(52) scale(1.06)'),
     ].join('')
     return (
       field(k) +
       stage(k, 60, 56, 30) +
       k.draw([{ d: floor, fill: P.white, inner: `<path d="${grid}" stroke="${MUST_D}" stroke-width=".4" opacity=".8"/>` + dots + k.sh(floor, 0, 0, 0, 1, 0, 0.6, MUST, 0.4) }], 0.6) +
-      hair(78, 79.6, 86, 78.6, 93, 79, 0.6, '#fff') + hair(77, 83.4, 84, 82.6, 90, 83.4, 0.5, '#fff') +
-      k.floor(58, 81.6, 22, 2.6, MUST_D) +
+      hair(81, 80, 86, 79.4, 91, 79.6, 0.6, '#fff') + hair(80, 84, 84.6, 83.4, 88.6, 83.8, 0.5, '#fff') +
+      k.floor(61, 82.6, 22, 2.6, MUST_D) +
       pile +
       `<circle cx="29.6" cy="68.6" r=".7" fill="${MUST_D}" opacity=".6"/><circle cx="25.6" cy="74.6" r=".5" fill="${MUST_D}" opacity=".5"/><circle cx="29.4" cy="66.6" r=".45" fill="${MUST_D}" opacity=".5"/>` +
-      k.draw([{ d: handle, fill: P.brown, inner: k.sh(handle, 0, 0, 1, 0, 0.1, 0.9, P.brownD, 0.45) + hair(62, 64, 70.6, 46, 77.4, 30, 0.5, P.goldL, 0.8) + hair(63.4, 62, 71.4, 46, 78.6, 30, 0.35, P.brownD, 0.8) }], 0.6) +
-      k.draw([{ d: 'M77.4 25.4L80.6 26.4L79.6 31.6L76.6 30.8Z', fill: P.red, inner: k.sh('M77.4 25.4L80.6 26.4L79.6 31.6L76.6 30.8Z', 0, 0, 1, 0, 0, 0.8, P.wine, 0.4) }], 0.45) +
-      `<circle cx="78.6" cy="27.8" r=".7" fill="${P.ink}"/>` +
+      `<g transform="translate(3.4 1.2)">` +
+      k.draw([{ d: handle, fill: P.brown, inner: k.sh(handle, 0, 0, 1, 0, 0.1, 0.9, P.brownD, 0.45) + hair(62, 64, 69.6, 48, 75.4, 34, 0.5, P.goldL, 0.8) + hair(63.4, 62, 70.4, 48, 76.6, 34, 0.35, P.brownD, 0.8) }], 0.6) +
+      k.draw([{ d: 'M75 30.2L78.2 31.2L77.2 36.4L74.2 35.6Z', fill: P.red, inner: k.sh('M75 30.2L78.2 31.2L77.2 36.4L74.2 35.6Z', 0, 0, 1, 0, 0, 0.8, P.wine, 0.4) }], 0.45) +
+      `<circle cx="76.2" cy="32.6" r=".7" fill="${P.ink}"/>` +
       `<path d="M50.4 67.6L66.4 55.6" stroke="${P.ink}" stroke-width="2" stroke-linecap="round"/><path d="M50.4 67.6L66.4 55.6" stroke="${P.sky1}" stroke-width=".9" stroke-linecap="round"/>` +
       k.draw([
         { d: bristle, fill: MUST, inner: fibers + k.sh(bristle, 0, 0, 1, 0, 0, 0.7, MUST_D, 0.4) },
@@ -237,6 +238,7 @@ export const ESCOBA_NUEVAS_ART: Record<string, (u: number) => string> = {
         { d: blockTop, fill: P.goldL, inner: k.sh(blockTop, 0, 0, 1, 0, 0, 0.6, P.brown, 0.4) },
       ], 0.7) +
       k.draw([{ d: 'M58.4 66.6L59.2 63.4H63.6L64.2 66.6Z', fill: P.sky1, inner: k.sh('M58.4 63H64.4V67H58.4Z', 0, 0, 1, 0, 0, 0.8, P.blue, 0.4) }], 0.45) +
+      `</g>` +
       sparkle(88, 70, 2.4, '#fff') + sparkle(82, 88, 1.6, '#fff') + sparkle(34, 40, 2) +
       k.defs()
     )
@@ -261,8 +263,8 @@ export const ESCOBA_NUEVAS_ART: Record<string, (u: number) => string> = {
       sparkle(36, 30, 2, P.paper) + sparkle(88, 80, 1.6, P.paper) +
       k.shade(ellipse(66, 47, 36, 36), k.rad(MUST_L, 0.5, 0.5, 0.5, 0.7, 0), MUST_L, 0.35) +
       k.draw([{ d: moon, fill: '#F7ECC6', inner: k.sh(moon, 0, 0, 1, 1, 0, 0.8, MUST_L, 0.5) + craters + `<path d="M45 40H58V72H45Z" fill="${k.lin('#ffffff', 0, 0, 1, 0, 0.45, 0)}"/>` }], 0.6) +
-      naipe(k, 'oros', 7, 'translate(84.4 71) rotate(-26) scale(.7)') + naipe(k, 'copas', 1, 'translate(79 79.4) rotate(18) scale(.66)') +
-      `<g transform="translate(64.4 64) rotate(28)">` +
+      naipe(k, 'oros', 7, 'translate(82 70.4) rotate(-26) scale(.7)') + naipe(k, 'copas', 1, 'translate(76.6 78.8) rotate(18) scale(.66)') +
+      `<g transform="translate(62 63.4) rotate(28)">` +
       k.cast([bundle, handle], 2, 2.4, '#1A1404') +
       k.draw([{ d: handle, fill: P.brown, inner: k.sh(handle, 0, 0, 0, 1, 0, 0.9, P.brownD, 0.45) + hair(-37, -1, -19, -2.4, 0, -1.2, 0.45, P.goldL, 0.8) + knots }], 0.6) +
       k.draw([{ d: bundle, fill: MUST, inner: k.sh(bundle, 0, 0, 0, 1, 0, 0.8, MUST_D, 0.45) + twigs + `<path d="M0 -3.2C8 -4.6 18 -7.6 29.4 -10L29 -7C18 -5 8 -2.6 0 -1.6Z" fill="${MUST_L}" opacity=".7"/>` }], 0.65) +
@@ -336,10 +338,10 @@ export const ESCOBA_NUEVAS_ART: Record<string, (u: number) => string> = {
       field(k) +
       stage(k, 60, 60, 33) +
       k.floor(76, 92, 8, 1.6, MUST_D) + k.floor(36, 87, 10, 1.8, MUST_D) +
-      naipe(k, 'oros', 7, 'translate(34.6 74) rotate(-16) scale(1.12)') +
-      puff(30.6, 56, 0.6) + puff(44.6, 64.6, 0.5) + puff(28, 44.4, 0.45) +
+      naipe(k, 'oros', 7, 'translate(37 74.6) rotate(-16) scale(1.08)') +
+      puff(33.4, 56.6, 0.6) + puff(46.6, 64.6, 0.5) + puff(31, 46, 0.42) +
       [[34, 50], [26, 62], [40, 58], [30, 38], [48, 68], [38, 42]].map(([x, y], i) => `<circle cx="${x}" cy="${y}" r="${i % 2 ? 0.5 : 0.7}" fill="${MUST_D}" opacity=".6"/>`).join('') +
-      `<g transform="translate(64.6 65.4) rotate(-30)">` +
+      `<g transform="translate(65.4 66.4) rotate(-30) scale(.94)">` +
       k.draw([{ d: handle, fill: P.brown, inner: k.sh(handle, 0, 0, 1, 0, 0.1, 0.9, P.brownD, 0.45) + rings + `<path d="M-1.2 4V29" stroke="${P.goldL}" stroke-width=".6" opacity=".8"/>` }], 0.6) +
       `<path d="M0 28.4C-2.6 32.4 2.6 33.6 1.6 29.6" fill="none" stroke="${P.ink}" stroke-width="1.4" stroke-linecap="round"/><path d="M0 28.4C-2.6 32.4 2.6 33.6 1.6 29.6" fill="none" stroke="${P.red}" stroke-width=".6" stroke-linecap="round"/>` +
       `<g transform="scale(1.08)">` + duster(k) + `</g>` +
@@ -492,7 +494,7 @@ export const ESCOBA_NUEVAS_ART: Record<string, (u: number) => string> = {
     const side = `M3 0C1.2 0 0 -1.2 0 -3V${f(-T + 3)}C0 ${f(-T + 1.2)} 1.2 ${-T} 3 ${-T}H${L - 3}C${L - 1.2} ${-T} ${L} ${f(-T + 1.2)} ${L} ${f(-T + 3)}V-3C${L} -1.2 ${L - 1.2} 0 ${L - 3} 0Z`
     const top = `M3 ${-T}L7.8 ${f(-T - 4.4)}H${L + 2}L${L - 3} ${-T}Z`
     const end = `M${L} ${f(-T + 3)}L${L + 4.4} ${f(-T - 2)}V${-5}L${L} -3Z`
-    const bands = Array.from({ length: 4 }, (_, i) => `<path d="M-2 ${f(-T + 2 + i * 3)}H${L + 6}" stroke="${P.sky}" stroke-width="1.5"/><path d="M-2 ${f(-T + 3.3 + i * 3)}H${L + 6}" stroke="${P.blue}" stroke-width=".3"/>`).join('')
+    const bands = Array.from({ length: 4 }, (_, i) => `<path d="M-2 ${f(-T + 2 + i * 3)}H${L + 6}" stroke="${P.sky}" stroke-width="1.6"/><path d="M-2 ${f(-T + 3.3 + i * 3)}H${L + 6}" stroke="${P.blue}" stroke-width=".3"/>`).join('')
     const topBands = Array.from({ length: 3 }, (_, i) => `<path d="M${f(4.4 + i * 1.5)} ${f(-T - 1.1 - i * 1.4)}H${f(L - 1 + i * 1.5)}" stroke="${P.sky}" stroke-width="1"/>`).join('')
     const tufts = [11, 22, 33, 44].map((x) => `<circle cx="${x}" cy="${f(-T / 2)}" r=".85" fill="${P.white}" stroke="${P.mid}" stroke-width=".35"/><path d="M${x - 2.4} ${f(-T / 2 + 0.4)}Q${x} ${f(-T / 2 - 1.8)} ${x + 2.4} ${f(-T / 2 + 0.4)}" fill="none" stroke="${P.blue}" stroke-width=".35"/>`).join('')
     const piping = `<path d="M1.6 -.8H${L - 1.6}M1.6 ${f(-T + 0.8)}H${L - 1.6}" stroke="${P.mid}" stroke-width=".6" stroke-dasharray="1 .5"/>`
@@ -516,11 +518,11 @@ export const ESCOBA_NUEVAS_ART: Record<string, (u: number) => string> = {
       `<g transform="translate(40.6 80) rotate(-31)">` +
       k.cast([side], 1.6, 2.4, MUST_D) +
       k.draw([
-        { d: end, fill: P.sky1, inner: k.sh(end, 0, 0, 1, 0, 0, 0.6, P.blue, 0.3) },
+        { d: end, fill: P.sky1, inner: k.sh(end, 0, 0, 1, 0, 0, 0.4, P.blue, 0.25) },
         { d: top, fill: P.white, inner: topBands + k.sh(top, 0, 0, 1, 0, 0, 0.4, P.sky2, 0.3) },
         { d: side, fill: P.white },
       ], 0.75) +
-      k.clip(side, bands + k.sh(side, 0, 0, 0, 1, 0.1, 0.55, P.blue, 0.3)) + piping + tufts +
+      k.clip(side, bands + k.sh(side, 0, 0, 0, 1, 0, 0.35, P.blue, 0.22)) + piping + tufts +
       `</g>` +
       hair(84, 40, 89, 44, 92, 50, 0.6, MUST_D) + hair(88, 36, 93, 40, 96, 46, 0.5, MUST_D) +
       sparkle(54, 36, 2.2, '#fff') + sparkle(66, 28, 1.4) +
