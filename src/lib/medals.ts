@@ -61,7 +61,7 @@ export const GLOBAL_FAMILIES: GlobalFamily[] = [
     id: 'streak',
     name: 'Racha',
     measures: 'Mejor racha de partidas ganadas seguidas, mezclando juegos',
-    unit: (n) => `${n} seguidas`,
+    unit: (n) => plural(n, 'victoria seguida', 'victorias seguidas'),
     value: (s) => s.bestStreak,
     levels: [
       { at: 3, name: 'Se pasó el agua', description: 'Empezás a calentar: la pava ya silba.' },
@@ -181,7 +181,7 @@ function streakFamily(game: GameDef): MedalFamily {
     id: 'gameStreak',
     name: 'Racha',
     measures: `Mejor racha de victorias seguidas en ${game.name}`,
-    unit: (n) => `${n} seguidas`,
+    unit: (n) => plural(n, 'victoria seguida', 'victorias seguidas'),
     levels: GLOBAL_FAMILIES[1].levels.slice(0, 4),
   }
 }

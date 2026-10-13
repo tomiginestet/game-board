@@ -68,6 +68,16 @@ export function FinishForm({ play, game, live, players, onCancel }: { play: Play
 
   const rolesReady = !roles || (winnerRole !== null && allPlayers.every((id) => roleOf[id]) && new Set(Object.values(roleOf)).size >= 1)
   const ready = roles ? rolesReady : !!places && (!tieAtTop || tieBreak !== null || (!knockout && (draw || game.scoring.allowDraw === true)))
+  // Si todavía no se puede guardar, el botón dice qué falta (en vez de quedar gris sin explicación).
+  const missing = ready
+    ? ''
+    : roles
+      ? 'Elegí qué bando ganó y el rol de cada uno'
+      : coop && coopWin === null
+        ? 'Elegí si ganaron o perdieron'
+        : !places
+          ? 'Ordená los puestos'
+          : 'Elegí quién ganó el desempate'
 
   // La partida se puede cerrar antes de tiempo, pero que sea a propósito: se avisa y el botón lo dice.
   const totalRounds = game.mode === 'rounds' ? roundsOf(game, play.config) : undefined
@@ -219,7 +229,7 @@ export function FinishForm({ play, game, live, players, onCancel }: { play: Play
 
       {game.stats.length > 0 && (
         <section className="card">
-          <h2>Datos para los premios</h2>
+          <h2>Para las medallas</h2>
           {game.stats.map((st) => (
             <div key={st.id} className="field">
               <label>{st.label}</label>
@@ -271,7 +281,7 @@ export function FinishForm({ play, game, live, players, onCancel }: { play: Play
             </button>
           )}
           <button className="btn primary big finish-save" disabled={!ready} onClick={finish}>
-            <FlagCheckeredIcon aria-hidden="true" /> {warning ? 'Guardar igual' : 'Guardar resultado'}
+            <FlagCheckeredIcon aria-hidden="true" /> {missing || (warning ? 'Guardar igual' : 'Guardar resultado')}
           </button>
         </div>
       </div>

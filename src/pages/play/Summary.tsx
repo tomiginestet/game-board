@@ -114,9 +114,9 @@ export function Summary({ play, game, live, players }: { play: Play; game: GameD
       <MedalCelebration id={play.id} finishedAt={play.finishedAt} medals={newMedals} delay={2000} requested={celebrate} />
       {ups.length > 0 && (
         <section className="card new-achievements">
-          <h3>
+          <h2 className="summary-subtitle">
             <ConfettiIcon className="inline-icon" /> ¡Medallas nuevas!
-          </h3>
+          </h2>
           {ups.map(({ player, medal }, k) => (
             <button key={k} type="button" className="medal-up" aria-haspopup="dialog" onClick={() => setShownUp(k)}>
               <Medal family={medal.family} level={medal.level} size={56} />
@@ -142,14 +142,19 @@ export function Summary({ play, game, live, players }: { play: Play; game: GameD
 
       {eventSummary.length > 0 && (
         <section className="card">
-          <h3>Lo que pasó</h3>
+          <h2 className="summary-subtitle">Lo que pasó</h2>
           <div className="table-wrap">
             <table className="rounds-table">
               <thead>
                 <tr>
-                  <th />
+                  <th>
+                    <span className="sr-only">Evento</span>
+                  </th>
                   {play.sides.map((s, i) => (
-                    <th key={i}>{sidePlayersOf(s, players)[0]?.emoji}</th>
+                    <th key={i} scope="col">
+                      <span aria-hidden>{sidePlayersOf(s, players)[0]?.emoji}</span>
+                      <span className="sr-only">{sideName(s, players)}</span>
+                    </th>
                   ))}
                 </tr>
               </thead>

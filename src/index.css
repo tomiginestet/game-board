@@ -237,6 +237,14 @@ textarea {
   gap: 12px;
 }
 
+.section-head > a {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  min-height: 44px;
+  flex-shrink: 0;
+}
+
 .section-head h1,
 .section-head h2 {
   margin: 0;
@@ -521,6 +529,7 @@ section > .section-head {
 }
 
 .chip {
+  min-height: 44px;
   flex-shrink: 0;
   max-width: 100%;
   padding: 8px 14px;
@@ -553,8 +562,8 @@ section > .section-head {
 }
 
 .stepper button {
-  width: 36px;
-  height: 36px;
+  width: 44px;
+  height: 44px;
   border: none;
   background: transparent;
   font-size: 18px;
@@ -1533,8 +1542,8 @@ svg {
 }
 
 .ms-nav {
-  width: 40px;
-  height: 40px;
+  width: 44px;
+  height: 44px;
   flex: none;
   display: grid;
   place-items: center;
@@ -2725,6 +2734,7 @@ svg {
 }
 
 .segmented button {
+  min-height: 44px;
   padding: 10px;
   border: none;
   border-radius: 10px;

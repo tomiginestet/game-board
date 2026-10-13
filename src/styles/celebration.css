@@ -172,3 +172,8 @@
   text-decoration: underline;
   text-underline-offset: 3px;
 }
+
+/* Subtítulos del resumen (h2 por jerarquía, con el tamaño de antes). */
+.summary-subtitle {
+  font-size: 16px;
+}
