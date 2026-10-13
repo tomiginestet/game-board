@@ -61,7 +61,7 @@ export const TCG_DRAGONBALL_NUEVAS_ART: Record<string, (u: number) => string> = 
       k.shade(ellipse(60, 56, 26, 26), k.rad(ORLL, 0.5, 0.5, 0.5, 0.9, 0), ORL, 0.45) +
       k.floor(60, 93, 32, 3.6, P.mid) +
       // el almohadón del abuelo, de terciopelo con borlas en las puntas
-      tassel(29.4, 80.6, 24) + tassel(90.6, 80.8, -24) + tassel(60, 95, 0) +
+      tassel(29.4, 80.6, 24) + tassel(90.6, 80.8, -24) +
       k.draw([
         { d: side, fill: P.wine, inner: k.sh(side, 0, 0, 1, 0, 0, 0.8, '#3A0F1B', 0.45) + hair(36, 85, 46, 90, 56, 93.4, 0.4, '#3A0F1B') + hair(84, 85, 74, 90, 64, 93.4, 0.4, '#3A0F1B') },
         {
@@ -132,76 +132,84 @@ export const TCG_DRAGONBALL_NUEVAS_ART: Record<string, (u: number) => string> = 
     )
   },
 
-  // Cuarenta partidas: se oscurece el cielo y el dragón te concede un deseo. El dragón oriental tras la perla naranja.
+  // Cuarenta partidas: se oscurece el cielo y el dragón te concede un deseo. El dragón oriental, enroscado, va por la perla naranja.
   'Shenlong': (u) => {
     const k = kit(u)
-    const pts = [[90, 96], [95, 80], [84, 68], [64, 72], [42, 74], [30, 62], [35, 47], [48, 40]]
-    const body = tube(pts, (t) => (t < 0.18 ? 1.2 + (t / 0.18) * 7 : 8.2 + 1.8 * Math.sin((Math.PI * (t - 0.18)) / 0.82)))
+    const pts = [[90, 50], [95, 66], [86, 81], [66, 88], [44, 85], [29, 74], [27, 61], [35, 55]]
+    const body = tube(pts, (t) => (t < 0.16 ? 1 + (t / 0.16) * 7.4 : 8.4 + 2 * Math.sin((Math.PI * (t - 0.16)) / 0.84)))
     const fr = body.fr, n = fr.length
-    const belly = band(fr, -0.92, -0.25, 8, n - 1)
-    const scales = fr.filter((_, i) => i > 10 && i % 3 === 0).map((p) => {
-      const a = { x: p.x + p.nx * p.w * 0.85, y: p.y + p.ny * p.w * 0.85 }, b = { x: p.x + p.nx * p.w * 0.05, y: p.y + p.ny * p.w * 0.05 }
-      return `M${f(a.x)} ${f(a.y)}Q${f((a.x + b.x) / 2 + p.tx * 1.6)} ${f((a.y + b.y) / 2 + p.ty * 1.6)} ${f(b.x)} ${f(b.y)}`
+    const belly = band(fr, -0.94, -0.28, 6, n - 1)
+    const scales = fr.filter((_, i) => i > 8 && i % 3 === 0).map((p) => {
+      const a = { x: p.x + p.nx * p.w * 0.85, y: p.y + p.ny * p.w * 0.85 }, b = { x: p.x + p.nx * p.w * 0.02, y: p.y + p.ny * p.w * 0.02 }
+      return `M${f(a.x)} ${f(a.y)}Q${f((a.x + b.x) / 2 + p.tx * 1.8)} ${f((a.y + b.y) / 2 + p.ty * 1.8)} ${f(b.x)} ${f(b.y)}`
     }).join('')
-    const plates = fr.filter((_, i) => i > 10 && i % 3 === 1).map((p) => `M${f(p.x - p.nx * p.w * 0.9)} ${f(p.y - p.ny * p.w * 0.9)}L${f(p.x - p.nx * p.w * 0.3)} ${f(p.y - p.ny * p.w * 0.3)}`).join('')
-    const fins = fr.filter((_, i) => i > 6 && i < n - 4 && i % 5 === 0).map((p) => {
-      const bx = p.x + p.nx * p.w * 0.8, by = p.y + p.ny * p.w * 0.8, s = 0.6 + p.w * 0.12
-      return `M${f(bx - p.tx * 2.4 * s)} ${f(by - p.ty * 2.4 * s)}L${f(bx + p.nx * 4.6 * s - p.tx * 3 * s)} ${f(by + p.ny * 4.6 * s - p.ty * 3 * s)}L${f(bx + p.tx * 2.2 * s)} ${f(by + p.ty * 2.2 * s)}Z`
+    const plates = fr.filter((_, i) => i > 8 && i % 3 === 1).map((p) => `M${f(p.x - p.nx * p.w * 0.92)} ${f(p.y - p.ny * p.w * 0.92)}L${f(p.x - p.nx * p.w * 0.3)} ${f(p.y - p.ny * p.w * 0.3)}`).join('')
+    const fins = fr.filter((_, i) => i > 4 && i < n - 3 && i % 5 === 0).map((p) => {
+      const bx = p.x + p.nx * p.w * 0.8, by = p.y + p.ny * p.w * 0.8, s = 0.55 + p.w * 0.12
+      return `M${f(bx - p.tx * 2.6 * s)} ${f(by - p.ty * 2.6 * s)}L${f(bx + p.nx * 4.8 * s - p.tx * 3.4 * s)} ${f(by + p.ny * 4.8 * s - p.ty * 3.4 * s)}L${f(bx + p.tx * 2.2 * s)} ${f(by + p.ty * 2.2 * s)}Z`
     }).join('')
+    const tuft = 'M0 0C-3 -2 -4 -6 -2.4 -9.6C-1.6 -7 0 -5.6 1.6 -5C1 -8 2 -11 4.4 -12.6C4 -9.6 4.6 -7.4 6 -6C6.6 -8 8 -9.4 9.8 -10C8.6 -7 8 -4 6 -1.6C4 .4 1.6 .6 0 0Z'
     // La cabeza, de perfil hacia la derecha, con la boca abierta hacia la perla.
-    const skull = 'M0 -6C3 -9.6 8 -11 13 -10.4C16 -10 18 -8.6 20 -8.4C22.6 -8.6 24.8 -9.6 26.6 -8.6C28 -7.6 27.8 -5.4 26.6 -4.4C25.4 -3.6 24 -3.4 22.6 -3.4C18 -2.6 12 -1.4 7 .6C4.6 1.6 2 2.6 0 3Z'
-    const jaw = 'M3 2.4C8 3.4 14 5.4 19 7.6C20.6 8.4 21 9.8 19.6 10.4C15 11.8 9 11.4 4 10C1.6 9.4 .2 7.6 0 5.6Z'
-    const mouth = 'M22.6 -3.2C18 -2.4 12 -1.2 7 .8C4.6 1.8 2.6 2.6 1.6 3.2C7 4 13 5.8 19 8.2C19.6 4.4 20.8 .4 22.6 -3.2Z'
-    const antler = (s: number) => `M0 0C-2 -4 -4 -8 -8 -11.6L-10.6 -11C-9.4 -12.4 -9.8 -14 -11 -15C-8.6 -14.4 -7 -13.2 -6 -11.4C-4 -13 -3.6 -15.6 -4.4 -18C-2 -15.6 -1.6 -12.4 -3.2 -9.6C-1.6 -7 ${f(1 * s)} -3.6 ${f(2 * s)} 0Z`
-    const mane = 'M2 -5C-2 -9 -7 -10.4 -12 -10C-9 -8.6 -7.6 -7.4 -7 -6C-10 -6.6 -13 -5.6 -15 -3.4C-11.6 -3.6 -9.6 -2.6 -8.4 -1.4C-11 .4 -12.4 3 -12.4 6C-9.6 3.4 -6 2.2 -2 2.4Z'
-    const beard = 'M5 10C4 13 4.6 16 6.4 18.4C6.6 16 7.6 14.4 9 13.4C9.4 15.4 10.6 16.8 12.4 17.4C11.6 15 11.8 12.8 13 11Z'
+    const upper = 'M0 -5C2 -9.4 7 -12 13 -12C17 -12 20 -10.4 23 -9.8C25.6 -10.6 28.4 -11.4 30.4 -10C32 -8.8 32 -6.4 30.6 -5.2C29.6 -4.4 28 -4 26.4 -4C21 -3.2 14 -2 8 0C5 1 2.4 2.2 0 3Z'
+    const lower = 'M3 2.6C9 4 15 6.4 21 9.4C22.6 10.2 22.8 11.8 21.4 12.4C16 14 9 13.4 4 11.6C1.4 10.6 0 8.4 0 5.6Z'
+    const mouth = 'M26.4 -3.8C21 -3 14 -1.8 8 .2C5 1.2 2.6 2.4 1.4 3.2C7 4.4 14 6.8 21 9.8C21.6 5.2 23.6 .6 26.4 -3.8Z'
+    const brow = 'M8.6 -11.4C12.6 -14.6 18 -14.4 21.4 -11.2C18.2 -10.8 15 -9.8 12.4 -8Z'
+    const antler = 'M0 0C-.4 -4 -1.6 -8 -4.4 -11.6C-3.4 -12 -2.4 -11.6 -1.8 -11C-2 -13.6 -3 -16 -4.6 -18C-1.8 -16.6 -.2 -14 -.4 -10.6C.6 -9 1.2 -7 1.4 -5C2.8 -7 4.6 -8.2 6.8 -8.6C5 -6.6 3.8 -4 3.4 -1.2L3.4 0Z'
+    const mane = 'M2 -6C-3 -10 -9 -12 -15 -11C-11 -9 -9 -7.6 -8.6 -6C-12 -6.4 -16 -5 -18.6 -2.4C-14.4 -2.6 -11.6 -1.6 -10.2 -.2C-13 1.8 -14.6 5 -14.6 8.6C-11.4 5.4 -7 4 -2.4 4.4Z'
+    const beard = 'M6 12C5 15 5.6 18.6 7.6 21C8 18.4 9 16.6 10.6 15.6C11 17.8 12.4 19.4 14.4 20C13.6 17.4 13.8 15 15.2 13Z'
+    const teethUp = 'M25.4 -3.6L24.6 -.4L23.4 -3.2ZM19.4 -2.8L18.8 -.4L17.8 -2.4ZM13.6 -1.6L13.2 .4L12.2 -1.2Z', teethDn = 'M20 9.2L19.6 6.4L18.4 8.6ZM14.6 6.8L14.4 4.8L13.2 6.4Z'
     const head =
-      `<g transform="translate(47 40.6) rotate(-14) scale(.98)">` +
+      `<g transform="translate(37 57.4) rotate(-24) scale(.98)">` +
       k.draw([
-        { d: antler(1), t: 'translate(9 -9.6)', fill: P.goldL, inner: k.sh(antler(1), 0, 0, 1, 0, 0, 0.9, P.goldD, 0.45) },
-        { d: antler(1), t: 'translate(4.6 -8.6) scale(.82)', fill: P.gold, inner: k.sh(antler(1), 0, 0, 1, 0, 0, 0.9, P.goldD, 0.5) },
-        { d: mane, fill: P.greenD, inner: k.sh(mane, 0, 0, 0, 1, 0, 0.8, P.night, 0.4) + hair(-2, -4, -7, -6, -11, -8.6, 0.4, P.green) },
-        { d: beard, fill: P.goldL, inner: k.sh(beard, 0, 0, 1, 1, 0, 0.8, P.gold, 0.45) },
-        { d: jaw, fill: P.green, inner: k.sh(jaw, 0, 0, 0, 1, 0, 0.9, P.greenD, 0.5) + `<path d="M4 9.6C9 10.6 14 10.6 18.6 9.6" fill="none" stroke="${P.goldL}" stroke-width="1.2"/>` },
+        { d: antler, t: 'translate(9.6 -11.4) rotate(18)', fill: P.goldL, inner: k.sh(antler, 0, 0, 1, 0, 0, 0.9, P.goldD, 0.45) + hair(0.6, -1, -0.2, -6, -2.6, -11, 0.35, P.goldD) },
+        { d: antler, t: 'translate(5 -10.4) rotate(4) scale(.8)', fill: P.gold, inner: k.sh(antler, 0, 0, 1, 0, 0, 0.9, P.goldD, 0.5) },
+        { d: mane, fill: P.greenD, inner: k.sh(mane, 0, 0, 0, 1, 0, 0.8, P.night, 0.4) + hair(-1, -4.6, -7, -6.6, -12, -8.6, 0.45, P.green) + hair(-3, 1.4, -8, 1, -12, 4.6, 0.4, P.green) },
+        { d: beard, t: 'translate(0 2) scale(1 .72) translate(0 -2)', fill: P.goldL, inner: k.sh(beard, 0, 0, 1, 1, 0, 0.8, P.gold, 0.45) + hair(8, 13, 8.2, 16, 7.8, 19, 0.3, P.goldD) },
+        { d: lower, t: 'translate(0 2) scale(1 .72) translate(0 -2)', fill: P.green, inner: k.sh(lower, 0, 0, 0, 1, 0, 0.9, P.greenD, 0.5) + `<path d="M4 11C10 12.6 16 12.4 20.6 11" fill="none" stroke="${P.goldL}" stroke-width="1.3"/>` },
       ], 0.6) +
-      `<path d="${mouth}" fill="${P.wine}"/><path d="M5 2.4C9 3.4 13 4.8 17 6.6C13 6.8 8 5.6 5 2.4Z" fill="${P.red}"/>` +
-      `<path d="M21.4 -3L20.6 -.2L19.6 -2.8ZM16 -2.2L15.4 .2L14.4 -1.8ZM17.8 7.4L17.4 4.8L16.4 7Z" fill="${P.white}" stroke="${P.ink}" stroke-width=".25"/>` +
+      `<g transform="translate(0 2) scale(1 .72) translate(0 -2)"><path d="${mouth}" fill="${P.wine}"/><path d="M5 2.6C10 3.8 15 5.6 19.6 8C15 8.2 9 6.6 5 2.6Z" fill="${P.red}"/>` +
+      `<path d="${teethDn}" fill="${P.white}" stroke="${P.ink}" stroke-width=".25" stroke-linejoin="round"/></g><path d="${teethUp}" fill="${P.white}" stroke="${P.ink}" stroke-width=".25" stroke-linejoin="round"/>` +
       k.draw([{
-        d: skull, fill: P.green,
-        inner: k.sh(skull, 0, 0, 0, 1, 0, 0.9, P.greenD, 0.5) + `<path d="M0 -12H28V-7C18 -8.6 8 -8.6 0 -5Z" fill="${k.lin(P.goldL, 0, 0, 0, 1, 0.45, 0)}"/>` +
-          hair(6, -1, 12, -2.4, 19, -3.4, 0.45, P.greenD) + hair(14, -9.6, 18, -7.6, 22, -8, 0.4, P.greenD),
+        d: upper, fill: P.green,
+        inner: k.sh(upper, 0, 0, 0, 1, 0, 0.9, P.greenD, 0.5) + `<path d="M0 -13H32V-8C20 -9.6 9 -9.6 0 -5Z" fill="${k.lin(P.goldL, 0, 0, 0, 1, 0.5, 0)}"/>` +
+          hair(7, -1.2, 14, -2.6, 22, -3.6, 0.45, P.greenD) + hair(3, -4, 5, -7, 9, -9.6, 0.4, P.greenD) + `<path d="M22 -6.6C24 -7.4 26.6 -7.6 28.6 -7" fill="none" stroke="${P.greenD}" stroke-width=".45"/>`,
       }], 0.6) +
-      `<path d="M8.4 -9.8C11.4 -11.8 15 -11.4 17 -9C14.6 -9.2 12 -8.6 10 -7.4Z" fill="${P.greenD}" stroke="${P.ink}" stroke-width=".35"/>` +
-      `<ellipse cx="13.6" cy="-6.6" rx="2.2" ry="1.4" fill="${P.gold}" stroke="${P.ink}" stroke-width=".45"/><path d="M13.6 -7.8V-5.4" stroke="${P.red}" stroke-width=".8" stroke-linecap="round"/><circle cx="12.9" cy="-7.1" r=".35" fill="#fff"/>` +
-      `<path d="M26.6 -8.6C27.6 -9.2 28.6 -8.6 28.4 -7.4" fill="none" stroke="${P.ink}" stroke-width=".6" stroke-linecap="round"/>` +
+      `<ellipse cx="29" cy="-8.4" rx="2.6" ry="2" fill="${P.green}" stroke="${P.ink}" stroke-width=".45"/><path d="M28.4 -8.6C29.4 -9.4 30.4 -8.8 30 -7.8" fill="none" stroke="${P.ink}" stroke-width=".5" stroke-linecap="round"/>` +
+      k.draw([{ d: brow, fill: P.greenD, inner: hair(10, -11.4, 15, -13.4, 20, -11.4, 0.4, P.green) }], 0.35) +
+      `<ellipse cx="15.4" cy="-7.8" rx="2.4" ry="1.5" fill="${P.gold}" stroke="${P.ink}" stroke-width=".45"/><path d="M15.4 -9.1V-6.5" stroke="${P.red}" stroke-width=".85" stroke-linecap="round"/><circle cx="14.6" cy="-8.3" r=".38" fill="#fff"/>` +
+      // los bigotes largos, que van hacia la perla
+      hair(29, -5, 40, -15, 52, -13, 1.2, P.goldL) + hair(28, -4, 42, 1, 52, -5, 1.1, P.goldL) + hair(30, -6, 36, -18, 44, -22, 0.7, P.goldL, 0.8) +
       `</g>`
-    const claw = 'M0 0C3 -1 6 -.6 8.6 1C9.8 -.4 11.6 -.8 12.6 0C11.4 .2 10.6 1 10.4 2.2C11.8 2 13 2.8 13.4 4C12 3.6 10.6 3.8 9.6 4.6C10.2 5.6 10.2 7 9.4 7.8C9 6.4 8 5.4 6.6 5C4 5.6 1.6 5 0 3.8Z'
-    const leg = 'M38 50C42 52.4 46 55.6 50 58L52.6 55.8C49 52.4 45 49 41.4 46.4Z'
+    // La pata delantera que se estira hacia la perla, con la garra abierta.
+    const limb = tube([[32, 76], [45, 79], [57, 72], [64, 63]], (t) => 6 - t * 2.2, 30)
+    const talon = (r: number, l: number) => `<g transform="rotate(${r})"><path d="M0 -1C${f(l * 0.5)} -1.6 ${f(l * 0.9)} -.6 ${l} 1.6C${f(l * 0.7)} .6 ${f(l * 0.4)} .6 0 1Z" fill="${P.goldL}" stroke="${P.ink}" stroke-width=".4" stroke-linejoin="round"/></g>`
+    const arm =
+      k.draw([{ d: limb.d, fill: P.green, inner: k.sh(limb.d, 0, 0, 1, 1, 0, 0.8, P.greenD, 0.45) + `<path d="${band(limb.fr, -0.9, -0.3)}" fill="${P.goldL}"/>` + hair(38, 75, 48, 75, 56, 69, 0.4, P.greenD) }], 0.6) +
+      `<g transform="translate(65 61.6) rotate(-52)">` + talon(-40, 6.4) + talon(-12, 7.4) + talon(14, 7) + talon(40, 5.6) + k.draw([{ d: ellipse(0, 0, 3.2, 2.6), fill: P.green, inner: k.sh(ellipse(0, 0, 3.2, 2.6), 0, 0, 1, 1, 0, 0.8, P.greenD, 0.45) }], 0.45) + `</g>` +
+      `<path d="M43 82L41 87L45 84.4L45.6 89L48.4 83.4Z" fill="${P.greenD}" stroke="${P.ink}" stroke-width=".4" stroke-linejoin="round"/>`
     return (
       k.night() +
-      k.shade('M0 0H120V60H0Z', k.lin('#0F1736', 0, 0, 0, 1, 0.8, 0), '#0F1736', 0.4) +
-      bolt([[30, 22], [36, 30], [32, 32], [40, 42]], P.goldL, 0.9) + bolt([[96, 56], [90, 62], [94, 64], [86, 72]], P.goldL, 0.8) +
-      [[24, 54], [78, 18], [94, 46], [70, 92], [36, 32]].map(([x, y], i) => `<circle cx="${x}" cy="${y}" r="${i % 2 ? 0.5 : 0.7}" fill="${P.paper}"/>`).join('') +
+      k.shade('M0 0H120V70H0Z', k.lin('#0F1736', 0, 0, 0, 1, 0.85, 0), '#0F1736', 0.45) +
+      bolt([[34, 22], [39, 29], [35, 31], [42, 40]], P.goldL, 0.9) + bolt([[98, 70], [92, 74], [96, 77], [88, 84]], P.goldL, 0.8) +
+      [[24, 50], [62, 20], [96, 40], [72, 70], [48, 30], [58, 72]].map(([x, y], i) => `<circle cx="${x}" cy="${y}" r="${i % 2 ? 0.5 : 0.7}" fill="${P.paper}"/>`).join('') +
       // la perla naranja del deseo
-      k.shade(ellipse(82, 44, 18, 18), k.rad(ORL, 0.5, 0.5, 0.5, 0.95, 0), OR, 0.5) +
-      k.draw([{ d: ellipse(82, 44, 6.6, 6.6), fill: OR, inner: `<circle cx="82" cy="44" r="6.6" fill="${k.rad(ORLL, 0.62, 0.72, 0.6, 0.95, 0)}"/>` + k.shade(ellipse(82, 44, 6.6, 6.6), k.rad(ORD, 0.4, 0.36, 0.6, 0, 0.9), ORD, 0.4) }], 0.55) +
-      `<path d="M78.4 41.4C79 39.6 80.4 38.4 82 38.2" fill="none" stroke="#fff" stroke-width="1.1" stroke-linecap="round"/>` +
-      hair(86, 38, 89, 34, 88, 30, 0.7, ORL) + hair(77, 39, 76, 35, 78, 31, 0.6, ORL) + hair(88.6, 46, 92, 46, 94, 43, 0.5, ORL) +
-      // el cuerpo que se enrosca entre las nubes
-      cloud(k, 36, 94, 1.2) +
+      k.shade(ellipse(78, 35, 18, 18), k.rad(ORL, 0.5, 0.5, 0.5, 0.95, 0), OR, 0.55) +
+      hair(82, 30, 85, 25, 84, 20.6, 0.8, ORL) + hair(74, 30, 72, 25.4, 74.4, 21.6, 0.7, ORL) + hair(84.4, 38, 88.6, 37, 90.4, 33, 0.6, ORL) +
+      k.draw([{ d: ellipse(78, 35, 6.6, 6.6), fill: OR, inner: `<circle cx="78" cy="35" r="6.6" fill="${k.rad(ORLL, 0.62, 0.72, 0.6, 0.95, 0)}"/>` + k.shade(ellipse(78, 35, 6.6, 6.6), k.rad(ORD, 0.4, 0.36, 0.6, 0, 0.9), ORD, 0.4) }], 0.55) +
+      `<path d="M74.4 32.4C75 30.6 76.4 29.4 78 29.2" fill="none" stroke="#fff" stroke-width="1.1" stroke-linecap="round"/>` + sparkle(81, 32, 1.6, '#fff') +
+      // el cuerpo enroscado, con las aletas rojas
       k.cast([body.d], 2.2, 2, '#0F1736') +
       `<path d="${fins}" fill="${P.red}" stroke="${P.ink}" stroke-width=".5" stroke-linejoin="round"/>` +
-      k.draw([{ d: leg, fill: P.green, inner: k.sh(leg, 0, 0, 0, 1, 0, 0.9, P.greenD, 0.45) }], 0.55) +
-      `<g transform="translate(51 56) rotate(-20)">` + k.draw([{ d: claw, fill: P.goldL, inner: k.sh(claw, 0, 0, 1, 1, 0, 0.8, P.gold, 0.45) }], 0.45) + `</g>` +
+      `<g transform="translate(${f(fr[0].x)} ${f(fr[0].y)}) rotate(-20)">` + k.draw([{ d: tuft, fill: P.red, inner: k.sh(tuft, 0, 0, 1, 1, 0, 0.8, P.wine, 0.45) }], 0.45) + `</g>` +
       k.draw([{
         d: body.d, fill: P.green,
         inner: k.sh(body.d, 0, 0, 1, 1, 0, 0.8, P.greenD, 0.45) + `<path d="${belly}" fill="${P.goldL}"/>` + k.sh(belly, 0, 0, 1, 1, 0, 0.7, P.gold, 0.4) +
-          `<path d="${plates}" stroke="${P.goldD}" stroke-width=".5"/><path d="${scales}" fill="none" stroke="${P.greenD}" stroke-width=".55" stroke-linecap="round"/>`,
+          `<path d="${plates}" stroke="${P.goldD}" stroke-width=".5"/><path d="${scales}" fill="none" stroke="${P.greenD}" stroke-width=".6" stroke-linecap="round"/>`,
       }], 0.7) +
+      arm +
       head +
-      hair(71, 38, 78, 32, 86, 30, 0.6, P.goldL) + hair(70, 40.6, 80, 40, 88, 34, 0.5, P.goldL) +
-      cloud(k, 92, 90, 0.9) + cloud(k, 26, 40, 0.7) +
-      sparkle(60, 22, 2.4, P.goldL) + sparkle(96, 30, 1.4, P.paper) +
+      cloud(k, 36, 99, 1.1) + cloud(k, 88, 99, 0.9) +
+      sparkle(56, 28, 2, P.goldL) + sparkle(96, 52, 1.4, P.paper) +
       k.defs()
     )
   },
@@ -210,26 +218,28 @@ export const TCG_DRAGONBALL_NUEVAS_ART: Record<string, (u: number) => string> = 
   'Super Saiyajin': (u) => {
     const k = kit(u)
     const gel =
-      'M44.4 63C41 59 38.4 54.4 37.4 49.4C40.6 51.4 43.6 52 46.4 51.8C43.4 46.6 42.4 40.4 43 34C46 38.8 49.6 41.6 53.4 42.6C52 36.4 52.6 29.6 55.4 23.4C57.4 29.6 60.4 33.6 63.6 35.8' +
-      'C64.4 30.4 67 26 71.4 22.8C70.4 28.6 71 33.6 73 37.6C75.6 35 78.6 33.6 82 33.4C79.6 37.4 78.8 41.6 79.6 45.6C81.4 45 83.4 45 85.4 45.8C82.4 49.4 80 53.6 78.4 58C77.8 60 76.8 61.8 75.6 63Z'
+      'M43.4 63C40 60 37 55.6 35 50C39 52 42.4 52.6 45.4 52C43.2 45 43.4 38 45 31C48 35.6 51 38.6 54 40C54.4 33 56.6 26.4 60 21' +
+      'C63.4 26.4 65.6 33 66 40C69 38.6 72 35.6 75 31.6C76.6 38.6 76.8 45.6 74.6 52C77.6 52.6 81 52 85 50C83 55.6 80 60 76.6 63Z'
     const jar = 'M41 67H79V86C79 90 76 92.6 72 92.6H48C44 92.6 41 90 41 86Z'
     const neck = 'M42.6 61.6H77.4V67.4H42.6Z'
     const inside = 'M42.6 69H77.4V86C77.4 89.4 75.2 91.2 72 91.2H48C44.8 91.2 42.6 89.4 42.6 86Z'
     const label = 'M41 73.4H79V85.4H41Z'
-    const strands = [[48, 61, 44, 54, 40, 51], [52, 60, 47, 48, 45, 37], [57, 59, 55, 42, 55.6, 26], [63, 60, 64, 46, 70.4, 25.4], [69, 61, 72, 50, 80.4, 35.6], [74, 62, 78, 55, 83.6, 47]]
+    const gelTips = [[35.6, 50.4], [45.4, 31.8], [60, 22], [74.8, 32.4], [84.4, 50.4]]
+    const strands = gelTips.flatMap(([tx, ty], i) => [-2.4, 0, 2.4].map((o) => { const bx = 45 + i * 7.6 + o; return [bx, 62, f((bx + tx) / 2 + (tx - 60) * 0.12 + o * 0.4), f((62 + ty) / 2 + 2), f(tx + o * 0.15), f(ty + 2.6)] }))
     return (
       k.day() +
-      k.sun(60, 50, 16, 47, 32, false) +
-      k.shade(ellipse(61, 44, 28, 26), k.rad(P.goldL, 0.5, 0.5, 0.5, 0.95, 0), P.goldL, 0.5) +
-      bolt([[30, 40], [35, 45], [32, 47], [37, 53]]) + bolt([[90, 58], [86, 62], [89, 64], [84, 69]]) + bolt([[86, 24], [83, 29], [86, 30], [82, 35]], P.goldL, 0.7) +
+      k.stage(60, 58, 41) +
+      k.shade(ellipse(60, 42, 30, 28), k.rad(P.goldL, 0.5, 0.5, 0.5, 0.95, 0), P.gold, 0.55) +
+      k.sun(60, 44, 20, 44, 24, false) +
+      bolt([[28, 36], [33, 41], [30, 43], [35, 49]]) + bolt([[92, 58], [88, 62], [91, 64], [86, 69]]) + bolt([[84, 24], [81, 28], [84, 29.6], [80, 34]], P.goldL, 0.7) +
       k.floor(60, 92.6, 24, 2.6, P.mid) +
       // el gel parado en puntas, como el pelo
       k.cast([gel], 2, 1.6) +
       k.draw([{
         d: gel, fill: P.gold,
         inner: k.sh(gel, 0, 0, 1, 0, 0, 0.9, P.goldD, 0.5) + `<path d="M36 22H54V64H36Z" fill="${k.lin(P.goldL, 0, 0, 1, 0, 0.75, 0)}"/>` +
-          strands.map(([a, b, c, d, e, g]) => hair(a, b, c, d, e, g, 0.55, P.goldD)).join('') +
-          hair(46, 52, 45, 44, 46.4, 38, 0.6, '#fff', 0.8) + hair(56.4, 40, 56, 33, 56.4, 28, 0.6, '#fff', 0.8) + hair(66, 42, 67.4, 34, 70, 28, 0.5, '#fff', 0.7),
+          strands.map(([a, b, c, d, e, g], i) => hair(a, b, c, d, e, g, i % 3 === 1 ? 0.55 : 0.4, P.goldD, i % 3 === 1 ? 1 : 0.8)).join('') +
+          hair(46.6, 50, 45.6, 42, 46.4, 35, 0.6, '#fff', 0.8) + hair(57.4, 42, 57.6, 32, 59.4, 25, 0.6, '#fff', 0.8) + hair(68, 44, 71, 38, 73.6, 34, 0.5, '#fff', 0.7),
       }], 0.75) +
       // el pote de vidrio con su etiqueta naranja
       k.cast([jar], 2.2, 1.8) +
@@ -249,29 +259,44 @@ export const TCG_DRAGONBALL_NUEVAS_ART: Record<string, (u: number) => string> = 
     )
   },
 
-  // Doce despertares: el pelo se te puso celeste y ni pestañeás. El peine que pasa, prolijo, por un mechón de fuego azul.
+  // Doce despertares: el pelo se te puso celeste y ni pestañeás. El peine naranja clavado en el pelo celeste, parado y prolijo.
   'Super Saiyajin Blue': (u) => {
     const k = kit(u)
-    const flame = (x: number, h: number, w: number, lean: number) =>
-      `M${f(x - w)} 92C${f(x - w * 1.1)} ${f(92 - h * 0.4)} ${f(x - w * 0.6 + lean * 0.5)} ${f(92 - h * 0.75)} ${f(x + lean)} ${f(92 - h)}C${f(x + w * 0.5 + lean * 0.6)} ${f(92 - h * 0.7)} ${f(x + w * 1.1)} ${f(92 - h * 0.4)} ${f(x + w)} 92Z`
-    const tongues: [number, number, number, number][] = [[44, 46, 6, -3], [52, 60, 6.4, -1.6], [60, 68, 6.6, 0], [68, 60, 6.4, 1.6], [76, 46, 6, 3]]
-    const comb = 'M-25 -3.4C-25 -5.6 -23 -7 -20 -7H20C23 -7 25 -5.6 25 -3.4V0H-25Z'
-    const teeth = Array.from({ length: 21 }, (_, i) => { const x = -23.4 + i * 2.34; return `M${f(x - 0.62)} 0H${f(x + 0.62)}V${i % 2 ? 9.6 : 11}C${f(x + 0.62)} ${i % 2 ? 10.6 : 12} ${f(x - 0.62)} ${i % 2 ? 10.6 : 12} ${f(x - 0.62)} ${i % 2 ? 9.6 : 11}Z` }).join('')
+    const mane =
+      'M42 104C41 90 40.6 78 41.6 66C38.6 61.6 36.4 56 35 50C39 52 42.4 52.6 45.4 52C43.2 45 43.4 38 45 31C48 35.6 51 38.6 54 40C54.4 33 56.6 26.4 60 21' +
+      'C63.4 26.4 65.6 33 66 40C69 38.6 72 35.6 75 31.6C76.6 38.6 76.8 45.6 74.6 52C77.6 52.6 81 52 85 50C83.6 56 81.4 61.6 78.4 66C79.4 78 79 90 78 104Z'
+    const comb = 'M-27 -3.4C-27 -5.8 -25 -7.4 -22 -7.4H22C25 -7.4 27 -5.8 27 -3.4V0H-27Z'
+    const teeth = Array.from({ length: 23 }, (_, i) => { const x = -25.3 + i * 2.3, l = i % 2 ? 9.4 : 10.8; return `M${f(x - 0.62)} 0H${f(x + 0.62)}V${l}C${f(x + 0.62)} ${f(l + 1)} ${f(x - 0.62)} ${f(l + 1)} ${f(x - 0.62)} ${l}Z` }).join('')
+    const strands = [[44, 100, 42, 66, 36, 51.6], [48, 100, 45, 60, 45.6, 33.6], [53, 100, 52, 60, 52.6, 41], [57, 100, 57, 50, 60, 23.6], [63, 100, 64, 56, 65.6, 41], [68, 100, 72, 58, 74.4, 34], [74, 100, 76, 66, 83.6, 51.4]]
+    const wisps = [[30, 84, 28, 70, 32, 58], [90, 84, 92, 70, 88, 58], [36, 40, 34, 32, 38, 24], [84, 40, 86, 32, 82, 24]]
     return (
-      k.day() +
-      k.stage(60, 58, 41) +
-      k.shade(ellipse(60, 58, 34, 36), k.rad(P.sky, 0.5, 0.6, 0.5, 0.9, 0), P.blue, 0.4) +
-      // el mechón de fuego azul, prolijo y quieto
-      tongues.map(([x, h, w, l]) => `<path d="${flame(x, h, w * 1.25, l)}" fill="${P.blue}"/>`).join('') +
-      k.draw(tongues.map(([x, h, w, l]) => ({ d: flame(x, h, w, l), fill: P.sky, inner: `<path d="${flame(x, h * 0.78, w * 0.62, l * 0.8)}" fill="${P.sky1}"/><path d="${flame(x, h * 0.5, w * 0.3, l * 0.5)}" fill="#fff"/>` + k.sh(flame(x, h, w, l), 0, 0, 1, 0, 0, 0.6, P.blue, 0.35) })), 0.6) +
-      tongues.map(([x, h, , l]) => hair(x - 2, 88, x - 2.6 + l * 0.3, 92 - h * 0.5, x + l * 0.6, 92 - h * 0.85, 0.5, P.mid, 0.7)).join('') +
-      // el peine naranja, cruzado en el mechón
-      `<g transform="translate(60 70) rotate(-6)">` +
-      k.cast([comb + teeth], 1.8, 1.8, P.mid) +
-      `<path d="${teeth}" fill="${OR}" stroke="${P.ink}" stroke-width=".4"/>` + `<path d="${teeth}" fill="${k.lin(ORD, 0, 0, 0, 1, 0, 0.7)}"/>` +
-      k.draw([{ d: comb, fill: OR, inner: k.sh(comb, 0, 0, 0, 1, 0, 0.8, ORD, 0.45) + `<path d="M-23 -5.4H23" stroke="${ORLL}" stroke-width=".7"/>` + `<circle cx="0" cy="-3.6" r="1.6" fill="${P.sky}" stroke="${P.ink}" stroke-width=".35"/><circle cx="-12" cy="-3.6" r=".9" fill="${ORLL}"/><circle cx="12" cy="-3.6" r=".9" fill="${ORLL}"/>` + hair(-20, -2, -10, -1.4, 0, -1.8, 0.4, ORD) }], 0.6) +
+      k.night() +
+      [[30, 34], [88, 30], [26, 74], [94, 82], [40, 22], [82, 94]].map(([x, y], i) => `<circle cx="${x}" cy="${y}" r="${i % 2 ? 0.5 : 0.7}" fill="${P.paper}"/>`).join('') +
+      // el aura azul, quieta
+      k.shade(ellipse(60, 58, 38, 40), k.rad(P.blue, 0.5, 0.5, 0.5, 0.95, 0), P.sky, 0.55) +
+      `<g transform="translate(60 72) scale(1.16 1.12) translate(-60 -72)"><path d="${mane}" fill="${P.blue}" opacity=".6"/></g>` +
+      `<g transform="translate(60 72) scale(1.07 1.05) translate(-60 -72)"><path d="${mane}" fill="${P.sky}" opacity=".55"/></g>` +
+      wisps.map(([a, b, c, d, e, g]) => hair(a, b, c, d, e, g, 0.7, P.sky, 0.8)).join('') +
+      // el pelo celeste, parado en puntas
+      k.draw([{
+        d: mane, fill: P.sky,
+        inner: `<path d="M50 18H70V104H50Z" fill="${k.lin(P.white, 0, 0, 1, 0, 0, 0.95)}"/><path d="M38 18H52V104H38Z" fill="${k.lin(P.white, 0, 0, 1, 0, 0.4, 0)}"/>` +
+          k.sh(mane, 0, 0, 1, 0, 0.1, 0.85, P.blue, 0.45) + k.sh('M30 84H90V104H30Z', 0, 0, 0, 1, 0, 0.7, P.mid, 0.4) +
+          strands.map(([a, b, c, d, e, g], i) => hair(a, b, c, d, e, g, i % 2 ? 0.5 : 0.65, i % 3 === 1 ? '#fff' : P.mid, i % 3 === 1 ? 0.9 : 0.8)).join(''),
+      }], 0.75) +
+      sparkle(60, 21, 2.4, '#fff') + sparkle(45, 31, 1.6, '#fff') + sparkle(75, 31.6, 1.6, '#fff') +
+      // el peine naranja, clavado de costado
+      `<g transform="translate(60 76) rotate(-6)">` +
+      k.cast([comb + teeth], 1.8, 1.8, '#0F1736') +
+      `<path d="${teeth}" fill="${OR}" stroke="${P.ink}" stroke-width=".4"/>` + `<path d="${teeth}" fill="${k.lin(ORD, 0, 0, 0, 1, 0, 0.75)}"/>` +
+      k.draw([{
+        d: comb, fill: OR,
+        inner: k.sh(comb, 0, 0, 0, 1, 0, 0.8, ORD, 0.45) + `<path d="M-25 -5.6H25" stroke="${ORLL}" stroke-width=".7"/>` +
+          `<path d="M-24 -2H24" stroke="${ORD}" stroke-width=".4" stroke-dasharray="1.2 1"/>` +
+          `<circle cx="0" cy="-3.7" r="1.7" fill="${P.sky}" stroke="${P.ink}" stroke-width=".35"/><circle cx="-.5" cy="-4.2" r=".5" fill="#fff"/><circle cx="-13" cy="-3.7" r="1" fill="${ORLL}" stroke="${ORD}" stroke-width=".25"/><circle cx="13" cy="-3.7" r="1" fill="${ORLL}" stroke="${ORD}" stroke-width=".25"/>`,
+      }], 0.6) +
       `</g>` +
-      sparkle(60, 22, 2.6, '#fff') + sparkle(86, 40, 2) + sparkle(32, 48, 1.6) +
+      sparkle(90, 46, 2, P.sky1) + sparkle(28, 48, 1.6, P.sky1) +
       k.defs()
     )
   },
@@ -289,7 +314,7 @@ export const TCG_DRAGONBALL_NUEVAS_ART: Record<string, (u: number) => string> = 
     const knot = 'M56 69.6H63V77.4H56Z'
     const tail1 = 'M57.4 77L54 90L57.6 89.4L59.6 77.4Z'
     const tail2 = 'M61.6 77.2L64 89.6L67.2 88.4L63.6 77Z'
-    const torn = 'M70 82L72.6 80L74 83L76.4 81.4L75.6 85.4L72 86.6Z'
+    const torn = 'M69.6 82.4L71.6 80.4L72.8 82.8L75 80.8L76.2 83.4L74.2 84.6L75.4 86.6L72 86L70.4 87.2Z'
     const all = [body, sl, sr]
     const aura = (s: number) => {
       let d = ''
@@ -301,7 +326,8 @@ export const TCG_DRAGONBALL_NUEVAS_ART: Record<string, (u: number) => string> = 
       }
       return d + 'Z'
     }
-    const ghost = (dx: number, op: number) => `<g transform="translate(${dx} -2)" opacity="${op}">${all.map((d) => `<path d="${d}" fill="${P.sky}" stroke="${P.sky1}" stroke-width=".8"/>`).join('')}</g>`
+    const ghost = (dx: number, op: number) => `<g transform="translate(${dx} -1.4)" opacity="${op}">${all.map((d) => `<path d="${d}" fill="${OR}"/>`).join('')}${all.map((d) => `<path d="${d}" fill="none" stroke="${ORLL}" stroke-width=".7"/>`).join('')}</g>`
+    const speed = [[26, 50, 34], [22, 60, 33], [25, 70, 35], [86, 50, 94], [87, 60, 98], [85, 70, 95]].map(([a, y, b]) => hair(a, y, (a + b) / 2, y - 0.6, b, y, 0.7, P.sky1, 0.8)).join('')
     return (
       k.night() +
       [[30, 30], [88, 28], [24, 72], [96, 80], [42, 20], [80, 96]].map(([x, y], i) => `<circle cx="${x}" cy="${y}" r="${i % 2 ? 0.5 : 0.7}" fill="${P.paper}"/>`).join('') +
@@ -310,7 +336,7 @@ export const TCG_DRAGONBALL_NUEVAS_ART: Record<string, (u: number) => string> = 
       `<path d="${aura(0.86)}" fill="${P.sky1}" opacity=".55"/>` +
       Array.from({ length: 7 }, (_, i) => { const x = 44 + i * 5.4; return hair(x, 92, x - 1.4 + (i % 2) * 2.8, 64, x + (i - 3) * 0.6, 26 + Math.abs(i - 3) * 4, 0.6, '#fff', 0.7) }).join('') +
       // la estela de los esquives
-      ghost(-15, 0.28) + ghost(15, 0.28) +
+      ghost(-14, 0.38) + ghost(14, 0.38) + speed +
       k.cast(all, 2.2, 2, '#0F1736') +
       k.draw([
         { d: sl, fill: OR, inner: k.sh(sl, 0, 0, 0, 1, 0, 0.7, ORD, 0.4) + hair(36, 48, 34, 53, 31, 57, 0.5, ORD) },
@@ -319,18 +345,19 @@ export const TCG_DRAGONBALL_NUEVAS_ART: Record<string, (u: number) => string> = 
           d: body, fill: OR,
           inner: k.sh('M64 40C68 56 68 74 64 94H84V40Z', 0, 0, 1, 0, 0, 0.85, ORD, 0.45) + k.sh('M38 80H82V94H38Z', 0, 0, 0, 1, 0, 0.7, ORD, 0.4) +
             `<path d="M38 38H50V94H38Z" fill="${k.lin(ORLL, 0, 0, 1, 0, 0.55, 0)}"/>` +
-            hair(45, 66, 47, 74, 46, 84, 0.55, ORD) + hair(74, 64, 72, 74, 74, 86, 0.55, ORD) + hair(66, 50, 70, 56, 70, 62, 0.45, ORD),
+            hair(45, 66, 47, 74, 46, 84, 0.55, ORD) + hair(74, 64, 72, 74, 74, 86, 0.55, ORD) + hair(66, 50, 70, 56, 70, 62, 0.45, ORD) + hair(48, 80, 52, 84, 50, 89, 0.45, ORD) +
+            `<path d="M41.6 88.6C50 91 70 91 78.6 88.6" fill="none" stroke="${ORD}" stroke-width=".45" stroke-dasharray="1.2 .9"/><path d="M43 44.4L41.6 62M77 44.4L78.4 62" stroke="${ORD}" stroke-width=".4" stroke-dasharray="1.2 .9"/>`,
         },
       ], 0.75) +
       `<path d="${vee}" fill="${P.mid}" stroke="${P.ink}" stroke-width=".5"/>` + k.sh(vee, 0, 0, 1, 1, 0, 0.8, P.night, 0.4) +
       k.draw([
         { d: lapel2, fill: OR, inner: k.sh(lapel2, 0, 0, 1, 0, 0, 0.8, ORD, 0.45) },
-        { d: lapel, fill: OR, inner: k.sh(lapel, 0, 0, 1, 0, 0.2, 0.9, ORD, 0.5) + `<path d="M69.4 39.6L54.4 68" stroke="${ORLL}" stroke-width=".5"/>` },
+        { d: lapel, fill: OR, inner: k.sh(lapel, 0, 0, 1, 0, 0.2, 0.9, ORD, 0.5) + `<path d="M69.4 39.6L54.4 68" stroke="${ORLL}" stroke-width=".5"/><path d="M70.4 40.6L55.2 69.2" stroke="${ORD}" stroke-width=".4" stroke-dasharray="1 .8"/>` },
         { d: tail1, fill: P.mid, inner: k.sh(tail1, 0, 0, 1, 0, 0, 0.8, P.ink, 0.4) },
         { d: tail2, fill: P.mid, inner: k.sh(tail2, 0, 0, 1, 0, 0, 0.8, P.ink, 0.4) },
         { d: belt, fill: P.mid, inner: k.sh(belt, 0, 0, 1, 1, 0, 0.8, P.ink, 0.45) + `<path d="M40.4 72.6C50 74.8 70 74.8 79.6 72.6" fill="none" stroke="${P.sky}" stroke-width=".4" stroke-dasharray="1 .8"/>` },
         { d: knot, fill: P.mid, inner: k.sh(knot, 0, 0, 1, 1, 0, 0.8, P.ink, 0.45) + hair(57, 71, 59.6, 73.4, 62, 76, 0.4, P.sky) },
-        { d: torn, fill: P.night },
+        { d: torn, fill: P.mid, inner: k.sh(torn, 0, 0, 1, 1, 0, 0.8, P.night, 0.4) },
       ], 0.55) +
       `<circle cx="70.4" cy="50.4" r="4.2" fill="${P.white}" stroke="${P.ink}" stroke-width=".55"/><path d="${starPath(70.4, 50.4, 2.8, 1.1, 5)}" fill="${OR}" stroke="${ORD}" stroke-width=".3"/>` +
       `<path d="M44 46L45.6 47.6M46.2 43.6L48 45.4" stroke="${ORD}" stroke-width=".5" stroke-linecap="round"/>` +

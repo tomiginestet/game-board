@@ -50,10 +50,10 @@ function thumbsUp(k: Kit) {
   return (
     k.draw([
       { d: palm, fill: P.skin, inner: k.sh(palm, 0, 0, 1, 0, 0, 0.75, P.blue, 0.35) + hair(-6, -12, -6.6, -7, -5.4, -2, 0.4, P.brown) },
-      ...F.map((g, i) => ({
+      ...F.map((g) => ({
         d: finger(g), fill: P.skin, line: 0.35,
         inner: k.sh(finger(g), 0, 0, 1, 1, 0, 0.75, P.blue, 0.35) + `<path d="M${f(g[2] - 6.4)} ${f(g[0] + 0.8)}C${f(g[2] - 7.2)} ${f((g[0] + g[1]) / 2)} ${f(g[2] - 7.2)} ${f((g[0] + g[1]) / 2)} ${f(g[2] - 6.4)} ${f(g[1] - 0.8)}" fill="none" stroke="${P.brown}" stroke-width=".35"/>` +
-          hair(g[2] - 2.4, g[0] + 1.2, g[2] - 1.2, (g[0] + g[1]) / 2, g[2] - 2.4, g[1] - 1.2, 0.35, P.brown) + (i === 2 ? '' : ''),
+          hair(g[2] - 2.4, g[0] + 1.2, g[2] - 1.2, (g[0] + g[1]) / 2, g[2] - 2.4, g[1] - 1.2, 0.35, P.brown),
       })),
       { d: thumb, fill: P.skin, line: 0.35, inner: k.sh(thumb, 0, 0, 1, 0, 0, 0.8, P.blue, 0.35) + hair(-7.4, -24, -5, -25, -2.4, -24.4, 0.4, P.brown) + hair(-7.2, -27, -5, -28, -2.6, -27.4, 0.35, P.brown) },
     ], 0.6) +
@@ -193,72 +193,60 @@ export const TCG_YUGIOH_NUEVAS_ART: Record<string, (u: number) => string> = {
     )
   },
 
-  // Cincuenta partidas: el faraón. La esfinge de piedra, con el pelo parado de cinco colores que no le entra en el tocado.
+  // Cincuenta partidas: el faraón. La máscara de oro, de frente y con todo su grabado, y el pelo parado de cinco
+  // colores que no le entra en el tocado.
   'Faraón': (u) => {
     const k = kit(u)
-    const body = 'M57 48C64 49.4 72 50.4 80 52C87 53.4 92 58 93 65C93.8 71 93 77 91 83H52C50 77 49 71 50 64C50.6 58 53 53 57 48Z'
-    const haunch = 'M73 67C77 60.6 88 60.6 91 67C93.2 72 92 78 90.6 83H70C68.6 77.6 70 71 73 67Z'
-    const hind = 'M64 79C68 78 74 78.2 77 79.4C78.8 80.2 78.8 82.8 77 83H64.4C62.8 82.6 62.8 79.4 64 79Z'
-    const legFar = 'M53 69.6C47 70 40 70.6 34 71.2C31 71.6 29.6 73.6 30 75.6C30.4 77.2 32 77.8 34 77.8H53Z'
-    const legNear = 'M57 72C49 73.4 41 75 32 75.8C28.4 76.2 26.6 78.4 27 80.6C27.4 82.4 29 83 31.6 83H58Z'
-    const tail = 'M90.6 81C95 80.6 97.4 78 96.6 74.6C96.2 72.8 94.6 72.2 93.6 73.2C95 74.8 94.4 77.6 90.2 78.2Z'
-    const nemes = 'M45.6 40C45.2 34.4 49.6 31 55 30.8C61 30.6 65.2 34.4 65.6 40C66 44.6 67.6 48.4 70.6 51.4C66.8 53.6 61.2 53.8 57.6 52.6L52.6 46.6Z'
-    const lappet = 'M50.6 41.6L56.6 43L55.6 61.6C55.4 63.6 53.2 64.6 51.2 64.2L49.6 63.8Z'
-    const face =
-      'M47.6 38.6C46.4 39.4 45.8 40.6 45.6 42L45.2 42.8C44 44.4 43 45.8 42.6 46.8C42.4 47.4 43 47.8 43.8 48L44 49C43.6 49.6 43.8 50.2 44.4 50.4' +
-      'C44.2 51.4 44.8 52.4 46 52.8C47.6 53.2 49.4 52.8 50.8 52L52.6 46.6L51.6 40Z'
-    const beard = 'M45.6 52.6C45.6 55 45.8 57.4 46.4 59.6C47.4 60.4 48.6 60.4 49.6 59.8C49.4 57.4 49.6 55 50.2 52.4Z'
-    const band = 'M45.6 40C45.4 38.6 45.6 37.2 46.2 36L48.4 36.8C48 38 47.8 39.4 48 40.8Z'
-    const stone = (d: string, extra = '') => ({ d, fill: P.sky1, inner: k.sh(d, 0, 0, 1, 1, 0, 0.9, P.blue, 0.45) + extra })
-    const stripes = Array.from({ length: 6 }, (_, i) => `<path d="M${f(48 + i * 3.4)} 30C${f(50 + i * 3.6)} 38 ${f(54 + i * 3.6)} 46 ${f(58 + i * 3.4)} 54" fill="none" stroke="${i % 2 ? P.gold : VIO}" stroke-width="1.6"/>`).join('')
-    // El pelo: una mata negra que no entra en el tocado, con cinco puntas de color, y el flequillo dorado.
-    const c = { x: 55.9, y: 35.6 }, pt = (deg: number, r: number) => ({ x: c.x + Math.cos((deg * Math.PI) / 180) * r, y: c.y + Math.sin((deg * Math.PI) / 180) * r })
-    const tips: [number, string][] = [[-170, P.sky], [-26, P.sky], [-134, P.red], [-62, P.red], [-98, VIO]]
-    const spikes = tips.map(([a, col]) => {
-      const b0 = pt(a - 22, 8.4), b1 = pt(a + 22, 8.4), t = pt(a + 6, 22.4), m0 = pt(a - 8, 15.6), m1 = pt(a + 14, 14.4)
+    const nemes = 'M46.4 41C46.4 34 52 30 60 30C68 30 73.6 34 73.6 41L75.6 50C79.6 58 83.4 68 85.4 81H34.6C36.6 68 40.4 58 44.4 50Z'
+    const lapL = 'M44.4 50L50.6 52L48.6 84H38.6C40.4 72 42 60 44.4 50Z'
+    const lapR = 'M75.6 50L69.4 52L71.4 84H81.4C79.6 72 78 60 75.6 50Z'
+    const face = 'M50.4 43C50.4 39 54.4 37.4 60 37.4C65.6 37.4 69.6 39 69.6 43V55C69.6 62 65.6 67 60 67C54.4 67 50.4 62 50.4 55Z'
+    const band = 'M47 41.4C51 39.4 55.4 38.6 60 38.6C64.6 38.6 69 39.4 73 41.4L72.6 44C68.6 42.2 64.4 41.4 60 41.4C55.6 41.4 51.4 42.2 47.4 44Z'
+    const beard = 'M57.2 66.4H62.8L62.2 77.6C61.8 79.6 58.2 79.6 57.8 77.6Z'
+    const collar = 'M36 82C42 90 50 94.4 60 94.4C70 94.4 78 90 84 82L84.6 78C78 84 70 87.4 60 87.4C50 87.4 42 84 35.4 78Z'
+    const stripes = Array.from({ length: 9 }, (_, i) => {
+      const y = 46 + i * 4.2
+      return `<path d="M30 ${y}Q60 ${f(y - 4)} 90 ${y}" fill="none" stroke="${i % 2 ? P.gold : VIO}" stroke-width="2.1"/>`
+    }).join('')
+    const lapStripes = Array.from({ length: 8 }, (_, i) => `<path d="M36 ${f(55 + i * 3.6)}H84" stroke="${i % 2 ? P.gold : VIO}" stroke-width="1.8"/>`).join('')
+    // El pelo: mata negra con cinco puntas de color que asoma por arriba del tocado.
+    const c = { x: 60, y: 35.4 }, pt = (deg: number, r: number) => ({ x: c.x + Math.cos((deg * Math.PI) / 180) * r, y: c.y + Math.sin((deg * Math.PI) / 180) * r })
+    const tips: [number, number, string][] = [[-160, 16, P.sky], [-128, 16, P.red], [-90, 14.6, VIO], [-52, 16, P.red], [-20, 16, P.sky]]
+    const spikes = tips.map(([a, L, col]) => {
+      const b0 = pt(a - 20, 8), b1 = pt(a + 20, 8), t = pt(a + 5, L), m0 = pt(a - 7, L * 0.7), m1 = pt(a + 13, L * 0.64)
       const d = `M${f(b0.x)} ${f(b0.y)}Q${f(m0.x)} ${f(m0.y)} ${f(t.x)} ${f(t.y)}Q${f(m1.x)} ${f(m1.y)} ${f(b1.x)} ${f(b1.y)}L${f(c.x)} ${f(c.y)}Z`
-      const cut0 = pt(a - 30, 13.4), cut1 = pt(a + 34, 13)
-      const tip = `M${f(cut0.x)} ${f(cut0.y)}Q${f(pt(a, 12.6).x)} ${f(pt(a, 12.6).y)} ${f(cut1.x)} ${f(cut1.y)}L${f(pt(a + 6, 27).x)} ${f(pt(a + 6, 27).y)}Z`
-      const g0 = pt(a - 6, 10), g1 = pt(a + 1, 16.6), g2 = pt(a + 4, 20.6)
+      const cut0 = pt(a - 24, L * 0.6), cut1 = pt(a + 28, L * 0.58), far = pt(a + 5, L + 5), mid = pt(a, L * 0.56)
+      const tip = `M${f(cut0.x)} ${f(cut0.y)}Q${f(mid.x)} ${f(mid.y)} ${f(cut1.x)} ${f(cut1.y)}L${f(far.x)} ${f(far.y)}Z`
+      const g0 = pt(a - 5, 9.4), g1 = pt(a + 1, L * 0.74), g2 = pt(a + 4, L * 0.9)
       return { d, fill: P.night, line: 0.3, inner: `<path d="${tip}" fill="${col}"/>` + k.sh(d, 0, 0, 1, 1, 0, 0.7, '#0F1736', 0.4) + hair(f(g0.x), f(g0.y), f(g1.x), f(g1.y), f(g2.x), f(g2.y), 0.45, '#fff', 0.55) }
     })
-    const dome = 'M46 37.6C46 31 50.4 26.4 56 26.4C61.6 26.4 66 31 66 37.8C62 36.2 58 35.8 55.4 36.4C52 36.4 48.6 36.8 46 37.6Z'
-    const bangs = ['M49 36.2C47.2 37.4 46 39 45.8 40.8L44.8 40.4C44 41.6 43.8 43 44.2 44.2C42.6 43 42.2 40.8 43 39C43.8 37.2 46.2 36 49 36.2Z', 'M51.4 36.6C50.2 39 50.2 41.2 51.2 43.2L49.6 43C49.4 45.2 50 47.2 51.2 48.8C48.6 48 47.4 45.6 47.6 42.8C47.8 40 49.2 37.8 51.4 36.6Z', 'M54.8 36.8C54 39.2 54.2 41.4 55.4 43.4L54 43.4C53.8 45.4 54.4 47.2 55.4 48.6C53.2 47.8 52 45.6 52 43C52.2 40.2 53.2 38 54.8 36.8Z']
+    const lock = (x: number, sx: number) => `M${x} 40.6C${f(x + sx * 1.6)} 43 ${f(x + sx * 1.4)} 45.6 ${f(x + sx * 0.2)} 48.4L${f(x + sx * 1.8)} 47.8C${f(x + sx * 2.2)} 50.4 ${f(x + sx * 1.6)} 52.6 ${f(x + sx * 0.4)} 54C${f(x + sx * 3.6)} 52.4 ${f(x + sx * 4.4)} 49 ${f(x + sx * 3.4)} 46C${f(x + sx * 2.8)} 43.6 ${f(x + sx * 1.6)} 41.8 ${x} 40.6Z`
+    const eyeL = (sx: number) =>
+      `<g transform="translate(60 0) scale(${sx} 1) translate(-60 0)">` +
+      `<path d="M52.6 50.6C53.8 49.2 56.2 49 57.6 50.4C56.2 51.6 54 51.8 52.6 50.6Z" fill="${P.white}" stroke="${P.ink}" stroke-width=".55"/><circle cx="55.2" cy="50.4" r=".95" fill="${P.ink}"/>` +
+      `<path d="M52.6 50.6L50.4 50.2" stroke="${P.ink}" stroke-width=".7" stroke-linecap="round"/><path d="M52 47.6C53.8 46.6 56.4 46.6 58 47.6" fill="none" stroke="${VIOD}" stroke-width=".9" stroke-linecap="round"/></g>`
     return (
       k.day() +
-      k.sun(56, 48, 14, 47, 32, false) +
-      k.shade(ellipse(56, 44, 22, 22), k.rad(P.goldL, 0.5, 0.5, 0.5, 0.7, 0), P.goldL, 0.45) +
-      `<path d="M14 84C30 82 44 83.4 60 83C76 82.6 90 83.8 106 82.6V130H14Z" fill="${P.goldL}"/>` + k.sh('M14 82H106V104H14Z', 0, 0, 0, 1, 0, 0.8, P.goldD, 0.4) +
-      hair(30, 88, 40, 86.6, 50, 87.6, 0.45, P.goldD) + hair(64, 89, 74, 87.6, 86, 88.4, 0.45, P.goldD) + hair(44, 93, 54, 92, 62, 93, 0.4, P.goldD) +
-      k.floor(60, 83.6, 32, 2.2, P.brownD) +
-      `<g transform="translate(60 84) scale(.84) translate(-60 -84)">` +
-      k.cast([body, legNear], 2.2, 1.6) +
+      k.sun(60, 56, 16, 48, 32, false) +
+      k.shade(ellipse(60, 56, 28, 28), k.rad(VIOL, 0.5, 0.5, 0.5, 0.55, 0), VIOL, 0.35) +
+      k.draw(spikes, 0.6) +
+      k.cast([nemes], 2.2, 2) +
+      k.draw([{ d: nemes, fill: P.gold, inner: stripes + k.sh(nemes, 0, 0, 1, 0, 0, 0.85, P.goldD, 0.45) + `<path d="M40 40H52V84H40Z" fill="${k.lin(P.goldL, 0, 0, 1, 0, 0.6, 0)}"/>` }], 0.75) +
       k.draw([
-        stone(tail),
-        stone(legFar, k.sh(legFar, 0, 0, 0, 1, 0, 0.6, P.mid, 0.4)),
-        stone(body, `<path d="M50 50H68V83H50Z" fill="${k.lin('#ffffff', 0, 0, 1, 0, 0.45, 0)}"/>` + hair(60, 56, 66, 54, 72, 55, 0.45, P.blue) + hair(62, 62, 66, 66, 64, 72, 0.45, P.blue) + hair(80, 54.6, 84, 56, 86, 59, 0.4, P.blue) +
-          `<path d="M54 60H92M51 70H72M58 78H70" stroke="${P.sky2}" stroke-width=".45" stroke-dasharray="7 1.4 11 1.4"/>`),
-        stone(haunch, hair(76, 66, 84, 63, 90, 68, 0.5, P.blue) + hair(74, 74, 78, 70, 84, 70, 0.4, P.blue)),
-        stone(hind, `<path d="M66.6 80V83M69.6 80V83" stroke="${P.blue}" stroke-width=".4"/>`),
-        stone(legNear, hair(40, 77.4, 48, 76, 56, 76.6, 0.45, P.blue) + `<path d="M29.6 80.4C30.6 80.4 31 81.4 30.6 83M32.8 79.6C33.8 79.8 34.2 81 33.8 83M36 79.4C37 79.6 37.4 81 37 83" fill="none" stroke="${P.blue}" stroke-width=".45"/>`),
-      ], 0.7) +
-      `<g transform="translate(52 52) scale(1.14) translate(-52 -52)">` +
-      k.cast([nemes], 1.6, 1.4) +
-      k.draw([{ d: nemes, fill: P.gold, inner: stripes + k.sh(nemes, 0, 0, 1, 1, 0, 0.8, P.goldD, 0.45) }], 0.65) +
-      k.draw([...spikes, { d: dome, fill: P.night, inner: k.sh(dome, 0, 0, 1, 1, 0, 0.7, '#0F1736', 0.4) + hair(49, 33, 52, 28.6, 57, 27.6, 0.55, '#fff', 0.5) + hair(56, 34, 60, 30, 63, 31.6, 0.4, VIOL, 0.6) }], 0.6) +
-      k.draw([
-        { d: lappet, fill: P.gold, inner: k.sh(lappet, 0, 0, 1, 0, 0, 0.8, P.goldD, 0.45) + Array.from({ length: 7 }, (_, i) => `<path d="M48 ${f(45 + i * 2.7)}L58 ${f(46.6 + i * 2.7)}" stroke="${VIO}" stroke-width="1.2"/>`).join('') },
-        stone(face, k.sh(face, 0, 0, 1, 0, 0, 0.5, P.blue, 0.3)),
-        stone(beard, `<path d="M45.6 54.4H50M45.8 56.4H49.8M46 58.4H49.6" stroke="${P.blue}" stroke-width=".4"/>`),
-        { d: band, fill: P.gold, inner: k.sh(band, 0, 0, 1, 0, 0, 0.8, P.goldD, 0.45) },
-      ], 0.65) +
-      k.draw(bangs.map((d) => ({ d, fill: '#FBE7B0', line: 0.25, inner: k.sh(d, 0, 0, 1, 1, 0.2, 0.9, P.gold, 0.5) })), 0.45) +
-      // ojo de perfil a la egipcia (almendra con el delineado hacia atrás) y el ureo en la frente
-      `<path d="M45.8 43.4C46.6 42.6 48 42.6 48.8 43.4C48 44 46.6 44 45.8 43.4Z" fill="${P.white}" stroke="${P.ink}" stroke-width=".4"/><circle cx="47" cy="43.4" r=".5" fill="${P.ink}"/><path d="M48.8 43.4L50.8 43" stroke="${P.ink}" stroke-width=".5" stroke-linecap="round"/>` +
-      `<path d="M45.6 41.6C46.6 41 48 41 49 41.6" fill="none" stroke="${P.blue}" stroke-width=".5"/><path d="M44.2 48.4H45.4" stroke="${P.blue}" stroke-width=".4"/>` +
-      `<path d="M46.8 36.4C46.2 34.6 46.6 33 47.6 32.4C48.6 33 48.8 34.6 48 36.6Z" fill="${P.gold}" stroke="${P.ink}" stroke-width=".4"/>` +
-      `</g></g>` +
-      sparkle(88, 34, 2.4) + sparkle(30, 56, 1.6) + sparkle(78, 22, 1.4) +
+        { d: lapL, fill: P.gold, inner: lapStripes + k.sh(lapL, 0, 0, 1, 0, 0, 0.6, P.goldD, 0.4) },
+        { d: lapR, fill: P.gold, inner: lapStripes + k.sh(lapR, 0, 0, 1, 0, 0.2, 0.9, P.goldD, 0.45) },
+        { d: collar, fill: P.gold, inner: k.sh(collar, 0, 0, 0, 1, 0, 0.7, P.goldD, 0.4) + `<path d="M36 80.4C44 87.4 52 91 60 91C68 91 76 87.4 84 80.4" fill="none" stroke="${VIO}" stroke-width="1.6"/><path d="M37 82.6C44 89.4 52 92.8 60 92.8C68 92.8 76 89.4 83 82.6" fill="none" stroke="${P.red}" stroke-width=".8" stroke-dasharray="1.2 .8"/>` },
+        { d: face, fill: P.goldL, inner: k.sh(face, 0, 0, 1, 1, 0, 0.8, P.gold, 0.5) + k.sh('M62 36H72V68H62Z', 0, 0, 1, 0, 0, 0.7, P.goldD, 0.4) + `<path d="M51 44C52 42 54 41 55.4 41" fill="none" stroke="#fff" stroke-width=".8" stroke-linecap="round" opacity=".8"/>` },
+        { d: beard, fill: P.gold, inner: Array.from({ length: 5 }, (_, i) => `<path d="M57 ${f(68.4 + i * 2.1)}L63 ${f(67.6 + i * 2.1)}" stroke="${VIO}" stroke-width=".8"/>`).join('') + k.sh(beard, 0, 0, 1, 0, 0, 0.8, P.goldD, 0.4) },
+        { d: band, fill: P.gold, inner: k.sh(band, 0, 0, 0, 1, 0, 0.8, P.goldD, 0.4) },
+      ], 0.6) +
+      eyeL(1) + eyeL(-1) +
+      `<path d="M60 51V57.6C59.2 58.6 58.4 59 57.8 59.2M60 57.6C60.8 58.6 61.6 59 62.2 59.2" fill="none" stroke="${P.goldD}" stroke-width=".6" stroke-linecap="round"/>` +
+      `<path d="M56.8 62C58.6 61.2 61.4 61.2 63.2 62C61.4 63 58.6 63 56.8 62Z" fill="${P.goldD}" stroke="${P.ink}" stroke-width=".4"/>` +
+      k.draw(['M60 38.8C58.4 36.6 58.6 33.8 60 32.6C61.4 33.8 61.6 36.6 60 38.8Z'].map((d) => ({ d, fill: P.gold, inner: k.sh(d, 0, 0, 1, 0, 0, 0.8, P.goldD, 0.4) })), 0.4) +
+      `<circle cx="60" cy="40.4" r="1.3" fill="${P.red}" stroke="${P.ink}" stroke-width=".35"/>` +
+      k.draw([lock(50.8, -1), lock(69.2, 1)].map((d) => ({ d, fill: '#FBE7B0', line: 0.25, inner: k.sh(d, 0, 0, 1, 1, 0.2, 0.9, P.gold, 0.5) })), 0.45) +
+      sparkle(88, 36, 2.4) + sparkle(31, 40, 1.8) +
       k.defs()
     )
   },
@@ -274,7 +262,7 @@ export const TCG_YUGIOH_NUEVAS_ART: Record<string, (u: number) => string> = {
     const fin = 'M0 -27C-1.4 -24.6 -1.4 -22 0 -19.6C1.4 -22 1.4 -24.6 0 -27Z'
     const orb = ellipse(0, -36.4, 7.6, 7.6)
     const wrap = Array.from({ length: 9 }, (_, i) => `M-2.9 ${f(-1.4 + i * 1.9)}L2.9 ${f(0 + i * 1.9)}`).join('')
-    const smoke = (d: string, w: number) => `<path d="${d}" fill="none" stroke="${P.paper}" stroke-width="${w}" stroke-linecap="round" opacity=".22"/><path d="${d}" fill="none" stroke="${P.paper}" stroke-width="${f(w * 0.45)}" stroke-linecap="round" opacity=".35"/>`
+    const smoke = (d: string, w: number) => `<path d="${d}" fill="none" stroke="${P.sky}" stroke-width="${w}" stroke-linecap="round" opacity=".4"/><path d="${d}" fill="none" stroke="${P.paper}" stroke-width="${f(w * 0.5)}" stroke-linecap="round" opacity=".6"/>`
     const w1 = 'M63.4 31C59.6 28.4 64.4 25.4 61.4 22.4C59.6 20.6 57 21 55.6 19.6'
     const w2 = 'M66.4 31.4C69.6 28.8 66.8 26 69 23.4'
     const crack = (x: number, y: number, r: number) => `<path d="M0 0L2.4 1.6L1.6 3.2L4.4 5.6" transform="translate(${x} ${y}) rotate(${r})" fill="none" stroke="${VIOLL}" stroke-width=".7" stroke-linejoin="round" stroke-linecap="round"/>`
@@ -336,7 +324,7 @@ export const TCG_YUGIOH_NUEVAS_ART: Record<string, (u: number) => string> = {
       Array.from({ length: 4 }, (_, i) => { const t = i / 3, x = 20.6 - t * 12, y = 12.6 - t * 4, l = i === 0 ? 3.6 : 2.2; return `M${f(x)} ${f(y)}L${f(x - 0.9)} ${f(y - l)}L${f(x - 2)} ${f(y - 0.4)}Z` }).join('')
     const blast = 'M0 -2.6C20 -6 44 -12 76 -24C80 -10 80 10 76 24C44 12 20 6 0 2.6Z'
     const core = 'M0 -1.4C20 -3 44 -6 76 -11C78 -4 78 4 76 11C44 6 20 3 0 1.4Z'
-    const white = (d: string) => ({ d, fill: P.white, inner: k.sh(d, 0, 0, 1, 1, 0.1, 0.7, P.sky2, 0.35) })
+    const white = (d: string) => ({ d, fill: P.white, inner: k.sh(d, 0, 0, 1, 1, 0.1, 0.85, P.blue, 0.4) })
     return (
       k.day() +
       k.sun(58, 58, 14, 48, 32, false) +
@@ -344,12 +332,12 @@ export const TCG_YUGIOH_NUEVAS_ART: Record<string, (u: number) => string> = {
       `<g transform="translate(50 75) rotate(-40)">` +
       // la ráfaga, de la boca hacia el cielo
       `<g transform="translate(14 4.6) rotate(5)">` +
-      `<path d="${blast}" fill="${P.sky}"/>` + k.shade(blast, k.lin(P.blue, 0, 0, 0, 1, 0.8, 0.8), P.blue, 0.3) +
+      `<path d="${blast}" fill="${P.blue}"/>` + k.shade(blast, k.lin(P.mid, 0, 0, 0, 1, 0.8, 0.8), P.mid, 0.3) + `<path d="M0 -2C20 -4.6 44 -9 76 -18.6C78 -6 78 6 76 18.6C44 9 20 4.6 0 2Z" fill="${P.sky}"/>` +
       `<path d="${core}" fill="${P.white}"/><path d="M0 -.6C30 -1.6 60 -3 76 -4V4C60 3 30 1.6 0 .6Z" fill="#fff"/>` +
-      hair(8, -3, 36, -9, 72, -20, 0.8, P.mid) + hair(8, 3, 36, 9, 72, 20, 0.8, P.mid) +
+      `<path d="${blast}" fill="none" stroke="${P.ink}" stroke-width=".6"/>` + hair(8, -3, 36, -9, 72, -20, 0.8, P.mid) + hair(8, 3, 36, 9, 72, 20, 0.8, P.mid) +
       hair(14, -1.6, 40, -6, 70, -14, 0.5, P.sky) + hair(14, 1.6, 40, 6, 70, 14, 0.5, P.sky) + hair(30, -4, 46, 0, 64, -6, 0.45, P.sky) + hair(36, 5, 52, 1, 70, 7, 0.45, P.sky) +
       `</g>` +
-      `<g fill="${P.sky1}" stroke="${P.ink}" stroke-width=".55" stroke-linejoin="round">${spikes}</g>` +
+      `<g fill="${VIOL}" stroke="${P.ink}" stroke-width=".55" stroke-linejoin="round">${spikes}</g>` +
       k.draw([
         { d: hornB, fill: P.sky1, inner: k.sh(hornB, 0, 0, 0, 1, 0, 0.8, P.blue, 0.4) + hair(-10.6, -9.6, -14, -14, -16.4, -19, 0.4, P.blue) },
         { d: neck, fill: P.white, inner: k.sh(neck, 0, 0, 1, 0, 0, 0.8, P.blue, 0.35) + `<path d="M2 13C-3 22 -5 34 -3 48H-11C-12 34 -9 22 -3 13Z" fill="${P.sky1}"/>` + plates + scales },
@@ -364,9 +352,10 @@ export const TCG_YUGIOH_NUEVAS_ART: Record<string, (u: number) => string> = {
         inner: k.sh(skull, 0, 0, 0, 1, 0.1, 0.75, P.blue, 0.35) + `<path d="M-16 -16H28V-8C14 -10 0 -10 -16 -6Z" fill="${k.lin('#ffffff', 0, 0, 0, 1, 0.8, 0)}"/>` +
           hair(8, -2.4, 15, -3.6, 22, -4.4, 0.45, P.blue) + hair(-10, 1.4, -6, -1, -1, -1.6, 0.4, P.blue) + hair(11, -8, 15, -7.4, 19, -7.8, 0.35, P.blue),
       }], 0.7) +
-      k.draw([{ d: brow, fill: P.sky, inner: k.sh(brow, 0, 0, 1, 1, 0, 0.8, P.blue, 0.45) }], 0.4) +
+      k.draw([{ d: brow, fill: VIO, inner: k.sh(brow, 0, 0, 1, 1, 0, 0.8, VIOD, 0.45) + hair(-1, -11.6, 3, -12.8, 8, -11, 0.35, VIOLL) }], 0.4) +
+      k.shade(ellipse(3.4, -9, 5, 3.6), k.rad(P.sky, 0.5, 0.5, 0.5, 0.95, 0), P.sky, 0.5) +
       `<path d="M22.6 -9.2c.6 -.7 1.6 -.8 2.2 -.2" fill="none" stroke="${P.ink}" stroke-width=".7" stroke-linecap="round"/>` +
-      `<g transform="rotate(-8 3.4 -9)"><ellipse cx="3.4" cy="-9" rx="2.9" ry="1.5" fill="${P.sky}" stroke="${P.ink}" stroke-width=".5"/><circle cx="3.4" cy="-9" r="1.25" fill="${P.blue}"/><path d="M3.4 -10.3V-7.7" stroke="${P.ink}" stroke-width=".7" stroke-linecap="round"/><circle cx="2.6" cy="-9.6" r=".38" fill="#fff"/></g>` +
+      `<g transform="rotate(-8 3.4 -9)"><ellipse cx="3.4" cy="-9" rx="3.2" ry="1.75" fill="${P.sky1}" stroke="${P.ink}" stroke-width=".5"/><circle cx="3.6" cy="-9" r="1.45" fill="${P.blue}" stroke="${P.mid}" stroke-width=".3"/><path d="M3.6 -10.4V-7.6" stroke="${P.ink}" stroke-width=".7" stroke-linecap="round"/><circle cx="2.8" cy="-9.7" r=".42" fill="#fff"/></g>` +
       `</g>` +
       sparkle(66.6, 52, 3.6, '#fff') + sparkle(32, 40, 1.8) + sparkle(88, 84, 1.6) +
       k.defs()
@@ -449,7 +438,7 @@ export const TCG_YUGIOH_NUEVAS_ART: Record<string, (u: number) => string> = {
       `<circle cx="${cx}" cy="${cy}" r="${R}" fill="none" stroke="${P.ink}" stroke-width="2"/><circle cx="${cx}" cy="${cy}" r="${R}" fill="none" stroke="${P.gold}" stroke-width="1"/>` +
       `<circle cx="${cx}" cy="${cy}" r="${R - 2.2}" fill="none" stroke="${P.goldL}" stroke-width=".45" stroke-dasharray=".01 1.5" stroke-linecap="round"/>` +
       `<path d="${star}" fill="none" stroke="${P.ink}" stroke-width="2.2" stroke-linejoin="round"/><path d="${star}" fill="none" stroke="${P.gold}" stroke-width="1.1" stroke-linejoin="round"/><path d="${star}" fill="none" stroke="${P.goldL}" stroke-width=".4" stroke-linejoin="round" transform="translate(-.3 -.3)"/>` +
-      cards.map(([j, r, art]) => `<g transform="translate(${f(V[j].x)} ${f(V[j].y)}) rotate(${j === 1 || j === 2 ? r : r}) ${j === 1 || j === 2 ? 'scale(-1 1)' : ''}">` + k.cast([roundRect(-8, -11, 8, 11, 1.2)], 1.6, 1.4, '#0F1736') + relicCard(k, art) + `</g>`).join('') +
+      cards.map(([j, r, art]) => `<g transform="translate(${f(V[j].x)} ${f(V[j].y)}) rotate(${r})${j === 1 || j === 2 ? ' scale(-1 1)' : ''}">` + k.cast([roundRect(-8, -11, 8, 11, 1.2)], 1.6, 1.4, '#0F1736') + relicCard(k, art) + `</g>`).join('') +
       sparkle(cx, cy, 3.4, '#fff') + sparkle(88, 76, 2, VIOLL) + sparkle(32, 76, 1.6, VIOLL) +
       k.defs()
     )
