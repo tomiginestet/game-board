@@ -497,15 +497,17 @@ export const LOVELETTER_NUEVAS_ART: Record<string, (u: number) => string> = {
     // El frac en su percha: saco negro con solapas de raso, camisa, moño y la flor marchita en el ojal.
     const hook = 'M60 30V26.6C60 24.6 61.6 23.4 63 23.4C64.6 23.4 65.6 24.6 65.4 26'
     const hanger = 'M60 30L36 40.4C35 40.8 35.4 42 36.4 42H83.6C84.6 42 85 40.8 84 40.4Z'
-    const jacket = 'M38.6 41.4C41 40 48 38.6 52 38.4L60 52L68 38.4C72 38.6 79 40 81.4 41.4C83.6 50 84 70 82 98H38C36 70 36.4 50 38.6 41.4Z'
+    const jacket = 'M52 38.4L60 52L68 38.4C72 39 77 41 80.4 43.8C81.6 56 81.8 76 80.8 98H39.2C38.2 76 38.4 56 39.6 43.8C43 41 48 39 52 38.4Z'
+    const sleeve = 'M39.6 43.8C36.6 44.8 34.8 47.4 34.4 51C33.6 62 33.6 76 34.2 88.4H41.6C41.8 76 41.8 62 41.6 52.6C41.4 49 40.8 46 39.6 43.8Z'
     const shirt = 'M52.4 38.4C55 38 65 38 67.6 38.4L60 66Z'
     const lapelL = 'M52 38.4L60 52L57.4 66L46 50.6L50 46.6L46.6 42.6Z', lapelR = 'M68 38.4L60 52L62.6 66L74 50.6L70 46.6L73.4 42.6Z'
     const tie = 'M55.6 42C57 41.4 58.6 41.8 60 43C61.4 41.8 63 41.4 64.4 42V46C63 46.6 61.4 46.2 60 45C58.6 46.2 57 46.6 55.6 46Z'
     const tag = 'M0 0L3.6 -2.6H18C19 -2.6 19.6 -2 19.6 -1V6.6C19.6 7.6 19 8.2 18 8.2H3.6Z'
-    const wilted = 'M0 0C-2.6 .6 -3.6 3.2 -2.2 5.2C-1 7 1.6 7.2 3 5.6C4.4 4 4 1.2 2 .2Z'
+    const wilted = 'M-3.2 0C-3.8 3 -2.6 6.4 -.6 7.2L0 6L.8 7.2C2.8 6.4 3.8 3 3.2 0C1.6 -1.2 -1.6 -1.2 -3.2 0Z'
     const suit =
       `<path d="${hook}" fill="none" stroke="${P.ink}" stroke-width="2.4" stroke-linecap="round"/><path d="${hook}" fill="none" stroke="${CHROME}" stroke-width="1" stroke-linecap="round"/>` +
-      k.cast([jacket], 2.2, 2.4, '#000') +
+      k.draw([{ d: hanger, fill: MAPLE, inner: k.sh(hanger, 0, 0, 0, 1, 0, 0.8, MAPLE_D, 0.45) + `<path d="M40 40.8H80" stroke="${SPRUCE}" stroke-width=".5"/>` }], 0.55) +
+      k.cast([jacket, sleeve, sleeve.replace(/(\d+\.?\d*) (\d+\.?\d*)/g, (_, x: string, y: string) => `${f(120 - +x)} ${y}`)], 2.2, 2.4, '#000') +
       k.draw([
         { d: jacket, fill: CLOTH, inner: k.sh(jacket, 0, 0, 1, 0, 0, 0.8, '#000', 0.45) + `<path d="M38 40H46V98H38Z" fill="${k.lin('#ffffff', 0, 0, 1, 0, 0.2, 0)}"/>` + hair(44, 60, 42, 76, 43, 96, 0.55, CLOTH_L) + hair(76, 60, 78, 76, 77, 96, 0.5, '#000') + hair(60, 66, 60, 80, 60, 98, 0.45, '#000') + hair(48, 70, 52, 72, 56, 71, 0.4, CLOTH_L) },
         { d: shirt, fill: P.white, inner: k.sh(shirt, 0, 0, 1, 0, 0, 0.6, P.blue, 0.3) + `<path d="M58.4 50L60 56.6L61.6 50" fill="none" stroke="${P.sky2}" stroke-width=".4"/>` + [52, 58].map((y) => `<circle cx="60" cy="${y}" r=".6" fill="${P.ink}"/>`).join('') },
@@ -514,9 +516,15 @@ export const LOVELETTER_NUEVAS_ART: Record<string, (u: number) => string> = {
       ], 0.75) +
       `<circle cx="60" cy="72" r="1" fill="${CLOTH_L}" stroke="${P.ink}" stroke-width=".3"/><circle cx="60" cy="79" r="1" fill="${CLOTH_L}" stroke="${P.ink}" stroke-width=".3"/>` +
       k.draw([{ d: tie, fill: CLOTH }], 0.35) + `<circle cx="60" cy="44" r="1" fill="${CLOTH}" stroke="${CLOTH_L}" stroke-width=".3"/>` +
-      k.draw([{ d: hanger, fill: MAPLE, inner: k.sh(hanger, 0, 0, 0, 1, 0, 0.8, MAPLE_D, 0.45) + `<path d="M40 40.8H80" stroke="${SPRUCE}" stroke-width=".5"/>` }], 0.55) +
+      k.draw([
+        { d: sleeve, fill: CLOTH, inner: k.sh(sleeve, 0, 0, 1, 0, 0, 0.7, '#000', 0.4) + `<path d="M34 50H37V90H34Z" fill="${k.lin('#ffffff', 0, 0, 1, 0, 0.25, 0)}"/>` + hair(37.6, 52, 37, 70, 37.8, 86, 0.45, CLOTH_L) + `<path d="M34.2 84.6H41.6" stroke="${CLOTH_L}" stroke-width=".5"/>` },
+        { d: `M${120 - 39.6} 43.8C${120 - 36.6} 44.8 ${120 - 34.8} 47.4 ${120 - 34.4} 51C${120 - 33.6} 62 ${120 - 33.6} 76 ${120 - 34.2} 88.4H${120 - 41.6}C${120 - 41.8} 76 ${120 - 41.8} 62 ${120 - 41.6} 52.6C${120 - 41.4} 49 ${120 - 40.8} 46 ${120 - 39.6} 43.8Z`, fill: CLOTH, inner: k.sh('M78 43H86V90H78Z', 0, 0, 1, 0, 0.2, 0.9, '#000', 0.45) + hair(82.4, 52, 83, 70, 82.2, 86, 0.45, '#000') + `<path d="M78.4 84.6H85.8" stroke="${CLOTH_L}" stroke-width=".5"/>` },
+      ], 0.7) +
+      `<path d="M34.4 88.4H41.4V90.6H34.6ZM78.6 88.4H85.6L85.4 90.6H78.6Z" fill="${P.white}" stroke="${P.ink}" stroke-width=".5"/>` +
+      hair(52.4, 39, 46, 40.6, 40.4, 43.8, 0.5, CLOTH_L) + hair(67.6, 39, 74, 40.6, 79.6, 43.8, 0.45, '#000') +
       `<path d="M70.4 48.4C73 49.6 74 53.6 72.8 57.6" fill="none" stroke="${P.greenD}" stroke-width="1" stroke-linecap="round"/><path d="M72 52.6C74 51.6 75.6 52.4 75.8 53.8C74.2 54.4 72.8 54 72 52.6Z" fill="#8C9A5A" stroke="${P.ink}" stroke-width=".3"/>` +
-      `<g transform="translate(72.4 57.6) rotate(10)">` + k.draw([{ d: wilted, fill: '#9C5468', inner: k.sh(wilted, 0, 0, 1, 1, 0, 0.8, LL_D, 0.4) + `<path d="M-1 2.4C0 1.6 1.6 2 1.6 3.4" fill="none" stroke="${LL_D}" stroke-width=".45"/>` }], 0.4) + `</g>`
+      `<g transform="translate(72.8 57.4) rotate(12)">` + k.draw([{ d: wilted, fill: '#A65A70', inner: k.sh(wilted, 0, 0, 1, 1, 0, 0.8, LL_D, 0.45) + `<path d="M-1.6 .6C-1.8 3 -1.2 5 0 6M1.6 .6C1.8 3 1.2 5 0 6" fill="none" stroke="${LL_D}" stroke-width=".4"/>` + `<path d="M-2.4 .4C-1 1 1 1 2.4 .4" fill="none" stroke="${P.greenD}" stroke-width=".7"/>` }], 0.45) + `</g>` +
+      `<path d="M74.4 70.6c1.2 -1.4 3 -1.2 3.4 0c-.8 1.4 -2.6 1.6 -3.4 0Z" fill="#A65A70" stroke="${P.ink}" stroke-width=".3" transform="rotate(30 74.4 70.6)"/>`
     return (
       field(k) +
       k.sun(cx, cy, 28, 50, 36, false) +

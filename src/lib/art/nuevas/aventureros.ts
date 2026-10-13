@@ -575,7 +575,10 @@ export const AVENTUREROS_NUEVAS_ART: Record<string, (u: number) => string> = {
           k.sh(body, 0, 0, 0, 1, 0.05, 0.75, P.sky2, 0.45) + `<path d="M-44 -16H60V-10C30 -12 -10 -12 -44 -4Z" fill="${k.lin('#ffffff', 0, 0, 0, 1, 0.8, 0)}"/>` +
           `<path d="${skirt}" fill="${P.sky2}"/>` + k.sh(skirt, 0, 0, 0, 1, 0, 0.9, P.blue, 0.4) +
           `<path d="${stripe}" fill="${ROJO}"/>` + k.sh(stripe, 0, 0, 0, 1, 0, 0.6, ROJO_D, 0.4) + `<path d="M60 4.8H-22C-28 4.8 -33 5.4 -37 6.4" fill="none" stroke="${ROJO}" stroke-width=".6"/>` +
-          `<path d="M3.4 -12.6V6.4M7.6 -12.6V6.4" stroke="${P.blue}" stroke-width=".4"/>` +
+          `<path d="M3.4 -12.6V6.4M7.6 -12.6V6.4M24 -14.4V.4M40 -14.4V.4M56 -14.4V.4" stroke="${P.blue}" stroke-width=".4"/>` +
+          `<path d="M12 -4.4H56" stroke="${P.blue}" stroke-width=".35" stroke-dasharray="1.2 .8"/>` +
+          [0, 1, 2, 3, 4, 5].map((i) => hair(-38 + i * 2.6, 6.6 - i * 0.2, -30 + i * 2.6, 4.6 - i * 0.4, -22 + i * 3, 5.2 - i * 0.3, 0.35, P.blue, 0.8)).join('') +
+          hair(-24.4, -6.6, -32, -2.6, -39.6, 2.8, 0.45, P.blue) + hair(-20, -9.2, -30, -4, -38, 1.4, 0.35, '#fff') +
           hair(-30, -2.6, -18, -9, -2, -12.6, 0.45, P.sky) + hair(-39, 4, -30, 1.8, -20, .8, 0.4, ROJO_D) +
           `<path d="M-36 -.6C-30 -5 -20 -10 -8 -12.6" fill="none" stroke="#fff" stroke-width="1.3" stroke-linecap="round" opacity=".9"/>`,
       }], 0.75) +
@@ -583,7 +586,9 @@ export const AVENTUREROS_NUEVAS_ART: Record<string, (u: number) => string> = {
       wins +
       `<ellipse cx="-36.4" cy="2" rx="2" ry="1" fill="${P.goldL}" stroke="${P.ink}" stroke-width=".35" transform="rotate(-24 -36.4 2)"/>` +
       `<path d="M14 10H34V12.6H14Z" fill="${P.night}"/><circle cx="18" cy="12" r="1.6" fill="${P.sky2}" stroke="${P.ink}" stroke-width=".35"/><circle cx="30" cy="12" r="1.6" fill="${P.sky2}" stroke="${P.ink}" stroke-width=".35"/>` +
-      `<path d="M40 -15L44 -20.6L48 -15M44 -20.6H38.6" fill="none" stroke="${P.ink}" stroke-width="1.1" stroke-linejoin="round"/><path d="M40 -15L44 -20.6L48 -15M44 -20.6H38.6" fill="none" stroke="${P.sky1}" stroke-width=".4" stroke-linejoin="round"/>` +
+      k.draw([{ d: 'M30 -15C31 -17.4 33 -18 36 -18H50C53 -18 55 -17.4 56 -15Z', fill: P.white, inner: k.sh('M30 -18H56V-15H30Z', 0, 0, 0, 1, 0, 0.8, P.sky2, 0.4) }], 0.45) +
+      `<path d="M41 -18L44.4 -22.6L48 -18M44.4 -22.6H39" fill="none" stroke="${P.ink}" stroke-width="1.1" stroke-linejoin="round"/><path d="M41 -18L44.4 -22.6L48 -18M44.4 -22.6H39" fill="none" stroke="${P.sky1}" stroke-width=".4" stroke-linejoin="round"/>` +
+      `<path d="M-8.4 -11.6L-4 -13.4" stroke="${P.ink}" stroke-width=".5" stroke-linecap="round"/>` +
       `</g>` +
       leaf(84, 41, -30, P.green) + leaf(76, 84, 20, P.gold) + leaf(88, 76, 60, P.green) +
       hair(76, 42, 79, 40, 82, 40.6, 0.4, P.blue) + hair(71, 82, 73, 83, 75, 82.6, 0.4, P.blue) +

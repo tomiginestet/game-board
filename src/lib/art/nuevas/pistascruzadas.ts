@@ -404,8 +404,8 @@ export const PISTASCRUZADAS_NUEVAS_ART: Record<string, (u: number) => string> = 
     const opening = 'M-21 12.6C-12 16 12 16 21 12.6C13 17.6 -13 17.6 -21 12.6Z'
     // Las vueltas de tela: bandas gordas que se cruzan adelante y dejan el contorno abollado.
     const puff = taper(-15, -20, 0, -31, 15, -20, 9.6, 9.6)
-    const b1 = taper(-27.4, 3, -6, -6, 18, -25, 11, 9.4)
-    const b2 = taper(27.4, 3, 6, -6, -18, -25, 11, 9.4)
+    const b1 = taper(-27.4, 3, -6, -6, 15, -22, 11, 9)
+    const b2 = taper(27.4, 3, 6, -6, -15, -22, 11, 9)
     const tail = taper(22, 8, 30, 13, 26, 22, 7.4, 6)
     const shine = (d: string, c: string) => k.sh(d, 0, 0, 1, 1, 0, 0.8, PC_N, 0.45) + c
     const twist = Array.from({ length: 13 }, (_, i) => { const x = -23 + i * 3.8, b = 14.4 - Math.pow(x / 27, 2) * 6, t = 0.4 - Math.pow(x / 27, 2) * 2.4; return hair(x - 1.6, b, x - 0.2, (b + t) / 2, x + 1.6, t + 0.6, 0.55, PC_D, 0.85) }).join('')
@@ -420,15 +420,15 @@ export const PISTASCRUZADAS_NUEVAS_ART: Record<string, (u: number) => string> = 
       k.sun(60, 56, 22, 50, 36, false) +
       glow(k, 60, 52, 32, 30, 0.75) +
       k.floor(60, 80, 26, 3, PC_D) +
-      `<g transform="translate(60 60)">` +
-      plume(-9, -36, -6, -26, 3.6) + plume(10, -36, 6, -26, 3.6) + plume(1, -41, 0, -30, 4.2) +
+      `<g transform="translate(60 62) scale(.94)">` +
+      plume(-9, -34, -6, -26, 3.6) + plume(10, -34, 6, -26, 3.6) + plume(1, -38, 0, -30, 4.2) +
       k.cast([back, roll, b1, b2, puff, tail], 2.2, 2.6, PC_D) +
       k.draw([
         { d: back, fill: PC_D },
         { d: tail, fill: PC, inner: shine(tail, hair(23, 10, 27, 13, 25.6, 19, 0.6, PC_L, 0.9)) },
         { d: puff, fill: '#2A8BE0', inner: shine(puff, hair(-12, -24, 0, -32, 12, -25, 0.8, PC_L, 0.9)) },
-        { d: b2, fill: PC, inner: shine(b2, hair(24, -1, 6, -10, -15, -27, 0.8, PC_L, 0.85)) },
-        { d: b1, fill: '#4DA3EC', inner: shine(b1, hair(-24, -1, -6, -10, 15, -27, 0.9, '#fff', 0.8) + hair(-22, 4, -4, -2, 14, -18, 0.5, PC_D, 0.7)) },
+        { d: b2, fill: PC, inner: shine(b2, hair(24, -1, 6, -10, -12, -24, 0.8, PC_L, 0.85)) },
+        { d: b1, fill: '#4DA3EC', inner: shine(b1, hair(-24, -1, -6, -10, 12, -24, 0.9, '#fff', 0.8) + hair(-22, 4, -4, -2, 12, -16, 0.5, PC_D, 0.7)) },
         {
           d: roll, fill: '#3A95E4',
           inner: twist + k.sh(roll, 0, 0, 1, 1, 0, 0.8, PC_D, 0.45) + `<path d="${opening}" fill="${PC_N}"/>` + hair(-22, 4.4, -12, 2.4, -2, 2.2, 0.8, '#fff', 0.8),

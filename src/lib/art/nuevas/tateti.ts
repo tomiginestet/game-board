@@ -44,15 +44,6 @@ const grid = (x: number, y: number, c: number, col: string, w = 0.9) => {
 }
 
 
-/** Nube de vapor entintada: un racimo de bollos redondos. */
-const cloud = (k: Kit, x: number, y: number, r: number) => {
-  const balls: [number, number, number][] = [[-0.6, 0.2, 0.46], [0.56, 0.24, 0.44], [-0.12, -0.24, 0.6], [0.36, -0.12, 0.46], [0.02, 0.3, 0.5]]
-  return k.draw(balls.map(([dx, dy, rr]) => {
-    const d = ellipse(f(x + dx * r), f(y + dy * r), f(rr * r), f(rr * r))
-    return { d, fill: P.white, inner: k.sh(d, 0, 0, 1, 1, 0, 0.8, P.sky2, 0.45) }
-  }), f(Math.min(0.55, r * 0.08)))
-}
-
 /** Cruz maciza, como una letra recortada (para la pila que empuja la topadora). */
 const X_SOLID = 'M-4 -5.2L0 -1.4L4 -5.2L5.4 -3.8L1.4 0L5.4 3.8L4 5.2L0 1.4L-4 5.2L-5.4 3.8L-1.4 0L-5.4 -3.8Z'
 
@@ -89,73 +80,92 @@ function compass(k: Kit) {
   )
 }
 
-/** Topadora rosa de perfil, la pala a la izquierda; el piso en y=0. */
+/** Topadora rosa de perfil, mirando a la izquierda, con la pala ancha vista de tres cuartos; el piso en y=0. */
 function bulldozer(k: Kit) {
-  const belt = roundRect(-15, -12.4, 23, 0, 6.2)
-  const hood = 'M-12.4 -12V-22.4C-12.4 -24 -11.4 -24.8 -9.8 -24.8H8.4V-12Z'
-  const cab = 'M7.6 -12V-35.6H21.6C22.8 -35.6 23.6 -34.8 23.6 -33.6V-12Z'
-  const win = 'M10.4 -33H21V-24.4H10.4Z'
-  const roof = 'M6 -38.2H25.4V-35.4H6Z'
-  const stack = roundRect(-2.6, -32, -1.2, -24.6, .5)
-  const blade = 'M-27.6 -21.6H-21V1H-27.6C-30.4 -6.4 -30.4 -14.4 -27.6 -21.6Z'
-  const arm = 'M-21.4 -6.6L-8 -7.4V-4.4L-21.4 -3.4Z'
-  const grousers = Array.from({ length: 17 }, (_, i) => `M${f(-11 + i * 2.1)} -.2V1.2`).join('')
-  const wheel = (x: number, r: number) => k.draw([{ d: ellipse(x, -6.2, r, r), fill: P.sky2, inner: k.sh(ellipse(x, -6.2, r, r), 0, 0, 1, 1, 0, 0.9, P.mid, 0.5) + `<circle cx="${x}" cy="-6.2" r="${f(r * 0.6)}" fill="none" stroke="${P.mid}" stroke-width=".5"/>` }], 0.4) + `<circle cx="${x}" cy="-6.2" r="${f(r * 0.25)}" fill="${P.ink}"/>`
+  const belt = roundRect(-14, -12.2, 24, 0, 6)
+  const shoes = Array.from({ length: 15 }, (_, i) => { const x = -10.6 + i * 2.4; return `M${f(x)} -.4H${f(x + 1.8)}V1.4H${f(x)}Z` }).join('') +
+    Array.from({ length: 13 }, (_, i) => { const x = -8.4 + i * 2.4; return `M${f(x)} -13.4H${f(x + 1.7)}V-12H${f(x)}Z` }).join('')
+  const fender = 'M-14.6 -12.4H24.6V-14.2H-14.6Z'
+  const hood = 'M-12.4 -14.2V-21.4C-12.4 -22.8 -11.4 -23.6 -10 -23.6H7.6V-14.2Z'
+  const cab = 'M7.6 -14.2V-31.6H22C23.2 -31.6 24 -30.8 24 -29.6V-14.2Z'
+  const winF = 'M9.6 -29.6H15V-21.6H9.6Z', winS = 'M16.6 -29.6H22.2V-21.6H16.6Z'
+  const ropsPost = (x: number) => `M${f(x - 0.9)} -14.2V-36.6H${f(x + 0.9)}V-14.2Z`
+  const ropsTop = 'M5.4 -38.2H26.2V-35.6H5.4Z'
+  const pipe = 'M-3.4 -23.4V-31.4L-1.8 -32.6V-23.4Z'
+  const blade = 'M-36.4 -26.6C-31 -27.6 -26.8 -27.6 -23.4 -26.8L-21.6 1.6C-26 2.4 -32 2.6 -37.2 2.4C-40.2 -6 -40 -17 -36.4 -26.6Z'
+  const edge = 'M-37.4 -.6C-32 -.2 -26 -.4 -21.8 -1L-21.6 1.6C-26 2.4 -32 2.6 -37.2 2.4Z'
+  const arm = 'M-22.6 -6.4L-8 -8V-4.4L-22.4 -2.6Z'
+  const ripper = 'M24 -7.4L28.6 -6L27.6 1.6L26 1.8L25.8 -3.4L23.8 -4.6Z'
+  const sprocket = starPath(18.6, -6.4, 5.4, 4.2, 10)
+  const wheel = (x: number, r: number) => k.draw([{ d: ellipse(x, -6.2, r, r), fill: P.sky2, inner: k.sh(ellipse(x, -6.2, r, r), 0, 0, 1, 1, 0, 0.9, P.mid, 0.5) }], 0.35) + `<circle cx="${x}" cy="-6.2" r="${f(r * 0.32)}" fill="${P.ink}"/>`
   return (
-    k.draw([{ d: belt, fill: P.night, inner: k.sh(belt, 0, 0, 0, 1, 0, 0.6, '#000', 0.3) + `<path d="${grousers}" stroke="${P.mid}" stroke-width=".9"/>` + `<path d="M-9 -12.4H17" stroke="${P.mid}" stroke-width=".7" stroke-dasharray="1.2 .9"/>` }], 0.7) +
-    wheel(-8.6, 5) + wheel(16.6, 5) + wheel(-0.6, 2.2) + wheel(4.4, 2.2) + wheel(9.4, 2.2) +
+    k.draw([{ d: ripper, fill: P.sky2, inner: k.sh(ripper, 0, 0, 1, 0, 0, 0.8, P.mid, 0.45) }], 0.45) +
+    k.draw([{ d: belt, fill: P.night, inner: k.sh(belt, 0, 0, 0, 1, 0, 0.6, '#000', 0.3) + `<path d="M-8 -6.2H18" stroke="${P.mid}" stroke-width="5.6" opacity=".5"/>` }], 0.7) +
+    `<path d="${shoes}" fill="${P.mid}" stroke="${P.ink}" stroke-width=".35"/>` +
+    k.draw([{ d: sprocket, fill: P.sky2, inner: k.sh(sprocket, 0, 0, 1, 1, 0, 0.9, P.mid, 0.5) }], 0.4) + `<circle cx="18.6" cy="-6.4" r="2" fill="${TT}" stroke="${P.ink}" stroke-width=".4"/>` +
+    wheel(-8.6, 4.6) + wheel(-1.6, 2.1) + wheel(3.2, 2.1) + wheel(8, 2.1) + wheel(12.6, 2.1) +
     k.draw([
-      { d: arm, fill: P.mid },
-      { d: blade, fill: P.sky1, inner: k.sh(blade, 0, 0, 1, 0, 0, 0.9, P.blue, 0.5) + `<path d="M-28.6 -18H-21M-29.2 -12H-21M-29.2 -6H-21" stroke="${P.blue}" stroke-width=".4"/>` + `<path d="M-27.6 -21.6C-29.6 -14 -29.6 -6.4 -27.6 1" fill="none" stroke="#fff" stroke-width=".6"/>` + `<path d="M-29 -1H-21V1H-27.6Z" fill="${P.mid}"/>` },
-      { d: hood, fill: TT, inner: k.sh(hood, 0, 0, 1, 1, 0, 0.8, TT_D, 0.45) + `<path d="M-13 -26H8V-21C2 -22 -6 -22 -13 -20Z" fill="${k.lin(TT_XL, 0, 0, 0, 1, 0.6, 0)}"/>` + `<path d="M-11.4 -21H-7.4M-11.4 -18.4H-7.4M-11.4 -15.8H-7.4" stroke="${TT_D}" stroke-width=".7"/>` + `<path d="M-4 -24.8V-12M3 -24.8V-12" stroke="${TT_D}" stroke-width=".4"/>` },
-      { d: cab, fill: TT, inner: k.sh(cab, 0, 0, 1, 0, 0, 0.8, TT_D, 0.45) + `<path d="${win}" fill="${P.sky1}" stroke="${P.ink}" stroke-width=".45"/>` + k.sh(win, 0, 0, 1, 1, 0, 0.7, P.blue, 0.4) + `<path d="M12 -26L15.4 -32M14.6 -25.4L18 -31.4" stroke="#fff" stroke-width=".6"/>` + `<path d="M15.6 -33V-24.4" stroke="${P.ink}" stroke-width=".4"/>` },
-      { d: roof, fill: TT_D },
-      { d: stack, fill: P.night },
+      { d: arm, fill: TT_D, inner: `<path d="M-22.4 -5.4L-8 -7" stroke="${TT}" stroke-width=".6"/>` },
+      { d: fender, fill: TT, inner: k.sh(fender, 0, 0, 0, 1, 0, 0.8, TT_D, 0.45) },
+      { d: hood, fill: TT, inner: k.sh(hood, 0, 0, 1, 1, 0, 0.8, TT_D, 0.45) + `<path d="M-13 -25H8V-21C2 -22 -6 -22 -13 -20Z" fill="${k.lin(TT_XL, 0, 0, 0, 1, 0.6, 0)}"/>` + `<path d="M-11.2 -21.4V-15.4M-9.6 -21.4V-15.4M-8 -21.4V-15.4" stroke="${TT_D}" stroke-width=".7"/>` + `<path d="M-4 -20H5M-4 -18.2H5M-4 -16.4H5" stroke="${TT_D}" stroke-width=".45"/>` },
+      { d: cab, fill: TT, inner: k.sh(cab, 0, 0, 1, 0, 0, 0.8, TT_D, 0.45) + `<path d="${winF}${winS}" fill="${P.sky1}" stroke="${P.ink}" stroke-width=".45"/>` + k.sh(winF + winS, 0, 0, 1, 1, 0, 0.7, P.blue, 0.4) + `<path d="M10.6 -22.6L14 -28.6M18 -22.6L21.4 -28.6" stroke="#fff" stroke-width=".6"/>` },
     ], 0.7) +
-    `<path d="M-21 -13.4L-11 -21" stroke="${P.ink}" stroke-width="2.2" stroke-linecap="round"/><path d="M-21 -13.4L-11 -21" stroke="${P.sky}" stroke-width="1" stroke-linecap="round"/><path d="M-19 -15L-15 -18" stroke="${P.goldL}" stroke-width="1.2"/>` +
-    `<circle cx="-11.4" cy="-21" r="1" fill="${P.gold}" stroke="${P.ink}" stroke-width=".35"/>` +
-    `<path d="M-2 -32.4C-1 -34 .6 -34 1.4 -33" fill="none" stroke="${P.ink}" stroke-width="1.1" stroke-linecap="round"/>` +
-    `<path d="M23 -6L29 -4L30.6 2L28.6 2.4L27.4 -1.6L23 -3Z" fill="${P.sky2}" stroke="${P.ink}" stroke-width=".5" stroke-linejoin="round"/>` +
-    `<path d="M7 -37.4H8.4L8.8 -40H6.6Z" fill="${P.gold}" stroke="${P.ink}" stroke-width=".35"/>`
+    k.draw([{ d: ropsPost(7), fill: P.night }, { d: ropsPost(24.6), fill: P.night }, { d: ropsTop, fill: P.night, inner: `<path d="M6 -37.6H25.6" stroke="${P.mid}" stroke-width=".6"/>` }], 0.45) +
+    [[7, -35.6], [24.6, -35.6], [7, -15], [24.6, -15]].map(([x, y]) => `<circle cx="${x}" cy="${y}" r=".55" fill="${P.goldL}" stroke="${P.ink}" stroke-width=".25"/>`).join('') +
+    k.draw([{ d: pipe, fill: P.sky2, inner: `<path d="M-3.4 -31H-2.6V-23.4H-3.4Z" fill="#fff" opacity=".7"/>` }], 0.35) +
+    hair(-2.4, -33.4, -4, -36, -2, -39, 0.5, P.sky2) +
+    `<path d="M-11.6 -21.4L-23.6 -18.4" stroke="${P.ink}" stroke-width="2.6" stroke-linecap="round"/><path d="M-11.6 -21.4L-23.6 -18.4" stroke="${TT_D}" stroke-width="1.4" stroke-linecap="round"/><path d="M-16.6 -20.2L-23.6 -18.4" stroke="${P.sky1}" stroke-width=".9" stroke-linecap="round"/>` +
+    k.draw([
+      {
+        d: blade, fill: TT,
+        inner: `<path d="${blade}" fill="${k.lin(TT_D, 0, 0, 0, 1, 0, 0.9)}" opacity=".7"/>` + k.sh(blade, 0, 0, 1, 0, 0, 0.6, TT_D, 0.4) +
+          `<path d="M-38 -24H-22V-22H-38Z" fill="${TT_XL}" opacity=".7"/>` +
+          hair(-38, -18, -30, -19.6, -22.4, -18.4, 0.5, TT_D) + hair(-38.6, -11, -30, -12.4, -22.2, -11.4, 0.5, TT_D) + hair(-38.4, -4.6, -30, -5.6, -22, -5, 0.45, TT_D) +
+          hair(-35.6, -25, -36.8, -14, -36, -2, 0.7, TT_XL, 0.8),
+      },
+      { d: edge, fill: P.sky1, inner: k.sh(edge, 0, 0, 1, 0, 0, 0.8, P.blue, 0.4) + [-35, -31, -27, -23.6].map((x) => `<circle cx="${x}" cy=".8" r=".45" fill="${P.ink}"/>`).join('') },
+    ], 0.75)
   )
 }
 
-/** Aplanadora a vapor de perfil, el rodillo a la izquierda; el piso en y=0. */
-function steamroller(k: Kit) {
-  const drum = ellipse(-19, -11, 11, 11)
-  const yoke = 'M-21.6 -11L-23 -27H-15L-16.4 -11Z'
-  const fork = roundRect(-27.4, -29.4, -10.6, -25.6, 1.4)
-  const boiler = roundRect(-19, -33, 9, -21, 6)
-  const smoke = roundRect(-20.6, -34, -14.4, -20, 1.6)
-  const chimney = 'M-16.8 -33L-16.2 -47H-12.8L-12.2 -33Z'
-  const crown = 'M-18.6 -47H-10.4L-11.6 -50.4H-17.4Z'
-  const tender = 'M5 -31H27V-19H5Z'
-  const roofD = 'M-6 -51H31C31.6 -51 31.8 -50.4 31.4 -50L29 -47H-3.6L-6.4 -50C-6.8 -50.4 -6.6 -51 -6 -51Z'
-  const wheel = ellipse(14.6, -12.4, 12.4, 12.4)
-  const spokes = Array.from({ length: 12 }, (_, i) => { const a = (i / 12) * Math.PI * 2; return `M${f(14.6 + Math.cos(a) * 2.4)} ${f(-12.4 + Math.sin(a) * 2.4)}L${f(14.6 + Math.cos(a) * 9.8)} ${f(-12.4 + Math.sin(a) * 9.8)}` }).join('')
-  const rivets = (cx: number, cy: number, r: number, n: number) => Array.from({ length: n }, (_, i) => { const a = (i / n) * Math.PI * 2; return `<circle cx="${f(cx + Math.cos(a) * r)}" cy="${f(cy + Math.sin(a) * r)}" r=".5" fill="${P.goldL}" stroke="${P.ink}" stroke-width=".2"/>` }).join('')
-  const fringe = Array.from({ length: 9 }, (_, i) => { const x = -3.4 + i * 4; return `M${f(x)} -47Q${f(x + 2)} -44.6 ${f(x + 4)} -47` }).join('')
+/** Aplanadora (rodillo compactador) de tres cuartos, mirando a la izquierda: el rodillo grande adelante con su
+ * horquilla, la cabina chica abierta con techito y el rodillo de atrás; el piso en y=0. */
+function roller(k: Kit) {
+  const drum = (nx: number, ny: number, rx: number, ry: number, fx: number, fy: number) =>
+    `M${nx} ${f(ny - ry)}L${fx} ${f(fy - ry)}A${rx} ${ry} 0 0 1 ${fx} ${f(fy + ry)}L${nx} ${f(ny + ry)}Z`
+  const front = drum(-24, -14, 5.6, 14, 4, -17.4), frontFace = ellipse(-24, -14, 5.6, 14)
+  const rear = drum(22, -9.6, 4, 9.6, 40, -11.8), rearFace = ellipse(22, -9.6, 4, 9.6)
+  const body = 'M5 -21.4L4.4 -33C4.4 -35 5.6 -36 7.6 -36H37.4C39.2 -36 40.4 -35 40.4 -33.2V-23L38.6 -21.4Z'
+  const beam = 'M-29.4 -32.4L6 -36.4V-31.6L-28.8 -27.8Z'
+  const yoke = 'M-29.4 -31.4L-20.4 -32.2L-20.6 -14.6A3.4 3.4 0 0 1 -27.4 -14.6Z'
+  const roof = 'M8 -53.6H35.4L34 -50.6H9.4Z'
+  const post = (x: number, y0: number) => `M${f(x - 0.6)} ${y0}V-51H${f(x + 0.6)}V${y0}Z`
+  const seat = 'M24 -36V-44.4C24 -45.6 25 -46.4 26.2 -46.4H27.4C28.6 -46.4 29.4 -45.6 29.4 -44.4V-40.6H31.6V-36Z'
+  const steel = (d: string, light: string) => k.sh(d, 0, 0, 0, 1, 0.1, 0.9, P.blue, 0.5) + `<path d="${d}" fill="${k.lin('#ffffff', 0, 0, 0, 1, 0.6, 0)}" opacity=".5"/>` + light
+  const bolts = (cx: number, cy: number, rx: number, ry: number, n: number) => Array.from({ length: n }, (_, i) => { const a = (i / n) * Math.PI * 2; return `<circle cx="${f(cx + Math.cos(a) * rx)}" cy="${f(cy + Math.sin(a) * ry)}" r=".45" fill="${P.goldL}" stroke="${P.ink}" stroke-width=".2"/>` }).join('')
+  const louvers = [26, 28.4, 30.8, 33.2, 35.6].map((x) => `M${x} -33V-25`).join('')
   return (
-    `<path d="M0 -47V-21M26 -47V-19" stroke="${P.ink}" stroke-width="2.2"/><path d="M0 -47V-21M26 -47V-19" stroke="${P.gold}" stroke-width="1"/>` +
-    k.draw([
-      { d: tender, fill: P.night, inner: k.sh(tender, 0, 0, 1, 0, 0, 0.6, '#000', 0.3) + `<path d="M5 -27H27M5 -23H27" stroke="${P.gold}" stroke-width=".5"/>` + `<path d="M6 -31H14V-19H6Z" fill="${k.lin(P.mid, 0, 0, 1, 0, 0.8, 0)}"/>` },
-      { d: boiler, fill: P.night, inner: k.sh(boiler, 0, 0, 0, 1, 0, 0.7, '#000', 0.4) + `<path d="M-19 -33H9V-29C0 -30 -10 -30 -19 -29Z" fill="${k.lin(P.mid, 0, 0, 0, 1, 0.9, 0)}"/>` + `<path d="M-8 -33V-21M0 -33V-21" stroke="${P.gold}" stroke-width=".9"/>` + `<path d="M-16 -31.6H6" stroke="${P.sky}" stroke-width=".6" opacity=".7"/>` },
-      { d: smoke, fill: P.mid, inner: k.sh(smoke, 0, 0, 1, 0, 0, 0.8, P.night, 0.4) },
-      { d: chimney, fill: P.night, inner: `<path d="M-16.4 -47H-15V-33H-16.4Z" fill="${P.mid}"/>` },
-      { d: crown, fill: P.gold, inner: k.sh(crown, 0, 0, 1, 0, 0, 0.9, P.goldD, 0.5) },
-    ], 0.7) +
-    k.draw([{ d: roofD, fill: TT, inner: k.sh(roofD, 0, 0, 1, 1, 0, 0.8, TT_D, 0.45) + `<path d="M-4 -49.6H30" stroke="${TT_XL}" stroke-width=".6"/>` }], 0.6) +
-    `<path d="${fringe}" fill="${TT_L}" stroke="${P.ink}" stroke-width=".4"/>` +
-    k.draw([{ d: wheel, fill: P.sky2, inner: k.sh(wheel, 0, 0, 1, 1, 0, 0.9, P.mid, 0.5) + `<circle cx="14.6" cy="-12.4" r="10" fill="${TT}"/>` + `<circle cx="14.6" cy="-12.4" r="8.6" fill="${P.night}"/>` + `<path d="${spokes}" stroke="${TT}" stroke-width="1.2"/>` + k.sh(wheel, 0, 0, 1, 1, 0, 0.6, '#000', 0.3) }], 0.75) +
-    `<circle cx="14.6" cy="-12.4" r="2.6" fill="${P.gold}" stroke="${P.ink}" stroke-width=".5"/><circle cx="14" cy="-13" r=".7" fill="#fff"/>` +
-    k.draw([
-      { d: yoke, fill: P.night, inner: `<path d="M-22 -26H-20V-12H-22Z" fill="${P.mid}"/>` },
-      { d: fork, fill: P.gold, inner: k.sh(fork, 0, 0, 0, 1, 0, 0.9, P.goldD, 0.5) },
-      { d: drum, fill: P.sky1, inner: k.sh(drum, 0, 0, 1, 1, 0, 0.9, P.blue, 0.5) + `<circle cx="-19" cy="-11" r="8.6" fill="none" stroke="${P.blue}" stroke-width=".6"/>` + `<path d="M-27 -16C-25 -19 -22 -21 -18 -21.4" fill="none" stroke="#fff" stroke-width="1.2" stroke-linecap="round"/>` },
-    ], 0.75) +
-    rivets(-19, -11, 9.8, 14) +
-    `<circle cx="-19" cy="-11" r="3.2" fill="${TT}" stroke="${P.ink}" stroke-width=".5"/><circle cx="-19" cy="-11" r="1.2" fill="${P.gold}" stroke="${P.ink}" stroke-width=".3"/>` +
-    `<path d="M-19 -24.4H5" stroke="${P.gold}" stroke-width=".5" stroke-dasharray=".01 1.4" stroke-linecap="round"/>`
+    k.draw([{ d: rear, fill: P.sky1, inner: steel(rear, `<path d="M22 -16.4L40 -18.6" stroke="#fff" stroke-width=".9" opacity=".8"/>`) }], 0.6) +
+    k.draw([{ d: rearFace, fill: P.sky2, inner: k.sh(rearFace, 0, 0, 1, 1, 0, 0.9, P.mid, 0.5) + `<ellipse cx="22" cy="-9.6" rx="2.6" ry="6.6" fill="none" stroke="${P.blue}" stroke-width=".45"/>` }], 0.5) +
+    `<ellipse cx="22" cy="-9.6" rx="1.2" ry="2.6" fill="${TT}" stroke="${P.ink}" stroke-width=".35"/>` +
+    k.draw([{
+      d: body, fill: TT,
+      inner: k.sh(body, 0, 0, 1, 1, 0, 0.85, TT_D, 0.45) + `<path d="M4 -37H40V-33C30 -34 16 -34 4 -32Z" fill="${k.lin(TT_XL, 0, 0, 0, 1, 0.6, 0)}"/>` +
+        `<path d="${louvers}" stroke="${TT_D}" stroke-width=".7"/>` + `<path d="M6 -24.6H39" stroke="${TT_D}" stroke-width=".5"/>` + `<path d="M8 -30H20V-25.6H8Z" fill="${P.night}" opacity=".25"/>`,
+    }], 0.7) +
+    k.draw([{ d: seat, fill: P.night, inner: `<path d="M25 -45.2V-40" stroke="${P.mid}" stroke-width=".6"/>` }], 0.4) +
+    `<path d="M14.6 -36L13.6 -41.6" stroke="${P.ink}" stroke-width="1.2" stroke-linecap="round"/><ellipse cx="13.4" cy="-42" rx="2.8" ry="1" fill="none" stroke="${P.ink}" stroke-width="1.1"/><ellipse cx="13.4" cy="-42" rx="2.8" ry="1" fill="none" stroke="${P.sky}" stroke-width=".4"/>` +
+    k.draw([{ d: post(10, -36), fill: P.night }, { d: post(33.4, -36), fill: P.night }, { d: post(30.6, -36.6), fill: P.night }, { d: post(12.6, -36.6), fill: P.night }], 0.35) +
+    k.draw([{ d: roof, fill: TT_D, inner: `<path d="M9 -53H35" stroke="${TT}" stroke-width=".7"/>` }], 0.55) +
+    `<path d="M21.2 -53.6V-55.6C21.2 -57.4 24.6 -57.4 24.6 -55.6V-53.6Z" fill="${P.gold}" stroke="${P.ink}" stroke-width=".45"/><path d="M22.2 -55.4C22.4 -56.2 23 -56.6 23.6 -56.6" fill="none" stroke="#fff" stroke-width=".4"/>` +
+    k.draw([{ d: beam, fill: TT, inner: k.sh(beam, 0, 0, 0, 1, 0, 0.85, TT_D, 0.5) + `<path d="M-29 -31.6L6 -35.6" stroke="${TT_XL}" stroke-width=".6"/>` }], 0.6) +
+    `<path d="M6 -33.6L9 -34" stroke="${P.ink}" stroke-width="2.4" stroke-linecap="round"/><circle cx="7.4" cy="-33.8" r="1.1" fill="${P.gold}" stroke="${P.ink}" stroke-width=".35"/>` +
+    k.draw([{ d: front, fill: P.sky1, inner: steel(front, `<path d="M-24 -23.6L4 -27" stroke="#fff" stroke-width="1.4" opacity=".85"/><path d="M-24 -20.6L4 -24" stroke="#fff" stroke-width=".5" opacity=".7"/>`) + hair(-20, -5, -8, -6, 2, -7.6, 0.5, P.mid) }], 0.75) +
+    k.draw([{ d: frontFace, fill: P.sky2, inner: k.sh(frontFace, 0, 0, 1, 1, 0, 0.9, P.mid, 0.5) + `<ellipse cx="-24" cy="-14" rx="4.2" ry="10.6" fill="none" stroke="${P.blue}" stroke-width=".5"/>` }], 0.6) +
+    bolts(-24, -14, 4.9, 12.2, 16) +
+    k.draw([{ d: yoke, fill: TT, inner: k.sh(yoke, 0, 0, 1, 0, 0, 0.85, TT_D, 0.45) + `<path d="M-28.4 -30.6L-27 -16" stroke="${TT_XL}" stroke-width=".6"/>` }], 0.6) +
+    `<circle cx="-24" cy="-14.4" r="2.2" fill="${P.gold}" stroke="${P.ink}" stroke-width=".5"/><circle cx="-24.6" cy="-15" r=".55" fill="#fff"/>` +
+    `<path d="M-30 -3.6L-27.4 -1.4" stroke="${P.ink}" stroke-width="1.4" stroke-linecap="round"/>`
   )
 }
 
@@ -306,46 +316,43 @@ export const TATETI_NUEVAS_ART: Record<string, (u: number) => string> = {
     )
   },
 
-  // Cinco palizas: la topadora rosa pasa por encima de la grilla y se lleva por delante las cruces y los círculos.
+  // Cinco palizas: la topadora rosa pasa por encima de la grilla y empuja con la pala las cruces y los círculos.
   'Topadora': (u) => {
     const k = kit(u)
     const xPiece = (x: number, y: number, r: number, s: number) => `<g transform="translate(${x} ${y}) rotate(${r}) scale(${s})">` + k.draw([{ d: X_SOLID, fill: P.mid, inner: k.sh(X_SOLID, 0, 0, 1, 1, 0, 0.8, P.night, 0.45) + `<path d="M-4 -5.2L0 -1.4L4 -5.2" fill="none" stroke="${P.sky}" stroke-width=".5"/>` }], f(0.5 / s)) + `</g>`
-    const oPiece = (x: number, y: number, r: number) => `<g transform="translate(${x} ${y}) rotate(${r})">` +
+    const oPiece = (x: number, y: number) => `<g transform="translate(${x} ${y})">` +
       `<circle r="3.9" fill="none" stroke="${P.ink}" stroke-width="3.8"/><circle r="3.9" fill="none" stroke="${TT}" stroke-width="2.4"/><path d="M-3 -2.4A3.9 3.9 0 0 1 1.6 -3.6" fill="none" stroke="${TT_XL}" stroke-width=".7" stroke-linecap="round"/></g>`
-    const treads = Array.from({ length: 8 }, (_, i) => `M${f(95 + i * 2.2)} 84.6L${f(96.4 + i * 2.2)} 87`).join('')
+    const treads = Array.from({ length: 6 }, (_, i) => `M${f(93 + i * 1.8)} 79.4L${f(94.2 + i * 1.8)} 81.6`).join('')
     return (
       notebook(k, 24) +
-      hair(30, 88, 60, 86.4, 104, 88, 0.6, LEAD, 0.6) +
+      hair(22, 82, 60, 80.6, 100, 82, 0.6, LEAD, 0.6) +
       `<path d="${treads}" stroke="${P.mid}" stroke-width=".9" opacity=".55"/>` +
-      k.floor(66, 87, 32, 3, P.mid) +
-      hair(28, 84.6, 32, 80, 36, 82, 0.8, LEAD) + hair(28, 70, 31, 74, 30, 79, 0.7, LEAD) +
-      oPiece(36, 81, 0) + xPiece(40, 72.6, 24, 0.85) + oPiece(31.4, 74.4, 0) + xPiece(35, 65, -14, 0.72) +
-      `<g transform="translate(70 86)">` + k.cast(['M-15 -12.4H23V0H-15Z', 'M-12.4 -12V-24.8H8.4V-12Z', 'M7.6 -12V-35.6H23.6V-12Z'], 2.2, 1.6, P.mid) + bulldozer(k) + `</g>` +
-      cloud(k, 67, 44, 4.4) + cloud(k, 62, 36, 3.2) +
-      sparkle(88, 30, 2) + sparkle(34, 44, 1.6) +
+      k.floor(66, 81, 32, 3, P.mid) +
+      hair(26, 79, 30, 74.6, 34, 76.4, 0.8, LEAD) + hair(25.6, 66, 29, 69.6, 28, 74, 0.7, LEAD) +
+      oPiece(31, 76) + xPiece(34.6, 67.4, 24, 0.85) + oPiece(27, 68.6) + xPiece(30.4, 59.6, -14, 0.72) +
+      `<g transform="translate(71 80) scale(.88)">` + k.cast(['M-14 -12.2H24V0H-14Z', 'M-12.4 -14.2V-23.6H7.6V-14.2Z', 'M7.6 -14.2V-31.6H24V-14.2Z'], 2.2, 1.6, P.mid) + bulldozer(k) + `</g>` +
+      sparkle(88, 34, 2) + sparkle(36, 42, 1.6) +
       k.defs()
     )
   },
 
-  // Quince en blanco: la aplanadora a vapor deja el cuaderno liso como pista de patinaje.
+  // Quince en blanco: el rodillo de la aplanadora deja el cuaderno liso como pista de patinaje.
   'Aplanadora': (u) => {
     const k = kit(u)
-    const ice = 'M64 84H112V100H64Z'
-    const crumple = 'M8 84L14 81.6L18 83.4L24 80.6L29 83L34 81L40 84Z'
+    const ice = 'M48 82H104L100 88H52Z'
+    const crumple = 'M14 82L18 79.6L21 81.4L25 78.8L29 81L33 79.4L36 82Z'
     return (
       notebook(k, 24) +
-      k.sun(60, 58, 16, 50, 32, false) +
-      `<path d="M0 84H120V130H0Z" fill="${P.white}"/>` +
-      `<path d="${ice}" fill="${P.sky1}"/>` + k.shade(ice, k.lin(P.sky, 0, 0, 1, 0, 0.1, 0.9), P.sky, 0.35) +
-      `<path d="M64 84H112" stroke="#fff" stroke-width="1.2"/>` +
-      `<path d="M70 92C78 88 86 96 94 92C100 89 104 93 110 91M72 97C82 94 92 99 104 96" fill="none" stroke="#fff" stroke-width=".7"/>` +
-      `<path d="M0 84H64" stroke="${P.ink}" stroke-width=".6"/>` +
+      k.sun(60, 56, 16, 50, 32, false) +
+      `<path d="M0 82H120V130H0Z" fill="${P.white}"/>` +
+      `<path d="${ice}" fill="${P.sky1}"/>` + k.shade(ice, k.lin(P.sky, 0, 0, 1, 0, 0.1, 0.7), P.sky, 0.3) +
+      `<path d="M0 82H120" stroke="${P.ink}" stroke-width=".6"/><path d="M50 82.8H102" stroke="#fff" stroke-width=".9"/>` +
+      `<path d="M62 85.4C70 84.2 78 86.4 86 85.2M70 87C76 86.2 84 87.4 92 86.6" fill="none" stroke="#fff" stroke-width=".6"/>` +
       k.draw([{ d: crumple, fill: P.white, inner: k.sh(crumple, 0, 0, 0, 1, 0, 0.7, P.sky2, 0.4) }], 0.45) +
-      cross(20, 76.4, 3, LEAD, 1.2) + ring(29.6, 77.2, 3, LEAD, 1.1) + cross(36.6, 80.4, 2, LEAD, 1) +
-      `<g transform="translate(66 84) scale(.9)">` + k.floor(0, 0, 32, 2.4, P.mid) + steamroller(k) + `</g>` +
-      sparkle(98, 88, 2.4, '#fff') + sparkle(88, 93, 1.4, '#fff') +
-      cloud(k, 54, 31, 5) + cloud(k, 47, 25, 3.6) +
-      sparkle(88, 30, 2.4, '#fff') + sparkle(30, 46, 1.8) +
+      cross(25, 74.4, 2.6, LEAD, 1.1) + ring(31.4, 75.4, 2.4, LEAD, 1) +
+      `<g transform="translate(60 82) scale(.88)">` + k.floor(6, 0, 38, 2.6, P.mid) + roller(k) + `</g>` +
+      sparkle(92, 84.6, 2.2, '#fff') + sparkle(78, 86, 1.4, '#fff') +
+      sparkle(88, 34, 2.4, '#fff') + sparkle(30, 46, 1.8) +
       k.defs()
     )
   },

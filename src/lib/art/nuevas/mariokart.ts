@@ -262,8 +262,8 @@ export const MARIOKART_NUEVAS_ART: Record<string, (u: number) => string> = {
       hair(26, 52, 31, 51.4, 36, 52, 0.7, MK_D, 0.8) + hair(24, 58, 30, 57.4, 35, 58, 0.6, MK_D, 0.7) + hair(28, 64, 32, 63.6, 35, 64, 0.5, MK_D, 0.6) +
       k.floor(64, 80.4, 28, 2.4, P.mid) +
       `<g transform="translate(64 80) scale(.9)">` + kart(k, '7') + `</g>` +
-      k.floor(40, 89.6, 10.6, 1.8, P.mid) +
-      `<g transform="translate(39.6 81) rotate(-12) scale(.74)">` + kartHelmet(k) + `</g>` +
+      k.floor(42, 81.4, 10, 1.7, P.mid) +
+      `<g transform="translate(41.6 74.4) rotate(-10) scale(.7)">` + kartHelmet(k) + `</g>` +
       sparkle(86, 38, 2.2) + sparkle(38, 40, 1.6) +
       k.defs()
     )
