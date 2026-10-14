@@ -9,6 +9,10 @@
 --   puede sacar a quien moleste. Ver el ranking sigue siendo con el código (o el slug), sin cuenta.
 --   La regla va en un trigger para no reescribir `push_changes` (la usan las dos apps).
 
+-- `disabled_at` lo agregaron las migraciones de administración (clubes desactivados); acá se asegura para
+-- que este archivo también corra sobre una base nueva. Los clubes desactivados no se muestran.
+alter table public.clubs add column if not exists disabled_at timestamptz;
+
 alter table public.clubs
   add column slug text check (char_length(slug) between 3 and 30 and slug ~ '^[a-z0-9]+(-[a-z0-9]+)*$'),
   add column venue jsonb check (venue is null or (jsonb_typeof(venue) = 'object' and pg_column_size(venue) <= 4000));
@@ -28,7 +32,7 @@ as $$
   select c.code, c.name, c.emoji, c.description, c.slug, c.venue,
          (select count(*)::integer from public.memberships m where m.club_code = c.code)
   from public.clubs c
-  where c.code = p_code and c.kind = 'group';
+  where c.code = p_code and c.kind = 'group' and c.disabled_at is null;
 $$;
 
 -- Lo mismo, a partir del link corto.
@@ -42,7 +46,7 @@ as $$
   select c.code, c.name, c.emoji, c.description, c.slug, c.venue,
          (select count(*)::integer from public.memberships m where m.club_code = c.code)
   from public.clubs c
-  where c.slug = lower(trim(p_slug)) and c.kind = 'group';
+  where c.slug = lower(trim(p_slug)) and c.kind = 'group' and c.disabled_at is null;
 $$;
 
 -- ---------------------------------------------------------------------------
@@ -108,31 +112,20 @@ end;
 $$;
 
 -- ---------------------------------------------------------------------------
--- Mis grupos: suma el link corto y los datos del lugar.
+-- Link corto y datos del lugar de los clubes de la cuenta. Va aparte de `my_groups` (que usan las dos apps)
+-- para no tener que borrarla y crearla de nuevo con otras columnas.
 
-drop function public.my_groups();
-create function public.my_groups()
-returns table (
-  code text, id uuid, name text, kind text, emoji text, description text, is_public boolean,
-  role text, player_id text, joined_at timestamptz, members integer, pending_requests integer,
-  slug text, venue jsonb
-)
+create function public.my_group_links()
+returns table (code text, slug text, venue jsonb)
 language sql
 stable
 security definer
 set search_path = ''
 as $$
-  select c.code, c.id, c.name, c.kind, c.emoji, c.description, c.is_public,
-         m.role, m.player_id, m.joined_at,
-         (select count(*)::integer from public.memberships x where x.club_code = c.code),
-         case when m.role in ('owner', 'admin')
-           then (select count(*)::integer from public.join_requests r where r.club_code = c.code and r.status = 'pending')
-           else 0 end,
-         c.slug, c.venue
+  select c.code, c.slug, c.venue
   from public.memberships m
   join public.clubs c on c.code = m.club_code
-  where m.user_id = (select auth.uid())
-  order by c.kind, m.joined_at;
+  where m.user_id = (select auth.uid());
 $$;
 
 -- ---------------------------------------------------------------------------
@@ -170,10 +163,10 @@ revoke all on function public.club_card(text) from public;
 revoke all on function public.club_by_slug(text) from public;
 revoke all on function public.set_club_slug(text, text) from public, anon;
 revoke all on function public.set_club_venue(text, jsonb) from public, anon;
-revoke all on function public.my_groups() from public, anon;
+revoke all on function public.my_group_links() from public, anon;
 revoke all on function public._venue_write_guard() from public, anon, authenticated;
 grant execute on function public.club_card(text) to anon, authenticated;
 grant execute on function public.club_by_slug(text) to anon, authenticated;
 grant execute on function public.set_club_slug(text, text) to authenticated;
 grant execute on function public.set_club_venue(text, jsonb) to authenticated;
-grant execute on function public.my_groups() to authenticated;
+grant execute on function public.my_group_links() to authenticated;

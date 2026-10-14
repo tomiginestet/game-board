@@ -154,6 +154,16 @@ export async function refreshGroups(): Promise<MyGroup[]> {
   setGroups({ ...groupsState, userId: uid, loading: true })
   try {
     const groups = (await rpc<MyGroup[] | null>('my_groups')) ?? []
+    // Link corto y lugar de cada club. Si el servidor todavía no tiene la función, quedan sin definir y la app
+    // no muestra esas opciones.
+    const links = await rpc<{ code: string; slug: string | null; venue: Venue | null }[] | null>('my_group_links').catch(() => null)
+    if (links) {
+      const byCode = new Map(links.map((l) => [l.code, l]))
+      for (const g of groups) {
+        g.slug = byCode.get(g.code)?.slug ?? null
+        g.venue = byCode.get(g.code)?.venue ?? null
+      }
+    }
     setGroups({ userId: uid, groups, loading: false })
     return groups
   } catch (e) {
