@@ -75,6 +75,12 @@ export function PlayRow({ play, game, players, focus, showGame = true }: { play:
       <div className="mr-meta">
         {resultClass && <ResultTag result={resultClass.trim() as 'win' | 'loss'} />}
         {showGame && <b className="pr-game">{game.name}</b>}
+        {play.stake && (
+          <span title={`Prenda: ${play.stake.text}`}>
+            <span aria-hidden="true">{play.stake.emoji ?? '🎁'}</span>
+            <span className="sr-only">Con prenda: {play.stake.text}</span>
+          </span>
+        )}
         {live ? (
           <span className="win-text">
             {play.status === 'live' && <span className="live-dot" />} {play.status === 'pending' ? 'Pendiente' : 'En juego'}

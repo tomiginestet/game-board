@@ -17,7 +17,8 @@ import { actions, getData, useData } from '../lib/store'
 import type { Id, Play, Player } from '../lib/types'
 import { ScoreAnnouncer } from './play/shared'
 import { entryText, passTurn, useReducedMotion } from './play/playHooks'
-import { winnerTitle } from './play/winnerText'
+import { stakeText, winnerTitle } from './play/winnerText'
+import { stakePreview } from '../lib/stake'
 import { CounterBoard } from './play/CounterBoard'
 import '../styles/playscreen.css'
 import { RoundsBoard } from './play/RoundsBoard'
@@ -178,6 +179,12 @@ function PlayView({ play, game }: { play: Play; game: GameDef }) {
         <>
           {/* Durante la pausa final el marcador queda a la vista pero no se puede tocar. */}
           <div className="play-board" inert={!!beat || undefined}>
+            {play.stake && (
+              <p className="stake-chip">
+                <span aria-hidden="true">{play.stake.emoji ?? '🎁'}</span> <span className="sr-only">Prenda: </span>
+                {stakePreview(play)}
+              </p>
+            )}
             {scored && <ScoreAnnouncer play={play} live={live} players={players} />}
             {(game.mode === 'counter' || game.mode === 'sets') && <CounterBoard play={play} game={game} live={live} players={players} />}
             {game.mode === 'rounds' && <RoundsBoard play={play} game={game} live={live} players={players} />}
@@ -289,6 +296,7 @@ function FinalBeat({ play, game, players, onUndo, onDone }: { play: Play; game: 
         ? order.map((i) => `${sideName(play.sides[i], players)} ${formatScore(game, raw[i]!)}`).join(' · ')
         : order.map((i) => formatScore(game, raw[i]!)).join(' a ')
       : ''
+  const stake = stakeText(play, players)
   const [paused, setPaused] = useState(false)
   const doneRef = useRef(onDone)
   useEffect(() => {
@@ -324,6 +332,11 @@ function FinalBeat({ play, game, players, onUndo, onDone }: { play: Play; game: 
       </div>
       <strong className="fb-title">{title}</strong>
       {score && <span className="fb-score num">{score}</span>}
+      {stake && (
+        <span className="fb-stake">
+          <span aria-hidden="true">{play.stake?.emoji ?? '🎁'}</span> {stake}
+        </span>
+      )}
       <div className="fb-actions">
         <button type="button" className="btn big" onClick={onUndo}>
           <ArrowCounterClockwiseIcon aria-hidden="true" /> Deshacer

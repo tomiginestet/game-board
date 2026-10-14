@@ -6,6 +6,7 @@ import { findGame } from './games'
 import type { CupFormat, GameDef, OptionValue } from './games/schema'
 import { computeMatch } from './pingpong/scoring'
 import { involves } from './pingpong/teams'
+import { cleanStake } from './stake'
 import { knockoutSeeds, roundRobin, shuffle } from './pingpong/tournament'
 import type { MatchConfig, Side, TournamentFormat } from './pingpong/types'
 import type {
@@ -19,6 +20,7 @@ import type {
   Play,
   PlayResult,
   PlaySide,
+  PlayStake,
   Player,
   PPMatch as Match,
   PPTournament as Tournament,
@@ -281,9 +283,10 @@ export interface NewCup {
 }
 
 const playActions = {
-  createPlay(gameId: string, sides: PlaySide[], config?: Record<string, OptionValue>): Play {
+  createPlay(gameId: string, sides: PlaySide[], config?: Record<string, OptionValue>, stake?: PlayStake): Play {
     const game = gameOf(gameId)
-    const p = newPlay(gameId, sides, config ?? (game ? defaultConfig(game) : {}))
+    const clean = cleanStake(stake)
+    const p = newPlay(gameId, sides, config ?? (game ? defaultConfig(game) : {}), clean ? { stake: clean } : {})
     commit({ ...data, plays: [...data.plays, p] })
     return p
   },

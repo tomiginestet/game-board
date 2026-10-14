@@ -50,6 +50,15 @@ export interface PlayResult {
   mvp?: Id
 }
 
+/** La prenda: por qué se juega ("el que pierde paga la próxima ronda"). Nunca plata. */
+export interface PlayStake {
+  /** Qué hay que hacer, en infinitivo: "pagar la próxima ronda". */
+  text: string
+  emoji?: string
+  /** A quién le toca: al que pierde (el último, si son más de dos) o al que gana. */
+  who: 'loser' | 'winner'
+}
+
 export type PlayStatus = 'pending' | 'live' | 'finished'
 
 /** Una partida de cualquier juego (salvo el ping pong, que usa el formato del Ping Pong Club). */
@@ -75,6 +84,8 @@ export interface Play {
   scheduledAt?: number
   /** Dónde se juega ("Cancha 2", "Club Social de Villa Crespo"). */
   venue?: string
+  /** Por qué se juega (no en torneos: ahí manda el premio o castigo del torneo). */
+  stake?: PlayStake
 }
 
 /** Un equipo o jugador inscripto en un torneo. */
