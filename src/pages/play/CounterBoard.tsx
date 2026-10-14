@@ -30,6 +30,9 @@ export function CounterBoard({ play, game, live, players }: { play: Play; game: 
   const events = game.events.filter((e) => !e.global && !(e.id.toLowerCase().includes('flor') && flor === false))
   const globals = game.events.filter((e) => e.global)
   const two = play.sides.length === 2
+  // Un solo partido de dos lados (bochas, básquet, truco): dos columnas, cada una con su zona grande y la lista
+  // de jugadas debajo. Con sets o más de dos lados: tira de TV y bandas apiladas, como el ping pong.
+  const columns = two && !live.sets
   const leader = Math.max(...live.scores)
   const [asking, setAsking] = useState<{ s: number; e: EventDef; suggestion?: number } | null>(null)
   // "¿Quién lo hizo?": un punto (gol) o un evento de un jugador, de un lado.
@@ -144,7 +147,7 @@ export function CounterBoard({ play, game, live, players }: { play: Play; game: 
           onSubmit={whoDone}
         />
       )}
-      <ScoreStrip play={play} game={game} live={live} players={players} />
+      {columns ? <MatchLine play={play} game={game} live={live} players={players} /> : <ScoreStrip play={play} game={game} live={live} players={players} />}
       {live.sets && <SetsStrip live={live} />}
       {/* Marcador y Jugadas en pestañas: la cancha queda limpia y el relato de la partida tiene todo el alto. */}
       <div className="board-tabs" role="tablist" aria-label="Partida">
@@ -157,9 +160,9 @@ export function CounterBoard({ play, game, live, players }: { play: Play; game: 
       </div>
 
       <div role="tabpanel" id={`${tabsId}-board-panel`} aria-labelledby={`${tabsId}-board`} hidden={tab !== 'board'} className="board-panel">
-        <div className={'bands' + (two ? ' two' : '')}>
+        <div className={columns ? 'cols' : 'bands' + (two ? ' two' : '')}>
           {play.sides.map((side, s) => (
-            <section key={s} className="band" style={{ ['--pc' as string]: sideColor(side, players) }} aria-label={sideName(side, players)}>
+            <section key={s} className={columns ? 'col' : 'band'} style={{ ['--pc' as string]: sideColor(side, players) }} aria-label={sideName(side, players)}>
               <SideScore side={side} score={live.scores[s]} game={game} target={target} quick={quick[0]} players={players} shortcut={keys[s]?.toUpperCase()} onTap={() => tap(s)} live={live} index={s} hint={!play.log.length} />
               {(shown.length > 0 || quick.length > 1) && (
                 <div className="band-acts" role="group" aria-label={`Jugadas de ${sideName(side, players)}`}>
@@ -172,7 +175,7 @@ export function CounterBoard({ play, game, live, players }: { play: Play; game: 
                     // El contador en cero sólo en las jugadas que no suman puntos (las que cuentan para medallas);
                     // en las que suman (envido, truco), el número aparece recién cuando pasó.
                     const n = e.type === 'count' ? live.counts[e.id]?.[s] ?? 0 : 0
-                    const count = e.type === 'count' && (n > 0 || !e.points) ? n : undefined
+                    const count = e.type === 'count' && (n > 0 || (!e.points && !e.askPoints)) ? n : undefined
                     return (
                       <button key={e.id} type="button" className="band-act" onClick={() => tap(s, e)}>
                         <span className="band-act-name">
@@ -320,6 +323,41 @@ function ScoreStrip({ play, game, live, players }: { play: Play; game: GameDef; 
           </b>
         </div>
       ))}
+    </div>
+  )
+}
+
+/**
+ * Para el partido único de dos lados: reloj y lo último anotado en una línea, y una barra doble con lo que le
+ * falta a cada uno para llegar (si el juego tiene meta).
+ */
+function MatchLine({ play, game, live, players }: { play: Play; game: GameDef; live: LiveState; players: Map<Id, Player> }) {
+  const target = targetOf(game, play.config)
+  const last = play.log.at(-1)
+  const left = (s: number) => Math.max(0, (target ?? 0) - live.scores[s])
+  return (
+    <div className="match-line num">
+      <p className="tvs-head">
+        <span>
+          <Clock from={play.startedAt} /> de partida
+        </span>
+        <span className="tvs-last">{last ? `Último: ${lastText(play, game, players, last)}` : target ? `Gana el primero a ${target}` : ''}</span>
+      </p>
+      {target !== undefined && !game.scoring.lowWins && (
+        <>
+          <div className="ml-bar" aria-hidden>
+            <i style={{ width: `${Math.min(50, (live.scores[0] / target) * 50)}%`, background: sideColor(play.sides[0], players) }} />
+            <i style={{ width: `${Math.min(50, (live.scores[1] / target) * 50)}%`, background: sideColor(play.sides[1], players) }} />
+          </div>
+          <p className="ml-labels">
+            {[0, 1].map((s) => (
+              <span key={s}>
+                {sideName(play.sides[s], players)} · {left(s) ? `faltan ${left(s)}` : 'llegó'}
+              </span>
+            ))}
+          </p>
+        </>
+      )}
     </div>
   )
 }

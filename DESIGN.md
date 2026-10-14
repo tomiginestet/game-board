@@ -221,7 +221,12 @@ Una sola línea (`.section-divided`: borde superior + 24px) separa dos secciones
 ### Marcador en vivo
 Para los juegos que se anotan en vivo (bochas, básquet, truco, fútbol), el mismo lenguaje que el ping pong:
 - **Tira de TV** arriba (`ScoreStrip`): reloj de la partida, lo último anotado ("Último: +2 de Tomi", confirma el toque) y una fila por lado con sus jugadas y el puntaje; el que va ganando, en naranja.
-- **Pestañas Marcador / Jugadas.** En Marcador, una **banda de todo el ancho por lado**: tocar la banda suma; las jugadas van adentro, al pie, como botones de 48px con el nombre (sin emoji) y su contador. El "+2" de los juegos que lo tienen es un botón propio.
+- **Pantalla completa**: mientras se juega no hay barra del club ni navegación de abajo; sólo volver, el nombre del juego y la barra de Deshacer / Terminar.
+- **Pestañas Marcador / Jugadas.** En Marcador, dos formas según el partido:
+  - **Partido único de dos lados** (bochas, básquet, truco): dos columnas, cada una con su zona grande (tocar suma) y debajo sus jugadas en lista, una por fila, de 48px, con el nombre (sin emoji) y su contador. Arriba, reloj, lo último anotado y una barra doble con lo que le falta a cada uno.
+  - **Con sets o más de dos lados**: tira de TV (`ScoreStrip`) y una banda de todo el ancho por lado, con las jugadas al pie.
+  - El "+2" de los juegos que lo tienen es un botón propio. El contador en cero sólo aparece en las jugadas que no suman puntos (las que cuentan para medallas).
+- **Atajos de teclado**: funcionan siempre, pero la leyenda sólo se muestra en pantallas de compu (900px o más, con mouse).
 - **Jugadas** es el relato de la partida: minuto, color del lado, qué pasó, quién y el marcador de ese momento. Cualquier jugada se borra con su ✕, y el aviso ofrece deshacer. La ayuda ("Qué es cada jugada") va al pie de esta pestaña.
 
 ### Inputs / Fields

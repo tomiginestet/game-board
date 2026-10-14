@@ -1,4 +1,4 @@
-/* ---------- Atajos de teclado del tablero (sólo con mouse o trackpad) ---------- */
+/* ---------- Atajos de teclado del tablero (sólo en la compu) ---------- */
 
 .key-hint {
   display: none;
@@ -8,7 +8,8 @@
   color: var(--muted);
 }
 
-@media (hover: hover) and (pointer: fine) {
+/* La experiencia es del celular: la leyenda sólo en pantallas de compu (los atajos funcionan siempre). */
+@media (hover: hover) and (pointer: fine) and (min-width: 900px) {
   .key-hint {
     display: flex;
     flex-wrap: wrap;

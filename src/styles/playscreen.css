@@ -3,9 +3,10 @@
  * Todo cuelga de .play-page o de body.in-play para no tocar el resto de la app.
  */
 
-/* ---------- Mientras se juega: sin navegación de abajo ---------- */
+/* ---------- Mientras se juega: pantalla completa, sin la barra del club ni la navegación de abajo ---------- */
 
-body.in-play .bottom-nav {
+body.in-play .bottom-nav,
+body.in-play .top-bar {
   display: none;
 }
 
@@ -367,6 +368,81 @@ body.in-play .sticky-actions {
   background: transparent;
   color: var(--muted);
   box-shadow: inset 0 0 0 1px var(--border-strong);
+}
+
+/* Partido único de dos lados: barra doble de lo que falta, dos columnas y las jugadas en lista debajo. */
+.match-line .tvs-head {
+  padding: 0;
+  border: 0;
+}
+
+.ml-bar {
+  position: relative;
+  display: flex;
+  justify-content: space-between;
+  height: 6px;
+  margin-top: 10px;
+  border-radius: 3px;
+  background: var(--card-2);
+  overflow: hidden;
+}
+
+.ml-bar i {
+  display: block;
+  height: 100%;
+}
+
+.ml-labels {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  margin: 6px 0 0;
+  color: var(--muted);
+  font-size: 13px;
+}
+
+.ml-labels span {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.cols {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 10px;
+  align-items: start;
+}
+
+.col {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-width: 0;
+}
+
+.col .counter-main {
+  min-height: 240px;
+}
+
+.col .cs-score {
+  margin: auto 0;
+  font-size: 84px;
+}
+
+.col .band-acts {
+  flex-direction: column;
+}
+
+.col .band-act {
+  flex: none;
+  background: var(--card);
+  border-color: color-mix(in srgb, var(--pc) 35%, var(--border));
+}
+
+.col .band-act.pts {
+  min-height: 48px;
 }
 
 /* Jugadas: el relato de la partida. */
@@ -1014,4 +1090,9 @@ body.in-play .sticky-actions {
 
 details[open] > .log-summary .log-caret {
   transform: rotate(90deg);
+}
+
+/* En vivo, la cabecera es mínima: volver y el nombre del juego. La carátula ya está en la pantalla anterior. */
+.play-page.is-live .play-head .game-badge {
+  display: none;
 }
