@@ -64,43 +64,57 @@ export function PlayRow({ play, game, players, focus, showGame = true }: { play:
             : ' loss'
       : ''
   const scores = play.result?.scores
+  const score = (i: number) => (scores?.[i] !== undefined && scores?.[i] !== null ? formatScore(game, scores[i]!) : undefined)
+  // Se lee como la planilla: arriba el juego y la fecha; abajo quién ganó (con corona y su puntaje) y, debajo, el resto en orden.
+  const ranked = !live && coop === undefined && !draw
+  const lead = ranked ? order.filter((i) => play.result?.places[i] === 1) : []
+  const rest = ranked ? order.filter((i) => play.result?.places[i] !== 1) : []
+  const all = order.map((i) => sideName(play.sides[i], players)).join(' · ')
   return (
     <Link to={`/partida/${play.id}`} className={'match-row play-row' + resultClass + (live ? ' is-live' : '')}>
-      {showGame && <GameBadge game={game} size={36} />}
-      <div className="pr-body">
-        <div className="pr-sides">
-          {order.slice(0, 4).map((i, k) => {
-            const s = play.sides[i]
-            const first = play.result?.places[i] === 1 && !draw && coop === undefined
-            return (
-              <span key={i} className={'pr-side' + (first ? ' first' : '')}>
-                {k > 0 && <span className="muted">·</span>}
-                <TeamAvatar team={sidePlayersOf(s, players)} size={22} />
-                <span className="ellipsis">{sideName(s, players)}</span>
-                {first && <CrownIcon weight="fill" className="inline-icon crown" />}
-                {scores?.[i] !== undefined && scores?.[i] !== null && <b className="pr-score">{formatScore(game, scores[i]!)}</b>}
-              </span>
-            )
-          })}
-          {order.length > 4 && <span className="muted small">+{order.length - 4}</span>}
-        </div>
-        <div className="mr-meta muted small">
-          {resultClass && <ResultTag result={resultClass.trim() as 'win' | 'loss'} />}
-          {showGame && <span>{game.name}</span>}
-          {live ? (
-            <span className="win-text">
-              {play.status === 'live' && <span className="live-dot" />} {play.status === 'pending' ? 'Pendiente' : 'En juego'}
-            </span>
-          ) : coop !== undefined ? (
-            <span>{coop ? '¡Ganaron!' : 'Perdieron contra el juego'}</span>
-          ) : draw ? (
-            <span>
-              <HandshakeIcon className="inline-icon" /> Empate
-            </span>
-          ) : null}
-          <span>{play.status === 'pending' && play.scheduledAt ? formatWhen(play.scheduledAt) : formatDate(play.finishedAt ?? play.startedAt ?? play.createdAt)}</span>
-        </div>
+      <div className="mr-meta">
+        {resultClass && <ResultTag result={resultClass.trim() as 'win' | 'loss'} />}
+        {showGame && <b className="pr-game">{game.name}</b>}
+        {live ? (
+          <span className="win-text">
+            {play.status === 'live' && <span className="live-dot" />} {play.status === 'pending' ? 'Pendiente' : 'En juego'}
+          </span>
+        ) : coop !== undefined ? (
+          <span>{coop ? 'Ganaron todos' : 'Perdieron contra el juego'}</span>
+        ) : draw ? (
+          <span>
+            <HandshakeIcon className="inline-icon" /> Empate
+          </span>
+        ) : null}
+        <span className="mr-date">{play.status === 'pending' && play.scheduledAt ? formatWhen(play.scheduledAt) : formatDate(play.finishedAt ?? play.startedAt ?? play.createdAt)}</span>
       </div>
+      {lead.length ? (
+        <>
+          {lead.map((i) => (
+            <div key={i} className="pr-winner">
+              <TeamAvatar team={sidePlayersOf(play.sides[i], players)} size={28} />
+              <span className="ellipsis">{sideName(play.sides[i], players)}</span>
+              <CrownIcon weight="fill" className="crown" aria-label="ganó" />
+              {score(i) !== undefined && <b className="pr-score num">{score(i)}</b>}
+            </div>
+          ))}
+          {rest.length > 0 && (
+            <p className="pr-rest">
+              {play.sides.length === 2 ? 'contra ' : ''}
+              {rest.map((i, k) => (
+                <span key={i}>
+                  {k > 0 && ' · '}
+                  {play.sides.length > 2 && `${play.result?.places[i]}º `}
+                  <span className="pr-rest-name">{sideName(play.sides[i], players)}</span>
+                  {score(i) !== undefined && <span className="num"> {score(i)}</span>}
+                </span>
+              ))}
+            </p>
+          )}
+        </>
+      ) : (
+        <p className="pr-all ellipsis">{all}</p>
+      )}
     </Link>
   )
 }

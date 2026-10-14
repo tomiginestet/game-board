@@ -214,7 +214,7 @@ function GameView({ game }: { game: GameDef }) {
             {ranking.slice(0, 10).map((s, i) => {
               const p = players.get(s.playerId) ?? UNKNOWN_PLAYER
               return (
-                <Link key={s.playerId} to={`/jugadores/${s.playerId}?juego=${game.id}`} className="card rank-row">
+                <Link key={s.playerId} to={`/jugadores/${s.playerId}?juego=${game.id}`} className={'rank-row' + (i === 0 ? ' first' : '')}>
                   <span className="rank-pos">{i + 1}</span>
                   <Avatar player={p} size={36} />
                   <span className="grow">
@@ -248,7 +248,7 @@ function GameView({ game }: { game: GameDef }) {
               .map((s, i) => {
                 const p = players.get(s.playerId) ?? UNKNOWN_PLAYER
                 return (
-                  <Link key={s.playerId} to={`/jugadores/${s.playerId}?juego=${game.id}`} className="card rank-row">
+                  <Link key={s.playerId} to={`/jugadores/${s.playerId}?juego=${game.id}`} className={'rank-row' + (i === 0 ? ' first' : '')}>
                     <span className="rank-pos">{i + 1}</span>
                     <Avatar player={p} size={36} />
                     <span className="grow">
