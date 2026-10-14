@@ -1,15 +1,17 @@
 import { ArrowLeftIcon, ArrowSquareOutIcon, CheckIcon, ClipboardTextIcon, CopyIcon, HandIcon, MagicWandIcon, PencilSimpleIcon, SparkleIcon } from '@phosphor-icons/react'
-import { useEffect, useId, useState } from 'react'
+import { useEffect, useId, useMemo, useState } from 'react'
 import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom'
 import { ErrorText } from '../components/Feedback'
 import { GameBadge } from '../components/GameBits'
 import { blankGame, GameEditor } from '../components/GameEditor'
 import { Loader } from '../components/Logo'
-import { Medal } from '../components/Medal'
+import { MedalList, MedalListRow, RuleList } from '../components/MedalList'
+import { MedalSheet } from '../components/MedalSheet'
 import { generateWithApi, parseGameResponse, promptForChat, type Checked } from '../lib/ai'
 import { aiSpentThisMonth, useAuth } from '../lib/auth'
 import { findGame } from '../lib/games'
 import type { GameDef } from '../lib/games/schema'
+import { awardFamily } from '../lib/medals'
 import { actions, useData } from '../lib/store'
 import { syncAvailable } from '../lib/sync'
 import { friendlyError } from '../lib/text'
@@ -232,6 +234,8 @@ function ApiFlow({ input, onDraft }: { input: { name: string; notes: string; rul
 
 /** Vista previa de un juego antes de guardarlo. */
 export function GamePreview({ game }: { game: GameDef }) {
+  const families = useMemo(() => game.awards.map(awardFamily), [game.awards])
+  const [sheet, setSheet] = useState<{ k: number; level: number } | null>(null)
   return (
     <div className="game-preview">
       <header className="game-head">
@@ -248,7 +252,7 @@ export function GamePreview({ game }: { game: GameDef }) {
         </div>
       </header>
       {game.events.length > 0 && (
-        <section className="card">
+        <section>
           <h3>Se anota</h3>
           <div className="chips">
             {game.events.map((e) => (
@@ -261,33 +265,26 @@ export function GamePreview({ game }: { game: GameDef }) {
           </div>
         </section>
       )}
-      {game.awards.length > 0 && (
-        <section className="card">
+      {families.length > 0 && (
+        <section>
           <h3>Medallas propias</h3>
-          {game.awards.map((a) => (
-            <div key={a.id} className="award-row">
-              <div className="award-medals">
-                {a.levels.slice(0, 3).map((_, i) => (
-                  <Medal key={i} family={a} level={i} size={44} />
-                ))}
-              </div>
-              <div className="grow">
-                <b>{a.name}</b>
-                <span className="muted small block">{a.measures}</span>
-                <span className="small block">{a.levels.map((l) => l.name).join(' · ')}</span>
-              </div>
-            </div>
-          ))}
+          <MedalList>
+            {families.map((f, k) => (
+              <MedalListRow
+                key={f.id}
+                family={f}
+                onOpen={(level) => setSheet({ k, level })}
+                detail={<span className="medal-card-levels">{f.levels.map((l) => l.name).join(' · ')}</span>}
+              />
+            ))}
+          </MedalList>
+          {sheet && families[sheet.k] && <MedalSheet family={families[sheet.k]} level={sheet.level} onClose={() => setSheet(null)} />}
         </section>
       )}
       {game.rules.length > 0 && (
-        <section className="card">
+        <section className={families.length > 0 ? 'section-divided' : undefined}>
           <h3>Reglas</h3>
-          <ul className="rules">
-            {game.rules.map((r, i) => (
-              <li key={i}>{r}</li>
-            ))}
-          </ul>
+          <RuleList rules={game.rules} url={game.rulesUrl} />
         </section>
       )}
     </div>

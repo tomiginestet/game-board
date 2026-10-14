@@ -1,4 +1,4 @@
-import { ArrowLeftIcon, ArrowRightIcon, BookOpenIcon, CopyIcon, PencilSimpleIcon, PlayIcon, ShieldIcon, SparkleIcon, TrashIcon, TrophyIcon, UsersIcon } from '@phosphor-icons/react'
+import { ArrowLeftIcon, ArrowRightIcon, CopyIcon, CrownIcon, PencilSimpleIcon, PlayIcon, ShieldIcon, SparkleIcon, TrashIcon, TrophyIcon, UsersIcon } from '@phosphor-icons/react'
 import { useMemo, useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 import { Avatar, TeamAvatar } from '../components/Avatar'
@@ -6,7 +6,7 @@ import { GameCover } from '../components/GameCover'
 import { PlayRow } from '../components/GameBits'
 import { LevelIcon } from '../components/icons'
 import { MatchRow } from '../components/MatchRow'
-import { Medal } from '../components/Medal'
+import { MedalList, MedalListRow, RuleList } from '../components/MedalList'
 import { confirmAction } from '../lib/feedback'
 import { MedalSheet, type MedalHolder } from '../components/MedalSheet'
 import { isBuiltin, playersLabel, WEIGHT_NAMES } from '../lib/games'
@@ -246,64 +246,42 @@ function GameView({ game }: { game: GameDef }) {
 
       <section>
         <div className="section-head">
-          <h2>Medallas de {game.name}</h2>
+          <h2>Medallas</h2>
           <Link to={`/medallas?juego=${game.id}`}>
             Vitrina <ArrowRightIcon className="inline-icon" size="1em" />
           </Link>
         </div>
-        <p className="muted small">Tocá una medalla para verla en grande y saber cómo se gana.</p>
-        <div className="award-list">
-          {leaders.map(({ fam, best }, k) => {
-            const extra = fam.family.levels.length - 3
-            return (
-              <div key={fam.family.id + fam.family.name} className="card award-row">
-                <div className="award-medals">
-                  {fam.family.levels.slice(0, 3).map((l, i) => (
-                    <button key={i} type="button" className="medal-btn" aria-haspopup="dialog" aria-label={`Ver ${l.name}`} onClick={() => setSheet({ k, level: i })}>
-                      <Medal family={fam.family} level={i} size={44} />
-                    </button>
-                  ))}
-                  {extra > 0 && (
-                    <button type="button" className="award-more" aria-label={`Ver ${plural(extra, 'nivel más', 'niveles más')}`} onClick={() => setSheet({ k, level: 3 })}>
-                      +{extra}
-                    </button>
-                  )}
-                </div>
-                <button type="button" className="grow award-info" aria-haspopup="dialog" onClick={() => setSheet({ k, level: best ? Math.min(best.level + 1, fam.family.levels.length - 1) : 0 })}>
-                  <b>{fam.family.name}</b>
-                  <span className="muted small block">{fam.family.measures}</span>
-                  <span className="small block">{fam.family.levels.map((l) => l.name).join(' · ')}</span>
-                  {best && (
-                    <span className="small block award-leader">
-                      👑 {players.get(best.id)?.name}: {fam.family.levels[best.level].name}
-                    </span>
-                  )}
-                </button>
-              </div>
-            )
-          })}
-        </div>
+        <p className="muted small section-lead">Tocá una medalla para verla en grande y saber cómo se gana.</p>
+        <MedalList>
+          {leaders.map(({ fam, best }, k) => (
+            <MedalListRow
+              key={fam.family.id + fam.family.name}
+              family={fam.family}
+              openLevel={best ? Math.min(best.level + 1, fam.family.levels.length - 1) : 0}
+              onOpen={(level) => setSheet({ k, level })}
+              detail={
+                best ? (
+                  <span className="medal-card-leader">
+                    <CrownIcon weight="fill" aria-hidden /> {players.get(best.id)?.name} · {fam.family.levels[best.level].name}
+                  </span>
+                ) : (
+                  <span className="medal-card-leader none">Nadie la tiene todavía</span>
+                )
+              }
+            />
+          ))}
+        </MedalList>
         {sheet && sheetFam && <MedalSheet family={sheetFam.fam.family} level={sheet.level} others={sheetFam.all} onClose={() => setSheet(null)} />}
       </section>
 
       {game.rules.length > 0 && (
-        <section className="card">
-          <h2>
-            <BookOpenIcon className="inline-icon" /> Reglas en dos minutos
-          </h2>
-          <ul className="rules">
-            {game.rules.map((r, i) => (
-              <li key={i}>{r}</li>
-            ))}
-          </ul>
-          {game.rulesUrl && (
-            <a href={game.rulesUrl} target="_blank" rel="noreferrer noopener" className="small">
-              Reglamento completo ↗
-            </a>
-          )}
-          {game.formats.length > 0 && (
-            <p className="muted small mt">Torneos: {game.formats.map((f) => CUP_FORMATS.find((x) => x.id === f)?.name).join(', ')}.</p>
-          )}
+        <section className="section-divided">
+          <h2>Reglas en dos minutos</h2>
+          <RuleList
+            rules={game.rules}
+            url={game.rulesUrl}
+            footnote={game.formats.length > 0 && `Torneos: ${game.formats.map((f) => CUP_FORMATS.find((x) => x.id === f)?.name).join(', ')}.`}
+          />
         </section>
       )}
 
