@@ -1143,12 +1143,6 @@
   margin: 8px 0;
 }
 
-.team-form {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  margin: 8px 0 12px;
-}
 
 .form-dot {
   display: inline-grid;
@@ -1197,9 +1191,6 @@
   gap: 12px;
 }
 
-.team-stats {
-  margin: 4px 0 0;
-}
 
 /* Fixture con fecha y cancha */
 

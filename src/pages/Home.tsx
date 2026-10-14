@@ -1,7 +1,6 @@
-import { ArrowRightIcon, CaretLeftIcon, CaretRightIcon, CheckCircleIcon, GearSixIcon, PlusIcon, TrashIcon, TrophyIcon, UsersIcon } from '@phosphor-icons/react'
+import { ArrowRightIcon, CaretLeftIcon, CaretRightIcon, CheckCircleIcon, GearSixIcon, PlusIcon, TrashIcon, UsersIcon } from '@phosphor-icons/react'
 import { useRef, useState } from 'react'
 import { Link, useNavigate, type NavigateFunction } from 'react-router-dom'
-import { Avatar } from '../components/Avatar'
 import { toast } from '../lib/feedback'
 import { HeroCard, ShelfCard, Shelf } from '../components/GameCard'
 import { GameCover } from '../components/GameCover'
@@ -9,6 +8,7 @@ import { GameBadge, PlayRow, sideName } from '../components/GameBits'
 import { Logo } from '../components/Logo'
 import { MatchRow } from '../components/MatchRow'
 import { NextMedals } from '../components/NextMedals'
+import { GloriaPodium } from '../components/Squad'
 import { cupChampion } from '../lib/cups'
 import { computeLive } from '../lib/engine'
 import { computeMatch } from '../lib/pingpong/scoring'
@@ -299,35 +299,7 @@ export function Home() {
             <h2 id="podium-title">Podio de gloria</h2>
             <SeeAll to="/ranking" label="Ver todo el ranking" />
           </div>
-          {/* El escalón lleva la gloria: la altura y el número cuentan lo mismo. */}
-          <div className="podium">
-            {[ranked[1], ranked[0], ranked[2]].map((s, i) => {
-              const p = s && players.get(s.playerId)
-              const place = ([2, 1, 3] as const)[i]
-              return p ? (
-                <Link key={p.id} to={`/jugadores/${p.id}`} className={'podium-spot place-' + place}>
-                  <Avatar player={p} size={i === 1 ? 64 : 48} />
-                  <span className="podium-name">
-                    <span className="sr-only">{place}º, </span>
-                    {p.name}
-                  </span>
-                  <span className="podium-block num">
-                    {s.gloria}
-                    <small>de gloria</small>
-                  </span>
-                </Link>
-              ) : (
-                <div key={i} className="podium-spot empty-spot" />
-              )
-            })}
-          </div>
-          {ranked[1] && players.get(ranked[0].playerId) && players.get(ranked[1].playerId) && (
-            <p className="podium-gap">
-              {ranked[0].gloria === ranked[1].gloria
-                ? `${players.get(ranked[0].playerId)!.name} y ${players.get(ranked[1].playerId)!.name} están empatados.`
-                : `${players.get(ranked[0].playerId)!.name} le lleva ${ranked[0].gloria - ranked[1].gloria} de gloria a ${players.get(ranked[1].playerId)!.name}.`}
-            </p>
-          )}
+          <GloriaPodium top={ranked} />
         </section>
       )}
 
@@ -337,15 +309,14 @@ export function Home() {
             <h2 id="cups-title">Torneos en curso</h2>
             <SeeAll to="/torneos" label="Ver todos los torneos" />
           </div>
-          <div className="list">
+          <div className="list rows">
             {activeCups.map((c) => (
-              <Link key={c.id} to={c.to} className="card cup-row">
+              <Link key={c.id} to={c.to} className="cup-row">
                 <GameBadge game={gameOrMissing(data, c.gameId)} size={36} />
                 <span className="grow">
                   <b>{c.name}</b>
                   <span className="muted small block">{gameOrMissing(data, c.gameId).name}</span>
                 </span>
-                <TrophyIcon className="muted" aria-hidden />
               </Link>
             ))}
           </div>

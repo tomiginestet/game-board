@@ -49,12 +49,12 @@ export function Teams() {
           </Link>
         </div>
       ) : (
-        <div className="list">
+        <div className="list rows">
           {teams.map((t) => {
             const rec = teamRecord(data, t)
             const game = t.gameId ? games.find((g) => g.id === t.gameId) : undefined
             return (
-              <Link key={t.id} to={`/equipos/${t.id}`} className="card player-row">
+              <Link key={t.id} to={`/equipos/${t.id}`} className="player-row">
                 <TeamCrest team={t} />
                 <div className="grow">
                   <strong>{t.name}</strong>
@@ -166,33 +166,44 @@ function TeamView({ team }: { team: Team }) {
         </button>
       </header>
 
-      <div className="stat-grid team-stats">
-        <div className="stat">
-          <b className="num">{rec.played}</b>
-          <span className="muted small">Jugados</span>
-        </div>
-        <div className="stat">
-          <b className="num">
-            {rec.wins}-{rec.draws}-{rec.losses}
-          </b>
-          <span className="muted small">G-E-P</span>
-        </div>
-        <div className="stat">
-          <b className="num">
-            {rec.scoreFor}:{rec.scoreAgainst}
-          </b>
-          <span className="muted small">A favor : en contra</span>
-        </div>
-      </div>
-      {rec.form.length > 0 && (
-        <p className="team-form">
-          <span className="muted small">Últimos:</span>
-          {rec.form.map((r, i) => (
-            <span key={i} className={'form-dot ' + (r === 'G' ? 'win' : r === 'P' ? 'loss' : 'draw')} title={r === 'G' ? 'Ganó' : r === 'P' ? 'Perdió' : 'Empató'}>
-              {r}
+      {/* Como el perfil: un número protagonista (victorias) con su barra, la forma y los tantos en una frase. */}
+      {rec.played > 0 ? (
+        <section className="pd-record" aria-label="Récord del equipo">
+          <p className="pd-big">
+            <span className="num">{rec.wins}</span> {rec.wins === 1 ? 'victoria' : 'victorias'} en {plural(rec.played, 'partido', 'partidos')}
+          </p>
+          <div className="pd-bar" aria-hidden>
+            {rec.wins > 0 && <i className="win" style={{ flexGrow: rec.wins }} />}
+            {rec.draws > 0 && <i className="draw" style={{ flexGrow: rec.draws }} />}
+            {rec.losses > 0 && <i className="loss" style={{ flexGrow: rec.losses }} />}
+          </div>
+          <p className="pd-bar-labels num">
+            <span className="win">{Math.round((rec.wins / rec.played) * 100)}% ganados</span>
+            <span>
+              {rec.draws > 0 && `${plural(rec.draws, 'empate', 'empates')} · `}
+              {plural(rec.losses, 'derrota', 'derrotas')}
             </span>
-          ))}
-        </p>
+          </p>
+          {rec.form.length > 1 && (
+            <div className="pd-form">
+              <span className="pd-form-label">Forma</span>
+              <ol aria-label={`Últimos ${rec.form.length} partidos, del más viejo al más nuevo: ${[...rec.form].reverse().map((r) => (r === 'G' ? 'ganó' : r === 'P' ? 'perdió' : 'empató')).join(', ')}`}>
+                {[...rec.form].reverse().map((r, i, all) => (
+                  <li key={i} className={(r === 'G' ? 'win' : r === 'P' ? 'loss' : 'draw') + (i === all.length - 1 ? ' last' : '')} aria-hidden>
+                    {r}
+                  </li>
+                ))}
+              </ol>
+            </div>
+          )}
+          {rec.scoreFor + rec.scoreAgainst > 0 && (
+            <p className="team-score-line num">
+              {(game?.perPlayer?.unit ?? 'tantos').replace(/^./, (c) => c.toUpperCase())}: {rec.scoreFor} a favor, {rec.scoreAgainst} en contra
+            </p>
+          )}
+        </section>
+      ) : (
+        <p className="muted">Todavía no jugaron un partido.</p>
       )}
 
       {game && (

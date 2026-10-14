@@ -552,6 +552,50 @@ section > .section-head {
   color: var(--on-fill);
 }
 
+/* Filtros de una lista: las filas van juntas (8px) y separadas del contenido por el aire de la página.
+   Qué mirar va en un segmentado discreto; de qué juego, en chips (el único naranja de los filtros). */
+.filters {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.filters .chip,
+.chips.scroll .chip {
+  min-height: 40px;
+  padding: 6px 14px;
+  font-size: 15px;
+}
+
+/* Una tercera fila (el juego del Elo) no compite con la de arriba: elegida, con borde y texto, sin relleno. */
+.chips.sub .chip.active {
+  background: var(--card-2);
+  border-color: var(--border-strong);
+  color: var(--text);
+}
+
+.segmented.quiet {
+  grid-template-columns: none;
+  grid-auto-flow: column;
+  grid-auto-columns: minmax(0, 1fr);
+  padding: 3px;
+  gap: 2px;
+  border-radius: 12px;
+  background: var(--bg-2);
+}
+
+.segmented.quiet button {
+  min-height: 40px;
+  padding: 6px 4px;
+  font-size: 14px;
+  line-height: 1.2;
+}
+
+.segmented.quiet button.active {
+  background: var(--card-2);
+  color: var(--text);
+}
+
 .stepper {
   display: inline-flex;
   align-items: center;
@@ -1192,17 +1236,23 @@ svg {
 
 /* ---------- Jugadores ---------- */
 
-/* Lista de jugadores: filas sin tarjeta, la gloria en dorado a la derecha (sin ícono: el color ya dice qué es). */
-.player-list {
+/* Listas del club (jugadores, equipos, torneos): filas sin tarjeta, la gloria en dorado a la derecha (sin ícono: el color ya dice qué es). */
+.rows {
   gap: 0;
 }
 
-.player-list .player-row,
+.rows > a,
 .teams-link {
   min-height: 60px;
   padding: 8px 0;
   border-bottom: 1px solid var(--border);
   color: var(--text);
+}
+
+.team-score-line {
+  margin: 12px 0 0;
+  color: var(--text-soft);
+  font-size: 15px;
 }
 
 .player-gloria {
@@ -1640,11 +1690,6 @@ svg {
   margin: 0;
 }
 
-.stat-grid {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 8px;
-}
 
 .kv-list {
   display: grid;
@@ -1681,29 +1726,8 @@ svg {
   }
 }
 
-.stat {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  text-align: center;
-  min-width: 0;
-  padding: 12px 4px;
-  background: var(--card);
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
-}
 
-.stat-value {
-  font-size: 20px;
-  font-weight: 800;
-  font-variant-numeric: tabular-nums;
-}
 
-.stat-label {
-  font-size: 12px;
-  color: var(--muted);
-  line-height: 1.2;
-}
 
 .sparkline {
   width: 100%;
@@ -3438,12 +3462,6 @@ svg {
 .segmented button,
 .serve-tag,
 .level-badge,
-.stat-value {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 6px;
-}
 
 .stepper button {
   display: inline-flex;

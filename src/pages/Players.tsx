@@ -38,7 +38,7 @@ export function Players() {
         <CaretRightIcon aria-hidden="true" />
       </Link>
 
-      <div className="list player-list">
+      <div className="list rows">
         {players.map((p) => {
           const s = board.players.get(p.id)
           return (

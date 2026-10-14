@@ -75,19 +75,19 @@ body.in-play .sticky-actions {
   cursor: default;
 }
 
-/* Por turnos: Deshacer (ícono) · Pasar turno (principal, al medio) · Terminar (chico). */
+/* Por turnos: Deshacer (ícono) y Pasar turno ocupando el resto. Terminar es el banderín de la cabecera. */
 .play-dock.turns {
-  grid-template-columns: 52px minmax(0, 1fr) auto;
+  grid-template-columns: 60px minmax(0, 1fr);
   align-items: stretch;
+}
+
+.play-finish-flag {
+  flex: none;
+  margin-left: auto;
 }
 
 .play-dock.turns .dock-undo {
   padding: 0;
-}
-
-.play-dock.turns .dock-finish {
-  padding: 0 14px;
-  font-size: 15px;
 }
 
 .dock-pass {
@@ -655,6 +655,22 @@ body.in-play .sticky-actions {
 
 .mscore-cell + .mscore-cell {
   border-left: 1px solid var(--border);
+}
+
+.mscore-row.many {
+  grid-auto-flow: row;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  row-gap: 6px;
+  overflow: visible;
+}
+
+.mscore-row.many .mscore-cell:nth-child(4n + 1) {
+  padding-left: 0;
+  border-left: 0;
+}
+
+.mscore-row.many .mscore-cell.current:nth-child(4n + 1)::after {
+  left: 0;
 }
 
 /* A quién le toca: una raya de su color al pie de su columna (y "le toca" para lectores de pantalla). */
