@@ -520,16 +520,8 @@ body.in-play .sticky-actions {
 }
 
 /* Fila de herramientas del tablero: "Ver todo" y la ayuda. Pegada al tablero, no flotando. */
-.board-tools {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: space-between;
-  gap: 8px;
-  margin-top: -10px;
-}
 
-.more-toggle,
-.help-toggle {
+.more-toggle {
   display: inline-flex;
   align-items: center;
   gap: 6px;
@@ -545,21 +537,11 @@ body.in-play .sticky-actions {
   cursor: pointer;
 }
 
-.help-toggle {
-  margin-left: auto;
-}
 
-.help-toggle[aria-pressed='true'] {
-  border-color: var(--accent-2);
-  color: var(--accent-2);
-}
-
-.more-toggle svg,
-.help-toggle svg {
+.more-toggle svg {
   font-size: 18px;
   flex-shrink: 0;
 }
-
 .more-toggle .flip {
   transform: rotate(180deg);
 }
@@ -785,12 +767,6 @@ body.in-play .sticky-actions {
   font-weight: 600;
 }
 
-.ev-row-help {
-  display: block;
-  font-size: 13px;
-  font-weight: 400;
-  color: var(--text-soft);
-}
 
 .play-page .ev-rows .stepper {
   flex-shrink: 0;
@@ -823,12 +799,6 @@ body.in-play .sticky-actions {
   min-height: 44px;
 }
 
-.play-page .log-list summary {
-  display: flex;
-  align-items: center;
-  min-height: 44px;
-  cursor: pointer;
-}
 
 /* ---------- Pausa del punto final ---------- */
 
@@ -1086,31 +1056,55 @@ body.in-play .sticky-actions {
 }
 
 /* "Lo último anotado" se ve desplegable: flecha que gira al abrir. */
-.log-summary {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  min-height: 44px;
-  cursor: pointer;
-  color: var(--text-soft);
-  font-size: 14px;
-  font-weight: 600;
-  list-style: none;
-}
 
-.log-summary::-webkit-details-marker {
-  display: none;
-}
 
-.log-caret {
-  transition: transform 0.15s ease-out;
-}
 
-details[open] > .log-summary .log-caret {
-  transform: rotate(90deg);
-}
 
 /* En vivo, la cabecera es mínima: volver y el nombre del juego. La carátula ya está en la pantalla anterior. */
 .play-page.is-live .play-head .game-badge {
   display: none;
+}
+
+/* Por turnos: sólo el que juega va abierto; los demás, su cabecera (nombre y puntaje) que se abre al tocarla. */
+.turn-head {
+  width: 100%;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.turn-head:disabled {
+  cursor: default;
+  opacity: 1;
+}
+
+.turn-caret {
+  flex: none;
+  color: var(--muted);
+  font-size: 18px;
+  transition: transform 0.15s ease-out;
+}
+
+.turn-caret.flip {
+  transform: rotate(180deg);
+}
+
+.turn-side.closed {
+  padding-block: 10px;
+  background: var(--card);
+}
+
+/* Los pases de turno son el ritmo del relato, no jugadas: filas bajas y apagadas. */
+.play-log li.turn {
+  min-height: 40px;
+}
+
+.play-log li.turn .pl-text b {
+  color: var(--muted);
+  font-size: 14px;
+  font-weight: 600;
 }

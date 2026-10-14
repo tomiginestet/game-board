@@ -1,4 +1,3 @@
-import { QuestionIcon } from '@phosphor-icons/react'
 import { useId, useRef, useState, type FormEvent } from 'react'
 import { ErrorText } from '../../components/Feedback'
 import { sideName } from '../../components/GameBits'
@@ -7,15 +6,6 @@ import { useModal } from '../../lib/feedback'
 import type { EventDef } from '../../lib/games/schema'
 import type { Id, Play, Player } from '../../lib/types'
 
-/** Botón "?" que muestra la ayuda de cada evento en pantalla (el `title` no se ve en el celular). */
-export function HelpToggle({ on, onChange, controls }: { on: boolean; onChange: (v: boolean) => void; controls?: string }) {
-  return (
-    <button type="button" className="help-toggle" aria-pressed={on} aria-controls={controls} onClick={() => onChange(!on)}>
-      <QuestionIcon weight={on ? 'fill' : 'regular'} aria-hidden="true" />
-      {on ? 'Ocultar ayuda' : 'Qué es cada uno'}
-    </button>
-  )
-}
 
 /** Anuncia el marcador a los lectores de pantalla cada vez que cambia ("Ana 7, Beto 5"). */
 export function ScoreAnnouncer({ play, live, players }: { play: Play; live: LiveState; players: Map<Id, Player> }) {
