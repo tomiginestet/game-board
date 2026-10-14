@@ -1,4 +1,4 @@
-import { ArrowLeftIcon, ArrowRightIcon, CopyIcon, CrownIcon, GaugeIcon, PencilSimpleIcon, PlayIcon, PulseIcon, ShieldIcon, SparkleIcon, TrashIcon, TrophyIcon, UsersIcon } from '@phosphor-icons/react'
+import { ArrowLeftIcon, ArrowRightIcon, CopyIcon, LinkIcon, CrownIcon, GaugeIcon, PencilSimpleIcon, PlayIcon, PulseIcon, ShieldIcon, SparkleIcon, TrashIcon, TrophyIcon, UsersIcon } from '@phosphor-icons/react'
 import { useMemo, useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 import { Avatar, TeamAvatar } from '../components/Avatar'
@@ -7,7 +7,8 @@ import { PlayRow } from '../components/GameBits'
 import { LevelIcon } from '../components/icons'
 import { MatchRow } from '../components/MatchRow'
 import { MedalList, MedalListRow, RuleList } from '../components/MedalList'
-import { confirmAction } from '../lib/feedback'
+import { canDelete, canEdit, useAccess } from '../lib/access'
+import { confirmAction, toast } from '../lib/feedback'
 import { MedalSheet, type MedalHolder } from '../components/MedalSheet'
 import { isBuiltin, WEIGHT_NAMES } from '../lib/games'
 import { CATEGORIES, CUP_FORMATS, type GameDef, type PlayMode } from '../lib/games/schema'
@@ -40,6 +41,25 @@ const MODE_SHORT: Record<PlayMode, string> = {
 
 export function playPath(game: Pick<GameDef, 'id'>): string {
   return game.id === 'pingpong' ? '/ping-pong/nuevo' : `/jugar/${game.id}`
+}
+
+/** Link a la ficha de un juego del catálogo: se abre sin cuenta y desde ahí se invita a entrar para jugar. */
+async function shareGame(game: GameDef) {
+  const url = `${window.location.href.split('#')[0]}#/juegos/${game.id}`
+  try {
+    if (navigator.share) {
+      await navigator.share({ title: game.name, text: `${game.name} en Game Board`, url })
+      return
+    }
+  } catch (e) {
+    if ((e as Error)?.name === 'AbortError') return
+  }
+  try {
+    await navigator.clipboard.writeText(url)
+    toast('Link copiado')
+  } catch {
+    toast(url)
+  }
 }
 
 export function GameDetail() {
@@ -84,6 +104,9 @@ function GameView({ game }: { game: GameDef }) {
   const ppBoard = useLeaderboard()
   const players = usePlayerMap()
   const builtin = isBuiltin(game.id)
+  const access = useAccess()
+  const mayEdit = canEdit(access, 'game', game)
+  const mayDelete = canDelete(access, 'game', game)
 
   const ranking = useMemo(() => gameRanking(board, game.id), [board, game.id])
   const belt = beltOf(board.views, game.id)
@@ -323,7 +346,13 @@ function GameView({ game }: { game: GameDef }) {
       )}
 
       <div className="row mt">
-        {game.id !== 'pingpong' && (
+        {/* Los juegos del catálogo tienen link público: cualquiera lo abre, con o sin cuenta. */}
+        {builtin && (
+          <button className="btn" onClick={() => void shareGame(game)}>
+            <LinkIcon /> Compartir
+          </button>
+        )}
+        {game.id !== 'pingpong' && (builtin || mayEdit) && (
           <Link to={builtin ? `/juegos/nuevo?copiar=${game.id}` : `/juegos/${game.id}/editar`} className="btn grow">
             {builtin ? (
               <>
@@ -336,17 +365,18 @@ function GameView({ game }: { game: GameDef }) {
             )}
           </Link>
         )}
-        {!builtin && (
+        {!builtin && mayDelete && (
           <button className="btn danger" onClick={remove} disabled={inUse} aria-describedby={inUse ? 'gd-delete-hint' : undefined}>
             <TrashIcon /> Borrar
           </button>
         )}
       </div>
-      {!builtin && inUse && (
+      {!builtin && mayDelete && inUse && (
         <p id="gd-delete-hint" className="hint mt">
           Para borrarlo, primero borrá sus partidas y torneos.
         </p>
       )}
+      {!builtin && access.mode === 'member' && !mayEdit && <p className="hint mt">Este juego lo pueden cambiar quien lo agregó o un admin del club.</p>}
     </div>
   )
 }

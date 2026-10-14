@@ -6,6 +6,7 @@ import { ChoiceGroup, PlayerPicker } from '../../components/PlayerPicker'
 import { DEFAULT_CONFIG } from '../../lib/pingpong/scoring'
 import { actions, useData } from '../../lib/store'
 import type { Id, MatchConfig, Side } from '../../lib/pingpong/types'
+import { mayCreateNow } from '../../lib/access'
 
 const LAST_CONFIG_KEY = 'ping-pong-last-config'
 
@@ -57,6 +58,7 @@ export function NewMatch() {
       // ignorar
     }
     const first: Side = server === 'random' ? coinFlip() : server
+    if (!mayCreateNow()) return
     const m = actions.createMatch(teamA, teamB, config, first)
     navigate(`/partido/${m.id}`)
   }

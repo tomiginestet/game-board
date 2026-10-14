@@ -15,6 +15,7 @@ import { computeLeaderboard } from '../../lib/pingpong/stats'
 import { actions, useData } from '../../lib/store'
 import { sidePlayers, teamAsPlayer, teamName } from '../../lib/pingpong/teams'
 import type { Match, Player, Side } from '../../lib/pingpong/types'
+import { mayCreateNow } from '../../lib/access'
 
 function vibrate(ms = 15) {
   try {
@@ -405,6 +406,7 @@ function MatchResult({ match, teamA, teamB, onUndo, backTo }: { match: Match; te
   const [shownUp, setShownUp] = useState<(LevelUp & { player: Player; value: number }) | null>(null)
 
   const rematch = () => {
+    if (!mayCreateNow()) return
     const m = actions.createMatch(sidePlayers(match, 'a'), sidePlayers(match, 'b'), match.config, other(match.firstServer))
     navigate(`/partido/${m.id}`)
   }
@@ -516,7 +518,7 @@ function MatchResult({ match, teamA, teamB, onUndo, backTo }: { match: Match; te
               onClick={() => {
                 // Se puede recuperar mientras dure el aviso: se borra sin preguntar y se ofrece deshacer.
                 const removed = match
-                actions.deleteMatch(match.id)
+                if (!actions.deleteMatch(match.id)) return
                 navigate('/historial')
                 toast('Borraste el partido.', { label: 'Deshacer', run: () => actions.restoreMatch(removed) })
               }}

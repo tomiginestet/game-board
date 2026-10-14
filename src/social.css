@@ -775,3 +775,46 @@ button.group-row:hover {
     font-size: 20px;
   }
 }
+
+/* Invitación a entrar (sin cuenta se puede mirar; para anotar hay que entrar) */
+.login-sheet .sheet-body {
+  gap: 12px;
+}
+
+.login-sheet p {
+  margin: 0;
+}
+
+.guest-banner {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 0 0 14px;
+  padding: 10px 12px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--card);
+  font-size: 14px;
+}
+
+.guest-banner svg {
+  flex-shrink: 0;
+  color: var(--accent-2);
+}
+
+.needs-account {
+  max-width: 440px;
+}
+
+.readonly-note {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0 0 12px;
+  color: var(--muted);
+  font-size: 14px;
+}
+
+.readonly-note svg {
+  flex-shrink: 0;
+}

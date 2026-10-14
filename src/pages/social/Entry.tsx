@@ -5,7 +5,8 @@ import { LoginForm } from '../../components/LoginForm'
 import { Loader } from '../../components/Logo'
 import { ProfileForm } from '../../components/ProfileForm'
 import { linkClub, setGuest, signOut, useAuth, useGuest } from '../../lib/auth'
-import { isProfileComplete, refreshGroups, switchToGroup, useMyGroups, useProfile, watchNotifications } from '../../lib/social'
+import { hasReturnPath, takeReturnPath } from '../../lib/login'
+import { isProfileComplete, refreshGroups, switchToGroup, useAccessSync, useMyGroups, useProfile, watchNotifications } from '../../lib/social'
 import { findClub, normalizeCode, syncAvailable, useSyncState } from '../../lib/sync'
 import { GroupForm, GroupSearch } from './GroupForms'
 
@@ -88,9 +89,10 @@ function Splash() {
 }
 
 /**
- * Decide qué se ve al abrir la app: la bienvenida (sin sesión), armar el perfil,
- * el onboarding (sin grupos) o la app. Con sesión, también deja activo un grupo
- * de la cuenta si el dispositivo no está en ninguno.
+ * Decide qué se ve al abrir la app: la bienvenida, armar el perfil, el onboarding (sin grupos) o la app.
+ * Sin sesión se entra directo a mirar (sólo lectura): la bienvenida aparece al abrir el inicio la primera
+ * vez o con un link de invitación a un club; un link a un juego (o a cualquier otra pantalla) entra derecho.
+ * Con sesión, también deja activo un grupo de la cuenta si el dispositivo no está en ninguno.
  */
 export function Gate({ children }: { children: ReactNode }) {
   const auth = useAuth()
@@ -102,6 +104,7 @@ export function Gate({ children }: { children: ReactNode }) {
   const navigate = useNavigate()
   const uid = auth.session?.user.id
   const [skipped, setSkipped] = useState(false)
+  useAccessSync()
 
   // Al abrir un link de invitación sin sesión, se guarda para después de entrar.
   const inviteCode = location.pathname.match(/^\/unirse\/([^/]+)/)?.[1]
@@ -115,6 +118,15 @@ export function Gate({ children }: { children: ReactNode }) {
       if (!location.pathname.startsWith('/unirse/')) navigate(`/unirse/${pending}`)
     }
   }, [uid, profile, location.pathname, navigate])
+
+  // Entró desde una pantalla (por ejemplo, el link de un juego): vuelve ahí en vez de pasar por el onboarding.
+  const returning = !!uid && isProfileComplete(profile) && hasReturnPath()
+  if (returning && !skipped) setSkipped(true)
+  useEffect(() => {
+    if (!returning) return
+    const to = takeReturnPath()
+    if (to && to !== location.pathname) navigate(to)
+  }, [returning, location.pathname, navigate])
 
   useEffect(() => watchNotifications(uid), [uid])
 
@@ -140,7 +152,7 @@ export function Gate({ children }: { children: ReactNode }) {
 
   if (!syncAvailable) return <>{children}</>
   if (!auth.ready) return <Splash />
-  if (!auth.session) return guest ? <>{children}</> : <Welcome inviteCode={inviteCode} />
+  if (!auth.session) return !guest && (inviteCode || location.pathname === '/') ? <Welcome inviteCode={inviteCode} /> : <>{children}</>
   if (profile === undefined) return <Splash />
   if (!isProfileComplete(profile)) return <ProfileSetup />
   if (location.pathname.startsWith('/unirse/')) return <>{children}</>
@@ -206,9 +218,9 @@ function Welcome({ inviteCode }: { inviteCode?: string }) {
         </ul>
         <div className="guest-option">
           <button className="link-btn" onClick={() => setGuest(true)}>
-            Usar sin cuenta
+            Mirar sin cuenta
           </button>
-          <p className="muted small">Sin cuenta, todo queda guardado solo en este teléfono.</p>
+          <p className="muted small">Sin cuenta podés ver el catálogo y los juegos. Para anotar partidas hace falta entrar.</p>
         </div>
       </div>
     </div>

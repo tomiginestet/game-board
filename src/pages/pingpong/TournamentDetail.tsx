@@ -1,6 +1,7 @@
 import { ArrowLeftIcon, PingPongIcon, PlayIcon, TrashIcon, TrophyIcon } from '@phosphor-icons/react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 import { Avatar } from '../../components/Avatar'
+import { ReadOnlyNote } from '../../components/ReadOnlyNote'
 import { MatchRow } from '../../components/MatchRow'
 import { confirmAction } from '../../lib/feedback'
 import { UNKNOWN_PLAYER, usePlayerMap } from '../../lib/hooks'
@@ -9,6 +10,7 @@ import { bracketRounds, leagueStandings, tournamentChampion, type BracketSlot } 
 import { actions, useData } from '../../lib/store'
 import { roundName } from '../../lib/pingpong/tournament'
 import type { Id, Match, Player, Tournament } from '../../lib/pingpong/types'
+import { mayCreateNow } from '../../lib/access'
 
 export function TournamentDetail() {
   const { id } = useParams()
@@ -43,6 +45,7 @@ export function TournamentDetail() {
           {t.format === 'league' ? (t.doubleRound ? 'Liga ida y vuelta' : 'Liga') : 'Eliminación directa'} · {describeConfig(t.config)}
         </p>
       </header>
+      <ReadOnlyNote kind="tournament" entity={t} />
 
       {champion && (
         <div className="champion-banner">
@@ -67,8 +70,7 @@ export function TournamentDetail() {
             danger: true,
           })
           if (!ok) return
-          actions.deleteTournament(t.id)
-          navigate('/torneos')
+          if (actions.deleteTournament(t.id)) navigate('/torneos')
         }}
       >
         <TrashIcon /> Borrar torneo
@@ -213,6 +215,7 @@ function BracketCard({ t, slot, players }: { t: Tournament; slot: BracketSlot; p
   const playable = slot.a && slot.b && !slot.winner
   const play = () => {
     if (!slot.a || !slot.b) return
+    if (!mayCreateNow()) return
     const match = actions.ensureKnockoutMatch(t.id, slot.round, slot.slot, slot.a, slot.b)
     navigate(`/partido/${match.id}`)
   }

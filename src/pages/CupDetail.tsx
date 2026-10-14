@@ -6,6 +6,7 @@ import { formatDay, formatWhen } from '../lib/schedule'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 import { TeamAvatar } from '../components/Avatar'
 import { GameBadge, PlayRow } from '../components/GameBits'
+import { ReadOnlyNote } from '../components/ReadOnlyNote'
 import { bracketRounds, cupChampion, cupEntrantName, cupStandings, tableRounds, type BracketSlot } from '../lib/cups'
 import { confirmAction } from '../lib/feedback'
 import { CUP_FORMATS, type GameDef } from '../lib/games/schema'
@@ -13,6 +14,7 @@ import { gameOrMissing, UNKNOWN_PLAYER, usePlayerMap } from '../lib/hooks'
 import { roundName } from '../lib/pingpong/tournament'
 import { actions, useData } from '../lib/store'
 import type { Cup, Id, Play, Player } from '../lib/types'
+import { mayCreateNow } from '../lib/access'
 
 export function CupDetail() {
   const { id } = useParams()
@@ -60,8 +62,7 @@ function CupView({ cup, game }: { cup: Cup; game: GameDef }) {
       danger: true,
     })
     if (!ok) return
-    actions.deleteCup(cup.id)
-    navigate('/torneos')
+    if (actions.deleteCup(cup.id)) navigate('/torneos')
   }
 
   return (
@@ -78,6 +79,7 @@ function CupView({ cup, game }: { cup: Cup; game: GameDef }) {
           </p>
         </div>
       </header>
+      <ReadOnlyNote kind="cup" entity={cup} />
 
       {cup.prize && (
         <div className="card prize">
@@ -332,6 +334,7 @@ function Bracket({ cup, plays, entrantName }: { cup: Cup; plays: Play[]; entrant
   const rounds = bracketRounds(cup, plays)
   const open = (slot: BracketSlot) => {
     if (slot.a === null || slot.b === null || slot.a === undefined || slot.b === undefined) return
+    if (!slot.play && !mayCreateNow()) return
     const p = slot.play ?? actions.ensureKnockoutPlay(cup.id, slot.round, slot.slot, slot.a, slot.b)
     navigate(`/partida/${p.id}`)
   }

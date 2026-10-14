@@ -19,7 +19,8 @@ export interface RemoteEntity {
   deleted: boolean
 }
 
-const LISTS = {
+/** Lista de `AppData` donde vive cada tipo. */
+export const LISTS = {
   player: 'players',
   match: 'matches',
   tournament: 'tournaments',

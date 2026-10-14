@@ -16,6 +16,7 @@ import { groupingOf, lastPlayOf, previewParts, rematchConfig, rematchSides, setu
 import { actions, useData } from '../lib/store'
 import './newplay.css'
 import type { Id, Play, PlaySide, PlayStake, Team } from '../lib/types'
+import { mayCreateNow } from '../lib/access'
 
 const lastConfigKey = (gameId: string) => `gb-last-config-${gameId}`
 
@@ -127,6 +128,7 @@ function Setup({ game }: { game: GameDef }) {
     } catch {
       // ignorar
     }
+    if (!mayCreateNow()) return
     const p = actions.createPlay(game.id, sides, config, grouping === 'coop' ? undefined : stake)
     navigate(`/partida/${p.id}`, { replace: true })
   }

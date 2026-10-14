@@ -3,6 +3,7 @@ import { HashRouter, Link, NavLink, Outlet, Route, Routes, useLocation } from 'r
 import { lazy, Suspense, type ComponentType } from 'react'
 import { ErrorBoundary } from './components/ErrorBoundary'
 import { FeedbackHost } from './components/Feedback'
+import { AccessHost, GuestBanner, NeedsAccount } from './components/LoginSheet'
 import { Loader, Logo } from './components/Logo'
 import { TopBar } from './components/TopBar'
 import { useAuth } from './lib/auth'
@@ -93,6 +94,7 @@ function Layout() {
       </a>
       <TopBar />
       <main className="content" id="contenido" tabIndex={-1}>
+        <GuestBanner />
         {/* Se reinicia al cambiar de pantalla. */}
         <ErrorBoundary key={location.pathname}>
           <Suspense fallback={<PageLoader />}>
@@ -146,26 +148,26 @@ export default function App() {
             <Route path="/partido/:id" element={<MatchScreen />} />
             <Route element={<Layout />}>
               <Route index element={<Home />} />
-              <Route path="/anotar" element={<QuickPick />} />
+              <Route path="/anotar" element={<NeedsAccount><QuickPick /></NeedsAccount>} />
               <Route path="/juegos" element={<Games />} />
-              <Route path="/juegos/nuevo" element={<AddGame />} />
+              <Route path="/juegos/nuevo" element={<NeedsAccount title="Entrá para agregar juegos"><AddGame /></NeedsAccount>} />
               <Route path="/juegos/:id" element={<GameDetail />} />
-              <Route path="/juegos/:id/editar" element={<EditGame />} />
-              <Route path="/jugar/:gameId" element={<NewPlay />} />
+              <Route path="/juegos/:id/editar" element={<NeedsAccount title="Entrá para editar juegos"><EditGame /></NeedsAccount>} />
+              <Route path="/jugar/:gameId" element={<NeedsAccount><NewPlay /></NeedsAccount>} />
               <Route path="/partida/:id" element={<PlayScreen />} />
-              <Route path="/ping-pong/nuevo" element={<NewMatch />} />
-              <Route path="/partido/nuevo" element={<NewMatch />} />
-              <Route path="/ping-pong/torneo/nuevo" element={<NewTournament />} />
+              <Route path="/ping-pong/nuevo" element={<NeedsAccount><NewMatch /></NeedsAccount>} />
+              <Route path="/partido/nuevo" element={<NeedsAccount><NewMatch /></NeedsAccount>} />
+              <Route path="/ping-pong/torneo/nuevo" element={<NeedsAccount title="Entrá para armar torneos"><NewTournament /></NeedsAccount>} />
               <Route path="/ping-pong/torneos/:id" element={<TournamentDetail />} />
               <Route path="/torneos" element={<Cups />} />
-              <Route path="/torneos/nuevo" element={<NewCup />} />
+              <Route path="/torneos/nuevo" element={<NeedsAccount title="Entrá para armar torneos"><NewCup /></NeedsAccount>} />
               <Route path="/torneos/:id" element={<CupDetail />} />
               <Route path="/ranking" element={<Ranking />} />
               <Route path="/medallas" element={<Medals />} />
               <Route path="/jugadores" element={<Players />} />
               <Route path="/jugadores/:id" element={<PlayerDetail />} />
               <Route path="/equipos" element={<Teams />} />
-              <Route path="/equipos/nuevo" element={<NewTeam />} />
+              <Route path="/equipos/nuevo" element={<NeedsAccount title="Entrá para armar equipos"><NewTeam /></NeedsAccount>} />
               <Route path="/equipos/:id" element={<TeamDetail />} />
               <Route path="/historial" element={<History />} />
               <Route path="/ajustes" element={<Settings />} />
@@ -185,6 +187,7 @@ export default function App() {
         </Suspense>
       </Gate>
       <FeedbackHost />
+      <AccessHost />
     </HashRouter>
   )
 }

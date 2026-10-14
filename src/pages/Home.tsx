@@ -23,6 +23,7 @@ import { syncAvailable, useSyncState } from '../lib/sync'
 import type { Id, Play, Player, PPMatch as Match } from '../lib/types'
 import { playPath } from './GameDetail'
 import { formatWhen } from '../lib/schedule'
+import { mayCreateNow } from '../lib/access'
 
 /** Estantes por categoría del inicio. */
 const HOME_SHELVES: { cat: Category; title: string; subtitle: string }[] = [
@@ -45,7 +46,7 @@ function readFlag(key: string) {
 
 /** Descarta una partida en juego al toque y ofrece deshacerlo (no se pregunta antes). */
 function discardPlay(play: Play, gameName: string) {
-  actions.deletePlay(play.id)
+  if (!actions.deletePlay(play.id)) return
   toast(`Descartaste la partida de ${gameName}.`, { label: 'Deshacer', run: () => actions.restorePlay(play) })
 }
 
@@ -54,6 +55,7 @@ function discardPlay(play: Play, gameName: string) {
  * vez y ofrece "Cambiar", que descarta la partida recién creada y lleva al armado.
  */
 function startRematch(game: GameDef, plan: RematchPlan, navigate: NavigateFunction) {
+  if (!mayCreateNow()) return
   const p = actions.createPlay(game.id, plan.sides, plan.config, plan.stake)
   navigate(`/partida/${p.id}`)
   const same = groupingOf(game, plan.from) === 'teams' ? 'Mismos equipos que la última vez' : 'Mismos jugadores que la última vez'
@@ -63,7 +65,7 @@ function startRematch(game: GameDef, plan: RematchPlan, navigate: NavigateFuncti
       const now = getData().plays.find((x) => x.id === p.id)
       // Si la partida ya terminó (o no existe), "Cambiar" no borra nada: sólo lleva al armado.
       if (!now || now.status !== 'live') return navigate(playPath(game))
-      actions.deletePlay(p.id)
+      if (!actions.deletePlay(p.id)) return
       navigate(playPath(game), { replace: true })
       // Si ya se había anotado algo, se puede recuperar.
       if (now && now.log.length > 0) toast(`Descartaste la partida de ${game.name}.`, { label: 'Deshacer', run: () => actions.restorePlay(now) })
@@ -72,7 +74,7 @@ function startRematch(game: GameDef, plan: RematchPlan, navigate: NavigateFuncti
 }
 
 function discardMatch(match: Match) {
-  actions.deleteMatch(match.id)
+  if (!actions.deleteMatch(match.id)) return
   toast('Descartaste el partido de ping pong.', { label: 'Deshacer', run: () => actions.restoreMatch(match) })
 }
 
