@@ -209,6 +209,26 @@ La medalla es la protagonista: siempre **arriba y centrada**, con el texto debaj
 ### Separar secciones
 Una sola línea (`.section-divided`: borde superior + 24px) separa dos secciones de naturaleza distinta (medallas → reglas). Adentro de una sección, aire en vez de divisores; las líneas entre filas quedan para listas densas de datos (la ficha de la medalla, "Medallas a la vista").
 
+### Jerarquía de datos
+- **Una pastilla se toca o marca un estado.** Los datos descriptivos van como texto o en una franja, nunca como una fila de pastillas que no hacen nada.
+- **Ficha del juego**: la categoría va en la flecha de volver ("← Cartas") y el origen (IA, del club) a su lado. Lo práctico va en `.gd-spec`: columnas iguales (jugadores, peso, cómo se anota) separadas por líneas finas, sin cajas. Lo del club arranca en "En el club · N partidas" (cinturón y ranking).
+- **Un número protagonista por pantalla.** Los demás van en una frase, en una lista de etiqueta y valor (`.pd-ledger`, separada por aire) o en una tabla. Nada de grillas de cajas iguales con un número adentro. Un dato se cuenta una vez: partidas, victorias y porcentaje son una frase y una barra.
+- **Perfil del jugador**: encabezado a la izquierda (avatar, nombre, gloria y puesto), las victorias como número protagonista con la barra G/E/P, la "Forma" (últimas 8 partidas con letra G/P/E además del color) y "Sus juegos" como tabla (V–D, puesto en el club, Elo); tocar una fila la abre con la curva de Elo.
+- **Comparables en columna**: varios elementos del mismo tipo (juegos, sets) van en una tabla alineada antes que en tarjetas o chips de a uno.
+- **Planilla de sets** (`SetSheet`): una columna por set, el ganador del set en blanco y negrita, el total al final de la fila, como en el tenis. Es la única forma de mostrar sets (lista de partidas y resultado).
+- **Resultado**: el trofeo es una chapita sobre el avatar del ganador (no un ícono aparte), el título en Lilita, la planilla, el Elo en una línea ("+16 → 1016") y la medalla nueva grande y centrada con su nombre y su chiste debajo.
+
+### Marcador en vivo
+Para los juegos que se anotan en vivo (bochas, básquet, truco, fútbol), el mismo lenguaje que el ping pong:
+- **Tira de TV** arriba (`ScoreStrip`): reloj de la partida, lo último anotado ("Último: +2 de Tomi", confirma el toque) y una fila por lado con sus jugadas y el puntaje; el que va ganando, en naranja.
+- **Pantalla completa**: mientras se juega no hay barra del club ni navegación de abajo; sólo volver, el nombre del juego y la barra de Deshacer / Terminar.
+- **Pestañas Marcador / Jugadas.** En Marcador, dos formas según el partido:
+  - **Partido único de dos lados** (bochas, básquet, truco): dos columnas, cada una con su zona grande (tocar suma) y debajo sus jugadas en lista, una por fila, de 48px, con el nombre (sin emoji) y su contador. Arriba, sólo el reloj y lo último anotado. Si hay meta, cada columna lleva su propia barra al pie con lo que le falta ("Faltan 11"); nunca una barra compartida entre los dos lados.
+  - **Con sets o más de dos lados**: tira de TV (`ScoreStrip`) y una banda de todo el ancho por lado, con las jugadas al pie.
+  - El "+2" de los juegos que lo tienen es un botón propio. El contador en cero sólo aparece en las jugadas que no suman puntos (las que cuentan para medallas).
+- **Atajos de teclado**: funcionan siempre, pero la leyenda sólo se muestra en pantallas de compu (900px o más, con mouse).
+- **Jugadas** es el relato de la partida: minuto, color del lado, qué pasó, quién y el marcador de ese momento. Cualquier jugada se borra con su ✕, y el aviso ofrece deshacer. La ayuda ("Qué es cada jugada") va al pie de esta pestaña.
+
 ### Inputs / Fields
 Siempre con etiqueta visible (`.field` + `.field-label`); el placeholder es un ejemplo, no la etiqueta. Errores debajo del campo, enlazados con `aria-describedby`.
 
@@ -239,3 +259,5 @@ Cuatro cuadraditos (naranja, azul, verde, violeta; dorado para el ganador) anima
 - Texto menor a 12px, objetivos táctiles menores a 44px.
 - `window.confirm/alert/prompt`.
 - Mostrar errores técnicos o en inglés.
+- Grillas de cajas iguales con un número y una etiqueta (la plantilla de "número grande").
+- Filas de pastillas que mezclan datos de distinta naturaleza (qué es, cómo se juega, qué pasó en el club).

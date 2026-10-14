@@ -3,9 +3,10 @@
  * Todo cuelga de .play-page o de body.in-play para no tocar el resto de la app.
  */
 
-/* ---------- Mientras se juega: sin navegación de abajo ---------- */
+/* ---------- Mientras se juega: pantalla completa, sin la barra del club ni la navegación de abajo ---------- */
 
-body.in-play .bottom-nav {
+body.in-play .bottom-nav,
+body.in-play .top-bar {
   display: none;
 }
 
@@ -116,77 +117,406 @@ body.in-play .sticky-actions {
 
 /* ---------- Marcador (truco y compañía) ---------- */
 
-.play-page .counter-side {
-  container-type: inline-size;
+/* Tira de TV (como el ping pong): reloj, lo último anotado y una fila por lado con sus jugadas y el puntaje. */
+.tv-strip {
+  border-radius: 14px;
+  border: 1px solid var(--border);
+  background: var(--bg-2);
+  overflow: hidden;
 }
 
-.play-page .cs-name .ellipsis {
-  min-width: 0;
-}
-
-.ev-grid {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 6px;
-}
-
-/* Con muchos lados y poco ancho, una sola columna para que los nombres entren. */
-@container (max-width: 160px) {
-  .ev-grid {
-    grid-template-columns: minmax(0, 1fr);
-  }
-}
-
-.ev-tile {
-  position: relative;
+.tvs-head {
   display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  justify-content: center;
-  gap: 2px;
-  min-height: 52px;
-  padding: 6px 8px;
+  justify-content: space-between;
+  gap: 12px;
+  margin: 0;
+  padding: 8px 12px;
+  border-bottom: 1px solid var(--border);
+  color: var(--muted);
+  font-size: 13px;
+}
+
+.tvs-head b {
+  color: var(--text);
+}
+
+.tvs-last {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.tvs-row {
+  display: grid;
+  grid-template-columns: minmax(0, max-content) minmax(0, 1fr) 48px;
+  align-items: center;
+  gap: 10px;
+  min-height: 42px;
+  padding-left: 12px;
+  /* El color del lado, como un filo fino a la izquierda de la fila (la tira es un tablero, no una tarjeta). */
+  box-shadow: inset 4px 0 0 var(--pc);
+}
+
+.tvs-row + .tvs-row {
+  border-top: 1px solid var(--border);
+}
+
+.tvs-name {
+  padding-left: 4px;
+  font-weight: 700;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.tvs-events {
+  color: var(--muted);
+  font-size: 12px;
+  text-align: right;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.tvs-score {
+  align-self: stretch;
+  display: grid;
+  place-items: center;
+  background: var(--card-2);
+  font-size: 20px;
+  font-weight: 900;
+}
+
+.tvs-row.lead .tvs-score {
+  background: var(--accent);
+  color: var(--bg);
+}
+
+/* Pestañas Marcador / Jugadas: control segmentado. */
+.board-tabs {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  padding: 3px;
+  margin-top: -8px;
   border-radius: 12px;
   border: 1px solid var(--border);
   background: var(--bg-2);
+}
+
+.board-tabs button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  min-height: 40px;
+  border: 0;
+  border-radius: 9px;
+  background: transparent;
+  color: var(--muted);
+  font: inherit;
+  font-size: 15px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.board-tabs button[aria-selected='true'] {
+  background: var(--card-2);
+  color: var(--text);
+}
+
+.board-tab-count {
+  color: var(--muted);
+  font-size: 13px;
+}
+
+.board-panel[hidden] {
+  display: none;
+}
+
+.board-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  margin-top: -8px;
+}
+
+/* Cancha: una banda de todo el ancho por lado. Tocar la banda suma; las jugadas van al pie, adentro. */
+.bands {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin: 0 -16px;
+}
+
+.band {
+  display: flex;
+  flex-direction: column;
+  padding: 0 16px 14px;
+  background: radial-gradient(120% 100% at 50% 25%, color-mix(in srgb, var(--pc) 34%, var(--bg)), color-mix(in srgb, var(--pc) 12%, var(--bg)));
+}
+
+.band .counter-main {
+  min-height: 0;
+  padding: 14px 0 8px;
+  border: 0;
+  border-radius: 0;
+  background: none;
+  align-items: stretch;
+}
+
+.band .counter-main:active {
+  transform: none;
+  background: none;
+}
+
+.band:has(.counter-main:active) {
+  background: color-mix(in srgb, var(--pc) 40%, var(--bg));
+}
+
+.band .cs-name {
+  align-self: flex-start;
+}
+
+.band .cs-score {
+  align-self: center;
+  font-size: 96px;
+  letter-spacing: -0.03em;
+  margin: 4px 0 2px;
+}
+
+.bands:not(.two) .cs-score {
+  font-size: 64px;
+}
+
+.band .cs-sub,
+.band .cs-hint,
+.band .tally {
+  align-self: center;
+}
+
+.band .cs-hint {
+  margin-top: 4px;
+  font-size: 13px;
+}
+
+.band-acts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.band-act {
+  flex: 1 1 140px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  min-height: 48px;
+  padding: 0 12px 0 14px;
+  border-radius: 12px;
+  border: 1px solid color-mix(in srgb, var(--pc) 45%, transparent);
+  background: rgba(0, 0, 0, 0.35);
   color: var(--text);
   font: inherit;
-  font-size: 13px;
+  font-size: 15px;
   font-weight: 700;
-  line-height: 1.2;
   text-align: left;
-  overflow-wrap: anywhere;
   cursor: pointer;
   touch-action: manipulation;
   -webkit-tap-highlight-color: transparent;
 }
 
-.ev-tile:active {
-  background: var(--card-2);
-  border-color: color-mix(in srgb, var(--pc) 60%, var(--border));
+.band-act:active {
+  background: color-mix(in srgb, var(--pc) 30%, rgba(0, 0, 0, 0.35));
 }
 
-.ev-tile-pts {
-  font-size: 12px;
+.band-act.pts {
+  flex: 0 0 64px;
+  justify-content: center;
+  padding: 0;
+  font-size: 18px;
+  font-weight: 800;
+}
+
+.band-act-name {
+  min-width: 0;
+  line-height: 1.2;
+}
+
+.band-act-name small {
+  color: var(--text-soft);
+  font-size: 13px;
   font-weight: 600;
-  color: var(--muted);
 }
 
-.ev-tile-count {
-  /* Cuelga de la esquina, fuera del flujo: aparecer o crecer de 9 a 10 no cambia el tamaño de la ficha. */
-  position: absolute;
-  top: -7px;
-  right: -4px;
-  min-width: 20px;
+.band-act-count {
+  flex: none;
+  min-width: 26px;
+  height: 26px;
+  padding: 0 7px;
+  border-radius: 13px;
+  display: grid;
+  place-items: center;
+  background: var(--pc);
+  color: var(--bg);
+  font-size: 13px;
+  font-weight: 800;
+}
+
+.band-act-count.zero {
+  background: transparent;
+  color: var(--muted);
+  box-shadow: inset 0 0 0 1px var(--border-strong);
+}
+
+/* Partido único de dos lados: barra doble de lo que falta, dos columnas y las jugadas en lista debajo. */
+.match-line .tvs-head {
+  padding: 0;
+  border: 0;
+}
+
+.cs-progress {
+  display: grid;
+  gap: 6px;
+  width: 100%;
+  margin-top: 8px;
   padding: 0 6px;
-  border-radius: 999px;
-  background: var(--accent-fill);
-  color: var(--on-fill);
-  font-size: 12px;
-  line-height: 20px;
-  text-align: center;
-  box-shadow: 0 0 0 2px var(--bg);
-  pointer-events: none;
+}
+
+.cs-bar {
+  display: block;
+  height: 6px;
+  border-radius: 3px;
+  background: rgba(0, 0, 0, 0.4);
+  overflow: hidden;
+}
+
+.cs-bar i {
+  display: block;
+  height: 100%;
+  border-radius: 3px;
+  background: var(--pc);
+}
+
+.cs-left {
+  font-size: 13px;
+  color: rgba(255, 255, 255, 0.75);
+}
+
+.cols {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 10px;
+  align-items: start;
+}
+
+.col {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-width: 0;
+}
+
+.col .counter-main {
+  min-height: 240px;
+}
+
+.col .cs-score {
+  margin: auto 0;
+  font-size: 84px;
+}
+
+.col .band-acts {
+  flex-direction: column;
+}
+
+.col .band-act {
+  flex: none;
+  background: var(--card);
+  border-color: color-mix(in srgb, var(--pc) 35%, var(--border));
+}
+
+.col .band-act.pts {
+  min-height: 48px;
+}
+
+/* Jugadas: el relato de la partida. */
+.play-log {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.play-log li {
+  display: grid;
+  grid-template-columns: 34px 10px minmax(0, 1fr) auto 44px;
+  align-items: center;
+  gap: 10px;
+  min-height: 52px;
+  border-bottom: 1px solid var(--border);
+}
+
+.play-log li.last {
+  margin: 0 -16px;
+  padding: 0 16px;
+  background: color-mix(in srgb, var(--accent-2) 7%, transparent);
+}
+
+.pl-time {
+  color: var(--muted);
+  font-size: 13px;
+}
+
+.pl-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+}
+
+.pl-text {
+  min-width: 0;
+  line-height: 1.3;
+}
+
+.pl-who {
+  display: block;
+  color: var(--muted);
+  font-size: 13px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.pl-score {
+  color: var(--text-soft);
+  font-size: 14px;
+  font-weight: 800;
+}
+
+.pl-remove {
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  border: 0;
+  border-radius: 10px;
+  background: none;
+  color: var(--muted);
+  font-size: 16px;
+  cursor: pointer;
+}
+
+.pl-remove:hover {
+  color: var(--loss);
+}
+
+.play-log-empty {
+  margin: 8px 0 0;
+}
+
+.ev-help-section h2 {
+  font-size: 18px;
 }
 
 /* Fila de herramientas del tablero: "Ver todo" y la ayuda. Pegada al tablero, no flotando. */
@@ -237,7 +567,7 @@ body.in-play .sticky-actions {
 .ev-help {
   display: grid;
   gap: 12px;
-  margin: -8px 0 0;
+  margin: 0;
   padding: 14px 16px;
   border-radius: 16px;
   border: 1px solid var(--border);
@@ -756,4 +1086,9 @@ body.in-play .sticky-actions {
 
 details[open] > .log-summary .log-caret {
   transform: rotate(90deg);
+}
+
+/* En vivo, la cabecera es mínima: volver y el nombre del juego. La carátula ya está en la pantalla anterior. */
+.play-page.is-live .play-head .game-badge {
+  display: none;
 }
