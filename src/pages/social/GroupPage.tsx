@@ -209,13 +209,12 @@ function GroupView({ group }: { group: MyGroup }) {
       {!duo && (
         <section id="carnet" aria-label="Tu carnet de socio">
           <MemberCard
-            club={group}
+            clubCode={group.code}
             player={data.players.find((p) => p.id === group.player_id)}
             joinedAt={group.joined_at}
             number={me && members ? memberNumber(members, me) : undefined}
             role={ROLE_NAMES[group.role]}
             stats={{ played: board.players.get(group.player_id ?? '')?.played ?? 0, wins: board.players.get(group.player_id ?? '')?.wins ?? 0 }}
-            link={group.slug ? shortLink(group.slug, window.location.href) : inviteLink(group.code)}
           />
         </section>
       )}

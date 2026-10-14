@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { membershipDays, membershipMedal } from './medals'
-import { memberNumber, padNumber, qrPath, seniorityLabel } from './memberCard'
+import { memberNumber, padNumber, seniorityLabel } from './memberCard'
 
 const DAY = 86_400_000
 
@@ -35,11 +35,5 @@ describe('carnet de socio', () => {
     expect(membershipMedal(now, now).level).toBe(0)
     expect(membershipMedal(now - 31 * DAY, now).family.levels[membershipMedal(now - 31 * DAY, now).level].name).toBe('Cuota al día')
     expect(membershipMedal(now - 400 * DAY, now).next?.name).toBe('Socio vitalicio')
-  })
-
-  it('arma el QR como un solo dibujo', () => {
-    const { size, d } = qrPath('https://gameboard.app/#/c/lasartes')
-    expect(size).toBeGreaterThanOrEqual(21)
-    expect(d.startsWith('M0 0h1v1h-1z')).toBe(true)
   })
 })

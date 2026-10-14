@@ -1,6 +1,5 @@
-// Carnet de socio: lo que se muestra en el pase de cada club (número, antigüedad y el QR para sumar a otros).
+// Carnet de socio: lo que se muestra en el pase de cada club (número de socio y antigüedad).
 
-import qrcode from 'qrcode-generator'
 import { membershipDays } from './medals'
 
 /** Número de socio: el orden en que se sumó cada cuenta al club (el primero es el 1). */
@@ -35,15 +34,4 @@ export function sinceLabel(joinedAt: string): string {
   const d = new Date(joinedAt)
   if (Number.isNaN(d.getTime())) return ''
   return `${d.getDate()} ${MONTHS[d.getMonth()]} ${d.getFullYear()}`
-}
-
-/** Código QR como un solo path (un cuadrado de 1×1 por módulo) y su lado en módulos, sin margen. */
-export function qrPath(text: string): { size: number; d: string } {
-  const q = qrcode(0, 'M')
-  q.addData(text)
-  q.make()
-  const size = q.getModuleCount()
-  let d = ''
-  for (let y = 0; y < size; y++) for (let x = 0; x < size; x++) if (q.isDark(y, x)) d += `M${x} ${y}h1v1h-1z`
-  return { size, d }
 }
