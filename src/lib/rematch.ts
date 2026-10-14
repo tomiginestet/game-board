@@ -6,7 +6,7 @@
 
 import { defaultConfig } from './engine'
 import type { GameDef, OptionValue } from './games/schema'
-import type { Id, Play, PlaySide } from './types'
+import type { Id, Play, PlaySide, PlayStake } from './types'
 
 /** Cómo se arman los lados: cada uno por su cuenta, por equipos o todos juntos (cooperativo). */
 export type Grouping = 'solo' | 'teams' | 'coop'
@@ -114,6 +114,8 @@ export interface RematchPlan {
   sides: PlaySide[]
   config: Record<string, OptionValue>
   playerIds: Id[]
+  /** La revancha se juega por lo mismo (nunca por el doble). */
+  stake?: PlayStake
 }
 
 /**
@@ -129,5 +131,5 @@ export function planRematch(game: GameDef, plays: Play[], existing: Iterable<Id>
   const playerIds = sides.flatMap((s) => s.players)
   if (!playerIds.length || playerIds.some((id) => !ids.has(id)) || new Set(playerIds).size !== playerIds.length) return undefined
   if (setupProblem(game, groupingOf(game, from), sides)) return undefined
-  return { from, sides, config: rematchConfig(game, from), playerIds }
+  return { from, sides, config: rematchConfig(game, from), playerIds, ...(from.stake ? { stake: from.stake } : {}) }
 }

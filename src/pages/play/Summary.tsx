@@ -18,7 +18,7 @@ import { actions, useData } from '../../lib/store'
 import type { Id, Play, Player } from '../../lib/types'
 import { MedalDataCard } from './MedalDataCard'
 import { PlanillaSummary } from './PlanillaSummary'
-import { joinNames } from './winnerText'
+import { joinNames, stakeText } from './winnerText'
 import { formatScore } from '../../lib/score'
 import { setsLine } from '../../lib/sets'
 import { PlayerLinesCard } from './PlayerLines'
@@ -71,6 +71,8 @@ export function Summary({ play, game, live, players }: { play: Play; game: GameD
   // "Recién terminada" se decide al entrar: así la animación y el anuncio no se repiten al volver días después.
   const [fresh] = useState(() => !!play.finishedAt && Date.now() - play.finishedAt < FRESH_MS)
 
+  const stake = stakeText(play, players)
+
   const eventSummary = game.events
     .map((e) => {
       const per = e.type === 'holder' ? play.sides.map((_, i) => (live.holders[e.id] === i ? 1 : 0)) : (live.counts[e.id] ?? [])
@@ -79,8 +81,8 @@ export function Summary({ play, game, live, players }: { play: Play; game: GameD
     .filter((x) => x.per.some((v) => v > 0))
 
   const rematch = () => {
-    // Mismos lados (los bandos por rol vuelven a ser uno por jugador) y reglas, con opciones nuevas por defecto.
-    const p = actions.createPlay(game.id, rematchSides(play), rematchConfig(game, play))
+    // Mismos lados (los bandos por rol vuelven a ser uno por jugador), reglas y prenda, con opciones nuevas por defecto.
+    const p = actions.createPlay(game.id, rematchSides(play), rematchConfig(game, play), play.stake)
     navigate(`/partida/${p.id}`, { replace: true })
   }
 
@@ -109,6 +111,12 @@ export function Summary({ play, game, live, players }: { play: Play; game: GameD
         {live.sets && live.sets.done.length > 0 && (
           <p className="sets-final">
             <span className="muted small">Sets</span> <b className="num">{setsLine(live.sets, (play.result?.places[1] === 1 && play.result?.places[0] !== 1 ? 1 : 0))}</b>
+          </p>
+        )}
+        {stake && (
+          <p className="rs-stake">
+            <span className="rs-stake-emoji" aria-hidden="true">{play.stake?.emoji ?? '🎁'}</span>
+            <span>{stake}</span>
           </p>
         )}
         {/* La medalla nueva es el momento: grande, centrada, con su nombre y su chiste debajo. Si son varias, en fila. */}

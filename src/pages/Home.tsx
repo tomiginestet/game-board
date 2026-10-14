@@ -52,7 +52,7 @@ function discardPlay(play: Play, gameName: string) {
  * vez y ofrece "Cambiar", que descarta la partida recién creada y lleva al armado.
  */
 function startRematch(game: GameDef, plan: RematchPlan, navigate: NavigateFunction) {
-  const p = actions.createPlay(game.id, plan.sides, plan.config)
+  const p = actions.createPlay(game.id, plan.sides, plan.config, plan.stake)
   navigate(`/partida/${p.id}`)
   const same = groupingOf(game, plan.from) === 'teams' ? 'Mismos equipos que la última vez' : 'Mismos jugadores que la última vez'
   toast(same, {

@@ -4,6 +4,7 @@ import { Navigate, useNavigate, useParams, useSearchParams } from 'react-router-
 import { Stepper } from '../components/ConfigEditor'
 import { GameBadge } from '../components/GameBits'
 import { OptionsEditor } from '../components/OptionsEditor'
+import { StakePicker } from '../components/StakePicker'
 import { ChoiceGroup, PlayerPicker } from '../components/PlayerPicker'
 import { defaultConfig } from '../lib/engine'
 import type { GameDef, OptionValue } from '../lib/games/schema'
@@ -14,7 +15,7 @@ import { isTeamGame } from '../lib/teams'
 import { groupingOf, lastPlayOf, previewParts, rematchConfig, rematchSides, setupProblem, suggestGrouping, type Grouping } from '../lib/rematch'
 import { actions, useData } from '../lib/store'
 import './newplay.css'
-import type { Id, Play, PlaySide, Team } from '../lib/types'
+import type { Id, Play, PlaySide, PlayStake, Team } from '../lib/types'
 
 const lastConfigKey = (gameId: string) => `gb-last-config-${gameId}`
 
@@ -80,6 +81,7 @@ function Setup({ game }: { game: GameDef }) {
   const [teamOf, setTeamOf] = useState<Record<Id, number>>(init.teamOf)
   const [teamCount, setTeamCount] = useState(init.teamCount)
   const [config, setConfig] = useState(init.config)
+  const [stake, setStake] = useState<PlayStake | undefined>()
 
   const max = game.players.max
   const toggle = (id: Id) =>
@@ -125,7 +127,7 @@ function Setup({ game }: { game: GameDef }) {
     } catch {
       // ignorar
     }
-    const p = actions.createPlay(game.id, sides, config)
+    const p = actions.createPlay(game.id, sides, config, grouping === 'coop' ? undefined : stake)
     navigate(`/partida/${p.id}`, { replace: true })
   }
 
@@ -313,6 +315,9 @@ function Setup({ game }: { game: GameDef }) {
           <OptionsEditor game={game} value={config} onChange={setConfig} />
         </section>
       )}
+
+      {/* En cooperativo se gana o se pierde todos juntos: no hay a quién tocarle la prenda. */}
+      {grouping !== 'coop' && <StakePicker value={stake} onChange={setStake} sides={sides.length} />}
 
       <div className="sticky-actions">
         {preview && (
