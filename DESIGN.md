@@ -197,6 +197,18 @@ Alto mínimo **44px** (40px en `.btn.small`). Primario naranja relleno; secundar
 ### Cards / Containers
 `.card`: fondo `card`, borde `border`, radio 16px, padding 16px. Nunca tarjetas dentro de tarjetas.
 
+### Medallas
+La medalla es la protagonista: siempre **arriba y centrada**, con el texto debajo, también centrado. El largo del texto nunca depende de cuántas medallas hay.
+- **Familia completa** (ficha del juego, vista previa de un juego con IA): `MedalList` + `MedalListRow` (`src/components/MedalList.tsx`). Una `.card` por familia con los tres primeros niveles a 64px; si hay más, una chapita "+N" cuelga al costado sin correr las medallas. Debajo: nombre (18/700), lo que mide (`muted` 14) y quién llegó más alto (corona Phosphor rellena + nombre en `accent-2`) o "Nadie la tiene todavía". En pantallas anchas, de a dos.
+- **Una medalla por familia** (Vitrina, perfil del jugador): la del nivel más alto, sobre la misma superficie `card`. Ganada: borde dorado sólido; bloqueada: borde punteado y medalla en gris (el estado nunca es sólo color). La barra de progreso o los puntos de nivel van al pie, para que queden alineados en cada fila.
+- Cada medalla abre su ficha (`MedalSheet`); la ficha es la que muestra todos los niveles, así que las listas no repiten los nombres de los niveles (salvo la vista previa, donde se están revisando).
+
+### Listas de pasos (reglas)
+`RuleList`: pasos numerados sin tarjeta y **sin líneas entre puntos**, separados por aire (20px, interlineado 1.5). El número va en un círculo de 24px bajado 1px para quedar ópticamente centrado con la primera línea. Íconos y notas al pie se alinean a la columna del texto (36px), no al borde.
+
+### Separar secciones
+Una sola línea (`.section-divided`: borde superior + 24px) separa dos secciones de naturaleza distinta (medallas → reglas). Adentro de una sección, aire en vez de divisores; las líneas entre filas quedan para listas densas de datos (la ficha de la medalla, "Medallas a la vista").
+
 ### Inputs / Fields
 Siempre con etiqueta visible (`.field` + `.field-label`); el placeholder es un ejemplo, no la etiqueta. Errores debajo del campo, enlazados con `aria-describedby`.
 
@@ -216,12 +228,14 @@ Cuatro cuadraditos (naranja, azul, verde, violeta; dorado para el ganador) anima
 ### Do:
 - Poner la acción de anotar arriba y lo del club antes que el catálogo.
 - Usar íconos Phosphor en la interfaz; emoji sólo los que elige la gente o en textos con humor.
+- Medallas arriba y centradas, texto abajo; la corona del líder es un ícono, no el emoji 👑.
 - Ofrecer "Deshacer" en vez de preguntar cuando se puede.
 - Con movimiento reducido, reemplazar desplazamientos por fundidos cortos (no apagar todo).
 
 ### Don't:
 - Rótulos chiquitos en mayúsculas arriba de los títulos (kickers/eyebrows).
 - Bordes laterales gruesos de color (para estado o para identificar jugadores: se tiñe la superficie).
+- Una línea divisoria en cada fila de una lista corta de texto, o una caja por punto: separa con aire.
 - Texto menor a 12px, objetivos táctiles menores a 44px.
 - `window.confirm/alert/prompt`.
 - Mostrar errores técnicos o en inglés.
