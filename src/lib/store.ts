@@ -1,6 +1,7 @@
 import { useSyncExternalStore } from 'react'
 import { applyEntities, diffData, type EntityChange, type RemoteEntity } from './diff'
 import { autoResult, computeLive, defaultConfig } from './engine'
+import { clockElapsed, clockRuleOf, matchMinute } from './clock'
 import { knockoutSeedsIdx, nextTables, roundRobinIdx, splitTables, tableRounds, cupStandings } from './cups'
 import { findGame } from './games'
 import type { CupFormat, GameDef, OptionValue } from './games/schema'
@@ -24,6 +25,8 @@ import type {
   Player,
   PPMatch as Match,
   PPTournament as Tournament,
+  PlayClock,
+  Rsvp,
   Team,
 } from './types'
 
@@ -295,6 +298,11 @@ const playActions = {
   log(playId: Id, entry: LogEntry | Omit<LogEntry, 't'>) {
     updatePlay(playId, (p) => {
       const e = { ...entry, t: Date.now() } as LogEntry
+      // Con el cronómetro andando, cada gol o jugada guarda su minuto ("Gol de Ana, 12'").
+      const game = p.clock && (e.k === 'pt' || e.k === 'ev') ? gameOf(p.gameId) : undefined
+      const rule = game ? clockRuleOf(game, p.config) : undefined
+      const minute = rule ? matchMinute(p.clock, rule, e.t) : undefined
+      if (minute !== undefined && (e.k === 'pt' || e.k === 'ev')) e.m = minute
       return settle({ ...p, status: p.status === 'pending' ? 'live' : p.status, startedAt: p.startedAt ?? Date.now(), log: [...p.log, e] })
     })
   },
@@ -444,6 +452,72 @@ const playActions = {
       if (when.venue === null || when.venue === '') delete next.venue
       else if (when.venue !== undefined) next.venue = when.venue.trim()
       return next
+    })
+  },
+
+  /** Arranca o pausa el cronómetro del partido. */
+  toggleClock(playId: Id) {
+    const now = Date.now()
+    updatePlay(playId, (p) => {
+      const c = p.clock ?? { period: 0, elapsed: 0 }
+      const clock: PlayClock = c.runningSince ? { period: c.period, elapsed: clockElapsed(c, now) } : { ...c, runningSince: now }
+      return { ...p, clock, status: p.status === 'pending' ? 'live' : p.status, startedAt: p.startedAt ?? now }
+    })
+  },
+
+  /** Pasa al período siguiente (segundo tiempo, tercer cuarto), con el reloj en cero y frenado. */
+  nextPeriod(playId: Id) {
+    updatePlay(playId, (p) => ({ ...p, clock: { period: (p.clock?.period ?? 0) + 1, elapsed: 0 } }))
+  },
+
+  /** Vuelve el período en curso a cero. */
+  resetClock(playId: Id) {
+    updatePlay(playId, (p) => (p.clock ? { ...p, clock: { period: p.clock.period, elapsed: 0 } } : p))
+  },
+
+  /** Convoca a un partido: día, cancha y citados, sin equipos todavía ("¿quién viene el jueves?"). */
+  createCall(input: { gameId: string; invited: Id[]; scheduledAt?: number; venue?: string; teamId?: Id; config?: Record<string, OptionValue> }): Play {
+    const game = gameOf(input.gameId)
+    const p = newPlay(input.gameId, [], input.config ?? (game ? defaultConfig(game) : {}), {
+      status: 'pending',
+      invited: [...new Set(input.invited)],
+      rsvp: {},
+      ...(input.scheduledAt ? { scheduledAt: input.scheduledAt } : {}),
+      ...(input.venue?.trim() ? { venue: input.venue.trim() } : {}),
+      ...(input.teamId ? { callTeamId: input.teamId } : {}),
+    })
+    commit({ ...data, plays: [...data.plays, p] })
+    return p
+  },
+
+  /** Responde por alguien si va, capaz o no va (`null` borra la respuesta). */
+  setRsvp(playId: Id, playerId: Id, answer: Rsvp | null) {
+    updatePlay(playId, (p) => {
+      const rsvp = { ...(p.rsvp ?? {}) }
+      if (answer) rsvp[playerId] = answer
+      else delete rsvp[playerId]
+      return { ...p, rsvp }
+    })
+  },
+
+  /** Suma o saca citados de una convocatoria. */
+  setInvited(playId: Id, invited: Id[]) {
+    updatePlay(playId, (p) => (p.invited ? { ...p, invited: [...new Set(invited)] } : p))
+  },
+
+  /**
+   * Arranca una convocatoria con los equipos ya armados (o un partido del fixture sin los que avisaron que no
+   * van). Queda en juego, con el día y la cancha que tenía.
+   */
+  startPending(playId: Id, sides?: PlaySide[], config?: Record<string, OptionValue>) {
+    updatePlay(playId, (p) => {
+      if (p.status !== 'pending') return p
+      const no = new Set(Object.entries(p.rsvp ?? {}).filter(([, r]) => r === 'no').map(([id]) => id))
+      const nextSides = sides ?? p.sides.map((s) => {
+        const players = s.players.filter((id) => !no.has(id))
+        return { ...s, players: players.length ? players : s.players }
+      })
+      return { ...p, sides: nextSides, ...(config ? { config } : {}), status: 'live', startedAt: Date.now() }
     })
   },
 

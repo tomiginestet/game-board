@@ -1,8 +1,8 @@
-import { ArrowLeftIcon, CalendarBlankIcon, MapPinIcon, PencilSimpleIcon, PlayIcon, PlusIcon, StarIcon, TrashIcon } from '@phosphor-icons/react'
+import { ArrowLeftIcon, CalendarBlankIcon, MapPinIcon, MegaphoneIcon, PencilSimpleIcon, PlayIcon, PlusIcon, StarIcon, TrashIcon } from '@phosphor-icons/react'
 import { useId, useMemo, useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 import { Avatar } from '../components/Avatar'
-import { PlayRow } from '../components/GameBits'
+import { PlayRow, playTitle } from '../components/GameBits'
 import { NextMedals } from '../components/NextMedals'
 import { SquadLeaders, SquadShowcase, useSquadMedals } from '../components/Squad'
 import { ColorPicker, EmojiPicker } from '../components/PlayerForm'
@@ -207,9 +207,14 @@ function TeamView({ team }: { team: Team }) {
       )}
 
       {game && (
-        <Link to={`/jugar/${game.id}?equipo=${team.id}`} className="btn primary big block">
-          <PlayIcon weight="fill" /> Jugar un partido
-        </Link>
+        <div className="row">
+          <Link to={`/jugar/${game.id}?equipo=${team.id}`} className="btn primary big grow">
+            <PlayIcon weight="fill" /> Jugar un partido
+          </Link>
+          <Link to={`/convocar/${game.id}?equipo=${team.id}`} className="btn big grow">
+            <MegaphoneIcon /> Convocar
+          </Link>
+        </div>
       )}
 
       {rec.upcoming.length > 0 && (
@@ -220,7 +225,7 @@ function TeamView({ team }: { team: Team }) {
               <Link key={p.id} to={`/partida/${p.id}`} className="card fixture-row">
                 <CalendarBlankIcon className="inline-icon" />
                 <span className="grow">
-                  <b>{p.sides.map((s) => s.name ?? s.players.map((x) => players.get(x)?.name ?? '?').join(' & ')).join(' vs ')}</b>
+                  <b>{playTitle(p, players, data.teams)}</b>
                   <span className="muted small block">
                     {p.scheduledAt ? formatWhen(p.scheduledAt) : p.status === 'live' ? 'En juego' : 'Sin fecha'}
                     {p.venue && (

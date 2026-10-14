@@ -100,7 +100,7 @@ function GeneratedArt({ game, aspect, showTitle }: { game: CoverGame; aspect: 'p
         </defs>
 
         <rect width={W} height={H} fill={`url(#${uid}-bg)`} />
-        <g mask={`url(#${uid}-mask)`}>{motif(game.category, { W, H, cx, cy, rnd, pal, tilt })}</g>
+        <g mask={`url(#${uid}-mask)`}>{game.category === 'deporte' ? sportMotif(game.id, { W, H, cx, cy, rnd, pal, tilt }) : motif(game.category, { W, H, cx, cy, rnd, pal, tilt })}</g>
         <rect width={W} height={H} fill={`url(#${uid}-glow)`} />
         <path d={`M0 0H${W * 0.62}L0 ${H * 0.7}Z`} fill={`url(#${uid}-shine)`} />
         <rect y={H * (showTitle ? 0.5 : 0.62)} width={W} height={H * (showTitle ? 0.5 : 0.38)} fill={`url(#${uid}-scrim)`} />
@@ -406,6 +406,248 @@ function court({ W, H, cx, cy, rnd, pal }: MotifCtx) {
       <circle cx={f(bx)} cy={f(by)} r="14" fill="#fff" fillOpacity="0.85" stroke="none" />
     </g>
   )
+}
+
+/* ---------- Deportes: cada uno con su cancha ---------- */
+
+type SportKind = 'pitch' | 'rugby' | 'racket' | 'net' | 'hoop' | 'pool' | 'foosball' | 'pingpong' | 'target' | 'lanes' | 'green' | 'track' | 'swim' | 'wall' | 'fronton'
+
+const SPORT_KIND: Record<string, SportKind> = {
+  futbol5: 'pitch', futbol: 'pitch', futsal: 'pitch', handball: 'pitch', hockey: 'pitch', penales: 'pitch', travesano: 'pitch', ultimate: 'pitch',
+  rugby: 'rugby',
+  tenis: 'racket', padel: 'racket', pickleball: 'racket', badminton: 'racket', squash: 'fronton',
+  voley: 'net', beachvoley: 'net', futboltenis: 'net', paleta: 'fronton',
+  basquet: 'hoop', basquet3x3: 'hoop', tiroslibres: 'hoop',
+  pool: 'pool', metegol: 'foosball', pingpong: 'pingpong',
+  dardos: 'target', tejo: 'target', sapo: 'target', bochas: 'target', petanca: 'target', cornhole: 'target',
+  bowling: 'lanes', minigolf: 'green', golf: 'green',
+  running: 'track', ciclismo: 'track', natacion: 'swim', escalada: 'wall',
+}
+
+/** Muñecos por barra del metegol, de un arco al otro. */
+const FOOS_ROWS = [1, 2, 5, 5, 2, 1]
+
+/** Caja apaisada centrada (la cancha); en las carátulas verticales se gira 90°. */
+function fieldBox({ W, H }: MotifCtx) {
+  const L = Math.max(W, H)
+  const S = Math.min(W, H)
+  const m = S * 0.09
+  return { x: (W - L) / 2 + m, y: (H - S) / 2 + m, w: L - 2 * m, h: S - 2 * m, rot: W > H ? undefined : `rotate(90 ${W / 2} ${H / 2})` }
+}
+
+function sportMotif(id: string, c: MotifCtx): ReactNode {
+  const kind = SPORT_KIND[id]
+  if (!kind) return court(c)
+  const { x, y, w, h, rot } = fieldBox(c)
+  const mx = x + w / 2
+  const my = y + h / 2
+  const line = { fill: 'none', stroke: '#fff', strokeOpacity: 0.32, strokeWidth: 4 }
+  const accent = { fill: 'none', stroke: c.pal.accent, strokeOpacity: 0.55, strokeWidth: 5 }
+  switch (kind) {
+    case 'pitch': {
+      const bw = h * 0.42
+      return (
+        <g transform={rot} {...line}>
+          <rect x={x} y={y} width={w} height={h} rx="4" />
+          <line x1={mx} y1={y} x2={mx} y2={y + h} />
+          <circle cx={mx} cy={my} r={h * 0.17} />
+          <rect x={x} y={my - bw / 2} width={w * 0.13} height={bw} />
+          <rect x={x + w - w * 0.13} y={my - bw / 2} width={w * 0.13} height={bw} />
+          <rect x={x - 14} y={my - h * 0.1} width="14" height={h * 0.2} {...accent} />
+          <rect x={x + w} y={my - h * 0.1} width="14" height={h * 0.2} {...accent} />
+          <circle cx={mx} cy={my} r="5" fill="#fff" fillOpacity="0.5" />
+        </g>
+      )
+    }
+    case 'rugby':
+      return (
+        <g transform={rot} {...line}>
+          <rect x={x} y={y} width={w} height={h} />
+          {[0.1, 0.32, 0.5, 0.68, 0.9].map((k) => (
+            <line key={k} x1={x + w * k} y1={y} x2={x + w * k} y2={y + h} strokeDasharray={k === 0.5 ? undefined : '14 10'} />
+          ))}
+          {[x + w * 0.04, x + w * 0.96].map((px) => (
+            <path key={px} d={`M${f(px)} ${f(my - h * 0.16)}V${f(my + h * 0.16)}M${f(px - 10)} ${f(my)}H${f(px + 10)}`} {...accent} />
+          ))}
+        </g>
+      )
+    case 'racket':
+    case 'net':
+      return (
+        <g transform={rot} {...line}>
+          <rect x={x} y={y} width={w} height={h} />
+          {kind === 'racket' ? (
+            <>
+              <line x1={x} y1={y + h * 0.12} x2={x + w} y2={y + h * 0.12} />
+              <line x1={x} y1={y + h * 0.88} x2={x + w} y2={y + h * 0.88} />
+              <line x1={x + w * 0.24} y1={y + h * 0.12} x2={x + w * 0.24} y2={y + h * 0.88} />
+              <line x1={x + w * 0.76} y1={y + h * 0.12} x2={x + w * 0.76} y2={y + h * 0.88} />
+              <line x1={x + w * 0.24} y1={my} x2={x + w * 0.76} y2={my} />
+            </>
+          ) : (
+            <>
+              <line x1={x + w * 0.33} y1={y} x2={x + w * 0.33} y2={y + h} strokeDasharray="12 8" />
+              <line x1={x + w * 0.67} y1={y} x2={x + w * 0.67} y2={y + h} strokeDasharray="12 8" />
+            </>
+          )}
+          <line x1={mx} y1={y - 16} x2={mx} y2={y + h + 16} stroke="#fff" strokeOpacity="0.85" strokeWidth="6" strokeDasharray="4 4" />
+          <circle cx={x + w * 0.66} cy={y + h * 0.3} r="11" fill={c.pal.accent} fillOpacity="0.8" stroke="none" />
+        </g>
+      )
+    case 'hoop': {
+      const key = h * 0.36
+      return (
+        <g transform={rot} {...line}>
+          <rect x={x} y={y} width={w} height={h} />
+          <line x1={mx} y1={y} x2={mx} y2={y + h} />
+          <circle cx={mx} cy={my} r={h * 0.14} />
+          {[0, 1].map((side) => {
+            const bx = side ? x + w : x
+            const dir = side ? -1 : 1
+            return (
+              <g key={side}>
+                <rect x={side ? bx - w * 0.2 : bx} y={my - key / 2} width={w * 0.2} height={key} />
+                <path d={`M${f(bx)} ${f(y + h * 0.06)}H${f(bx + dir * w * 0.12)}A${f(h * 0.44)} ${f(h * 0.44)} 0 0 ${side ? 0 : 1} ${f(bx + dir * w * 0.12)} ${f(y + h * 0.94)}H${f(bx)}`} />
+                <circle cx={bx + dir * w * 0.055} cy={my} r="9" {...accent} />
+              </g>
+            )
+          })}
+        </g>
+      )
+    }
+    case 'pool': {
+      const balls: ReactNode[] = []
+      let k = 0
+      for (let row = 0; row < 5; row++)
+        for (let i = 0; i <= row; i++)
+          balls.push(<circle key={k++} cx={x + w * 0.68 + row * 15} cy={my + (i - row / 2) * 16} r="7.5" fill={k % 3 ? c.pal.accent : '#fff'} fillOpacity={k === 5 ? 0.95 : 0.55} stroke="none" />)
+      return (
+        <g transform={rot}>
+          <rect x={x} y={y} width={w} height={h} rx="18" fill="none" stroke="#fff" strokeOpacity="0.35" strokeWidth="10" />
+          {[[x, y], [mx, y], [x + w, y], [x, y + h], [mx, y + h], [x + w, y + h]].map(([px, py], i) => (
+            <circle key={i} cx={px} cy={py} r="11" fill="#000" fillOpacity="0.45" />
+          ))}
+          {balls}
+          <circle cx={x + w * 0.25} cy={my} r="7.5" fill="#fff" fillOpacity="0.9" />
+          <line x1={x + w * 0.04} y1={my + h * 0.22} x2={x + w * 0.22} y2={my + 6} stroke={c.pal.accent} strokeOpacity="0.7" strokeWidth="5" strokeLinecap="round" />
+        </g>
+      )
+    }
+    case 'foosball':
+      return (
+        <g transform={rot}>
+          <rect x={x} y={y} width={w} height={h} fill="none" stroke="#fff" strokeOpacity="0.3" strokeWidth="4" />
+          {[0.1, 0.24, 0.4, 0.6, 0.76, 0.9].map((k, i) => (
+            <g key={k}>
+              <line x1={x + w * k} y1={y - 20} x2={x + w * k} y2={y + h + 20} stroke="#fff" strokeOpacity="0.45" strokeWidth="4" />
+              {Array.from({ length: FOOS_ROWS[i] }, (_, j) => (
+                <rect key={j} x={x + w * k - 7} y={y + (h * (j + 1)) / (FOOS_ROWS[i] + 1) - 11} width="14" height="22" rx="4" fill={i % 2 ? c.pal.accent : '#fff'} fillOpacity="0.55" />
+              ))}
+            </g>
+          ))}
+        </g>
+      )
+    case 'pingpong':
+      return (
+        <g transform={rot} {...line}>
+          <rect x={x + w * 0.08} y={y + h * 0.1} width={w * 0.84} height={h * 0.8} />
+          <line x1={x + w * 0.08} y1={my} x2={x + w * 0.92} y2={my} strokeOpacity="0.2" />
+          <line x1={mx} y1={y} x2={mx} y2={y + h} stroke="#fff" strokeOpacity="0.85" strokeWidth="6" strokeDasharray="4 4" />
+          <circle cx={x + w * 0.7} cy={y + h * 0.32} r="9" fill="#fff" fillOpacity="0.9" stroke="none" />
+        </g>
+      )
+    case 'target': {
+      const tx = c.cx + (c.W > c.H ? -170 : 0)
+      const ty = c.cy + (c.W > c.H ? 20 : 120)
+      return (
+        <g fill="none" stroke="#fff">
+          {[120, 92, 64, 38, 16].map((rr, i) => (
+            <circle key={rr} cx={tx} cy={ty} r={rr} strokeOpacity={0.18 + i * 0.08} strokeWidth={i === 4 ? 8 : 4} stroke={i % 2 ? c.pal.accent : '#fff'} />
+          ))}
+          {Array.from({ length: 12 }, (_, k) => {
+            const a = (Math.PI / 6) * k
+            return <line key={k} x1={tx + 16 * Math.cos(a)} y1={ty + 16 * Math.sin(a)} x2={tx + 120 * Math.cos(a)} y2={ty + 120 * Math.sin(a)} strokeOpacity="0.12" strokeWidth="2" />
+          })}
+        </g>
+      )
+    }
+    case 'lanes':
+      return (
+        <g transform={rot} {...line}>
+          {[0, 1, 2].map((k) => (
+            <rect key={k} x={x} y={y + (h / 3) * k + 8} width={w} height={h / 3 - 16} rx="6" strokeOpacity={k === 1 ? 0.5 : 0.22} />
+          ))}
+          {[0, 1, 2, 3].flatMap((row) =>
+            Array.from({ length: row + 1 }, (_, i) => <circle key={`${row}-${i}`} cx={x + w * 0.86 + row * 13} cy={my + (i - row / 2) * 13} r="5" fill="#fff" fillOpacity="0.6" stroke="none" />),
+          )}
+          <circle cx={x + w * 0.2} cy={my} r="14" fill={c.pal.accent} fillOpacity="0.75" stroke="none" />
+        </g>
+      )
+    case 'green': {
+      const gx = c.cx + (c.W > c.H ? -150 : 40)
+      const gy = c.cy + (c.W > c.H ? 40 : 110)
+      return (
+        <g>
+          <ellipse cx={gx} cy={gy} rx="150" ry="90" fill="#fff" fillOpacity="0.1" />
+          <ellipse cx={gx} cy={gy} rx="150" ry="90" fill="none" stroke="#fff" strokeOpacity="0.3" strokeWidth="4" strokeDasharray="10 8" />
+          <circle cx={gx + 40} cy={gy + 10} r="9" fill="#000" fillOpacity="0.45" />
+          <line x1={gx + 40} y1={gy + 10} x2={gx + 40} y2={gy - 110} stroke="#fff" strokeOpacity="0.7" strokeWidth="4" />
+          <path d={`M${gx + 40} ${gy - 110}l46 14l-46 14z`} fill={c.pal.accent} fillOpacity="0.8" />
+          <path d={`M${gx - 120} ${gy + 60}Q${gx - 40} ${gy - 30} ${gx + 30} ${gy + 8}`} fill="none" stroke="#fff" strokeOpacity="0.45" strokeWidth="3" strokeDasharray="1 10" strokeLinecap="round" />
+        </g>
+      )
+    }
+    case 'track':
+    case 'swim':
+      return (
+        <g transform={rot} fill="none">
+          {Array.from({ length: 6 }, (_, k) => {
+            const inset = k * (h / 14)
+            return kind === 'track' ? (
+              <rect key={k} x={x + inset} y={y + inset} width={w - 2 * inset} height={h - 2 * inset} rx={h / 2 - inset} stroke="#fff" strokeOpacity={k === 0 ? 0.4 : 0.18} strokeWidth="3" />
+            ) : (
+              <line key={k} x1={x} y1={y + (h / 6) * k + h / 12} x2={x + w} y2={y + (h / 6) * k + h / 12} stroke={k % 2 ? c.pal.accent : '#fff'} strokeOpacity="0.4" strokeWidth="4" strokeDasharray="6 6" />
+            )
+          })}
+          {kind === 'swim' && <rect x={x} y={y} width={w} height={h} stroke="#fff" strokeOpacity="0.3" strokeWidth="5" />}
+          {kind === 'track' && <line x1={mx} y1={y} x2={mx} y2={y + h * 0.43} stroke="#fff" strokeOpacity="0.7" strokeWidth="5" strokeDasharray="8 8" />}
+        </g>
+      )
+    case 'fronton': {
+      // La pared de enfrente vista desde la cancha: chapa abajo, línea de saque y el piso en perspectiva.
+      const top = c.H * 0.08
+      const floor = c.H * 0.62
+      const l = c.W * 0.08
+      const rr = c.W * 0.92
+      return (
+        <g fill="none" stroke="#fff">
+          <rect x={l} y={top} width={rr - l} height={floor - top} strokeOpacity="0.3" strokeWidth="4" />
+          <line x1={l} y1={floor - (floor - top) * 0.12} x2={rr} y2={floor - (floor - top) * 0.12} stroke={c.pal.accent} strokeOpacity="0.7" strokeWidth="6" />
+          <line x1={l} y1={top + (floor - top) * 0.45} x2={rr} y2={top + (floor - top) * 0.45} strokeOpacity="0.35" strokeWidth="3" />
+          <path d={`M${f(l)} ${f(floor)}L0 ${c.H}M${f(rr)} ${f(floor)}L${c.W} ${c.H}`} strokeOpacity="0.25" strokeWidth="4" />
+          <line x1={c.W / 2} y1={floor} x2={c.W / 2} y2={c.H} strokeOpacity="0.2" strokeWidth="3" strokeDasharray="10 8" />
+          <circle cx={c.W * 0.3} cy={top + (floor - top) * 0.3} r="9" fill="#fff" fillOpacity="0.4" stroke="none" />
+        </g>
+      )
+    }
+    case 'wall': {
+      const holds: ReactNode[] = []
+      for (let k = 0; k < 26; k++) {
+        const hx = c.rnd() * c.W
+        const hy = c.rnd() * c.H
+        const rr = 7 + c.rnd() * 12
+        holds.push(<path key={k} d={`M${f(hx - rr)} ${f(hy)}Q${f(hx)} ${f(hy - rr * 1.3)} ${f(hx + rr)} ${f(hy)}Q${f(hx)} ${f(hy + rr * 0.8)} ${f(hx - rr)} ${f(hy)}Z`} fill={k % 3 ? '#fff' : c.pal.accent} fillOpacity={k % 3 ? 0.18 : 0.5} />)
+      }
+      return (
+        <g>
+          {Array.from({ length: Math.ceil(c.W / 60) }, (_, k) => (
+            <line key={k} x1={k * 60} y1={0} x2={k * 60} y2={c.H} stroke="#fff" strokeOpacity="0.07" strokeWidth="2" />
+          ))}
+          {holds}
+        </g>
+      )
+    }
+  }
 }
 
 /** Videojuegos: píxeles, líneas de barrido y botones de joystick. */

@@ -13,9 +13,9 @@ export const futsal: GameDef = {
   teamSize: 2,
   mode: 'counter',
   weight: 2,
-  scoring: { quick: [1], quickLabel: 'Gol', pointsName: 'goles', allowDraw: true },
+  scoring: { quick: [1], quickLabel: 'Gol', pointsName: 'goles', allowDraw: true, clock: { periods: 2, minutes: 20, minutesOption: 'half' } },
   perPlayer: { scorer: true, unit: 'goles', unitOne: 'gol', assists: true, mvp: true },
-  options: [],
+  options: [{ id: 'half', label: 'Cada tiempo', type: 'select', default: 20, choices: [{ value: 15, label: '15 minutos' }, { value: 20, label: '20 minutos' }, { value: 25, label: '25 minutos' }] }],
   events: [
     { id: 'suela', name: 'Jugada de suela', emoji: '👞', type: 'count', byPlayer: true, help: 'Gambeta con la suela que dejó a alguien sentado.' },
     { id: 'amarilla', name: 'Amarilla', emoji: '🟨', type: 'count', byPlayer: true },
