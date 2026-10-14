@@ -38,6 +38,8 @@ export interface Match {
   config: MatchConfig
   /** Secuencia completa de puntos: quién ganó cada punto, en orden. */
   points: Side[]
+  /** Cuándo se anotó cada punto (mismo orden que `points`). Los partidos viejos no lo tienen. */
+  pointTimes?: number[]
   /** Quién saca primero en el primer juego. */
   firstServer: Side
   status: MatchStatus

@@ -117,6 +117,25 @@ export function pointTotals(points: Side[]): { a: number; b: number } {
   return { a, b: points.length - a }
 }
 
+/**
+ * Cuándo empezó el último juego de `games`: la hora del punto que cerró el anterior o, en el
+ * primero, el arranque del partido. `undefined` si no se sabe (partidos de antes de guardar horas).
+ */
+export function gameStartedAt(match: { startedAt?: number; pointTimes?: number[] }, games: GameScore[]): number | undefined {
+  const before = games.slice(0, -1).reduce((n, g) => n + g.a + g.b, 0)
+  if (before === 0) return match.startedAt
+  return match.pointTimes?.[before - 1] || undefined
+}
+
+/** Tiempo transcurrido como reloj: "4:05", "23:41", "1:02:09". */
+export function formatElapsed(ms: number): string {
+  const total = Math.max(0, Math.floor(ms / 1000))
+  const h = Math.floor(total / 3600)
+  const m = Math.floor(total / 60) % 60
+  const ss = String(total % 60).padStart(2, '0')
+  return h ? `${h}:${String(m).padStart(2, '0')}:${ss}` : `${m}:${ss}`
+}
+
 export function describeConfig(config: MatchConfig): string {
   const parts = [`a ${config.pointsToWin}`]
   if (config.bestOf > 1) parts.push(`al mejor de ${config.bestOf}`)

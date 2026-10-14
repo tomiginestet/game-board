@@ -27,6 +27,9 @@ Reglas para la ficha:
   · turns: hay turnos y conviene registrar eventos durante la partida, pero el puntaje real se confirma al final (Catán).
   · result: sólo importa quién ganó o el orden de llegada, con puntaje final opcional.
   · coop: todos juntos contra el juego; se gana o se pierde en equipo.
+  · sets: deportes de raqueta o red, punto a punto y por sets, de a dos lados (tenis y pádel con \`scoring.sets.kind\` "tennis"; vóley o fútbol tenis con "points").
+- Deportes de equipo (fútbol, básquet, hockey): \`perPlayer\` para anotar quién hizo cada gol, las asistencias y la figura; los eventos de un jugador (tarjetas, atajadas) llevan \`byPlayer\`.
+- Carreras y marcas por tiempo: mode result con \`scoring.finalScores\`, \`scoring.time\` y \`scoring.lowWins\`.
 - \`events\`: los momentos importantes y registrables del juego (3 a 8). Usá \`points\` si suman al marcador en ese modo.
 - \`stats\`: datos que se preguntan al final de la partida, sólo si sirven para algún premio.
 - \`awards\`: de 2 a 4 familias de medallas propias del juego, cada una con 3 niveles (bronce, plata, oro) con \`at\` creciente.

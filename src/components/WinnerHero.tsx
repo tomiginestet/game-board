@@ -67,12 +67,13 @@ export function WinnerHero({
     verdict = `entre ${joinNames(sides.map((i) => sideName(play.sides[i], players)))}`
     faces = sides.map((i) => sidePlayersOf(play.sides[i], players))
   } else {
-    outcome = lowWins ? 'lowWin' : 'win'
+    // Con tiempos (carreras), gana el más rápido: festejo normal, no el del puntaje bajo.
+    outcome = lowWins && !game.scoring.time ? 'lowWin' : 'win'
     // Igual que en la pausa del punto final: 'Ana y Beto', no 'Ana & Beto'.
     title = joinNames(winners.flatMap((i) => spokenNames(play.sides[i], players)))
     const many = winners.length > 1 || play.sides[winners[0]].players.length > 1 || !!play.sides[winners[0]].name
     verdict = winners.length > 1 ? 'comparten el primer puesto' : many ? 'ganaron la partida' : 'ganó la partida'
-    if (lowWins && hasScores) verdict += ' con el puntaje más bajo'
+    if (lowWins && hasScores) verdict += game.scoring.time ? ' con el mejor tiempo' : ' con el puntaje más bajo'
     faces = winners.map((i) => sidePlayersOf(play.sides[i], players))
     kind = 'podio'
   }

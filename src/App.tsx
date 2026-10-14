@@ -32,6 +32,9 @@ const TournamentDetail = page(() => import('./pages/pingpong/TournamentDetail'),
 const PlayerDetail = page(() => import('./pages/PlayerDetail'), 'PlayerDetail')
 const Medals = page(() => import('./pages/Medals'), 'Medals')
 const Players = page(() => import('./pages/Players'), 'Players')
+const Teams = page(() => import('./pages/Teams'), 'Teams')
+const NewTeam = page(() => import('./pages/Teams'), 'NewTeam')
+const TeamDetail = page(() => import('./pages/Teams'), 'TeamDetail')
 const PlayScreen = page(() => import('./pages/PlayScreen'), 'PlayScreen')
 const QuickPick = page(() => import('./pages/QuickPick'), 'QuickPick')
 const Ranking = page(() => import('./pages/Ranking'), 'Ranking')
@@ -68,6 +71,7 @@ const TITLES: [RegExp, string][] = [
   [/^\/(torneos|ping-pong\/torneo)/, 'Torneos'],
   [/^\/ranking/, 'Ranking'],
   [/^\/jugadores/, 'Jugadores'],
+  [/^\/equipos/, 'Equipos'],
   [/^\/historial/, 'Historial'],
   [/^\/ajustes/, 'Ajustes'],
   [/^\/(club|grupo|grupos|unirse)/, 'Club'],
@@ -160,6 +164,9 @@ export default function App() {
               <Route path="/medallas" element={<Medals />} />
               <Route path="/jugadores" element={<Players />} />
               <Route path="/jugadores/:id" element={<PlayerDetail />} />
+              <Route path="/equipos" element={<Teams />} />
+              <Route path="/equipos/nuevo" element={<NewTeam />} />
+              <Route path="/equipos/:id" element={<TeamDetail />} />
               <Route path="/historial" element={<History />} />
               <Route path="/ajustes" element={<Settings />} />
               <Route path="/club" element={<GroupPage />} />

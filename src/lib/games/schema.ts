@@ -18,6 +18,11 @@ export type PlayMode =
   | 'result'
   /** Cooperativo: todos contra el juego; se gana o se pierde juntos, con un puntaje opcional (Pistas cruzadas). */
   | 'coop'
+  /**
+   * Por sets: punto a punto, de a dos lados. Con games de 15-30-40 y sets a 6 (tenis, pádel) o con sets
+   * a N puntos (vóley, fútbol tenis, pickleball). Ver `Scoring.sets`.
+   */
+  | 'sets'
 
 /** Cómo se arman los lados de una partida. */
 export type SidesKind =
@@ -90,7 +95,52 @@ export interface EventDef {
   global?: boolean
   /** Hacerlo gana la partida en el acto (cortar con chinchón). */
   winsGame?: boolean
+  /** Se le anota a un jugador del lado ("Tarjeta amarilla" a Juan): cuenta para las estadísticas de cada uno. */
+  byPlayer?: boolean
   help?: string
+}
+
+/**
+ * Estadísticas de cada jugador dentro de su equipo (deportes de equipo): quién hizo cada gol,
+ * quién dio el pase y la figura del partido.
+ */
+export interface PerPlayer {
+  /** Cada punto del marcador se le anota a un jugador del lado ("¿Quién hizo el gol?"). */
+  scorer?: boolean
+  /** Cómo se llama lo que anota cada uno: "goles", "puntos", "tries". */
+  unit?: string
+  unitOne?: string
+  /** Además del autor, se pregunta quién dio el pase (asistencia). */
+  assists?: boolean
+  /** Al terminar se elige la figura del partido. */
+  mvp?: boolean
+}
+
+/** Cómo se cuentan los sets en el modo `sets`. */
+export interface SetsRule {
+  /**
+   * - `tennis`: games de 15-30-40 (con ventaja o punto de oro), sets a `games` con tie-break (tenis, pádel).
+   * - `points`: cada set se gana a `points` puntos con `winBy` de diferencia (vóley, fútbol tenis, bádminton).
+   */
+  kind: 'tennis' | 'points'
+  /** Al mejor de cuántos sets (3: gana el primero en ganar 2). */
+  bestOf: number
+  bestOfOption?: string
+  /** `points`: a cuántos puntos es cada set. */
+  points?: number
+  pointsOption?: string
+  /** `points`: el set decisivo se juega a menos (vóley: el quinto a 15). */
+  lastSetPoints?: number
+  /** Diferencia para cerrar un set (o un tie-break). Por defecto, 2. */
+  winBy?: number
+  /** `points`: tope; quien llega gana el set aunque no tenga la diferencia (bádminton: 30). */
+  cap?: number
+  /** `tennis`: games para ganar un set. Por defecto, 6. */
+  games?: number
+  /** `tennis`: opción (sí/no) de punto de oro: en 40 iguales, el próximo punto gana el game. */
+  goldenPointOption?: string
+  /** `tennis`: opción (sí/no) de super tie-break a 10 en lugar del set decisivo. */
+  superTiebreakOption?: string
 }
 
 /** Dato que se pregunta al final de la partida para cada lado. */
@@ -135,6 +185,14 @@ export type Metric =
   | { type: 'winsWithChoice'; stat: string; value: string }
   /** Partidas ganadas jugando con un rol (impostor). */
   | { type: 'winsAsRole'; role: string }
+  /** Lo que anotó el jugador mismo (goles, puntos) en total; ver `PerPlayer.scorer`. */
+  | { type: 'scored' }
+  /** Lo máximo que anotó el jugador en una sola partida (hat-trick). */
+  | { type: 'scoredMax' }
+  /** Asistencias en total. */
+  | { type: 'assists' }
+  /** Veces que fue la figura del partido. */
+  | { type: 'mvp' }
 
 /** Dibujos genéricos para las medallas que no tienen ilustración propia. */
 export const GLYPHS = [
@@ -149,7 +207,7 @@ export interface AwardLevel {
   /** Nombre del nivel; también es la clave de su ilustración. */
   name: string
   description: string
-  /** Si no hay ilustración con ese nombre: dibujo genérico y color de fondo. */
+  /** Sólo para juegos agregados por el grupo o la IA (sin ilustración propia): dibujo genérico y color de acento. */
   glyph?: Glyph
   color?: string
   /** Color de fondo de la ilustración, si no usa el del material. */
@@ -230,6 +288,10 @@ export interface Scoring {
   pointsName?: string
   /** Dibujo especial del marcador: fósforos del truco. */
   tally?: 'matches'
+  /** Modo `sets`: cómo se cuentan los puntos, games y sets. */
+  sets?: SetsRule
+  /** El puntaje final es un tiempo (en segundos, se carga y se muestra como 25:14). Va con `lowWins`. */
+  time?: boolean
 }
 
 export interface GameDef {
@@ -255,6 +317,8 @@ export interface GameDef {
   stats: StatDef[]
   /** Roles que puede tener un lado (Impostor / Tripulante). */
   roles?: string[]
+  /** Estadísticas de cada jugador dentro de su equipo (goles, asistencias, figura). */
+  perPlayer?: PerPlayer
   awards: AwardDef[]
   formats: CupFormat[]
   /** Resumen de las reglas en pocas líneas. */

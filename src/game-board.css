@@ -1040,3 +1040,222 @@
 .vitrina-levels i.on {
   background: var(--accent-2);
 }
+
+/* ---------------------------------------------------------------------------
+   Deportes: quién hizo el gol, sets, figura, tiempos */
+
+.who-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+  gap: 8px;
+  max-height: 55vh;
+  overflow-y: auto;
+  margin: 12px 0;
+}
+
+.who-btn {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  min-height: 72px;
+  padding: 10px 8px;
+  border-radius: var(--radius);
+  border: 2px solid color-mix(in srgb, var(--pc, var(--border)) 60%, var(--border));
+  background: var(--card-2);
+  color: var(--text);
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+  max-width: 100%;
+}
+
+.who-btn:active {
+  transform: scale(0.97);
+}
+
+.who-btn .ellipsis {
+  max-width: 100%;
+}
+
+.who-emoji {
+  font-size: 26px;
+  line-height: 1;
+}
+
+.sets-strip {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: center;
+  gap: 4px 12px;
+  margin: 0 0 8px;
+  font-size: 15px;
+}
+
+.sets-sub {
+  display: flex;
+  gap: 12px;
+}
+
+.sets-final {
+  margin: 10px 0 0;
+  text-align: center;
+}
+
+.mvp-star {
+  color: var(--accent-2);
+}
+
+.mvp-pick {
+  margin-top: 8px;
+}
+
+.mvp-pick .chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.time-input {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 2px;
+}
+
+.player-lines td.left,
+.player-lines th.left {
+  text-align: left;
+  white-space: nowrap;
+}
+
+/* Equipos fijos */
+
+.team-crest {
+  display: inline-grid;
+  place-items: center;
+  flex: none;
+  border-radius: 30% 30% 45% 45%;
+  background: color-mix(in srgb, var(--tc, #888) 30%, var(--card));
+  border: 2px solid var(--tc, #888);
+  line-height: 1;
+}
+
+.teams-link {
+  margin-bottom: 12px;
+}
+
+.team-chip.active {
+  border-color: var(--tc, var(--accent));
+}
+
+.team-col-head {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+}
+
+.team-col-head .icon-btn {
+  width: 32px;
+  height: 32px;
+  min-width: 32px;
+  margin-left: auto;
+}
+
+.balance-chance {
+  margin: 8px 0;
+}
+
+.team-form {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin: 8px 0 12px;
+}
+
+.form-dot {
+  display: inline-grid;
+  place-items: center;
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--on-fill);
+  background: var(--card-2);
+}
+
+.form-dot.win {
+  background: #15803d;
+}
+
+.form-dot.loss {
+  background: var(--loss-fill);
+}
+
+.captain-tag {
+  display: inline-grid;
+  place-items: center;
+  width: 18px;
+  height: 18px;
+  margin-left: 6px;
+  border-radius: 4px;
+  font-size: 11px;
+  font-weight: 700;
+  background: var(--accent-2);
+  color: #1a1a1a;
+}
+
+.plain-link {
+  color: inherit;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.team-form-body {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.team-stats {
+  margin: 4px 0 0;
+}
+
+/* Fixture con fecha y cancha */
+
+.fixture-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: inherit;
+  text-decoration: none;
+}
+
+.fixture-meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px 10px;
+  margin: 2px 4px 6px;
+}
+
+.fixture-meta .link-btn {
+  margin-left: auto;
+}
+
+.venue-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.venue-list .row .input {
+  flex: 1;
+  min-width: 0;
+}

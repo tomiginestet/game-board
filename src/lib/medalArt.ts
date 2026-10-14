@@ -130,7 +130,7 @@ export function medalSvg(art: string, tier: number, opts: MedalOpts = {}): strin
   // Ilustración propia por nombre; si no hay, un dibujo genérico (para juegos agregados a mano o por la IA). Mientras
   // las ilustraciones cargan (`pending`, ver `loadArt`), la cara queda vacía para no mostrar el genérico y después cambiarlo.
   const own = ART_REGISTRY[art]
-  const icon = own ? own(u) : opts.pending ? '' : glyphArt(opts.glyph ?? 'star', hex(opts.color) ?? '#FFD43B', art)
+  const icon = own ? own(u) : opts.pending ? '' : glyphArt(opts.glyph ?? 'star', hex(opts.color) ?? '', art, u)
   const label = (opts.label ?? `${art}, nivel ${T.roman}`).replace(/[&<>"]/g, (c) => `&#${c.charCodeAt(0)};`)
   const [dk, md, lt, rf] = T.metal
   const mm = `url(#mm${u})`, line = T.line

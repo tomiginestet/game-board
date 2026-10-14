@@ -1,4 +1,4 @@
-import { ShuffleIcon, TrophyIcon } from '@phosphor-icons/react'
+import { CalendarBlankIcon, MapPinIcon, PlusIcon, ShuffleIcon, TrashIcon, TrophyIcon } from '@phosphor-icons/react'
 import { useId, useMemo, useState } from 'react'
 import { Navigate, useNavigate, useSearchParams } from 'react-router-dom'
 import { Stepper } from '../components/ConfigEditor'
@@ -9,7 +9,9 @@ import { defaultConfig } from '../lib/engine'
 import { CUP_FORMATS, type CupFormat, type GameDef } from '../lib/games/schema'
 import { plural, useGame, useGames } from '../lib/hooks'
 import { actions, useData } from '../lib/store'
-import type { CupEntrant, Id } from '../lib/types'
+import type { CupEntrant, CupSchedule, Id } from '../lib/types'
+import { fromLocalInput, nextWeekday, toLocalInput } from '../lib/schedule'
+import { isTeamGame } from '../lib/teams'
 
 export function NewCup() {
   const [params, setParams] = useSearchParams()
@@ -53,6 +55,16 @@ function CupSetup({ game }: { game: GameDef }) {
   const [tableSize, setTableSize] = useState(Math.min(4, game.players.max))
   const [final, setFinal] = useState(true)
   const [prize, setPrize] = useState('')
+  // Inscriptos: jugadores sueltos o equipos fijos del club.
+  const clubTeams = isTeamGame(game) ? data.teams.filter((t) => (!t.gameId || t.gameId === game.id) && t.players.length) : []
+  const [useClubTeams, setUseClubTeams] = useState(clubTeams.length >= 2)
+  const [teamIds, setTeamIds] = useState<Id[]>([])
+  // Fecha y cancha: el fixture con día, hora y lugar de cada partido.
+  const [scheduled, setScheduled] = useState(false)
+  const [start, setStart] = useState(() => toLocalInput(nextWeekday(new Date().getDay(), 20)))
+  const [everyDays, setEveryDays] = useState(7)
+  const [gap, setGap] = useState(60)
+  const [venues, setVenues] = useState<string[]>(() => [clubTeams.find((t) => t.home)?.home ?? ''])
 
   const toggle = (id: Id) => {
     setOrder(null)
@@ -60,18 +72,29 @@ function CupSetup({ game }: { game: GameDef }) {
   }
 
   const seq = order ?? selected
-  const entrants: CupEntrant[] = byTeams
+  const fromClub = useClubTeams && clubTeams.length > 0 && (format === 'knockout' || format === 'league')
+  const entrants: CupEntrant[] = fromClub
+    ? clubTeams.filter((t) => teamIds.includes(t.id)).map((t) => ({ players: t.players, name: t.name, teamId: t.id }))
+    : byTeams
     ? Array.from({ length: Math.floor(seq.length / teamSize) }, (_, i) => ({ players: seq.slice(i * teamSize, (i + 1) * teamSize) }))
     : seq.map((id) => ({ players: [id] }))
   const nameOf = (id: Id) => data.players.find((p) => p.id === id)?.name ?? '?'
 
   const minEntrants = format === 'tables' ? Math.max(3, game.players.min) : format === 'series' ? Math.max(2, game.players.min) : 2
   const seriesTooMany = format === 'series' && entrants.length > game.players.max
-  const leftover = byTeams ? seq.length % teamSize : 0
-  const ready = name.trim() && entrants.length >= minEntrants && !seriesTooMany && !leftover
+  const leftover = byTeams && !fromClub ? seq.length % teamSize : 0
+  const startAt = fromLocalInput(start)
+  const canSchedule = format === 'league' || format === 'knockout' || format === 'series'
+  const schedule: CupSchedule | undefined = scheduled && canSchedule && startAt ? { start: startAt, everyDays, gapMinutes: gap } : undefined
+  const venueList = venues.map((v) => v.trim()).filter(Boolean)
+  const ready = name.trim() && entrants.length >= minEntrants && !seriesTooMany && !leftover && (!scheduled || !canSchedule || !!startAt)
   // Qué falta para poder crear el torneo, dicho como lo que hay que hacer.
   const missing = !name.trim()
     ? 'Ponele un nombre al torneo'
+    : scheduled && canSchedule && !startAt
+      ? 'Elegí el día de la primera fecha'
+      : fromClub
+        ? 'Elegí al menos 2 equipos'
     : leftover
       ? 'Completá los equipos'
       : seriesTooMany
@@ -80,7 +103,20 @@ function CupSetup({ game }: { game: GameDef }) {
 
   const create = () => {
     if (!ready) return
-    const cup = actions.createCup({ gameId: game.id, name, format, entrants, config, doubleRound, rounds, tableSize, final, prize })
+    const cup = actions.createCup({
+      gameId: game.id,
+      name,
+      format,
+      entrants,
+      config,
+      doubleRound,
+      rounds,
+      tableSize,
+      final,
+      prize,
+      ...(schedule ? { schedule } : {}),
+      ...(canSchedule && scheduled && venueList.length ? { venues: venueList } : {}),
+    })
     navigate(`/torneos/${cup.id}`, { replace: true })
   }
 
@@ -148,6 +184,41 @@ function CupSetup({ game }: { game: GameDef }) {
         </>
       )}
 
+      {clubTeams.length > 0 && (format === 'knockout' || format === 'league') && (
+        <ChoiceGroup
+          className="segmented"
+          label="Quiénes se anotan"
+          value={useClubTeams}
+          onChange={setUseClubTeams}
+          options={[
+            { value: true, content: 'Equipos del club' },
+            { value: false, content: 'Jugadores' },
+          ]}
+        />
+      )}
+
+      {fromClub ? (
+        <section>
+          <h2>
+            Equipos <span className="muted small">{entrants.length} inscriptos</span>
+          </h2>
+          <div className="list" role="group" aria-label="Equipos inscriptos">
+            {clubTeams.map((t) => {
+              const on = teamIds.includes(t.id)
+              return (
+                <button key={t.id} type="button" className={'pick-row' + (on ? ' active' : '')} aria-pressed={on} onClick={() => setTeamIds((ids) => (on ? ids.filter((x) => x !== t.id) : [...ids, t.id]))}>
+                  <span className="pick-pos">{on ? '✓' : ''}</span>
+                  <span aria-hidden="true">{t.emoji}</span>
+                  <span className="grow ellipsis">{t.name}</span>
+                  <span className="muted small">{plural(t.players.length, 'jugador', 'jugadores')}</span>
+                </button>
+              )
+            })}
+          </div>
+          <p className="hint">Cada partido usa el plantel del equipo; los que no van ese día se pueden sacar al jugarlo.</p>
+        </section>
+      ) : (
+        <>
       {game.sides === 'either' && (format === 'knockout' || format === 'league') && (
         <ChoiceGroup
           className="segmented"
@@ -187,6 +258,79 @@ function CupSetup({ game }: { game: GameDef }) {
         )}
         {seriesTooMany && <p className="error">En partida acumulada juegan todos juntos: elegí hasta {game.players.max} jugadores.</p>}
       </section>
+        </>
+      )}
+
+      {canSchedule && (
+        <section className="card">
+          <div className="field row-between">
+            <label htmlFor="scheduled">
+              <CalendarBlankIcon className="inline-icon" /> Fecha y cancha de cada partido
+            </label>
+            <input id="scheduled" type="checkbox" className="switch" checked={scheduled} onChange={(e) => setScheduled(e.target.checked)} />
+          </div>
+          {!scheduled ? (
+            <p className="hint">Armamos el fixture con día, hora y cancha. Después se puede cambiar partido por partido.</p>
+          ) : (
+            <>
+              <div className="field">
+                <label htmlFor={`${id}-start`}>{format === 'league' ? 'Primera fecha' : format === 'knockout' ? 'Primera ronda' : 'Primera partida'}</label>
+                <input id={`${id}-start`} className="input" type="datetime-local" value={start} onChange={(e) => setStart(e.target.value)} />
+              </div>
+              <div className="field">
+                <label htmlFor={`${id}-every`}>{format === 'league' ? 'Una fecha' : 'Una ronda'}</label>
+                <select id={`${id}-every`} className="input" value={everyDays} onChange={(e) => setEveryDays(Number(e.target.value))}>
+                  <option value={7}>Todas las semanas</option>
+                  <option value={14}>Cada dos semanas</option>
+                  <option value={3}>Cada tres días</option>
+                  <option value={1}>Todos los días</option>
+                  <option value={0}>Todo el mismo día</option>
+                </select>
+              </div>
+              <div className="field">
+                <span className="field-label">
+                  <MapPinIcon className="inline-icon" /> Canchas
+                </span>
+                <div className="venue-list">
+                  {venues.map((v, i) => (
+                    <div key={i} className="row">
+                      <input
+                        className="input"
+                        value={v}
+                        maxLength={60}
+                        placeholder={`Cancha ${i + 1}`}
+                        aria-label={`Cancha ${i + 1}`}
+                        onChange={(e) => setVenues(venues.map((x, k) => (k === i ? e.target.value : x)))}
+                      />
+                      {venues.length > 1 && (
+                        <button type="button" className="icon-btn" aria-label={`Sacar la cancha ${i + 1}`} onClick={() => setVenues(venues.filter((_, k) => k !== i))}>
+                          <TrashIcon />
+                        </button>
+                      )}
+                    </div>
+                  ))}
+                  {venues.length < 8 && (
+                    <button type="button" className="link-btn" onClick={() => setVenues([...venues, ''])}>
+                      <PlusIcon className="inline-icon" /> Sumar cancha
+                    </button>
+                  )}
+                </div>
+                <p className="hint">Los partidos de una misma fecha se reparten entre las canchas.</p>
+              </div>
+              <div className="field">
+                <label htmlFor={`${id}-gap`}>Si hay más partidos que canchas, uno cada</label>
+                <select id={`${id}-gap`} className="input" value={gap} onChange={(e) => setGap(Number(e.target.value))}>
+                  {[30, 45, 60, 90, 120].map((m) => (
+                    <option key={m} value={m}>
+                      {m < 60 ? `${m} minutos` : m === 60 ? '1 hora' : m === 90 ? '1 hora y media' : '2 horas'}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            </>
+          )}
+        </section>
+      )}
 
       {game.options.length > 0 && (
         <section className="card">

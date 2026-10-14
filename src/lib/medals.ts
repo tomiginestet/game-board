@@ -231,6 +231,14 @@ export function metricValue(m: Metric, s: GameStats): number {
       return s.choiceWins[`${m.stat}:${m.value}`] ?? 0
     case 'winsAsRole':
       return s.roleWins[m.role] ?? 0
+    case 'scored':
+      return s.scored
+    case 'scoredMax':
+      return s.scoredMax
+    case 'assists':
+      return s.assists
+    case 'mvp':
+      return s.mvps
   }
 }
 

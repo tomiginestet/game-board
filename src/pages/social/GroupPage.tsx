@@ -198,7 +198,10 @@ function GroupView({ group }: { group: MyGroup }) {
       <section>
         <div className="section-head">
           <h2>Integrantes</h2>
-          <Link to="/jugadores">Jugadores ({playerCount})</Link>
+          <span className="row">
+            <Link to="/equipos">Equipos</Link>
+            <Link to="/jugadores">Jugadores ({playerCount})</Link>
+          </span>
         </div>
         <p className="muted small">Con cuenta. En “Jugadores” también están los que juegan sin cuenta.</p>
         <div className="list">
