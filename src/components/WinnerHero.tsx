@@ -1,4 +1,3 @@
-import { ConfettiIcon } from '@phosphor-icons/react'
 import { useEffect, useRef, useState } from 'react'
 import { cheerFor, type Outcome } from '../lib/cheers'
 import type { GameDef } from '../lib/games/schema'
@@ -28,8 +27,6 @@ export function WinnerHero({
   game,
   players,
   fresh,
-  newMedals,
-  onShowMedals,
   hint,
 }: {
   play: Play
@@ -37,9 +34,7 @@ export function WinnerHero({
   players: Map<Id, Player>
   /** Recién terminada: se anima la entrada y se anuncia el resultado. Si no, aparece quieta. */
   fresh: boolean
-  newMedals: number
-  onShowMedals: () => void
-  /** Próxima medalla de alguien de la mesa, cuando en esta partida no cayó ninguna. */
+  /** Próxima medalla de alguien de la mesa, cuando en esta partida no cayó ninguna (las nuevas van debajo del podio). */
   hint?: { text: string; progress: MedalProgress }
 }) {
   const places = play.result?.places ?? []
@@ -130,17 +125,11 @@ export function WinnerHero({
       </h1>
       <p className="winner-cheer">{cheer}</p>
 
-      {newMedals > 0 ? (
-        <button type="button" className="btn winner-medals-btn" aria-haspopup="dialog" onClick={onShowMedals}>
-          <ConfettiIcon /> Ver medallas nuevas ({newMedals})
-        </button>
-      ) : (
-        hint && (
-          <p className="winner-next">
-            <Medal family={hint.progress.family} level={hint.progress.level + 1} size={36} />
-            <span>{hint.text}</span>
-          </p>
-        )
+      {hint && (
+        <p className="winner-next">
+          <Medal family={hint.progress.family} level={hint.progress.level + 1} size={36} />
+          <span>{hint.text}</span>
+        </p>
       )}
 
       <p className="sr-only" role="status" aria-live="polite">

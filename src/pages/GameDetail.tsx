@@ -1,4 +1,4 @@
-import { ArrowLeftIcon, ArrowRightIcon, CopyIcon, CrownIcon, PencilSimpleIcon, PlayIcon, ShieldIcon, SparkleIcon, TrashIcon, TrophyIcon, UsersIcon } from '@phosphor-icons/react'
+import { ArrowLeftIcon, ArrowRightIcon, CopyIcon, CrownIcon, GaugeIcon, PencilSimpleIcon, PlayIcon, PulseIcon, ShieldIcon, SparkleIcon, TrashIcon, TrophyIcon, UsersIcon } from '@phosphor-icons/react'
 import { useMemo, useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 import { Avatar, TeamAvatar } from '../components/Avatar'
@@ -9,12 +9,12 @@ import { MatchRow } from '../components/MatchRow'
 import { MedalList, MedalListRow, RuleList } from '../components/MedalList'
 import { confirmAction } from '../lib/feedback'
 import { MedalSheet, type MedalHolder } from '../components/MedalSheet'
-import { isBuiltin, playersLabel, WEIGHT_NAMES } from '../lib/games'
+import { isBuiltin, WEIGHT_NAMES } from '../lib/games'
 import { CATEGORIES, CUP_FORMATS, type GameDef, type PlayMode } from '../lib/games/schema'
 import { formatDate, plural, UNKNOWN_PLAYER, useBoard, useGame, useLeaderboard, usePlayerMap } from '../lib/hooks'
 import { gameMedals } from '../lib/medals'
 import { isTeamGame } from '../lib/teams'
-import { beltOf, gameStatsOf, levelFor, winRate } from '../lib/stats'
+import { beltOf, gameRanking, gameStatsOf, levelFor, winRate } from '../lib/stats'
 import { actions, useData } from '../lib/store'
 
 export const MODE_NAMES: Record<PlayMode, string> = {
@@ -25,6 +25,17 @@ export const MODE_NAMES: Record<PlayMode, string> = {
   result: 'Resultado final',
   coop: 'Cooperativo',
   sets: 'Por sets, punto a punto',
+}
+
+/** Cómo se anota, en dos palabras: va en la franja de la ficha con "se anota" debajo. */
+const MODE_SHORT: Record<PlayMode, string> = {
+  rally: 'Punto a punto',
+  counter: 'En vivo',
+  rounds: 'Por manos',
+  turns: 'Por turnos',
+  result: 'Al final',
+  coop: 'En equipo',
+  sets: 'Por sets',
 }
 
 export function playPath(game: Pick<GameDef, 'id'>): string {
@@ -74,17 +85,11 @@ function GameView({ game }: { game: GameDef }) {
   const players = usePlayerMap()
   const builtin = isBuiltin(game.id)
 
-  const ranking = useMemo(
-    () =>
-      [...board.players.values()]
-        .map((s) => s.perGame.get(game.id))
-        .filter((s) => !!s && s.played > 0)
-        .sort((a, b) => b!.elo - a!.elo || b!.wins - a!.wins) as NonNullable<ReturnType<typeof gameStatsOf>>[],
-    [board, game.id],
-  )
+  const ranking = useMemo(() => gameRanking(board, game.id), [board, game.id])
   const belt = beltOf(board.views, game.id)
   const playCount = useMemo(() => board.views.filter((v) => v.gameId === game.id).length, [board.views, game.id])
   const coop = game.mode === 'coop'
+  const category = CATEGORIES.find((c) => c.id === game.category)
 
   // Para cada familia de medallas, cómo va cada jugador y quién llegó más alto.
   const leaders = useMemo(() => {
@@ -124,33 +129,49 @@ function GameView({ game }: { game: GameDef }) {
 
   return (
     <div className="page" style={{ ['--gc' as string]: game.color }}>
-      <Link to="/juegos" className="back">
-        <ArrowLeftIcon /> Catálogo
-      </Link>
+      {/* La categoría es dónde está el juego: va en la flecha de volver, no como un dato más. */}
+      <div className="gd-crumb">
+        <Link to={category ? `/juegos?cat=${category.id}` : '/juegos'} className="back">
+          <ArrowLeftIcon /> {category?.name ?? 'Catálogo'}
+        </Link>
+        {game.source === 'ai' && (
+          <span className="gd-source ai">
+            <SparkleIcon aria-hidden /> Armado con IA
+          </span>
+        )}
+        {game.source === 'custom' && <span className="gd-source">Del club</span>}
+      </div>
       <header className="gd-hero">
         <GameCover game={game} aspect="landscape" showTitle={false} className="gd-hero-cover" />
         <div className="gd-hero-info">
           <h1>{game.name}</h1>
           {game.tagline && <p className="gd-hero-tagline">{game.tagline}</p>}
-          <div className="gd-hero-chips">
-            <span className="cc-chip">
-              <span aria-hidden>{CATEGORIES.find((c) => c.id === game.category)?.emoji}</span> {CATEGORIES.find((c) => c.id === game.category)?.name}
-            </span>
-            {game.source === 'custom' && <span className="cc-chip">Del club</span>}
-            <span className="cc-chip">
-              <UsersIcon aria-hidden /> {playersLabel(game, true)}
-            </span>
-            <span className="cc-chip">{MODE_NAMES[game.mode]}</span>
-            {game.mode !== 'coop' && <span className="cc-chip">{WEIGHT_NAMES[game.weight]}</span>}
-            {game.source === 'ai' && (
-              <span className="cc-chip ai">
-                <SparkleIcon aria-hidden /> Juego armado con IA
-              </span>
-            )}
-            {playCount > 0 && <span className="cc-chip hot">{plural(playCount, 'partida', 'partidas')}</span>}
-          </div>
         </div>
       </header>
+
+      {/* Lo práctico, para comparar de un vistazo entre juegos: cuántos, qué tan pesado y cómo se anota. */}
+      <dl className="gd-spec">
+        <div>
+          <dt>{game.players.max === 1 ? 'jugador' : 'jugadores'}</dt>
+          <dd>
+            <UsersIcon aria-hidden /> {game.players.min === game.players.max ? game.players.min : `${game.players.min}–${game.players.max}`}
+          </dd>
+        </div>
+        {!coop && (
+          <div>
+            <dt>de peso</dt>
+            <dd>
+              <GaugeIcon aria-hidden /> {WEIGHT_NAMES[game.weight]}
+            </dd>
+          </div>
+        )}
+        <div title={MODE_NAMES[game.mode]}>
+          <dt>se anota</dt>
+          <dd>
+            <PulseIcon aria-hidden /> {MODE_SHORT[game.mode]}
+          </dd>
+        </div>
+      </dl>
 
       <div className="quick-actions">
         <Link to={playPath(game)} className="btn primary big">
@@ -168,25 +189,27 @@ function GameView({ game }: { game: GameDef }) {
         )}
       </div>
 
-      {belt && (
-        <div className="card belt">
-          <span className="belt-icon" aria-hidden>
-            🥊
-          </span>
-          <div className="grow">
-            <span className="muted small">Cinturón de {game.name}</span>
-            <b className="block">{belt.holders.map((id) => players.get(id)?.name ?? '?').join(' & ')}</b>
-            <span className="muted small">
-              Desde {formatDate(belt.since)} · {plural(belt.defenses, 'defensa', 'defensas')}
-            </span>
-          </div>
-          <TeamAvatar team={belt.holders.map((id) => players.get(id) ?? UNKNOWN_PLAYER)} size={44} />
-        </div>
-      )}
-
-      {ranking.length > 0 && (
-        <section>
-          <h2>Ranking</h2>
+      {/* Todo lo del club arranca acá: cuántas partidas, el cinturón y el ranking. */}
+      {(belt || ranking.length > 0) && (
+        <section className="gd-club">
+          <h2>
+            En el club {playCount > 0 && <span className="muted">· {plural(playCount, 'partida', 'partidas')}</span>}
+          </h2>
+          {belt && (
+            <div className="card belt">
+              <span className="belt-icon" aria-hidden>
+                🥊
+              </span>
+              <div className="grow">
+                <span className="muted small">Cinturón de {game.name}</span>
+                <b className="block">{belt.holders.map((id) => players.get(id)?.name ?? '?').join(' & ')}</b>
+                <span className="muted small">
+                  Desde {formatDate(belt.since)} · {plural(belt.defenses, 'defensa', 'defensas')}
+                </span>
+              </div>
+              <TeamAvatar team={belt.holders.map((id) => players.get(id) ?? UNKNOWN_PLAYER)} size={44} />
+            </div>
+          )}
           <div className="list ranking">
             {ranking.slice(0, 10).map((s, i) => {
               const p = players.get(s.playerId) ?? UNKNOWN_PLAYER

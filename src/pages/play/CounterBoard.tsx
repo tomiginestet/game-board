@@ -1,17 +1,19 @@
-import { CaretDownIcon, CaretRightIcon } from '@phosphor-icons/react'
-import { useId, useMemo, useState } from 'react'
+import { CaretDownIcon, CaretRightIcon, XIcon } from '@phosphor-icons/react'
+import { useEffect, useId, useMemo, useState } from 'react'
 import { TeamAvatar } from '../../components/Avatar'
 import { sideColor, sideName, sidePlayersOf } from '../../components/GameBits'
 import { Tally } from '../../components/Tally'
-import { optionValue, targetOf, type LiveState } from '../../lib/engine'
+import { computeLive, optionValue, targetOf, type LiveState } from '../../lib/engine'
+import { toast } from '../../lib/feedback'
+import { formatElapsed } from '../../lib/pingpong/scoring'
 import { setsLine } from '../../lib/sets'
 import { vibrate } from '../../lib/vibrate'
 import type { EventDef, GameDef } from '../../lib/games/schema'
 import { actions, useData } from '../../lib/store'
-import type { Id, Play, PlaySide, Player } from '../../lib/types'
+import type { Id, LogEntry, Play, PlaySide, Player } from '../../lib/types'
 import { entryText, usePlayToggle, useTapGuard } from './playHooks'
 import { KeyHint } from './KeyHint'
-import { HelpToggle, PointsDialog, WhoDialog } from './shared'
+import { PointsDialog, WhoDialog } from './shared'
 import { sideKeys, undoLast, useScoreKeys } from './useScoreKeys'
 
 /** Cuántas jugadas se muestran de entrada por lado; el resto queda detrás de "Ver todo". */
@@ -28,6 +30,9 @@ export function CounterBoard({ play, game, live, players }: { play: Play; game: 
   const events = game.events.filter((e) => !e.global && !(e.id.toLowerCase().includes('flor') && flor === false))
   const globals = game.events.filter((e) => e.global)
   const two = play.sides.length === 2
+  // Un solo partido de dos lados (bochas, básquet, truco): dos columnas, cada una con su zona grande y la lista
+  // de jugadas debajo. Con sets o más de dos lados: tira de TV y bandas apiladas, como el ping pong.
+  const columns = two && !live.sets
   const leader = Math.max(...live.scores)
   const [asking, setAsking] = useState<{ s: number; e: EventDef; suggestion?: number } | null>(null)
   // "¿Quién lo hizo?": un punto (gol) o un evento de un jugador, de un lado.
@@ -59,8 +64,8 @@ export function CounterBoard({ play, game, live, players }: { play: Play; game: 
     setAskingWho(null)
   }
   const [expanded, setExpanded] = usePlayToggle(`more:${play.id}`)
-  const [help, setHelp] = usePlayToggle(`help:${game.id}`)
-  const helpId = useId()
+  const [tab, setTab] = useState<'board' | 'log'>('board')
+  const tabsId = useId()
 
   // Jugadas de entrada: las más usadas en las partidas anteriores de este juego (si no hay historial,
   // las primeras de la ficha) más las que ya se usaron en esta. Se fija al abrir, para que nada salte de lugar.
@@ -83,7 +88,7 @@ export function CounterBoard({ play, game, live, players }: { play: Play; game: 
   const primary = events.filter((e) => primaryIds.has(e.id))
   const rare = events.filter((e) => !primaryIds.has(e.id))
   const shown = expanded ? [...primary, ...rare] : primary
-  const withHelp = events.filter((e) => e.help)
+  const helpItems = [...events, ...globals].filter((e) => e.help)
 
   const tap = (s: number, e?: EventDef) => {
     if (!e) return score(s, quick[0])
@@ -142,88 +147,96 @@ export function CounterBoard({ play, game, live, players }: { play: Play; game: 
           onSubmit={whoDone}
         />
       )}
+      {columns ? <MatchLine play={play} game={game} players={players} /> : <ScoreStrip play={play} game={game} live={live} players={players} />}
       {live.sets && <SetsStrip live={live} />}
-      <div className={'counter-board' + (two ? ' two' : '')}>
-        {play.sides.map((side, s) => (
-          <div key={s} className="counter-side" style={{ ['--pc' as string]: sideColor(side, players) }}>
-            <SideScore side={side} score={live.scores[s]} game={game} target={target} quick={quick[0]} players={players} shortcut={keys[s]?.toUpperCase()} onTap={() => tap(s)} live={live} index={s} />
-            {(shown.length > 0 || quick.length > 1) && (
-              <div className="ev-grid" role="group" aria-label={`Jugadas de ${sideName(side, players)}`}>
-                {quick.slice(1).map((n) => (
-                  <button key={n} type="button" className="ev-tile" onClick={() => score(s, n)}>
-                    <span className="ev-tile-name">+{n}</span>
-                  </button>
-                ))}
-                {shown.map((e) => (
-                  <button key={e.id} type="button" className="ev-tile" onClick={() => tap(s, e)} aria-describedby={help && e.help ? `${helpId}-${e.id}` : undefined}>
-                    <span className="ev-tile-name">
-                      <span aria-hidden="true">{e.emoji}</span> {e.name}
-                    </span>
-                    {e.points && !e.askPoints ? <span className="ev-tile-pts">+{e.points}</span> : null}
-                    {live.counts[e.id]?.[s] ? (
-                      <b className="ev-tile-count">
-                        <span className="sr-only">, anotado </span>
-                        {live.counts[e.id][s]}
-                        <span className="sr-only"> {live.counts[e.id][s] === 1 ? 'vez' : 'veces'}</span>
-                      </b>
-                    ) : null}
-                  </button>
-                ))}
-              </div>
-            )}
-          </div>
-        ))}
+      {/* Marcador y Jugadas en pestañas: la cancha queda limpia y el relato de la partida tiene todo el alto. */}
+      <div className="board-tabs" role="tablist" aria-label="Partida">
+        <button type="button" role="tab" id={`${tabsId}-board`} aria-selected={tab === 'board'} aria-controls={`${tabsId}-board-panel`} onClick={() => setTab('board')}>
+          Marcador
+        </button>
+        <button type="button" role="tab" id={`${tabsId}-log`} aria-selected={tab === 'log'} aria-controls={`${tabsId}-log-panel`} onClick={() => setTab('log')}>
+          Jugadas {play.log.length > 0 && <span className="board-tab-count num">{play.log.length}</span>}
+        </button>
       </div>
-      <KeyHint items={keyItems} />
-      {(rare.length > 0 || withHelp.length > 0) && (
-        <div className="board-tools">
-          {rare.length > 0 && (
-            <button type="button" className="more-toggle" aria-expanded={expanded} onClick={() => setExpanded(!expanded)}>
-              <CaretDownIcon className={expanded ? 'flip' : undefined} aria-hidden="true" />
-              {expanded ? 'Ver menos' : `Ver todo (${rare.length} más)`}
-            </button>
-          )}
-          {withHelp.length > 0 && <HelpToggle on={help} onChange={setHelp} controls={helpId} />}
-        </div>
-      )}
-      <div id={helpId} hidden={!help}>
-        {help && (
-          <dl className="ev-help">
-            {(expanded ? [...primary, ...rare] : primary).filter((e) => e.help).map((e) => (
-              <div key={e.id} id={`${helpId}-${e.id}`}>
-                <dt>
-                  <span aria-hidden="true">{e.emoji}</span> {e.name}
-                </dt>
-                <dd>{e.help}</dd>
-              </div>
-            ))}
-            {globals.filter((e) => e.help).map((e) => (
-              <div key={e.id}>
-                <dt>
-                  <span aria-hidden="true">{e.emoji}</span> {e.name}
-                </dt>
-                <dd>{e.help}</dd>
-              </div>
-            ))}
-          </dl>
-        )}
-      </div>
-      {globals.length > 0 && (
-        <div className="chips center">
-          {globals.map((e) => (
-            <button key={e.id} type="button" className="chip" onClick={() => (vibrate(), actions.log(play.id, { k: 'ev', s: -1, e: e.id, n: 1 }))}>
-              {e.emoji} {e.name} {live.globalCounts[e.id] ? <b className="chip-count">{live.globalCounts[e.id]}</b> : null}
-            </button>
+
+      <div role="tabpanel" id={`${tabsId}-board-panel`} aria-labelledby={`${tabsId}-board`} hidden={tab !== 'board'} className="board-panel">
+        <div className={columns ? 'cols' : 'bands' + (two ? ' two' : '')}>
+          {play.sides.map((side, s) => (
+            <section key={s} className={columns ? 'col' : 'band'} style={{ ['--pc' as string]: sideColor(side, players) }} aria-label={sideName(side, players)}>
+              <SideScore side={side} score={live.scores[s]} game={game} target={target} quick={quick[0]} players={players} shortcut={keys[s]?.toUpperCase()} onTap={() => tap(s)} live={live} index={s} hint={!play.log.length} progress={columns} />
+              {(shown.length > 0 || quick.length > 1) && (
+                <div className="band-acts" role="group" aria-label={`Jugadas de ${sideName(side, players)}`}>
+                  {quick.slice(1).map((n) => (
+                    <button key={n} type="button" className="band-act pts" onClick={() => score(s, n)}>
+                      +{n}
+                    </button>
+                  ))}
+                  {shown.map((e) => {
+                    // El contador en cero sólo en las jugadas que no suman puntos (las que cuentan para medallas);
+                    // en las que suman (envido, truco), el número aparece recién cuando pasó.
+                    const n = e.type === 'count' ? live.counts[e.id]?.[s] ?? 0 : 0
+                    const count = e.type === 'count' && (n > 0 || (!e.points && !e.askPoints)) ? n : undefined
+                    return (
+                      <button key={e.id} type="button" className="band-act" onClick={() => tap(s, e)}>
+                        <span className="band-act-name">
+                          {e.name}
+                          {e.points && !e.askPoints ? <small> +{e.points}</small> : null}
+                        </span>
+                        {count !== undefined && (
+                          <b className={'band-act-count num' + (count ? '' : ' zero')}>
+                            <span className="sr-only">, anotado </span>
+                            {count}
+                            <span className="sr-only"> {count === 1 ? 'vez' : 'veces'}</span>
+                          </b>
+                        )}
+                      </button>
+                    )
+                  })}
+                </div>
+              )}
+            </section>
           ))}
         </div>
-      )}
-      <LogList play={play} game={game} players={players} />
+        {rare.length > 0 && (
+          <button type="button" className="more-toggle" aria-expanded={expanded} onClick={() => setExpanded(!expanded)}>
+            <CaretDownIcon className={expanded ? 'flip' : undefined} aria-hidden="true" />
+            {expanded ? 'Ver menos jugadas' : `Ver todas las jugadas (${rare.length} más)`}
+          </button>
+        )}
+        {globals.length > 0 && (
+          <div className="chips center">
+            {globals.map((e) => (
+              <button key={e.id} type="button" className="chip" onClick={() => (vibrate(), actions.log(play.id, { k: 'ev', s: -1, e: e.id, n: 1 }))}>
+                {e.name} {live.globalCounts[e.id] ? <b className="chip-count">{live.globalCounts[e.id]}</b> : null}
+              </button>
+            ))}
+          </div>
+        )}
+        <KeyHint items={keyItems} />
+      </div>
+
+      <div role="tabpanel" id={`${tabsId}-log-panel`} aria-labelledby={`${tabsId}-log`} hidden={tab !== 'log'} className="board-panel">
+        {tab === 'log' && <PlayLog play={play} game={game} players={players} />}
+        {helpItems.length > 0 && (
+          <section className="ev-help-section">
+            <h2>Qué es cada jugada</h2>
+            <dl className="ev-help">
+              {helpItems.map((e) => (
+                <div key={e.id}>
+                  <dt>{e.name}</dt>
+                  <dd>{e.help}</dd>
+                </div>
+              ))}
+            </dl>
+          </section>
+        )}
+      </div>
     </>
   )
 }
 
 /** Zona grande de cada lado: un toque suma; un arrastre o un scroll, no. */
-function SideScore({ side, score, game, target, quick, players, shortcut, onTap, live, index }: { side: PlaySide; score: number; game: GameDef; target?: number; quick: number; players: Map<Id, Player>; shortcut?: string; onTap: () => void; live: LiveState; index: number }) {
+function SideScore({ side, score, game, target, quick, players, shortcut, onTap, live, index, hint, progress }: { side: PlaySide; score: number; game: GameDef; target?: number; quick: number; players: Map<Id, Player>; shortcut?: string; onTap: () => void; live: LiveState; index: number; hint: boolean; progress?: boolean }) {
   const guard = useTapGuard(onTap)
   const malas = game.scoring.tally === 'matches' && target && target >= 20 ? target / 2 : undefined
   const name = sideName(side, players)
@@ -248,7 +261,7 @@ function SideScore({ side, score, game, target, quick, players, shortcut, onTap,
             </span>
           )}
         </span>
-        <span className="cs-hint">+1 punto</span>
+        {hint && <span className="cs-hint">Tocá para sumar un punto</span>}
       </button>
     )
   }
@@ -262,10 +275,158 @@ function SideScore({ side, score, game, target, quick, players, shortcut, onTap,
       </span>
       {malas !== undefined && <span className="cs-sub">{score < malas ? 'en las malas' : 'en las buenas'}</span>}
       {game.scoring.tally === 'matches' && <Tally value={score} target={target ?? 30} />}
-      <span className="cs-hint">
-        +{quick} {game.scoring.quickLabel ?? ''}
-      </span>
+      {/* Cada lado con su propia barra: cuánto lleva de la meta y cuánto le falta (el truco ya lo dice con los fósforos). */}
+      {progress && target && !game.scoring.lowWins && game.scoring.tally !== 'matches' && (
+        <span className="cs-progress">
+          <span className="cs-bar" aria-hidden>
+            <i style={{ width: `${Math.min(100, (score / target) * 100)}%` }} />
+          </span>
+          <span className="cs-left num">{score >= target ? 'Llegó' : `Faltan ${target - score}`}</span>
+        </span>
+      )}
+      {/* La pista sólo hace falta antes del primer punto; después, el toque se aprende solo. */}
+      {hint && (
+        <span className="cs-hint">
+          Tocá para sumar {quick === 1 ? 'uno' : quick}
+          {game.scoring.quickLabel ? ` (${game.scoring.quickLabel.toLowerCase()})` : ''}
+        </span>
+      )}
     </button>
+  )
+}
+
+/**
+ * La tira de TV, como en el ping pong: tiempo de partida, lo último que se anotó (confirma el toque sin mirar
+ * el historial) y una fila por lado con sus jugadas y el puntaje. Con más de dos lados, ordenada por puntaje.
+ */
+function ScoreStrip({ play, game, live, players }: { play: Play; game: GameDef; live: LiveState; players: Map<Id, Player> }) {
+  const sets = live.sets
+  const value = (s: number) => (sets ? sets.won[s] : live.scores[s])
+  const order = play.sides.map((_, s) => s)
+  if (play.sides.length > 2) order.sort((a, b) => (game.scoring.lowWins ? value(a) - value(b) : value(b) - value(a)))
+  const values = play.sides.map((_, s) => value(s))
+  const best = game.scoring.lowWins ? Math.min(...values) : Math.max(...values)
+  const leader = play.log.length && values.filter((v) => v === best).length === 1 ? values.indexOf(best) : -1
+  const last = play.log.at(-1)
+  const target = targetOf(game, play.config)
+  return (
+    <div className="tv-strip num">
+      <p className="tvs-head">
+        <span>
+          <Clock from={play.startedAt} /> de partida
+        </span>
+        <span className="tvs-last">{last ? `Último: ${lastText(play, game, players, last)}` : target ? `Gana el primero a ${target}` : ''}</span>
+      </p>
+      {order.map((s) => (
+        <div key={s} className={'tvs-row' + (s === leader ? ' lead' : '')} style={{ ['--pc' as string]: sideColor(play.sides[s], players) }}>
+          <span className="tvs-name">{sideName(play.sides[s], players)}</span>
+          <span className="tvs-events">
+            {game.events
+              .filter((e) => e.type === 'count' && !e.global && live.counts[e.id]?.[s])
+              .map((e) => `${e.name} ${live.counts[e.id][s]}`)
+              .join(' · ')}
+          </span>
+          <b className="tvs-score">
+            {value(s)}
+            {sets && <span className="sr-only"> sets</span>}
+          </b>
+        </div>
+      ))}
+    </div>
+  )
+}
+
+/** Para el partido único de dos lados: reloj y lo último anotado, en una línea. Lo que falta va en cada columna. */
+function MatchLine({ play, game, players }: { play: Play; game: GameDef; players: Map<Id, Player> }) {
+  const target = targetOf(game, play.config)
+  const last = play.log.at(-1)
+  return (
+    <div className="match-line num">
+      <p className="tvs-head">
+        <span>
+          <Clock from={play.startedAt} /> de partida
+        </span>
+        <span className="tvs-last">{last ? `Último: ${lastText(play, game, players, last)}` : target ? `Gana el primero a ${target}` : ''}</span>
+      </p>
+    </div>
+  )
+}
+
+/** Reloj de la partida (minutos y segundos desde el primer punto). */
+function Clock({ from }: { from?: number }) {
+  const [now, setNow] = useState(() => Date.now())
+  useEffect(() => {
+    if (!from) return
+    const t = setInterval(() => setNow(Date.now()), 1000)
+    return () => clearInterval(t)
+  }, [from])
+  return <b>{formatElapsed(from ? now - from : 0)}</b>
+}
+
+const sideLabel = (play: Play, players: Map<Id, Player>, s: number) => (s < 0 ? 'Mesa' : sideName(play.sides[s], players))
+
+/** Una entrada del registro en dos partes: qué pasó ("+2", "Bochazo") y quién ("Tomi", "pase de Nico"). */
+function logLine(play: Play, game: GameDef, players: Map<Id, Player>, e: LogEntry): { what: string; who?: string } {
+  const name = (id?: Id) => (id ? players.get(id)?.name ?? '¿?' : undefined)
+  if (e.k === 'pt') return { what: `+${e.n}`, who: [name(e.pl), e.as ? `pase de ${name(e.as)}` : undefined].filter(Boolean).join(', ') || undefined }
+  if (e.k === 'ev') {
+    const def = game.events.find((x) => x.id === e.e)
+    return { what: `${def?.name ?? e.e}${e.p !== undefined ? ` (+${e.p})` : ''}${e.n < 0 ? ' (−1)' : ''}`, who: name(e.pl) }
+  }
+  return { what: entryText(play, game, players, e) }
+}
+
+/** "+2 de Tomi", "Bochazo, Juli": lo último anotado, para confirmar el toque. */
+function lastText(play: Play, game: GameDef, players: Map<Id, Player>, e: LogEntry): string {
+  const { what, who } = logLine(play, game, players, e)
+  if (e.k !== 'pt' && e.k !== 'ev') return what
+  return who ? `${what} de ${who}` : `${what}, ${sideLabel(play, players, e.s)}`
+}
+
+/**
+ * El relato de la partida, de lo último a lo primero: minuto, lado, qué pasó y cómo quedó el marcador.
+ * Cualquier jugada se puede borrar (no sólo la última); el aviso ofrece deshacer.
+ */
+function PlayLog({ play, game, players }: { play: Play; game: GameDef; players: Map<Id, Player> }) {
+  const start = play.startedAt ?? play.log[0]?.t ?? 0
+  // Marcador después de cada entrada; se muestra sólo cuando cambió.
+  const rows = useMemo(() => {
+    let prev = ''
+    return play.log.map((e, i) => {
+      const scores = computeLive(game, { ...play, log: play.log.slice(0, i + 1) }).scores.join('–')
+      const changed = scores !== prev
+      prev = scores
+      return { e, i, score: changed ? scores : undefined }
+    })
+  }, [play, game])
+  if (!rows.length) return <p className="muted play-log-empty">Todavía no se anotó nada. Lo que vayas sumando aparece acá, con el minuto y el marcador.</p>
+  const remove = (i: number) => {
+    const before = play.log
+    const { what } = logLine(play, game, players, play.log[i])
+    actions.removeLog(play.id, i)
+    toast(`Borraste: ${what}, ${sideLabel(play, players, 's' in play.log[i] ? play.log[i].s : -1)}`, { label: 'Deshacer', run: () => actions.patchPlay(play.id, { log: before }) })
+  }
+  return (
+    <ol className="play-log num">
+      {[...rows].reverse().map(({ e, i, score }) => {
+        const { what, who } = logLine(play, game, players, e)
+        const s = 's' in e ? e.s : -1
+        const side = sideLabel(play, players, s)
+        return (
+          <li key={i} className={i === play.log.length - 1 ? 'last' : undefined}>
+            <span className="pl-time">{Math.max(0, Math.floor((e.t - start) / 60000))}′</span>
+            <span className="pl-dot" style={{ background: s >= 0 ? sideColor(play.sides[s], players) : 'var(--border-strong)' }} aria-hidden />
+            <span className="pl-text">
+              <b>{what}</b> <span className="pl-who">{who ? `${who} · ${side}` : side}</span>
+            </span>
+            <span className="pl-score">{score}</span>
+            <button type="button" className="pl-remove" onClick={() => remove(i)} aria-label={`Borrar ${what} de ${who ?? side}`}>
+              <XIcon aria-hidden />
+            </button>
+          </li>
+        )
+      })}
+    </ol>
   )
 }
 

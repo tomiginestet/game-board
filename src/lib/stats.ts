@@ -441,6 +441,29 @@ export function globalStatsOf(board: Board, playerId: Id): GlobalStats {
   return board.players.get(playerId) ?? emptyGlobal(playerId)
 }
 
+/** Ranking de un juego: quienes lo jugaron, por Elo y después por victorias (el mismo orden que la ficha). */
+export function gameRanking(board: Board, gameId: string): GameStats[] {
+  return [...board.players.values()]
+    .map((s) => s.perGame.get(gameId))
+    .filter((s): s is GameStats => !!s && s.played > 0)
+    .sort((a, b) => b.elo - a.elo || b.wins - a.wins)
+}
+
+export type FormResult = 'win' | 'loss' | 'draw'
+
+/** Las últimas `n` partidas de un jugador en cualquier juego, de la más vieja a la más nueva. */
+export function recentForm(board: Board, playerId: Id, n = 8): FormResult[] {
+  const out: FormResult[] = []
+  for (let k = board.views.length - 1; k >= 0 && out.length < n; k--) {
+    const v = board.views[k]
+    const i = v.sides.findIndex((side) => side.includes(playerId))
+    if (i < 0) continue
+    if (v.coopWin !== undefined) out.push(v.coopWin ? 'win' : 'loss')
+    else out.push(v.winners.includes(i) ? 'win' : v.winners.length ? 'loss' : 'draw')
+  }
+  return out.reverse()
+}
+
 export interface Belt {
   holders: Id[]
   since: number
