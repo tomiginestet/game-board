@@ -631,7 +631,7 @@
 }
 
 /* Medallas (ficha del juego y vista previa): una tarjeta por familia, con las medallas arriba
-   (protagonistas) y el texto abajo, para que el largo del texto no dependa de cuántas medallas hay. */
+   (protagonistas) y el texto abajo, todo centrado. */
 .section-lead {
   margin: -4px 0 12px;
 }
@@ -645,27 +645,25 @@
   gap: 12px;
 }
 
+/* Centrada, como una vitrina: medallas y texto al medio. */
 .medal-card {
   display: flex;
   flex-direction: column;
+  align-items: center;
   gap: 14px;
   padding: 16px 16px 18px;
+  text-align: center;
 }
 
 .medal-card-art {
+  position: relative;
   display: flex;
   align-items: center;
-  gap: 10px;
 }
 
 .medal-card-stack {
   display: flex;
   align-items: center;
-}
-
-/* El hexágono tiene aire propio dentro del dibujo: se corre para alinearlo ópticamente con el texto. */
-.medal-list:not(.centered) .medal-card-stack {
-  margin-left: -4px;
 }
 
 .medal-card-stack .medal-btn + .medal-btn {
@@ -677,8 +675,11 @@
   z-index: 1;
 }
 
-/* Cuántos niveles más hay: la ficha los muestra todos. */
+/* Cuántos niveles más hay (la ficha los muestra todos). Cuelga al costado de la última medalla
+   para no correr las medallas del centro. */
 .medal-card-more {
+  position: absolute;
+  left: calc(100% + 6px);
   padding: 2px 8px;
   border-radius: 999px;
   border: 1px solid var(--border-strong);
@@ -691,6 +692,7 @@
 .medal-card-info {
   display: flex;
   flex-direction: column;
+  align-items: center;
   gap: 2px;
   min-width: 0;
   padding: 0;
@@ -699,7 +701,7 @@
   background: none;
   color: inherit;
   font: inherit;
-  text-align: left;
+  text-align: center;
   cursor: pointer;
 }
 
@@ -718,6 +720,7 @@
 .medal-card-leader {
   display: flex;
   align-items: flex-start;
+  justify-content: center;
   gap: 6px;
   margin-top: 6px;
   color: var(--accent-2);
@@ -741,31 +744,6 @@
   color: var(--text-soft);
   font-size: 14px;
   line-height: 1.4;
-}
-
-/* Variante centrada: medallas y texto al medio, como una vitrina. */
-.medal-list.centered .medal-card {
-  align-items: center;
-  text-align: center;
-}
-
-.medal-list.centered .medal-card-art {
-  position: relative;
-}
-
-/* Centrada, la chapita no desplaza las medallas: cuelga al costado de la última. */
-.medal-list.centered .medal-card-more {
-  position: absolute;
-  left: calc(100% + 6px);
-}
-
-.medal-list.centered .medal-card-info {
-  align-items: center;
-  text-align: center;
-}
-
-.medal-list.centered .medal-card-leader {
-  justify-content: center;
 }
 
 .medal-card-info:focus-visible,
@@ -800,6 +778,9 @@
 }
 
 .rule-num {
+  /* Alineación óptica: el texto se lee por sus minúsculas, más abajo que el centro de la línea.
+     Bajado 1px, el círculo queda entre la altura de las mayúsculas y la de las minúsculas. */
+  margin-top: 1px;
   width: 24px;
   height: 24px;
   display: grid;

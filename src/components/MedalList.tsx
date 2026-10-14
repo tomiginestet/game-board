@@ -5,11 +5,11 @@ import type { MedalFamily } from '../lib/medals'
 import { Medal } from './Medal'
 
 /**
- * Familias de medallas, una tarjeta por familia: las medallas arriba y el texto abajo.
+ * Familias de medallas, una tarjeta por familia: las medallas arriba y el texto abajo, centrados.
  * Cada medalla abre su ficha; el texto abre la ficha en `openLevel`. `detail` va debajo de lo que mide.
  */
-export function MedalList({ align = 'start', children }: { align?: 'start' | 'center'; children: ReactNode }) {
-  return <ul className={'medal-list' + (align === 'center' ? ' centered' : '')}>{children}</ul>
+export function MedalList({ children }: { children: ReactNode }) {
+  return <ul className="medal-list">{children}</ul>
 }
 
 export function MedalListRow({
