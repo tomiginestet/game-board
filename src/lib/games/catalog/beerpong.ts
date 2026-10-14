@@ -23,7 +23,7 @@ export const beerpong: GameDef = {
       unit: '{n} partidas', unitOne: '1 partida',
       levels: [
         lv(3, 'Vaso de plástico', 'Tres ganadas. El primer vaso rojo de tu colección.'),
-        lv(10, 'Pulso de cirujano', 'Diez victorias: tirás igual de bien en el vaso diez que en el uno.'),
+        lv(10, 'Pinza de cirujano', 'Diez victorias: tirás igual de bien en el vaso diez que en el uno.'),
         lv(30, 'Leyenda de la previa', 'Treinta ganadas. Te invitan a las fiestas sólo por la mesa.'),
       ],
     },

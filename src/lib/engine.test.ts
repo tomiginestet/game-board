@@ -324,4 +324,19 @@ describe('catálogo', () => {
     for (const f of GLOBAL_FAMILIES) for (const l of f.levels) if (!ART_REGISTRY[l.name]) missing.push(`general: ${l.name}`)
     expect(missing).toEqual([])
   })
+
+  // El registro es uno solo, por nombre: dos ilustraciones con el mismo nombre se pisan y una nunca se ve.
+  it('ninguna ilustración repite el nombre de otra', () => {
+    const files = import.meta.glob<Record<string, unknown>>('./art/nuevas/*.ts', { eager: true })
+    const seen = new Map<string, string>()
+    const dup: string[] = []
+    for (const [file, m] of Object.entries(files))
+      for (const [k, v] of Object.entries(m))
+        if (k.endsWith('_ART'))
+          for (const name of Object.keys(v as object)) {
+            if (seen.has(name)) dup.push(`${name}: ${seen.get(name)} y ${file}`)
+            seen.set(name, file)
+          }
+    expect(dup).toEqual([])
+  })
 })
