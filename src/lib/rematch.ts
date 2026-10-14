@@ -84,7 +84,7 @@ export function joinNames(names: string[]): string {
 /** Los lados como texto ("Ana & Beto") y con qué se separan: "vs" entre dos lados o equipos, "·" entre varios solos. */
 export function previewParts(sides: PlaySide[], grouping: Grouping, nameOf: (id: Id) => string): { parts: string[]; sep: string } {
   if (grouping === 'coop') return { parts: [joinNames(sides.flatMap((s) => s.players).map(nameOf))], sep: '' }
-  const parts = sides.map((s) => s.players.map(nameOf).join(' & '))
+  const parts = sides.map((s) => (s.teamId && s.name) || s.players.map(nameOf).join(' & '))
   return { parts, sep: grouping === 'teams' || parts.length === 2 ? 'vs' : '·' }
 }
 

@@ -1,5 +1,8 @@
-import { ArrowLeftIcon, CrownIcon, GiftIcon, LockIcon, PlayIcon, ShuffleIcon, TrashIcon } from '@phosphor-icons/react'
-import { useMemo } from 'react'
+import { ArrowLeftIcon, CalendarBlankIcon, CrownIcon, GiftIcon, LockIcon, MapPinIcon, PencilSimpleIcon, PlayIcon, ShuffleIcon, StarIcon, TrashIcon } from '@phosphor-icons/react'
+import { useMemo, useState } from 'react'
+import { ScheduleDialog } from '../components/ScheduleDialog'
+import { playerLines } from '../lib/engine'
+import { formatDay, formatWhen } from '../lib/schedule'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 import { TeamAvatar } from '../components/Avatar'
 import { GameBadge, PlayRow } from '../components/GameBits'
@@ -34,12 +37,19 @@ function CupView({ cup, game }: { cup: Cup; game: GameDef }) {
   const players = usePlayerMap()
   const plays = useMemo(() => data.plays.filter((p) => p.cupId === cup.id).sort((a, b) => (a.round ?? 0) - (b.round ?? 0) || (a.slot ?? 0) - (b.slot ?? 0)), [data.plays, cup.id])
   const nameOf = (id: Id) => players.get(id)?.name ?? '?'
-  const entrantName = (i: number | null | undefined) => (i === null ? 'Libre' : i === undefined ? 'Por definir' : cupEntrantName(cup, i, nameOf))
+  const teamName = (id: Id) => data.teams.find((t) => t.id === id)?.name
+  const entrantName = (i: number | null | undefined) => (i === null ? 'Libre' : i === undefined ? 'Por definir' : cupEntrantName(cup, i, nameOf, teamName))
+  const [editing, setEditing] = useState<Play | null>(null)
+  const sideLabel = (p: Play) => p.sides.map((s) => s.name ?? s.players.map(nameOf).join(' & ')).join(' vs ')
   const entrantTeam = (i: number): Player[] => cup.entrants[i]?.players.map((id) => players.get(id) ?? UNKNOWN_PLAYER) ?? []
   const lowWins = !!game.scoring.lowWins
   const champion = cupChampion(cup, plays, lowWins)
   const standings = cup.format === 'knockout' ? [] : cupStandings(cup, plays, lowWins)
-  const next = plays.find((p) => p.status !== 'finished')
+  // La próxima: la que está en juego o, si no, la primera del calendario (o del fixture, si no hay fechas).
+  const open = plays.filter((p) => p.status !== 'finished')
+  const next = open.find((p) => p.status === 'live') ?? [...open].sort((a, b) => (a.scheduledAt ?? Infinity) - (b.scheduledAt ?? Infinity))[0]
+  const scorers = useMemo(() => cupScorers(plays), [plays])
+  const unit = game.perPlayer?.unit ?? 'goles'
   const formatName = CUP_FORMATS.find((f) => f.id === cup.format)?.name
 
   const remove = async () => {
@@ -86,11 +96,81 @@ function CupView({ cup, game }: { cup: Cup; game: GameDef }) {
 
       {next && champion === undefined && (
         <Link to={`/partida/${next.id}`} className="btn primary big block">
-          <PlayIcon weight="fill" /> Próxima: {next.sides.map((s) => s.name ?? s.players.map(nameOf).join(' & ')).join(' vs ')}
+          <PlayIcon weight="fill" /> Próxima: {sideLabel(next)}
         </Link>
       )}
+      {next && champion === undefined && (next.scheduledAt || next.venue) && (
+        <p className="muted small center">
+          {next.scheduledAt && (
+            <>
+              <CalendarBlankIcon className="inline-icon" /> {formatWhen(next.scheduledAt)}
+            </>
+          )}
+          {next.venue && (
+            <>
+              {' · '}
+              <MapPinIcon className="inline-icon" /> {next.venue}
+            </>
+          )}
+        </p>
+      )}
+      {editing && <ScheduleDialog play={editing} title={sideLabel(editing)} venues={cup.venues} onClose={() => setEditing(null)} />}
 
       {cup.format === 'knockout' && <Bracket cup={cup} plays={plays} entrantName={entrantName} />}
+
+      {scorers.length > 0 && (
+        <section>
+          <h2>{game.perPlayer?.scorer ? 'Goleadores' : 'Figuras'}</h2>
+          <div className="table-wrap">
+            <table className="standings">
+              <thead>
+                <tr>
+                  <th>#</th>
+                  <th className="left">Jugador</th>
+                  {game.perPlayer?.scorer && <th>{unit.charAt(0).toUpperCase() + unit.slice(1)}</th>}
+                  {game.perPlayer?.assists && (
+                    <th>
+                      <abbr title="Asistencias">Asist.</abbr>
+                    </th>
+                  )}
+                  {game.perPlayer?.mvp && (
+                    <th>
+                      <abbr title="Veces que fue la figura">Figura</abbr>
+                    </th>
+                  )}
+                </tr>
+              </thead>
+              <tbody>
+                {scorers.slice(0, 10).map((r, i) => (
+                  <tr key={r.id}>
+                    <td>{i + 1}</td>
+                    <td className="left">
+                      {players.get(r.id)?.emoji} {nameOf(r.id)}
+                    </td>
+                    {game.perPlayer?.scorer && (
+                      <td>
+                        <b>{r.scored}</b>
+                      </td>
+                    )}
+                    {game.perPlayer?.assists && <td>{r.assists || ''}</td>}
+                    {game.perPlayer?.mvp && (
+                      <td>
+                        {r.mvps ? (
+                          <>
+                            <StarIcon weight="fill" className="inline-icon mvp-star" aria-hidden="true" /> {r.mvps}
+                          </>
+                        ) : (
+                          ''
+                        )}
+                      </td>
+                    )}
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </section>
+      )}
 
       {standings.length > 0 && (
         <section>
@@ -142,18 +222,25 @@ function CupView({ cup, game }: { cup: Cup; game: GameDef }) {
       {cup.format !== 'knockout' && (
         <section>
           <h2>Partidas</h2>
-          {groupByRound(plays).map(([round, list]) => (
-            <div key={round} className="round-group">
-              <h3 className="muted small">
-                {cup.format === 'league' ? `Fecha ${round + 1}` : cup.format === 'series' ? `Partida ${round + 1}` : round === cup.rounds ? 'Mesa final' : `Ronda ${round + 1}`}
-              </h3>
-              <div className="list">
-                {list.map((p) => (
-                  <PlayRow key={p.id} play={p} game={game} players={players} showGame={false} />
-                ))}
+          {groupByRound(plays).map(([round, list]) => {
+            const day = Math.min(...list.map((p) => p.scheduledAt ?? Infinity))
+            return (
+              <div key={round} className="round-group">
+                <h3 className="muted small">
+                  {cup.format === 'league' ? `Fecha ${round + 1}` : cup.format === 'series' ? `Partida ${round + 1}` : round === cup.rounds ? 'Mesa final' : `Ronda ${round + 1}`}
+                  {isFinite(day) ? ` · ${formatDay(day)}` : ''}
+                </h3>
+                <div className="list">
+                  {list.map((p) => (
+                    <div key={p.id}>
+                      <PlayRow play={p} game={game} players={players} showGame={false} />
+                      <FixtureMeta play={p} onEdit={cup.schedule || cup.venues || p.scheduledAt || p.venue ? () => setEditing(p) : undefined} />
+                    </div>
+                  ))}
+                </div>
               </div>
-            </div>
-          ))}
+            )
+          })}
         </section>
       )}
 
@@ -169,6 +256,49 @@ function CupView({ cup, game }: { cup: Cup; game: GameDef }) {
       </div>
     </div>
   )
+}
+
+/** Día, hora y cancha debajo de cada partido del fixture, con "Cambiar". */
+function FixtureMeta({ play, onEdit }: { play: Play; onEdit?: () => void }) {
+  if (!onEdit || play.status === 'finished') return null
+  return (
+    <p className="fixture-meta muted small">
+      {!play.scheduledAt && (
+        <span>
+          <CalendarBlankIcon className="inline-icon" /> Sin fecha
+        </span>
+      )}
+      {play.venue && (
+        <span>
+          <MapPinIcon className="inline-icon" /> {play.venue}
+        </span>
+      )}
+      <button type="button" className="link-btn small" onClick={onEdit}>
+        <PencilSimpleIcon className="inline-icon" /> Cambiar
+      </button>
+    </p>
+  )
+}
+
+/** Goleadores (y figuras) de un torneo, de más a menos. */
+function cupScorers(plays: Play[]) {
+  const rows = new Map<Id, { id: Id; scored: number; assists: number; mvps: number }>()
+  const row = (id: Id) => {
+    let r = rows.get(id)
+    if (!r) rows.set(id, (r = { id, scored: 0, assists: 0, mvps: 0 }))
+    return r
+  }
+  for (const p of plays) {
+    if (p.status !== 'finished') continue
+    for (const [id, line] of playerLines(p)) {
+      if (!line.scored && !line.assists) continue
+      const r = row(id)
+      r.scored += line.scored
+      r.assists += line.assists
+    }
+    if (p.result?.mvp) row(p.result.mvp).mvps++
+  }
+  return [...rows.values()].sort((a, b) => b.scored - a.scored || b.assists - a.assists || b.mvps - a.mvps)
 }
 
 function groupByRound(plays: Play[]): [number, Play[]][] {
@@ -229,7 +359,12 @@ function Bracket({ cup, plays, entrantName }: { cup: Cup; plays: Play[]; entrant
                       {entrantName(slot.b)}
                       {scores && ia !== undefined && ia >= 0 && <b>{scores[1 - ia]}</b>}
                     </span>
-                    {playable && slot.winner === undefined && <span className="bk-detail muted small">{slot.play?.status === 'live' ? 'En juego' : 'Jugar'}</span>}
+                    {playable && slot.winner === undefined && (
+                      <span className="bk-detail muted small">
+                        {slot.play?.status === 'live' ? 'En juego' : slot.play?.scheduledAt ? formatWhen(slot.play.scheduledAt) : 'Jugar'}
+                        {slot.play?.venue && slot.play.status !== 'live' ? ` · ${slot.play.venue}` : ''}
+                      </span>
+                    )}
                   </button>
                 )
               })}

@@ -2,7 +2,7 @@
 // cinturones y los números de los que salen las medallas.
 
 import { cupChampion } from './cups'
-import { computeLive, winnerSides } from './engine'
+import { computeLive, playerLines, winnerSides, type PlayerLine } from './engine'
 import { findGame, missingGame } from './games'
 import type { GameDef } from './games/schema'
 import { computeMatch } from './pingpong/scoring'
@@ -32,6 +32,10 @@ export interface PlayView {
   holderGains: Record<string, number[]>
   stats?: Record<string, (number | string | null)[]>
   cupId?: Id
+  /** Lo que hizo cada jugador con nombre (goles, asistencias, eventos `byPlayer`). */
+  lines?: Map<Id, PlayerLine>
+  /** Figura del partido. */
+  mvp?: Id
   /** Partida original (ausente en ping pong). */
   play?: Play
 }
@@ -54,6 +58,8 @@ export function playView(game: GameDef, play: Play): PlayView | undefined {
     holderGains: live.holderGains,
     stats: play.result.stats,
     cupId: play.cupId,
+    lines: playerLines(play),
+    ...(play.result.mvp ? { mvp: play.result.mvp } : {}),
     play,
   }
 }
@@ -125,6 +131,14 @@ export interface GameStats {
   choiceWins: Record<string, number>
   roleWins: Record<string, number>
   rolePlayed: Record<string, number>
+  /** Lo que anotó el jugador mismo (goles, puntos), en total y su mejor partida. */
+  scored: number
+  scoredMax: number
+  /** Partidas en las que anotó al menos una vez. */
+  scoredPlays: number
+  assists: number
+  /** Veces que fue la figura del partido. */
+  mvps: number
 }
 
 export interface GlobalStats {
@@ -176,6 +190,11 @@ function emptyGame(playerId: Id, gameId: string): GameStats {
     choiceWins: {},
     roleWins: {},
     rolePlayed: {},
+    scored: 0,
+    scoredMax: 0,
+    scoredPlays: 0,
+    assists: 0,
+    mvps: 0,
   }
 }
 
@@ -276,6 +295,7 @@ export function computeBoard(data: AppData, filter?: { since?: number; gameId?: 
     eloDeltas.set(v.id, deltas)
 
     const pts = v.sides.map((_, i) => gloriaPoints(game.weight, n, v.places, i, v.coopWin))
+    const byPlayer = new Set(game.events.filter((e) => e.byPlayer).map((e) => e.id))
     gloria.set(v.id, pts)
 
     teams.forEach((team, i) => {
@@ -335,8 +355,17 @@ export function computeBoard(data: AppData, filter?: { since?: number; gameId?: 
           s.rolePlayed[role] = (s.rolePlayed[role] ?? 0) + 1
           if (won) s.roleWins[role] = (s.roleWins[role] ?? 0) + 1
         }
+        const line = v.lines?.get(s.playerId)
+        if (line) {
+          s.scored += line.scored
+          s.scoredMax = Math.max(s.scoredMax, line.scored)
+          if (line.scored > 0) s.scoredPlays++
+          s.assists += line.assists
+        }
+        if (v.mvp === s.playerId) s.mvps++
         for (const [id, counts] of Object.entries(v.events)) {
-          const c = counts[i] ?? 0
+          // Los eventos de un jugador (una tarjeta, un triple) cuentan sólo para quien los hizo.
+          const c = byPlayer.has(id) ? (line?.events[id] ?? 0) : (counts[i] ?? 0)
           const t = (s.events[id] ??= { total: 0, max: 0, plays: 0, wins: 0 })
           t.total += c
           t.max = Math.max(t.max, c)

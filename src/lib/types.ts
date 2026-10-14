@@ -10,14 +10,19 @@ export interface PlaySide {
   name?: string
   /** Rol en esta partida (Impostor / Tripulante). */
   role?: string
+  /** Equipo fijo del club que juega de este lado. */
+  teamId?: Id
 }
 
 /** Lo que va pasando en una partida, en orden. Los índices de lado son posiciones en `Play.sides`. */
 export type LogEntry =
-  /** Puntos en el marcador en vivo; `e` si vienen de un evento. */
-  | { k: 'pt'; s: number; n: number; e?: string; t: number }
-  /** Evento: `n` es +1/-1 para `count`; para `holder`, `s` es el nuevo dueño (-1 = nadie). `p`: puntos elegidos. */
-  | { k: 'ev'; s: number; e: string; n: number; p?: number; t: number }
+  /** Puntos en el marcador en vivo; `e` si vienen de un evento. `pl`: quién lo anotó; `as`: quién dio el pase. */
+  | { k: 'pt'; s: number; n: number; e?: string; pl?: Id; as?: Id; t: number }
+  /**
+   * Evento: `n` es +1/-1 para `count`; para `holder`, `s` es el nuevo dueño (-1 = nadie). `p`: puntos elegidos.
+   * `pl`: el jugador que lo hizo (eventos `byPlayer`).
+   */
+  | { k: 'ev'; s: number; e: string; n: number; p?: number; pl?: Id; t: number }
   /** Empieza el turno de un lado. */
   | { k: 'turn'; s: number; t: number }
   /**
@@ -41,6 +46,8 @@ export interface PlayResult {
   coopWin?: boolean
   /** Datos finales por lado: `stats[statId][lado]`. */
   stats?: Record<string, (number | string | null)[]>
+  /** Figura del partido. */
+  mvp?: Id
 }
 
 export type PlayStatus = 'pending' | 'live' | 'finished'
@@ -64,12 +71,44 @@ export interface Play {
   /** Posición dentro de la ronda (llave o mesa). */
   slot?: number
   note?: string
+  /** Día y hora en que está programada (fixture de una liga). */
+  scheduledAt?: number
+  /** Dónde se juega ("Cancha 2", "Club Social de Villa Crespo"). */
+  venue?: string
 }
 
 /** Un equipo o jugador inscripto en un torneo. */
 export interface CupEntrant {
   players: Id[]
   name?: string
+  /** Equipo fijo del club (los partidos usan su plantel). */
+  teamId?: Id
+}
+
+/** Cómo se reparten las fechas de un torneo en el calendario. */
+export interface CupSchedule {
+  /** Día y hora de la primera fecha. */
+  start: number
+  /** Días entre una fecha y la siguiente (7: todas las semanas). */
+  everyDays: number
+  /** Minutos entre dos partidos seguidos en la misma cancha. */
+  gapMinutes?: number
+}
+
+/** Equipo fijo del club: un plantel con nombre que juega partidos, ligas y torneos. */
+export interface Team {
+  id: Id
+  name: string
+  emoji: string
+  color: string
+  players: Id[]
+  /** Juego (deporte) que juega, si es de uno solo. */
+  gameId?: string
+  /** Capitán o capitana. */
+  captain?: Id
+  /** Dónde juega de local. */
+  home?: string
+  createdAt: number
 }
 
 /** Torneo de cualquier juego (salvo ping pong, que usa los torneos del Ping Pong Club). */
@@ -94,6 +133,10 @@ export interface Cup {
   prize?: string
   /** Terminado a mano (para formatos sin fin automático). */
   closedAt?: number
+  /** Fixture con fecha: cuándo se juega cada fecha. */
+  schedule?: CupSchedule
+  /** Canchas o lugares donde se juega; los partidos de una misma fecha se reparten entre ellas. */
+  venues?: string[]
 }
 
 /** Juego agregado por el grupo (a mano o con IA). */
@@ -109,4 +152,6 @@ export interface AppData {
   plays: Play[]
   cups: Cup[]
   games: CustomGame[]
+  /** Equipos fijos del club. */
+  teams: Team[]
 }

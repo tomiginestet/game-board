@@ -83,10 +83,16 @@ export function usePlayToggle(key: string, initial = false): [boolean, (v: boole
 /** Texto corto de una entrada del registro ("Ana +1", "🗣️ Envido: Beto"). */
 export function entryText(play: Play, game: GameDef, players: Map<Id, Player>, e: LogEntry): string {
   const label = (i: number) => (i < 0 ? 'Mesa' : sideName(play.sides[i], players))
-  if (e.k === 'pt') return `${label(e.s)} +${e.n}`
+  const who = (id: Id | undefined) => (id ? players.get(id)?.name ?? '¿?' : undefined)
+  if (e.k === 'pt') {
+    const unit = game.perPlayer?.scorer ? (e.n === 1 ? (game.perPlayer.unitOne ?? game.scoring.quickLabel ?? 'punto') : (game.perPlayer.unit ?? 'puntos')) : undefined
+    if (e.pl) return `${unit ? `${unit.charAt(0).toUpperCase()}${unit.slice(1)} de ${who(e.pl)}` : `${who(e.pl)} +${e.n}`}${e.n > 1 ? ` (+${e.n})` : ''}${e.as ? `, pase de ${who(e.as)}` : ''} (${label(e.s)})`
+    return `${label(e.s)} +${e.n}`
+  }
   if (e.k === 'ev') {
     const def = game.events.find((x) => x.id === e.e)
-    return `${def?.emoji ?? ''} ${def?.name ?? e.e}: ${label(e.s)}${e.p !== undefined ? ` (+${e.p})` : ''}${e.n < 0 ? ' (−1)' : ''}`.trim()
+    const by = e.pl ? `${who(e.pl)} (${label(e.s)})` : label(e.s)
+    return `${def?.emoji ?? ''} ${def?.name ?? e.e}: ${by}${e.p !== undefined ? ` (+${e.p})` : ''}${e.n < 0 ? ' (−1)' : ''}`.trim()
   }
   if (e.k === 'turn') return `Turno de ${label(e.s)}`
   return `Mano: ${e.sc.join(' / ')}`

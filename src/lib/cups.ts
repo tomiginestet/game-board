@@ -87,6 +87,12 @@ export interface BracketSlot {
 
 /** Índice de inscripto de un lado de una partida de torneo. */
 export function entrantOfSide(cup: Cup, play: Play, side: number): number {
+  // Un equipo fijo se reconoce por el equipo, aunque ese día hayan jugado otros del plantel.
+  const teamId = play.sides[side]?.teamId
+  if (teamId) {
+    const byTeam = cup.entrants.findIndex((e) => e.teamId === teamId)
+    if (byTeam >= 0) return byTeam
+  }
   const ids = play.sides[side]?.players ?? []
   return cup.entrants.findIndex((e) => e.players.length === ids.length && e.players.every((p) => ids.includes(p)))
 }
@@ -202,8 +208,8 @@ export function cupChampion(cup: Cup, plays: Play[], lowWins = false): number | 
   return cupStandings(cup, plays, lowWins)[0]?.entrant
 }
 
-export function cupEntrantName(cup: Cup, index: number, nameOf: (id: string) => string): string {
+export function cupEntrantName(cup: Cup, index: number, nameOf: (id: string) => string, teamName?: (id: string) => string | undefined): string {
   const e = cup.entrants[index]
   if (!e) return '—'
-  return e.name ?? e.players.map(nameOf).join(' & ')
+  return (e.teamId && teamName?.(e.teamId)) || e.name || e.players.map(nameOf).join(' & ')
 }

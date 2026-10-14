@@ -20,6 +20,7 @@ import { actions, getData, useData } from '../lib/store'
 import { syncAvailable, useSyncState } from '../lib/sync'
 import type { Play, PPMatch as Match } from '../lib/types'
 import { playPath } from './GameDetail'
+import { formatWhen } from '../lib/schedule'
 
 /** Estantes por categoría del inicio. */
 const HOME_SHELVES: { cat: Category; title: string; subtitle: string }[] = [
@@ -27,6 +28,7 @@ const HOME_SHELVES: { cat: Category; title: string; subtitle: string }[] = [
   { cat: 'tcg', title: 'Duelos de cartas', subtitle: 'Magic, Pokémon, Yu-Gi-Oh! y compañía' },
   { cat: 'fiesta', title: 'Para la previa', subtitle: 'Juegos de fiesta para muchos' },
   { cat: 'mesa', title: 'Juegos de mesa', subtitle: 'Para sacar la caja y quedarse un rato' },
+  { cat: 'deporte', title: 'A la cancha', subtitle: 'Fútbol, pádel, vóley y compañía' },
 ]
 
 /** Se recuerda en el dispositivo si ya se cerró la guía de primeros pasos. */
@@ -85,6 +87,14 @@ export function Home() {
     ...data.plays.filter((p) => p.status === 'live' && !p.cupId).map((p) => ({ kind: 'play' as const, at: p.startedAt ?? p.createdAt, p })),
     ...data.matches.filter((m) => m.status === 'live').map((m) => ({ kind: 'match' as const, at: m.startedAt ?? m.createdAt, m })),
   ].sort((x, y) => y.at - x.at)
+
+  // Partidos del fixture que vienen (o que arrancaron hace un rato y todavía no se anotaron).
+  const [openedAt] = useState(() => Date.now())
+  const soon = openedAt - 3 * 60 * 60 * 1000
+  const upcoming = data.plays
+    .filter((p) => p.status === 'pending' && p.scheduledAt !== undefined && p.scheduledAt >= soon)
+    .sort((a, b) => a.scheduledAt! - b.scheduledAt!)
+    .slice(0, 4)
 
   const recent = [
     ...data.plays.filter((p) => p.status === 'finished').map((p) => ({ kind: 'play' as const, at: p.finishedAt ?? p.createdAt, p })),
@@ -261,6 +271,31 @@ export function Home() {
                 </div>
               ),
             )}
+          </div>
+        </section>
+      )}
+
+      {upcoming.length > 0 && (
+        <section aria-labelledby="upcoming-title">
+          <h2 id="upcoming-title">Próximos partidos</h2>
+          <div className="list">
+            {upcoming.map((p) => {
+              const g = gameOrMissing(data, p.gameId)
+              const cup = p.cupId ? data.cups.find((c) => c.id === p.cupId) : undefined
+              return (
+                <Link key={p.id} to={`/partida/${p.id}`} className="card fixture-row">
+                  <GameBadge game={g} size={36} />
+                  <span className="grow">
+                    <b>{p.sides.map((s) => s.name ?? s.players.map((id) => players.get(id)?.name ?? '?').join(' & ')).join(' vs ')}</b>
+                    <span className="muted small block">
+                      {formatWhen(p.scheduledAt!)}
+                      {p.venue ? ` · ${p.venue}` : ''}
+                      {cup ? ` · ${cup.name}` : ''}
+                    </span>
+                  </span>
+                </Link>
+              )
+            })}
           </div>
         </section>
       )}

@@ -3,6 +3,8 @@ import { Link } from 'react-router-dom'
 import { isDraw, sidesByPlace } from '../lib/engine'
 import type { GameDef } from '../lib/games/schema'
 import { formatDate, UNKNOWN_PLAYER } from '../lib/hooks'
+import { formatScore } from '../lib/score'
+import { formatWhen } from '../lib/schedule'
 import type { Id, Play, PlaySide, Player } from '../lib/types'
 import { TeamAvatar } from './Avatar'
 
@@ -76,7 +78,7 @@ export function PlayRow({ play, game, players, focus, showGame = true }: { play:
                 <TeamAvatar team={sidePlayersOf(s, players)} size={22} />
                 <span className="ellipsis">{sideName(s, players)}</span>
                 {first && <CrownIcon weight="fill" className="inline-icon crown" />}
-                {scores?.[i] !== undefined && scores?.[i] !== null && <b className="pr-score">{scores[i]}</b>}
+                {scores?.[i] !== undefined && scores?.[i] !== null && <b className="pr-score">{formatScore(game, scores[i]!)}</b>}
               </span>
             )
           })}
@@ -96,7 +98,7 @@ export function PlayRow({ play, game, players, focus, showGame = true }: { play:
               <HandshakeIcon className="inline-icon" /> Empate
             </span>
           ) : null}
-          <span>{formatDate(play.finishedAt ?? play.startedAt ?? play.createdAt)}</span>
+          <span>{play.status === 'pending' && play.scheduledAt ? formatWhen(play.scheduledAt) : formatDate(play.finishedAt ?? play.startedAt ?? play.createdAt)}</span>
         </div>
       </div>
     </Link>
