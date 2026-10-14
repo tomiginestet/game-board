@@ -1,19 +1,19 @@
-import { CaretDownIcon, CaretRightIcon, XIcon } from '@phosphor-icons/react'
-import { useEffect, useId, useMemo, useState } from 'react'
+import { CaretDownIcon } from '@phosphor-icons/react'
+import { useEffect, useMemo, useState } from 'react'
 import { TeamAvatar } from '../../components/Avatar'
 import { sideColor, sideName, sidePlayersOf } from '../../components/GameBits'
 import { Tally } from '../../components/Tally'
-import { computeLive, optionValue, targetOf, type LiveState } from '../../lib/engine'
-import { toast } from '../../lib/feedback'
+import { optionValue, targetOf, type LiveState } from '../../lib/engine'
 import { formatElapsed } from '../../lib/pingpong/scoring'
 import { setsLine } from '../../lib/sets'
 import { vibrate } from '../../lib/vibrate'
 import type { EventDef, GameDef } from '../../lib/games/schema'
 import { actions, useData } from '../../lib/store'
-import type { Id, LogEntry, Play, PlaySide, Player } from '../../lib/types'
-import { entryText, usePlayToggle, useTapGuard } from './playHooks'
+import type { Id, Play, PlaySide, Player } from '../../lib/types'
+import { usePlayToggle, useTapGuard } from './playHooks'
 import { KeyHint } from './KeyHint'
 import { PointsDialog, WhoDialog } from './shared'
+import { BoardTabs, lastText } from './BoardTabs'
 import { sideKeys, undoLast, useScoreKeys } from './useScoreKeys'
 
 /** Cuántas jugadas se muestran de entrada por lado; el resto queda detrás de "Ver todo". */
@@ -64,8 +64,6 @@ export function CounterBoard({ play, game, live, players }: { play: Play; game: 
     setAskingWho(null)
   }
   const [expanded, setExpanded] = usePlayToggle(`more:${play.id}`)
-  const [tab, setTab] = useState<'board' | 'log'>('board')
-  const tabsId = useId()
 
   // Jugadas de entrada: las más usadas en las partidas anteriores de este juego (si no hay historial,
   // las primeras de la ficha) más las que ya se usaron en esta. Se fija al abrir, para que nada salte de lugar.
@@ -149,17 +147,7 @@ export function CounterBoard({ play, game, live, players }: { play: Play; game: 
       )}
       {columns ? <MatchLine play={play} game={game} players={players} /> : <ScoreStrip play={play} game={game} live={live} players={players} />}
       {live.sets && <SetsStrip live={live} />}
-      {/* Marcador y Jugadas en pestañas: la cancha queda limpia y el relato de la partida tiene todo el alto. */}
-      <div className="board-tabs" role="tablist" aria-label="Partida">
-        <button type="button" role="tab" id={`${tabsId}-board`} aria-selected={tab === 'board'} aria-controls={`${tabsId}-board-panel`} onClick={() => setTab('board')}>
-          Marcador
-        </button>
-        <button type="button" role="tab" id={`${tabsId}-log`} aria-selected={tab === 'log'} aria-controls={`${tabsId}-log-panel`} onClick={() => setTab('log')}>
-          Jugadas {play.log.length > 0 && <span className="board-tab-count num">{play.log.length}</span>}
-        </button>
-      </div>
-
-      <div role="tabpanel" id={`${tabsId}-board-panel`} aria-labelledby={`${tabsId}-board`} hidden={tab !== 'board'} className="board-panel">
+      <BoardTabs play={play} game={game} players={players} help={helpItems}>
         <div className={columns ? 'cols' : 'bands' + (two ? ' two' : '')}>
           {play.sides.map((side, s) => (
             <section key={s} className={columns ? 'col' : 'band'} style={{ ['--pc' as string]: sideColor(side, players) }} aria-label={sideName(side, players)}>
@@ -213,24 +201,7 @@ export function CounterBoard({ play, game, live, players }: { play: Play; game: 
           </div>
         )}
         <KeyHint items={keyItems} />
-      </div>
-
-      <div role="tabpanel" id={`${tabsId}-log-panel`} aria-labelledby={`${tabsId}-log`} hidden={tab !== 'log'} className="board-panel">
-        {tab === 'log' && <PlayLog play={play} game={game} players={players} />}
-        {helpItems.length > 0 && (
-          <section className="ev-help-section">
-            <h2>Qué es cada jugada</h2>
-            <dl className="ev-help">
-              {helpItems.map((e) => (
-                <div key={e.id}>
-                  <dt>{e.name}</dt>
-                  <dd>{e.help}</dd>
-                </div>
-              ))}
-            </dl>
-          </section>
-        )}
-      </div>
+      </BoardTabs>
     </>
   )
 }
@@ -363,73 +334,6 @@ function Clock({ from }: { from?: number }) {
   return <b>{formatElapsed(from ? now - from : 0)}</b>
 }
 
-const sideLabel = (play: Play, players: Map<Id, Player>, s: number) => (s < 0 ? 'Mesa' : sideName(play.sides[s], players))
-
-/** Una entrada del registro en dos partes: qué pasó ("+2", "Bochazo") y quién ("Tomi", "pase de Nico"). */
-function logLine(play: Play, game: GameDef, players: Map<Id, Player>, e: LogEntry): { what: string; who?: string } {
-  const name = (id?: Id) => (id ? players.get(id)?.name ?? '¿?' : undefined)
-  if (e.k === 'pt') return { what: `+${e.n}`, who: [name(e.pl), e.as ? `pase de ${name(e.as)}` : undefined].filter(Boolean).join(', ') || undefined }
-  if (e.k === 'ev') {
-    const def = game.events.find((x) => x.id === e.e)
-    return { what: `${def?.name ?? e.e}${e.p !== undefined ? ` (+${e.p})` : ''}${e.n < 0 ? ' (−1)' : ''}`, who: name(e.pl) }
-  }
-  return { what: entryText(play, game, players, e) }
-}
-
-/** "+2 de Tomi", "Bochazo, Juli": lo último anotado, para confirmar el toque. */
-function lastText(play: Play, game: GameDef, players: Map<Id, Player>, e: LogEntry): string {
-  const { what, who } = logLine(play, game, players, e)
-  if (e.k !== 'pt' && e.k !== 'ev') return what
-  return who ? `${what} de ${who}` : `${what}, ${sideLabel(play, players, e.s)}`
-}
-
-/**
- * El relato de la partida, de lo último a lo primero: minuto, lado, qué pasó y cómo quedó el marcador.
- * Cualquier jugada se puede borrar (no sólo la última); el aviso ofrece deshacer.
- */
-function PlayLog({ play, game, players }: { play: Play; game: GameDef; players: Map<Id, Player> }) {
-  const start = play.startedAt ?? play.log[0]?.t ?? 0
-  // Marcador después de cada entrada; se muestra sólo cuando cambió.
-  const rows = useMemo(() => {
-    let prev = ''
-    return play.log.map((e, i) => {
-      const scores = computeLive(game, { ...play, log: play.log.slice(0, i + 1) }).scores.join('–')
-      const changed = scores !== prev
-      prev = scores
-      return { e, i, score: changed ? scores : undefined }
-    })
-  }, [play, game])
-  if (!rows.length) return <p className="muted play-log-empty">Todavía no se anotó nada. Lo que vayas sumando aparece acá, con el minuto y el marcador.</p>
-  const remove = (i: number) => {
-    const before = play.log
-    const { what } = logLine(play, game, players, play.log[i])
-    actions.removeLog(play.id, i)
-    toast(`Borraste: ${what}, ${sideLabel(play, players, 's' in play.log[i] ? play.log[i].s : -1)}`, { label: 'Deshacer', run: () => actions.patchPlay(play.id, { log: before }) })
-  }
-  return (
-    <ol className="play-log num">
-      {[...rows].reverse().map(({ e, i, score }) => {
-        const { what, who } = logLine(play, game, players, e)
-        const s = 's' in e ? e.s : -1
-        const side = sideLabel(play, players, s)
-        return (
-          <li key={i} className={i === play.log.length - 1 ? 'last' : undefined}>
-            <span className="pl-time">{Math.max(0, Math.floor((e.t - start) / 60000))}′</span>
-            <span className="pl-dot" style={{ background: s >= 0 ? sideColor(play.sides[s], players) : 'var(--border-strong)' }} aria-hidden />
-            <span className="pl-text">
-              <b>{what}</b> <span className="pl-who">{who ? `${who} · ${side}` : side}</span>
-            </span>
-            <span className="pl-score">{score}</span>
-            <button type="button" className="pl-remove" onClick={() => remove(i)} aria-label={`Borrar ${what} de ${who ?? side}`}>
-              <XIcon aria-hidden />
-            </button>
-          </li>
-        )
-      })}
-    </ol>
-  )
-}
-
 /** Sets terminados y qué se juega ahora ("6-4 3-6 · Tie-break"). */
 function SetsStrip({ live }: { live: LiveState }) {
   const sets = live.sets!
@@ -443,23 +347,6 @@ function SetsStrip({ live }: { live: LiveState }) {
   )
 }
 
-/** Últimas cosas anotadas (para saber qué se deshace). */
-export function LogList({ play, game, players }: { play: Play; game: GameDef; players: Map<Id, Player> }) {
-  const items = play.log.slice(-6).reverse()
-  if (!items.length) return null
-  return (
-    <details className="log-list">
-      <summary className="log-summary">
-        <CaretRightIcon className="log-caret" aria-hidden /> Lo último anotado
-      </summary>
-      <ul>
-        {items.map((e, k) => (
-          <li key={k}>{entryText(play, game, players, e)}</li>
-        ))}
-      </ul>
-    </details>
-  )
-}
 
 // ---------------------------------------------------------------------------
 // Por manos

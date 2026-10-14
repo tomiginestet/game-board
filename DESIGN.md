@@ -233,7 +233,9 @@ Para los juegos que se anotan en vivo (bochas, básquet, truco, fútbol), el mis
   - **Con sets o más de dos lados**: tira de TV (`ScoreStrip`) y una banda de todo el ancho por lado, con las jugadas al pie.
   - El "+2" de los juegos que lo tienen es un botón propio. El contador en cero sólo aparece en las jugadas que no suman puntos (las que cuentan para medallas).
 - **Atajos de teclado**: funcionan siempre, pero la leyenda sólo se muestra en pantallas de compu (900px o más, con mouse).
-- **Jugadas** es el relato de la partida: minuto, color del lado, qué pasó, quién y el marcador de ese momento. Cualquier jugada se borra con su ✕, y el aviso ofrece deshacer. La ayuda ("Qué es cada jugada") va al pie de esta pestaña.
+- **Por turnos** (Catán): sólo va abierta la tarjeta del que juega; las demás muestran su cabecera (nombre y puntaje) y se abren al tocarla. Usa las mismas pestañas Marcador / Jugadas. **Por manos** no las necesita: la tabla de manos ya es el relato.
+- **Jugadas** (`BoardTabs`) es el relato de la partida; lo oculto (cartas de Catán) nunca aparece. Con dos lados muestra el marcador entero de cada momento ("5–4"); con más, el total de quien anotó ("total 7"); los pases de turno van en filas bajas y apagadas.
+- El relato: minuto, color del lado, qué pasó, quién y el marcador de ese momento. Cualquier jugada se borra con su ✕, y el aviso ofrece deshacer. La ayuda ("Qué es cada jugada") va al pie de esta pestaña.
 
 ### Inputs / Fields
 Siempre con etiqueta visible (`.field` + `.field-label`); el placeholder es un ejemplo, no la etiqueta. Errores debajo del campo, enlazados con `aria-describedby`.
