@@ -376,36 +376,32 @@ body.in-play .sticky-actions {
   border: 0;
 }
 
-.ml-bar {
-  position: relative;
-  display: flex;
-  justify-content: space-between;
+.cs-progress {
+  display: grid;
+  gap: 6px;
+  width: 100%;
+  margin-top: 8px;
+  padding: 0 6px;
+}
+
+.cs-bar {
+  display: block;
   height: 6px;
-  margin-top: 10px;
   border-radius: 3px;
-  background: var(--card-2);
+  background: rgba(0, 0, 0, 0.4);
   overflow: hidden;
 }
 
-.ml-bar i {
+.cs-bar i {
   display: block;
   height: 100%;
+  border-radius: 3px;
+  background: var(--pc);
 }
 
-.ml-labels {
-  display: flex;
-  justify-content: space-between;
-  gap: 12px;
-  margin: 6px 0 0;
-  color: var(--muted);
+.cs-left {
   font-size: 13px;
-}
-
-.ml-labels span {
-  min-width: 0;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  color: rgba(255, 255, 255, 0.75);
 }
 
 .cols {

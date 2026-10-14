@@ -223,7 +223,7 @@ Para los juegos que se anotan en vivo (bochas, básquet, truco, fútbol), el mis
 - **Tira de TV** arriba (`ScoreStrip`): reloj de la partida, lo último anotado ("Último: +2 de Tomi", confirma el toque) y una fila por lado con sus jugadas y el puntaje; el que va ganando, en naranja.
 - **Pantalla completa**: mientras se juega no hay barra del club ni navegación de abajo; sólo volver, el nombre del juego y la barra de Deshacer / Terminar.
 - **Pestañas Marcador / Jugadas.** En Marcador, dos formas según el partido:
-  - **Partido único de dos lados** (bochas, básquet, truco): dos columnas, cada una con su zona grande (tocar suma) y debajo sus jugadas en lista, una por fila, de 48px, con el nombre (sin emoji) y su contador. Arriba, reloj, lo último anotado y una barra doble con lo que le falta a cada uno.
+  - **Partido único de dos lados** (bochas, básquet, truco): dos columnas, cada una con su zona grande (tocar suma) y debajo sus jugadas en lista, una por fila, de 48px, con el nombre (sin emoji) y su contador. Arriba, sólo el reloj y lo último anotado. Si hay meta, cada columna lleva su propia barra al pie con lo que le falta ("Faltan 11"); nunca una barra compartida entre los dos lados.
   - **Con sets o más de dos lados**: tira de TV (`ScoreStrip`) y una banda de todo el ancho por lado, con las jugadas al pie.
   - El "+2" de los juegos que lo tienen es un botón propio. El contador en cero sólo aparece en las jugadas que no suman puntos (las que cuentan para medallas).
 - **Atajos de teclado**: funcionan siempre, pero la leyenda sólo se muestra en pantallas de compu (900px o más, con mouse).

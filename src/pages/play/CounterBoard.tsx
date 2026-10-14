@@ -147,7 +147,7 @@ export function CounterBoard({ play, game, live, players }: { play: Play; game: 
           onSubmit={whoDone}
         />
       )}
-      {columns ? <MatchLine play={play} game={game} live={live} players={players} /> : <ScoreStrip play={play} game={game} live={live} players={players} />}
+      {columns ? <MatchLine play={play} game={game} players={players} /> : <ScoreStrip play={play} game={game} live={live} players={players} />}
       {live.sets && <SetsStrip live={live} />}
       {/* Marcador y Jugadas en pestañas: la cancha queda limpia y el relato de la partida tiene todo el alto. */}
       <div className="board-tabs" role="tablist" aria-label="Partida">
@@ -163,7 +163,7 @@ export function CounterBoard({ play, game, live, players }: { play: Play; game: 
         <div className={columns ? 'cols' : 'bands' + (two ? ' two' : '')}>
           {play.sides.map((side, s) => (
             <section key={s} className={columns ? 'col' : 'band'} style={{ ['--pc' as string]: sideColor(side, players) }} aria-label={sideName(side, players)}>
-              <SideScore side={side} score={live.scores[s]} game={game} target={target} quick={quick[0]} players={players} shortcut={keys[s]?.toUpperCase()} onTap={() => tap(s)} live={live} index={s} hint={!play.log.length} />
+              <SideScore side={side} score={live.scores[s]} game={game} target={target} quick={quick[0]} players={players} shortcut={keys[s]?.toUpperCase()} onTap={() => tap(s)} live={live} index={s} hint={!play.log.length} progress={columns} />
               {(shown.length > 0 || quick.length > 1) && (
                 <div className="band-acts" role="group" aria-label={`Jugadas de ${sideName(side, players)}`}>
                   {quick.slice(1).map((n) => (
@@ -236,7 +236,7 @@ export function CounterBoard({ play, game, live, players }: { play: Play; game: 
 }
 
 /** Zona grande de cada lado: un toque suma; un arrastre o un scroll, no. */
-function SideScore({ side, score, game, target, quick, players, shortcut, onTap, live, index, hint }: { side: PlaySide; score: number; game: GameDef; target?: number; quick: number; players: Map<Id, Player>; shortcut?: string; onTap: () => void; live: LiveState; index: number; hint: boolean }) {
+function SideScore({ side, score, game, target, quick, players, shortcut, onTap, live, index, hint, progress }: { side: PlaySide; score: number; game: GameDef; target?: number; quick: number; players: Map<Id, Player>; shortcut?: string; onTap: () => void; live: LiveState; index: number; hint: boolean; progress?: boolean }) {
   const guard = useTapGuard(onTap)
   const malas = game.scoring.tally === 'matches' && target && target >= 20 ? target / 2 : undefined
   const name = sideName(side, players)
@@ -275,6 +275,15 @@ function SideScore({ side, score, game, target, quick, players, shortcut, onTap,
       </span>
       {malas !== undefined && <span className="cs-sub">{score < malas ? 'en las malas' : 'en las buenas'}</span>}
       {game.scoring.tally === 'matches' && <Tally value={score} target={target ?? 30} />}
+      {/* Cada lado con su propia barra: cuánto lleva de la meta y cuánto le falta (el truco ya lo dice con los fósforos). */}
+      {progress && target && !game.scoring.lowWins && game.scoring.tally !== 'matches' && (
+        <span className="cs-progress">
+          <span className="cs-bar" aria-hidden>
+            <i style={{ width: `${Math.min(100, (score / target) * 100)}%` }} />
+          </span>
+          <span className="cs-left num">{score >= target ? 'Llegó' : `Faltan ${target - score}`}</span>
+        </span>
+      )}
       {/* La pista sólo hace falta antes del primer punto; después, el toque se aprende solo. */}
       {hint && (
         <span className="cs-hint">
@@ -327,14 +336,10 @@ function ScoreStrip({ play, game, live, players }: { play: Play; game: GameDef; 
   )
 }
 
-/**
- * Para el partido único de dos lados: reloj y lo último anotado en una línea, y una barra doble con lo que le
- * falta a cada uno para llegar (si el juego tiene meta).
- */
-function MatchLine({ play, game, live, players }: { play: Play; game: GameDef; live: LiveState; players: Map<Id, Player> }) {
+/** Para el partido único de dos lados: reloj y lo último anotado, en una línea. Lo que falta va en cada columna. */
+function MatchLine({ play, game, players }: { play: Play; game: GameDef; players: Map<Id, Player> }) {
   const target = targetOf(game, play.config)
   const last = play.log.at(-1)
-  const left = (s: number) => Math.max(0, (target ?? 0) - live.scores[s])
   return (
     <div className="match-line num">
       <p className="tvs-head">
@@ -343,21 +348,6 @@ function MatchLine({ play, game, live, players }: { play: Play; game: GameDef; l
         </span>
         <span className="tvs-last">{last ? `Último: ${lastText(play, game, players, last)}` : target ? `Gana el primero a ${target}` : ''}</span>
       </p>
-      {target !== undefined && !game.scoring.lowWins && (
-        <>
-          <div className="ml-bar" aria-hidden>
-            <i style={{ width: `${Math.min(50, (live.scores[0] / target) * 50)}%`, background: sideColor(play.sides[0], players) }} />
-            <i style={{ width: `${Math.min(50, (live.scores[1] / target) * 50)}%`, background: sideColor(play.sides[1], players) }} />
-          </div>
-          <p className="ml-labels">
-            {[0, 1].map((s) => (
-              <span key={s}>
-                {sideName(play.sides[s], players)} · {left(s) ? `faltan ${left(s)}` : 'llegó'}
-              </span>
-            ))}
-          </p>
-        </>
-      )}
     </div>
   )
 }
