@@ -203,6 +203,10 @@ La medalla es la protagonista: siempre **arriba y centrada**, con el texto debaj
 - **Una medalla por familia** (Vitrina, perfil del jugador): la del nivel más alto, sobre la misma superficie `card`. Ganada: borde dorado sólido; bloqueada: borde punteado y medalla en gris (el estado nunca es sólo color). La barra de progreso o los puntos de nivel van al pie, para que queden alineados en cada fila.
 - Cada medalla abre su ficha (`MedalSheet`); la ficha es la que muestra todos los niveles, así que las listas no repiten los nombres de los niveles (salvo la vista previa, donde se están revisando).
 
+### Perfil del club y del equipo
+Una vista consolidada de sus jugadores (`src/components/Squad.tsx`, con `ids` para limitarla a un plantel). Orden: presentación → lo que pide acción (quién sos, pedidos para entrar) → quién manda (podio de gloria, el primero al medio) → medallas a la vista → vitrina (las medallas más altas, con quién las tiene) → lo que más se juega (con el cinturón) → equipos → integrantes. Lo administrativo (cuentas y permisos, invitar, salir) va al final, después de una `.section-divided`.
+- **Presentación**: una `.card` con el emoji a 72px alineado al centro del nombre, la privacidad y el guardado como texto con ícono debajo del nombre (no píldoras apiladas), la descripción a todo el ancho y cuatro números del club abajo. Editar es un botón de ícono arriba a la derecha.
+
 ### Listas de pasos (reglas)
 `RuleList`: pasos numerados sin tarjeta y **sin líneas entre puntos**, separados por aire (20px, interlineado 1.5). El número va en un círculo de 24px bajado 1px para quedar ópticamente centrado con la primera línea. Íconos y notas al pie se alinean a la columna del texto (36px), no al borde.
 

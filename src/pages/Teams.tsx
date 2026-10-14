@@ -3,6 +3,8 @@ import { useId, useMemo, useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 import { Avatar } from '../components/Avatar'
 import { PlayRow } from '../components/GameBits'
+import { NextMedals } from '../components/NextMedals'
+import { SquadLeaders, SquadShowcase, useSquadMedals } from '../components/Squad'
 import { ColorPicker, EmojiPicker } from '../components/PlayerForm'
 import { ChoiceGroup, PlayerPicker } from '../components/PlayerPicker'
 import { toast } from '../lib/feedback'
@@ -118,6 +120,7 @@ function TeamView({ team }: { team: Team }) {
   const roster = team.players.map((id) => players.get(id)).filter((p) => !!p)
   const scorers = rec.scorers.filter((s) => s.scored || s.assists || s.mvps)
   const unit = game?.perPlayer?.unit ?? 'goles'
+  const medals = useSquadMedals(team.players)
 
   const remove = () => {
     const removed = team
@@ -223,6 +226,10 @@ function TeamView({ team }: { team: Team }) {
         </section>
       )}
 
+      <SquadLeaders ids={team.players} title="Quién manda en el equipo" />
+      <NextMedals playerIds={team.players} title="Medallas a la vista" />
+      <SquadShowcase medals={medals.earned} title="Vitrina del plantel" />
+
       <section>
         <h2>Plantel</h2>
         {!roster.length ? (
@@ -242,6 +249,9 @@ function TeamView({ team }: { team: Team }) {
                   </th>
                   <th>
                     <abbr title="Veces que fue la figura">Figura</abbr>
+                  </th>
+                  <th>
+                    <abbr title="Medallas ganadas">Med.</abbr>
                   </th>
                 </tr>
               </thead>
@@ -264,6 +274,7 @@ function TeamView({ team }: { team: Team }) {
                       <td>{s?.scored || ''}</td>
                       <td>{s?.assists || ''}</td>
                       <td>{s?.mvps ? <StarIcon weight="fill" className="inline-icon mvp-star" aria-hidden="true" /> : null}{s?.mvps || ''}</td>
+                      <td>{medals.won.get(p.id) || ''}</td>
                     </tr>
                   )
                 })}
