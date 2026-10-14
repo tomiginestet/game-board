@@ -224,11 +224,11 @@ function GameView({ game }: { game: GameDef }) {
               onOpen={(level) => setSheet({ k, level })}
               detail={
                 best ? (
-                  <span className="medal-list-leader">
+                  <span className="medal-card-leader">
                     <CrownIcon weight="fill" aria-hidden /> {players.get(best.id)?.name} · {fam.family.levels[best.level].name}
                   </span>
                 ) : (
-                  <span className="medal-list-leader none">Nadie la tiene todavía</span>
+                  <span className="medal-card-leader none">Nadie la tiene todavía</span>
                 )
               }
             />
@@ -238,7 +238,7 @@ function GameView({ game }: { game: GameDef }) {
       </section>
 
       {game.rules.length > 0 && (
-        <section>
+        <section className="section-divided">
           <h2>Reglas en dos minutos</h2>
           <RuleList
             rules={game.rules}

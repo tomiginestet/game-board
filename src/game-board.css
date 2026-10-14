@@ -630,8 +630,8 @@
   font-size: 32px;
 }
 
-/* Medallas (ficha del juego y vista previa): filas separadas por una línea, como los datos de la
-   ficha de la medalla, con las medallas en una columna fija para que los textos queden alineados. */
+/* Medallas (ficha del juego y vista previa): una tarjeta por familia, con las medallas arriba
+   (protagonistas) y el texto abajo, para que el largo del texto no dependa de cuántas medallas hay. */
 .section-lead {
   margin: -4px 0 12px;
 }
@@ -640,56 +640,59 @@
   list-style: none;
   margin: 0;
   padding: 0;
-  border-top: 1px solid var(--border);
-}
-
-.medal-list-row {
   display: grid;
-  grid-template-columns: 124px minmax(0, 1fr);
-  align-items: center;
-  gap: 14px;
-  padding: 14px 0;
-  border-bottom: 1px solid var(--border);
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 280px), 1fr));
+  gap: 12px;
 }
 
-.medal-list-art {
-  position: relative;
+.medal-card {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  padding: 16px 16px 18px;
+}
+
+.medal-card-art {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.medal-card-stack {
   display: flex;
   align-items: center;
 }
 
-.medal-list-art .medal-btn + .medal-btn {
-  margin-left: -10px;
+/* El hexágono tiene aire propio dentro del dibujo: se corre para alinearlo ópticamente con el texto. */
+.medal-list:not(.centered) .medal-card-stack {
+  margin-left: -4px;
 }
 
-.medal-list-art .medal-btn:hover {
+.medal-card-stack .medal-btn + .medal-btn {
+  margin-left: -12px;
+}
+
+.medal-card-stack .medal-btn:hover {
   position: relative;
   z-index: 1;
 }
 
-/* Cuántos niveles más hay: chapita sobre la última medalla, la ficha los muestra todos. */
-.medal-list-more {
-  position: absolute;
-  top: -4px;
-  right: -6px;
-  z-index: 2;
-  padding: 1px 6px;
+/* Cuántos niveles más hay: la ficha los muestra todos. */
+.medal-card-more {
+  padding: 2px 8px;
   border-radius: 999px;
   border: 1px solid var(--border-strong);
-  background: var(--bg);
   color: var(--text-soft);
   font-size: 12px;
   font-weight: 700;
   line-height: 1.4;
-  pointer-events: none;
 }
 
-.medal-list-info {
+.medal-card-info {
   display: flex;
-  align-items: center;
-  gap: 8px;
+  flex-direction: column;
+  gap: 2px;
   min-width: 0;
-  min-height: 44px;
   padding: 0;
   border: 0;
   border-radius: 8px;
@@ -700,79 +703,91 @@
   cursor: pointer;
 }
 
-.medal-list-text {
-  flex: 1;
-  min-width: 0;
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-}
-
-.medal-list-name {
+.medal-card-name {
   font-size: 18px;
   font-weight: 700;
   line-height: 1.25;
 }
 
-.medal-list-measure {
+.medal-card-measure {
   color: var(--muted);
   font-size: 14px;
-  line-height: 1.35;
+  line-height: 1.4;
 }
 
-.medal-list-leader {
+.medal-card-leader {
   display: flex;
   align-items: flex-start;
   gap: 6px;
-  margin-top: 4px;
+  margin-top: 6px;
   color: var(--accent-2);
   font-size: 14px;
   font-weight: 600;
-  line-height: 1.35;
+  line-height: 1.4;
 }
 
-.medal-list-leader svg {
+.medal-card-leader svg {
   flex-shrink: 0;
   margin-top: 2px;
 }
 
-.medal-list-levels {
-  margin-top: 4px;
-  color: var(--text-soft);
-  font-size: 14px;
-  line-height: 1.35;
-}
-
-.medal-list-leader.none {
+.medal-card-leader.none {
   color: var(--muted);
   font-weight: 400;
 }
 
-.medal-list-caret {
-  flex-shrink: 0;
-  color: var(--muted);
-  transition: transform 0.15s, color 0.15s;
+.medal-card-levels {
+  margin-top: 6px;
+  color: var(--text-soft);
+  font-size: 14px;
+  line-height: 1.4;
 }
 
-@media (hover: hover) {
-  .medal-list-info:hover .medal-list-caret {
-    color: var(--text);
-    transform: translateX(2px);
-  }
+/* Variante centrada: medallas y texto al medio, como una vitrina. */
+.medal-list.centered .medal-card {
+  align-items: center;
+  text-align: center;
 }
 
-.medal-list-info:focus-visible,
+.medal-list.centered .medal-card-art {
+  position: relative;
+}
+
+/* Centrada, la chapita no desplaza las medallas: cuelga al costado de la última. */
+.medal-list.centered .medal-card-more {
+  position: absolute;
+  left: calc(100% + 6px);
+}
+
+.medal-list.centered .medal-card-info {
+  align-items: center;
+  text-align: center;
+}
+
+.medal-list.centered .medal-card-leader {
+  justify-content: center;
+}
+
+.medal-card-info:focus-visible,
 .rule-link:focus-visible {
   outline: 2px solid var(--accent-2);
   outline-offset: 2px;
 }
 
-/* Reglas: pasos numerados con la misma línea divisoria, sin tarjeta. */
+/* Una sola línea separa las medallas de las reglas; adentro, aire en vez de divisores. */
+.section-divided {
+  padding-top: 24px;
+  border-top: 1px solid var(--border);
+}
+
+/* Reglas: pasos numerados, separados por aire (sin líneas ni tarjeta). */
 .rule-list {
   list-style: none;
   margin: 0;
   padding: 0;
-  border-top: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
 }
 
 .rule-list li {
@@ -780,9 +795,7 @@
   grid-template-columns: 24px minmax(0, 1fr);
   gap: 12px;
   align-items: start;
-  padding: 14px 0;
-  border-bottom: 1px solid var(--border);
-  line-height: 1.45;
+  line-height: 1.5;
   text-wrap: pretty;
 }
 
@@ -806,7 +819,7 @@
   /* El libro (20px) queda centrado bajo los números (24px) y el texto, en la columna de las reglas (36px). */
   gap: 14px;
   min-height: 44px;
-  margin-top: 4px;
+  margin-top: 12px;
   padding-left: 2px;
   border-radius: 8px;
   font-weight: 600;

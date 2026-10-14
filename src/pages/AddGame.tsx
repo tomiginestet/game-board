@@ -274,7 +274,7 @@ export function GamePreview({ game }: { game: GameDef }) {
                 key={f.id}
                 family={f}
                 onOpen={(level) => setSheet({ k, level })}
-                detail={<span className="medal-list-levels">{f.levels.map((l) => l.name).join(' · ')}</span>}
+                detail={<span className="medal-card-levels">{f.levels.map((l) => l.name).join(' · ')}</span>}
               />
             ))}
           </MedalList>
@@ -282,7 +282,7 @@ export function GamePreview({ game }: { game: GameDef }) {
         </section>
       )}
       {game.rules.length > 0 && (
-        <section>
+        <section className={families.length > 0 ? 'section-divided' : undefined}>
           <h3>Reglas</h3>
           <RuleList rules={game.rules} url={game.rulesUrl} />
         </section>

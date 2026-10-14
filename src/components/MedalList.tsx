@@ -1,15 +1,15 @@
-import { ArrowSquareOutIcon, BookOpenIcon, CaretRightIcon } from '@phosphor-icons/react'
+import { ArrowSquareOutIcon, BookOpenIcon } from '@phosphor-icons/react'
 import type { ReactNode } from 'react'
 import { plural } from '../lib/hooks'
 import type { MedalFamily } from '../lib/medals'
 import { Medal } from './Medal'
 
 /**
- * Lista de familias de medallas separadas por una línea (como los datos de la ficha de la medalla).
+ * Familias de medallas, una tarjeta por familia: las medallas arriba y el texto abajo.
  * Cada medalla abre su ficha; el texto abre la ficha en `openLevel`. `detail` va debajo de lo que mide.
  */
-export function MedalList({ children }: { children: ReactNode }) {
-  return <ul className="medal-list">{children}</ul>
+export function MedalList({ align = 'start', children }: { align?: 'start' | 'center'; children: ReactNode }) {
+  return <ul className={'medal-list' + (align === 'center' ? ' centered' : '')}>{children}</ul>
 }
 
 export function MedalListRow({
@@ -26,35 +26,34 @@ export function MedalListRow({
   const levels = family.levels
   const extra = levels.length - 3
   return (
-    <li className="medal-list-row">
-      <div className="medal-list-art">
-        {levels.slice(0, 3).map((l, i) => (
-          <button key={i} type="button" className="medal-btn" aria-haspopup="dialog" aria-label={`Ver ${l.name}`} onClick={() => onOpen(i)}>
-            <Medal family={family} level={i} size={48} />
-          </button>
-        ))}
+    <li className="card medal-card">
+      <div className="medal-card-art">
+        <div className="medal-card-stack">
+          {levels.slice(0, 3).map((l, i) => (
+            <button key={i} type="button" className="medal-btn" aria-haspopup="dialog" aria-label={`Ver ${l.name}`} onClick={() => onOpen(i)}>
+              <Medal family={family} level={i} size={64} />
+            </button>
+          ))}
+        </div>
         {extra > 0 && (
-          <span className="medal-list-more" aria-hidden>
+          <span className="medal-card-more" aria-hidden>
             +{extra}
           </span>
         )}
       </div>
-      <button type="button" className="medal-list-info" aria-haspopup="dialog" onClick={() => onOpen(openLevel)}>
-        <span className="medal-list-text">
-          <b className="medal-list-name">{family.name}</b>
-          <span className="medal-list-measure">
-            {family.measures}
-            <span className="sr-only">, {plural(levels.length, 'nivel', 'niveles')}</span>
-          </span>
-          {detail}
+      <button type="button" className="medal-card-info" aria-haspopup="dialog" onClick={() => onOpen(openLevel)}>
+        <b className="medal-card-name">{family.name}</b>
+        <span className="medal-card-measure">
+          {family.measures}
+          <span className="sr-only">, {plural(levels.length, 'nivel', 'niveles')}</span>
         </span>
-        <CaretRightIcon className="medal-list-caret" aria-hidden />
+        {detail}
       </button>
     </li>
   )
 }
 
-/** Reglas como pasos numerados con la misma línea divisoria, y el link al reglamento alineado al texto. */
+/** Reglas como pasos numerados separados por aire, y el link al reglamento alineado al texto. */
 export function RuleList({ rules, url, footnote }: { rules: string[]; url?: string; footnote?: ReactNode }) {
   return (
     <>
