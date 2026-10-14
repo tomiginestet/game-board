@@ -1427,3 +1427,91 @@
 .serve-switch {
   margin: -4px auto 8px;
 }
+
+/* Convocatoria: vos, lista de espera y agenda */
+
+.rsvp-row.is-me {
+  border-width: 2px;
+  border-color: var(--accent);
+}
+
+.rsvp-row.is-waiting {
+  border-style: dashed;
+}
+
+.rsvp-name {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 2px 6px;
+  min-width: 0;
+}
+
+.rsvp-name .block {
+  flex-basis: 100%;
+}
+
+.rsvp-answer {
+  flex: none;
+  padding: 6px 10px;
+  border-radius: 10px;
+  font-size: 14px;
+  font-weight: 600;
+  background: var(--card-2);
+  color: var(--muted);
+}
+
+.rsvp-answer.yes {
+  color: var(--on-fill);
+  background: #15803d;
+}
+
+.rsvp-answer.maybe {
+  color: #1a1a1a;
+  background: var(--accent-2);
+}
+
+.rsvp-answer.no {
+  color: var(--on-fill);
+  background: var(--loss-fill);
+}
+
+.call-calendar {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.input.narrow {
+  width: auto;
+  min-width: 150px;
+}
+
+.day-tag,
+.my-status {
+  display: inline-block;
+  margin-right: 6px;
+  padding: 0 6px;
+  border-radius: 6px;
+  font-size: 12px;
+  line-height: 18px;
+  background: var(--card-2);
+  color: var(--text);
+}
+
+.day-tag {
+  background: var(--accent-fill);
+  color: var(--on-fill);
+}
+
+.my-status.yes {
+  background: #15803d;
+  color: var(--on-fill);
+}
+
+.my-status.pending,
+.my-status.maybe,
+.my-status.wait {
+  background: var(--accent-2);
+  color: #1a1a1a;
+}

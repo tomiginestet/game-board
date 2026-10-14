@@ -476,7 +476,7 @@ const playActions = {
   },
 
   /** Convoca a un partido: día, cancha y citados, sin equipos todavía ("¿quién viene el jueves?"). */
-  createCall(input: { gameId: string; invited: Id[]; scheduledAt?: number; venue?: string; teamId?: Id; config?: Record<string, OptionValue> }): Play {
+  createCall(input: { gameId: string; invited: Id[]; scheduledAt?: number; venue?: string; teamId?: Id; config?: Record<string, OptionValue>; capacity?: number; organizer?: Id }): Play {
     const game = gameOf(input.gameId)
     const p = newPlay(input.gameId, [], input.config ?? (game ? defaultConfig(game) : {}), {
       status: 'pending',
@@ -485,6 +485,10 @@ const playActions = {
       ...(input.scheduledAt ? { scheduledAt: input.scheduledAt } : {}),
       ...(input.venue?.trim() ? { venue: input.venue.trim() } : {}),
       ...(input.teamId ? { callTeamId: input.teamId } : {}),
+      ...(input.capacity && input.capacity > 0 ? { capacity: input.capacity } : {}),
+      ...(input.organizer ? { organizer: input.organizer } : {}),
+      // Quien organiza, si juega, ya va.
+      ...(input.organizer && input.invited.includes(input.organizer) ? { rsvp: { [input.organizer]: 'yes' as Rsvp }, rsvpAt: { [input.organizer]: Date.now() } } : {}),
     })
     commit({ ...data, plays: [...data.plays, p] })
     return p
@@ -494,9 +498,25 @@ const playActions = {
   setRsvp(playId: Id, playerId: Id, answer: Rsvp | null) {
     updatePlay(playId, (p) => {
       const rsvp = { ...(p.rsvp ?? {}) }
+      const rsvpAt = { ...(p.rsvpAt ?? {}) }
+      // La hora cuenta para la lista de espera: se guarda al decir que va (cambiar de "capaz" a "voy" también).
+      if (answer === 'yes' && rsvp[playerId] !== 'yes') rsvpAt[playerId] = Date.now()
       if (answer) rsvp[playerId] = answer
-      else delete rsvp[playerId]
-      return { ...p, rsvp }
+      else {
+        delete rsvp[playerId]
+        delete rsvpAt[playerId]
+      }
+      return { ...p, rsvp, rsvpAt }
+    })
+  },
+
+  /** Cambia el cupo de una convocatoria (0 o nada: sin cupo). */
+  setCapacity(playId: Id, capacity: number | null) {
+    updatePlay(playId, (p) => {
+      const next = { ...p }
+      if (capacity && capacity > 0) next.capacity = capacity
+      else delete next.capacity
+      return next
     })
   },
 

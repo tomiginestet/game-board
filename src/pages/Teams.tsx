@@ -11,7 +11,7 @@ import { toast } from '../lib/feedback'
 import { formatWhen } from '../lib/schedule'
 import { gameOrMissing, plural, useGames, usePlayerMap } from '../lib/hooks'
 import { actions, PLAYER_COLORS, useData } from '../lib/store'
-import { isTeamGame, TEAM_EMOJIS, teamRecord } from '../lib/teams'
+import { isTeamGame, TEAM_EMOJIS, teamRanking, teamRecord } from '../lib/teams'
 import type { Id, Team } from '../lib/types'
 
 /** Escudo de un equipo: su emoji sobre su color. */
@@ -27,6 +27,10 @@ export function Teams() {
   const data = useData()
   const games = useGames()
   const teams = [...data.teams].sort((a, b) => a.name.localeCompare(b.name, 'es'))
+  // Deportes de los equipos: con más de uno, la tabla se mira de a uno (no se mezcla fútbol con pádel).
+  const sports = games.filter((g) => data.teams.some((t) => t.gameId === g.id))
+  const [sport, setSport] = useState<string | undefined>(() => sports[0]?.id)
+  const ranking = teamRanking(data, data.teams, sports.length > 1 ? sport : undefined).filter((r) => r.rec.played > 0)
   return (
     <div className="page">
       <Link to="/jugadores" className="back">
@@ -49,6 +53,72 @@ export function Teams() {
           </Link>
         </div>
       ) : (
+        <>
+        {ranking.length > 0 && (
+          <section>
+            <h2>Tabla de equipos</h2>
+            {sports.length > 1 && (
+              <div className="chips scroll" role="group" aria-label="Deporte">
+                {sports.map((g) => (
+                  <button key={g.id} type="button" className={'chip' + (sport === g.id ? ' active' : '')} aria-pressed={sport === g.id} onClick={() => setSport(g.id)}>
+                    {g.emoji} {g.name}
+                  </button>
+                ))}
+              </div>
+            )}
+            <div className="table-wrap">
+              <table className="standings">
+                <thead>
+                  <tr>
+                    <th>#</th>
+                    <th className="left">Equipo</th>
+                    <th>
+                      <abbr title="Partidos jugados">PJ</abbr>
+                    </th>
+                    <th>
+                      <abbr title="Ganados, empatados y perdidos">G-E-P</abbr>
+                    </th>
+                    <th>
+                      <abbr title="Diferencia de goles (o puntos)">Dif</abbr>
+                    </th>
+                    <th>
+                      <abbr title="Puntos: 3 por victoria, 1 por empate">Pts</abbr>
+                    </th>
+                    <th>
+                      <abbr title="Elo de equipo, por los partidos contra otros equipos del club">Elo</abbr>
+                    </th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {ranking.map((r, i) => {
+                    const diff = r.rec.scoreFor - r.rec.scoreAgainst
+                    return (
+                      <tr key={r.team.id}>
+                        <td>{i + 1}</td>
+                        <td className="left">
+                          <Link to={`/equipos/${r.team.id}`} className="plain-link">
+                            <TeamCrest team={r.team} size={22} /> {r.team.name}
+                          </Link>
+                        </td>
+                        <td>{r.rec.played}</td>
+                        <td className="num">
+                          {r.rec.wins}-{r.rec.draws}-{r.rec.losses}
+                        </td>
+                        <td className="num">{diff > 0 ? `+${diff}` : diff}</td>
+                        <td>
+                          <b>{r.points}</b>
+                        </td>
+                        <td className="num">{r.elo}</td>
+                      </tr>
+                    )
+                  })}
+                </tbody>
+              </table>
+            </div>
+            <p className="hint">Cuentan todos los partidos de cada equipo; el Elo, sólo los que jugó contra otros equipos del club.</p>
+          </section>
+        )}
+        <h2>Todos los equipos</h2>
         <div className="list rows">
           {teams.map((t) => {
             const rec = teamRecord(data, t)
@@ -67,6 +137,7 @@ export function Teams() {
             )
           })}
         </div>
+        </>
       )}
     </div>
   )

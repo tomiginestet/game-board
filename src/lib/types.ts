@@ -93,6 +93,12 @@ export interface Play {
   invited?: Id[]
   /** Quién confirmó que viene, que no viene o que capaz. */
   rsvp?: Record<Id, Rsvp>
+  /** Cuándo respondió cada uno (para el orden de la lista de espera). */
+  rsvpAt?: Record<Id, number>
+  /** Cupo: cuántos entran; los que confirman después quedan en lista de espera. */
+  capacity?: number
+  /** Jugador que organizó la convocatoria (con cuenta, sólo él puede responder por los demás). */
+  organizer?: Id
   /** Equipo fijo al que se convocó (su plantel), si fue desde un equipo. */
   callTeamId?: Id
   /** Cronómetro del partido (deportes por tiempo). */

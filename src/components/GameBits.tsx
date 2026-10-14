@@ -5,6 +5,7 @@ import type { GameDef } from '../lib/games/schema'
 import { formatDate, UNKNOWN_PLAYER } from '../lib/hooks'
 import { formatScore } from '../lib/score'
 import { formatWhen } from '../lib/schedule'
+import { lineup } from '../lib/calls'
 import type { Id, Play, PlaySide, Player } from '../lib/types'
 import { TeamAvatar } from './Avatar'
 
@@ -42,8 +43,9 @@ export function sideName(side: PlaySide, players: Map<Id, Player>): string {
 export function playTitle(play: Play, players: Map<Id, Player>, teams: { id: Id; name: string }[] = []): string {
   if (play.invited && !play.sides.length) {
     const team = play.callTeamId ? teams.find((t) => t.id === play.callTeamId) : undefined
-    const yes = Object.values(play.rsvp ?? {}).filter((r) => r === 'yes').length
-    return `${team ? `${team.name}: c` : 'C'}onvocatoria · ${yes} de ${play.invited.length} confirmados`
+    const { inIds, waitIds } = lineup(play, play.invited)
+    const count = play.capacity ? `${inIds.length}/${play.capacity} confirmados` : `${inIds.length} de ${play.invited.length} confirmados`
+    return `${team ? `${team.name}: c` : 'C'}onvocatoria · ${count}${waitIds.length ? ` · ${waitIds.length} en espera` : ''}`
   }
   return play.sides.map((s) => sideName(s, players)).join(' vs ')
 }

@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest'
-import { callPeople, goingIds, isCall, rsvpCounts, rsvpSummary } from './calls'
+import { callPeople, canAnswerFor, goingIds, isCall, lineup, newlyIn, rsvpCounts, rsvpSummary } from './calls'
+import { googleCalendarUrl, icsText } from './ics'
 import { clockElapsed, clockRuleOf, formatClock, matchMinute, periodLabel } from './clock'
 import { BUILTIN_GAMES } from './games'
 import type { Play, Team } from './types'
@@ -52,5 +53,39 @@ describe('cronómetro', () => {
     expect(matchMinute(clock, rule, 1000 + 30_000)).toBe(27)
     expect(matchMinute(undefined, rule)).toBeUndefined()
     expect(formatClock(90_500)).toBe('1:30')
+  })
+})
+
+describe('cupo y lista de espera', () => {
+  const people = ['a', 'b', 'c', 'd']
+  const p = call({ invited: people, capacity: 2, rsvp: { a: 'yes', b: 'yes', c: 'yes', d: 'maybe' }, rsvpAt: { a: 3, b: 1, c: 2 } })
+
+  it('entran los primeros en confirmar; el resto espera', () => {
+    expect(lineup(p, people)).toEqual({ inIds: ['b', 'c'], waitIds: ['a'] })
+    expect(goingIds(p, people)).toEqual(['b', 'c'])
+  })
+
+  it('si alguien se baja, entra el primero de la lista de espera', () => {
+    const after = { ...p, rsvp: { ...p.rsvp, b: 'no' as const } }
+    expect(newlyIn(lineup(p, people).inIds, lineup(after, people).inIds)).toEqual(['a'])
+  })
+
+  it('con cuenta, cada uno responde lo suyo y quien organiza, por todos', () => {
+    expect(canAnswerFor({ organizer: 'a' }, undefined, 'b')).toBe(true)
+    expect(canAnswerFor({ organizer: 'a' }, 'b', 'b')).toBe(true)
+    expect(canAnswerFor({ organizer: 'a' }, 'b', 'c')).toBe(false)
+    expect(canAnswerFor({ organizer: 'a' }, 'a', 'c')).toBe(true)
+  })
+})
+
+describe('calendario', () => {
+  it('arma un evento con recordatorio dos horas antes', () => {
+    const start = Date.UTC(2026, 9, 21, 23, 0)
+    const text = icsText({ id: 'x', title: 'Fútbol 5, jueves', start, minutes: 60, location: 'Cancha 3' })
+    expect(text).toContain('DTSTART:20261021T230000Z')
+    expect(text).toContain('DTEND:20261022T000000Z')
+    expect(text).toContain('SUMMARY:Fútbol 5\\, jueves')
+    expect(text).toContain('TRIGGER:-PT120M')
+    expect(googleCalendarUrl({ id: 'x', title: 'F5', start, minutes: 60 })).toContain('dates=20261021T230000Z%2F20261022T000000Z')
   })
 })

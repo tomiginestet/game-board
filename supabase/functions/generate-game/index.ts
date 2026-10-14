@@ -3,6 +3,8 @@
 // - Sólo para usuarios con sesión (verify_jwt).
 // - Tope de gasto mensual para toda la app (AI_MONTHLY_LIMIT_USD, 10 por defecto) y
 //   un máximo de generaciones por usuario por día (AI_DAILY_PER_USER, 10 por defecto).
+// - Desde el panel de admin (`app_settings.ai`) se puede apagar para todos o cambiar esos
+//   topes, y cortársela a una persona (`user_flags.ai_blocked`).
 // - El pedido se arma acá (no se acepta un prompt libre del cliente).
 // Secretos: ANTHROPIC_API_KEY (obligatorio), AI_MODEL (opcional).
 
@@ -59,19 +61,31 @@ Deno.serve(async (req) => {
   }
   if (!input.name.trim()) return json({ error: 'Falta el nombre del juego.' }, 400)
 
+  // Lo que se decide en el panel de admin.
+  const [{ data: setting }, { data: flags }] = await Promise.all([
+    admin.from('app_settings').select('value').eq('key', 'ai').maybeSingle(),
+    admin.from('user_flags').select('ai_blocked').eq('user_id', user.id).maybeSingle(),
+  ])
+  const ai = (setting?.value ?? {}) as { enabled?: boolean; monthly_limit_usd?: number | null; daily_per_user?: number | null }
+  if (ai.enabled === false || flags?.ai_blocked) {
+    return json({ error: 'La IA automática está apagada por ahora. Probá con IA gratis: copiás las instrucciones y las pegás en cualquier chat.' }, 403)
+  }
+  const monthlyLimit = typeof ai.monthly_limit_usd === 'number' ? ai.monthly_limit_usd : MONTHLY_LIMIT
+  const dailyPerUser = typeof ai.daily_per_user === 'number' ? ai.daily_per_user : DAILY_PER_USER
+
   // Topes de gasto.
   const monthStart = new Date()
   monthStart.setUTCDate(1)
   monthStart.setUTCHours(0, 0, 0, 0)
   const { data: monthRows } = await admin.from('ai_usage').select('cost_usd').gte('created_at', monthStart.toISOString())
   const spent = (monthRows ?? []).reduce((sum, r) => sum + Number(r.cost_usd), 0)
-  if (spent >= MONTHLY_LIMIT) {
+  if (spent >= monthlyLimit) {
     return json({ error: `Se terminó el cupo de este mes para toda la app. Probá con IA gratis: copiás las instrucciones y las pegás en cualquier chat.` }, 429)
   }
   const dayAgo = new Date(Date.now() - 24 * 3600 * 1000).toISOString()
   const { count } = await admin.from('ai_usage').select('id', { count: 'exact', head: true }).eq('user_id', user.id).gte('created_at', dayAgo)
-  if ((count ?? 0) >= DAILY_PER_USER) {
-    return json({ error: `Ya armaste ${DAILY_PER_USER} juegos en las últimas 24 horas. Probá mañana o usá IA gratis.` }, 429)
+  if ((count ?? 0) >= dailyPerUser) {
+    return json({ error: `Ya armaste ${dailyPerUser} juegos en las últimas 24 horas. Probá mañana o usá IA gratis.` }, 429)
   }
 
   const client = new Anthropic({ apiKey })

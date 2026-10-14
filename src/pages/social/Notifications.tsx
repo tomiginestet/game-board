@@ -3,6 +3,7 @@ import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Avatar } from '../../components/Avatar'
 import { formatDate } from '../../lib/hooks'
+import { formatWhen } from '../../lib/schedule'
 import {
   decideJoinRequest,
   deleteNotification,
@@ -38,6 +39,10 @@ function text(n: AppNotification): string {
       return `${from} aceptó tu solicitud de amistad`
     case 'removed':
       return `Ya no sos parte de ${group}`
+    case 'call':
+      return `${from} te convocó: ${n.data.title ?? 'partido'}${n.data.when ? ` · ${formatWhen(n.data.when)}` : ''}${n.data.venue ? ` · ${n.data.venue}` : ''}. ¿Venís?`
+    case 'call_in':
+      return `¡Entraste! Se liberó un lugar en ${n.data.title ?? 'el partido'}${n.data.when ? ` (${formatWhen(n.data.when)})` : ''}`
     default:
       return 'Novedad'
   }
@@ -70,6 +75,14 @@ export function Notifications() {
     }
   }
 
+  /** Abre el partido de una convocatoria (cambiando al club, si hace falta). */
+  const openCall = async (groupId?: string, playId?: string) => {
+    const groups = await refreshGroups()
+    const g = groups.find((x) => x.id === groupId)
+    if (g) await switchToGroup(g)
+    if (playId) navigate(`/partida/${playId}`)
+  }
+
   const openGroup = async (groupId?: string) => {
     const groups = await refreshGroups()
     const g = groups.find((x) => x.id === groupId)
@@ -93,7 +106,7 @@ export function Notifications() {
       {!items.length && (
         <div className="empty">
           <BellSlashIcon size={32} className="block-center" />
-          <p>No tenés novedades. Acá te van a llegar las solicitudes para entrar a tus clubes, invitaciones y pedidos de amistad.</p>
+          <p>No tenés novedades. Acá te van a llegar las solicitudes para entrar a tus clubes, invitaciones, convocatorias a partidos y pedidos de amistad.</p>
         </div>
       )}
       <div className="list">
@@ -157,6 +170,11 @@ export function Notifications() {
                   {(n.kind === 'join_accepted' || n.kind === 'invite_accepted') && (
                     <button className="btn small" onClick={() => void openGroup(n.data.group_id)}>
                       Ir al club
+                    </button>
+                  )}
+                  {(n.kind === 'call' || n.kind === 'call_in') && n.data.play_id && (
+                    <button className="btn small primary" onClick={() => void openCall(n.data.group_id, n.data.play_id)}>
+                      {n.kind === 'call' ? 'Responder' : 'Ver partido'}
                     </button>
                   )}
                   {n.kind === 'friend_accepted' && (
