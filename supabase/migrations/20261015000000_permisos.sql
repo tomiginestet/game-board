@@ -17,14 +17,25 @@
 --
 -- La app aplica las mismas reglas antes de guardar (`src/lib/access.ts`); estas son las que valen.
 
+-- (El panel de admin ya puede haber agregado estas columnas.)
+alter table public.clubs add column if not exists disabled_at timestamptz;
 alter table public.entities
-  add column created_by uuid references auth.users (id) on delete set null;
+  add column if not exists created_by uuid references auth.users (id) on delete set null,
+  add column if not exists updated_by uuid references auth.users (id) on delete set null;
 
 -- Los jugadores ya reclamados son de su cuenta.
 update public.entities e
   set created_by = m.user_id
 from public.memberships m
 where e.kind = 'player' and e.club_code = m.club_code and e.id = m.player_id and e.created_by is null;
+
+-- La app lee el autor dentro de `data`: se copia (con versión nueva, para que los dispositivos lo bajen).
+update public.entities e
+  set data = e.data || jsonb_build_object('createdBy', e.created_by),
+      v = greatest(e.v + 1, (extract(epoch from clock_timestamp()) * 1000)::bigint),
+      updated_at = clock_timestamp()
+where e.created_by is not null and not e.deleted and e.data is not null
+  and e.data ->> 'createdBy' is distinct from e.created_by::text;
 
 -- ¿Juega `p_player` en esta partida o partido?
 create function public._plays_in(p_kind text, p_data jsonb, p_player text)
@@ -72,7 +83,8 @@ begin
   if me is null then
     raise exception 'Hay que iniciar sesión para guardar cambios';
   end if;
-  if not exists (select 1 from public.clubs c where c.code = p_code) then
+  -- Un club desactivado desde el panel de admin es un club que no existe.
+  if not exists (select 1 from public.clubs c where c.code = p_code and c.disabled_at is null) then
     raise exception 'Club inexistente';
   end if;
   select m.role, m.player_id into my_role, my_player
@@ -105,8 +117,8 @@ begin
 
     if not found then
       -- Nuevo: lo puede crear cualquier integrante, y queda a su nombre.
-      insert into public.entities (club_code, kind, id, data, deleted, v, updated_at, created_by)
-      values (p_code, k, i, case when del then null else body || jsonb_build_object('createdBy', me) end, del, ver, clock_timestamp(), me);
+      insert into public.entities (club_code, kind, id, data, deleted, v, updated_at, created_by, updated_by)
+      values (p_code, k, i, case when del then null else body || jsonb_build_object('createdBy', me) end, del, ver, clock_timestamp(), me, me);
       continue;
     end if;
 
@@ -140,6 +152,7 @@ begin
           deleted = del,
           v = ver,
           created_by = author,
+          updated_by = me,
           updated_at = clock_timestamp()
     where e.club_code = p_code and e.kind = k and e.id = i;
   end loop;
