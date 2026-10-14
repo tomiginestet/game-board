@@ -75,6 +75,43 @@ body.in-play .sticky-actions {
   cursor: default;
 }
 
+/* Por turnos: Deshacer (ícono) · Pasar turno (principal, al medio) · Terminar (chico). */
+.play-dock.turns {
+  grid-template-columns: 52px minmax(0, 1fr) auto;
+  align-items: stretch;
+}
+
+.play-dock.turns .dock-undo {
+  padding: 0;
+}
+
+.play-dock.turns .dock-finish {
+  padding: 0 14px;
+  font-size: 15px;
+}
+
+.dock-pass {
+  min-height: 60px;
+}
+
+.dock-pass-text {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  min-width: 0;
+  line-height: 1.15;
+  font-size: 18px;
+}
+
+.dock-pass-text small {
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  font-size: 13px;
+  font-weight: 600;
+  opacity: 0.85;
+}
+
 /* "Faltan 8 manos. ¿Terminar igual?": la pregunta ocupa la barra, arriba de los dos botones. */
 .dock-confirm-text {
   grid-column: 1 / -1;
@@ -695,7 +732,7 @@ body.in-play .sticky-actions {
 
 /* ---------- Por turnos (Catán) ---------- */
 
-/* A quién le toca y "Pasar turno", en la misma franja fija que el marcador: siempre a mano. */
+/* A quién le toca, en una línea dentro de la franja fija del marcador. "Pasar turno" va en la barra de abajo. */
 .play-page .turn-banner {
   flex-direction: row;
   align-items: center;
@@ -713,14 +750,8 @@ body.in-play .sticky-actions {
 }
 
 .play-page .turn-name {
-  display: block;
-  font-size: 18px;
+  font-size: 16px;
   line-height: 1.2;
-}
-
-.turn-pass {
-  flex-shrink: 0;
-  min-height: 48px;
 }
 
 .play-page .turn-side.current {

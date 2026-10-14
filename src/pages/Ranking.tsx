@@ -1,9 +1,7 @@
-import { SparkleIcon } from '@phosphor-icons/react'
 import { useEffect, useMemo, useState } from 'react'
 import { Link, useSearchParams } from 'react-router-dom'
 import { Avatar, TeamAvatar } from '../components/Avatar'
 import { GameBadge } from '../components/GameBits'
-import { LevelIcon } from '../components/icons'
 import { gameOrMissing, plural, UNKNOWN_PLAYER, useGames, usePlayerMap } from '../lib/hooks'
 import { beltOf, computeBoard, levelFor, periodStart, winRate, type GlobalStats } from '../lib/stats'
 import { useData } from '../lib/store'
@@ -15,11 +13,11 @@ type Tab = 'gloria' | 'wins' | 'elo' | 'allround' | 'belts'
 type Period = 'all' | 'year' | 'month' | 'week'
 
 const TABS: { id: Tab; name: string; help: string }[] = [
-  { id: 'gloria', name: '✨ Gloria', help: 'Puntos por cada partida: más por ganar, por mesas grandes y por juegos largos.' },
-  { id: 'wins', name: '🏆 Victorias', help: 'Partidas ganadas sumando todos los juegos.' },
-  { id: 'elo', name: '📈 Elo por juego', help: 'El nivel de cada uno en un juego: sube más si le ganás a alguien mejor.' },
-  { id: 'allround', name: '🧰 Todoterreno', help: 'En cuántos juegos distintos ganaste alguna vez.' },
-  { id: 'belts', name: '🥊 Cinturones', help: 'Quién tiene el cinturón de cada juego: se lo saca el que le gana.' },
+  { id: 'gloria', name: 'Gloria', help: 'Puntos por cada partida: más por ganar, por mesas grandes y por juegos largos.' },
+  { id: 'wins', name: 'Victorias', help: 'Partidas ganadas sumando todos los juegos.' },
+  { id: 'elo', name: 'Elo por juego', help: 'El nivel de cada uno en un juego: sube más si le ganás a alguien mejor.' },
+  { id: 'allround', name: 'Todoterreno', help: 'En cuántos juegos distintos ganaste alguna vez.' },
+  { id: 'belts', name: 'Cinturones', help: 'Quién tiene el cinturón de cada juego: se lo saca el que le gana.' },
 ]
 
 const PERIODS: { id: Period; name: string }[] = [
@@ -102,7 +100,7 @@ function GlobalRanking() {
         <option value="">Todos los juegos</option>
         {games.map((g) => (
           <option key={g.id} value={g.id}>
-            {g.emoji} {g.name}
+            {g.name}
           </option>
         ))}
       </select>
@@ -112,7 +110,7 @@ function GlobalRanking() {
       {rows?.length === 0 && <div className="empty">Todavía no hay partidas de jugadores con cuenta en este período.</div>}
       <div className="list ranking">
         {sorted.map((r, i) => (
-          <div key={r.user_id} className={'card rank-row' + (r.user_id === myId ? ' me' : '')}>
+          <div key={r.user_id} className={'rank-row' + (r.user_id === myId ? ' me' : '')}>
             <span className="rank-pos">{i + 1}</span>
             <Avatar player={userAsPlayer(r)} size={36} />
             <span className="grow">
@@ -129,7 +127,7 @@ function GlobalRanking() {
             <span className="rank-value num">
               {tab === 'wins' ? r.wins : tab === 'allround' ? r.games_won : (
                 <>
-                  <SparkleIcon weight="fill" className="gloria-icon" aria-hidden /> {r.gloria}
+                  {r.gloria}
                   <span className="sr-only"> de gloria</span>
                 </>
               )}
@@ -153,22 +151,25 @@ function GroupRanking() {
   const eloGame = gameId ?? playedGames[0]?.id
 
   const all = [...board.players.values()].filter((s) => s.played > 0)
-  const sorted: { s: GlobalStats; value: string; sub: string }[] = (() => {
+  const sorted: { s: GlobalStats; value: string; sub: string; mid: string }[] = (() => {
     if (tab === 'gloria')
       return all
         .sort((a, b) => b.gloria - a.gloria || b.wins - a.wins)
-        .map((s) => ({ s, value: `${s.gloria}`, sub: `${plural(s.played, 'partida', 'partidas')} · ${plural(s.wins, 'victoria', 'victorias')}` }))
+        .map((s) => ({ s, value: `${s.gloria}`, mid: `${s.wins}/${s.played}`, sub: `${plural(s.played, 'partida', 'partidas')} · ${plural(s.wins, 'victoria', 'victorias')}` }))
     if (tab === 'wins')
       return all
         .sort((a, b) => b.wins - a.wins || winRate(b) - winRate(a))
-        .map((s) => ({ s, value: String(s.wins), sub: `${Math.round(winRate(s) * 100)}% de ${s.played} · racha máx. ${s.bestStreak}` }))
+        .map((s) => ({ s, value: String(s.wins), mid: `${Math.round(winRate(s) * 100)}%`, sub: `${Math.round(winRate(s) * 100)}% de ${s.played} · racha máx. ${s.bestStreak}` }))
     if (tab === 'allround')
       return all
         .sort((a, b) => b.gamesWon - a.gamesWon || b.gamesPlayed - a.gamesPlayed)
-        .map((s) => ({ s, value: `${s.gamesWon}`, sub: `ganó en ${plural(s.gamesWon, 'juego', 'juegos')} de ${s.gamesPlayed} que jugó` }))
+        .map((s) => ({ s, value: `${s.gamesWon}`, mid: `${s.gamesPlayed}`, sub: `ganó en ${plural(s.gamesWon, 'juego', 'juegos')} de ${s.gamesPlayed} que jugó` }))
     return []
   })()
 
+  // Encabezados de la tabla: la columna del medio y la del valor cambian según la pestaña.
+  const COLS: Record<Tab, [string, string]> = { gloria: ['V / P', 'Gloria'], wins: ['Efect.', 'Victorias'], allround: ['Jugó', 'Ganó en'], elo: ['V–D', 'Elo'], belts: ['', ''] }
+  const [midHead, valueHead] = COLS[tab]
   const eloRows = eloGame
     ? all
         .map((s) => s.perGame.get(eloGame))
@@ -192,13 +193,11 @@ function GroupRanking() {
           </button>
         ))}
       </div>
-      <p className="hint">{TABS.find((t) => t.id === tab)?.help}</p>
-
       {tab === 'elo' && (
         <div className="chips scroll">
           {playedGames.map((g) => (
             <button key={g.id} className={'chip' + (eloGame === g.id ? ' active' : '')} aria-pressed={eloGame === g.id} onClick={() => setGameId(g.id)}>
-              {g.emoji} {g.name}
+              {g.name}
             </button>
           ))}
         </div>
@@ -219,23 +218,31 @@ function GroupRanking() {
         </div>
       )}
 
-      <div className="list ranking">
+      <div className={'list ranking' + (tab === 'belts' ? '' : ' rank-table')}>
+        {tab !== 'belts' && (sorted.length > 0 || (tab === 'elo' && eloRows.length > 0)) && (
+          <div className="rank-head" aria-hidden>
+            <span>#</span>
+            <span />
+            <span>Jugador</span>
+            <span>{midHead}</span>
+            <span>{valueHead}</span>
+          </div>
+        )}
         {tab === 'elo'
           ? eloRows.map((s, i) => {
               const p = players.get(s!.playerId) ?? UNKNOWN_PLAYER
               return (
-                <Link key={p.id} to={`/jugadores/${p.id}?juego=${eloGame}`} className="card rank-row">
+                <Link key={p.id} to={`/jugadores/${p.id}?juego=${eloGame}`} className={'rank-row' + (i === 0 ? ' first' : '')}>
                   <span className="rank-pos">{i + 1}</span>
-                  <Avatar player={p} size={36} />
-                  <span className="grow">
+                  <Avatar player={p} size={32} />
+                  <span className="rank-who">
                     <b>{p.name}</b>
-                    <span className="muted small block">
-                      {levelFor(s!.elo).name} · {plural(s!.wins, 'victoria', 'victorias')}, {plural(s!.losses, 'derrota', 'derrotas')}
-                    </span>
+                    <span className="muted small block">{levelFor(s!.elo).name}</span>
                   </span>
-                  <span className="rank-value num">
-                    <LevelIcon icon={levelFor(s!.elo).icon} /> {s!.elo}
+                  <span className="rank-mid">
+                    {s!.wins}–{s!.losses}
                   </span>
+                  <span className="rank-value">{s!.elo}</span>
                 </Link>
               )
             })
@@ -244,7 +251,7 @@ function GroupRanking() {
                 const belt = beltOf(board.views, g.id)
                 if (!belt) return null
                 return (
-                  <Link key={g.id} to={`/juegos/${g.id}`} className="card rank-row">
+                  <Link key={g.id} to={`/juegos/${g.id}`} className="rank-row">
                     <GameBadge game={gameOrMissing(data, g.id)} size={36} />
                     <span className="grow">
                       <b>{belt.holders.map((id) => players.get(id)?.name ?? '?').join(' & ')}</b>
@@ -256,24 +263,29 @@ function GroupRanking() {
                   </Link>
                 )
               })
-            : sorted.map(({ s, value, sub }, i) => {
+            : sorted.map(({ s, value, sub, mid }, i) => {
                 const p = players.get(s.playerId) ?? UNKNOWN_PLAYER
                 return (
-                  <Link key={p.id} to={`/jugadores/${p.id}`} className="card rank-row">
+                  <Link key={p.id} to={`/jugadores/${p.id}`} className={'rank-row' + (i === 0 ? ' first' : '')}>
                     <span className="rank-pos">{i + 1}</span>
-                    <Avatar player={p} size={36} />
-                    <span className="grow">
+                    <Avatar player={p} size={32} />
+                    <span className="rank-who">
                       <b>{p.name}</b>
-                      <span className="muted small block">{sub}</span>
                     </span>
-                    <span className="rank-value num">
-                      {tab === 'gloria' && <SparkleIcon weight="fill" className="gloria-icon" aria-hidden />} {value}
-                      {tab === 'gloria' && <span className="sr-only"> de gloria</span>}
+                    <span className="rank-mid">
+                      {mid}
+                      <span className="sr-only">. {sub}</span>
+                    </span>
+                    <span className="rank-value">
+                      {value}
+                      <span className="sr-only"> {valueHead.toLowerCase()}</span>
                     </span>
                   </Link>
                 )
               })}
       </div>
+      {/* Cómo se calcula, al pie y chico: la tabla va primero. */}
+      <p className="hint">{TABS.find((t) => t.id === tab)?.help}</p>
     </>
   )
 }

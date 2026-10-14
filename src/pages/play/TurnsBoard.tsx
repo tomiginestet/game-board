@@ -1,25 +1,21 @@
-import { CaretDownIcon, LockSimpleIcon, MinusIcon, PlusIcon, SkipForwardIcon } from '@phosphor-icons/react'
+import { CaretDownIcon, LockSimpleIcon, MinusIcon, PlusIcon } from '@phosphor-icons/react'
 import { useEffect, useRef, useState } from 'react'
 import { TeamAvatar } from '../../components/Avatar'
 import { sideColor, sideName, sidePlayersOf } from '../../components/GameBits'
-import { nextTurn, targetOf, type LiveState } from '../../lib/engine'
-import { vibrate } from '../../lib/vibrate'
+import { targetOf, type LiveState } from '../../lib/engine'
 import type { GameDef } from '../../lib/games/schema'
 import { actions } from '../../lib/store'
 import type { Id, Play, Player } from '../../lib/types'
 import { BoardTabs } from './BoardTabs'
 import { MiniScore } from './MiniScore'
-import { useReducedMotion } from './playHooks'
+import { passTurn, useReducedMotion } from './playHooks'
 import { KeyHint } from './KeyHint'
 import { undoLast, useScoreKeys } from './useScoreKeys'
 
 export function TurnsBoard({ play, game, live, players }: { play: Play; game: GameDef; live: LiveState; players: Map<Id, Player> }) {
   const started = live.turnCount > 0
   const current = live.turn
-  const pass = () => {
-    vibrate(20)
-    actions.log(play.id, { k: 'turn', s: nextTurn(play, live) })
-  }
+  const pass = () => passTurn(play, live)
   const target = targetOf(game, play.config)
   const counts = game.events.filter((e) => e.type === 'count' && !e.global)
   const holders = game.events.filter((e) => e.type === 'holder')
@@ -68,16 +64,13 @@ export function TurnsBoard({ play, game, live, players }: { play: Play; game: Ga
             <span className="turn-who" aria-live="polite">
               {started ? (
                 <>
-                  <span className="muted small block">Turno {live.turnCount} · le toca a</span>
-                  <b className="turn-name ellipsis">{sideName(play.sides[current], players)}</b>
+                  <span className="muted">Turno {live.turnCount} · le toca a </span>
+                  <b className="turn-name">{sideName(play.sides[current], players)}</b>
                 </>
               ) : (
                 <b className="turn-name ellipsis">Empieza {sideName(play.sides[0], players)}</b>
               )}
             </span>
-            <button className="btn primary turn-pass" onClick={pass} aria-keyshortcuts="N Enter">
-              <SkipForwardIcon weight="fill" aria-hidden="true" /> {started ? 'Pasar turno' : 'Arrancar'}
-            </button>
           </div>
         </MiniScore>
       </div>
