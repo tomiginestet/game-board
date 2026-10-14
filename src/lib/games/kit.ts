@@ -1,9 +1,9 @@
-// Piezas repetidas de las fichas de deportes (opciones de sets, niveles de medallas con dibujo genérico).
+// Piezas repetidas de las fichas de deportes (opciones de sets, niveles de medallas).
 
-import type { AwardLevel, GameOption, Glyph } from './schema'
+import type { AwardLevel, GameOption } from './schema'
 
-/** Nivel de medalla con dibujo genérico y color (los deportes no tienen ilustraciones propias). */
-export const lv = (at: number, name: string, description: string, glyph: Glyph, color: string): AwardLevel => ({ at, name, description, glyph, color })
+/** Nivel de medalla. Su ilustración va en `src/lib/art/nuevas/<juego>.ts`, con la clave igual al nombre. */
+export const lv = (at: number, name: string, description: string): AwardLevel => ({ at, name, description })
 
 /** "Al mejor de 3 / 5 sets". */
 export const bestOfOption = (def: number, choices: number[] = [1, 3, 5]): GameOption => ({

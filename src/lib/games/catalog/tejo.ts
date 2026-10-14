@@ -22,9 +22,9 @@ export const tejo: GameDef = {
       id: 'wins', name: 'Tejo de playa', measures: 'Partidos de tejo ganados', metric: { type: 'wins' },
       unit: '{n} partidos', unitOne: '1 partido',
       levels: [
-        lv(5, 'Ojota de medir', 'Cinco partidos ganados. La ojota es la cinta métrica oficial.', 'road', '#FFD43B'),
-        lv(20, 'Sombrilla propia', 'Veinte victorias: la sombrilla del tejo es tuya.', 'house', '#FAB005'),
-        lv(50, 'Rey de Villa Gesell', 'Cincuenta ganados. Te esperan cada enero en la bajada de la 3.', 'crown', '#F08C00'),
+        lv(5, 'Ojota de medir', 'Cinco partidos ganados. La ojota es la cinta métrica oficial.'),
+        lv(20, 'Sombrilla propia', 'Veinte victorias: la sombrilla del tejo es tuya.'),
+        lv(50, 'Rey de Villa Gesell', 'Cincuenta ganados. Te esperan cada enero en la bajada de la 3.'),
       ],
     },
   ],

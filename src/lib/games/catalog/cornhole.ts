@@ -22,9 +22,9 @@ export const cornhole: GameDef = {
       id: 'wins', name: 'Bolsa de maíz', measures: 'Partidas de cornhole ganadas', metric: { type: 'wins' },
       unit: '{n} partidas', unitOne: '1 partida',
       levels: [
-        lv(5, 'Choclo tierno', 'Cinco ganadas. Recién salido de la planta.', 'clover', '#FFE066'),
-        lv(20, 'Humita en chala', 'Veinte victorias: ya estás bien envuelto.', 'heart', '#FCC419'),
-        lv(50, 'Pochoclo explosivo', 'Cincuenta ganadas. Reventás como pochoclo en la olla.', 'flame', '#F59F00'),
+        lv(5, 'Choclo tierno', 'Cinco ganadas. Recién salido de la planta.'),
+        lv(20, 'Humita en chala', 'Veinte victorias: ya estás bien envuelto.'),
+        lv(50, 'Pochoclo explosivo', 'Cincuenta ganadas. Reventás como pochoclo en la olla.'),
       ],
     },
   ],

@@ -33,3 +33,11 @@ pega al dado, el rey del tablero con los rivales tirados), no en caras de histor
 las dibuja: aparecen por sus símbolos.
 
 **Oficio.** Cada medalla se revisa grande y a 44 px. Antes de agregar algo, se pule lo que ya está.
+
+## Medallas nuevas
+
+Toda medalla de un juego del catálogo (de mesa, de cartas, deporte o videojuego) se dibuja con este lenguaje y el kit
+(`src/lib/art/kit.ts`), en `src/lib/art/nuevas/<juego>.ts`, con la clave igual al nombre del nivel. Los dibujos
+genéricos (`glyph`, en `src/lib/art/glyphs.ts`) quedan sólo para los juegos que agrega el grupo o la IA, y también
+siguen este lenguaje. Antes de dibujar, se mira de referencia lo último que se hizo (fútbol en `eafc.ts`, ping pong
+en `pingpong.ts`, los deportes) y se revisa la hoja con `npm run medals -- salida.png nuevas/<juego>`.

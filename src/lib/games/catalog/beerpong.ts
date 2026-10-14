@@ -22,9 +22,9 @@ export const beerpong: GameDef = {
       id: 'wins', name: 'Vaso rojo', measures: 'Partidas de beer pong ganadas', metric: { type: 'wins' },
       unit: '{n} partidas', unitOne: '1 partida',
       levels: [
-        lv(3, 'Vaso de plástico', 'Tres ganadas. El primer vaso rojo de tu colección.', 'coin', '#FFA8A8'),
-        lv(10, 'Pulso de cirujano', 'Diez victorias: tirás igual de bien en el vaso diez que en el uno.', 'brain', '#FA5252'),
-        lv(30, 'Leyenda de la previa', 'Treinta ganadas. Te invitan a las fiestas sólo por la mesa.', 'crown', '#C92A2A'),
+        lv(3, 'Vaso de plástico', 'Tres ganadas. El primer vaso rojo de tu colección.'),
+        lv(10, 'Pinza de cirujano', 'Diez victorias: tirás igual de bien en el vaso diez que en el uno.'),
+        lv(30, 'Leyenda de la previa', 'Treinta ganadas. Te invitan a las fiestas sólo por la mesa.'),
       ],
     },
   ],

@@ -21,9 +21,9 @@ export const travesano: GameDef = {
       id: 'wins', name: 'Clang', measures: 'Desafíos del travesaño ganados', metric: { type: 'wins' },
       unit: '{n} desafíos', unitOne: '1 desafío',
       levels: [
-        lv(3, 'Campana de iglesia', 'Tres desafíos ganados. El "clang" se escucha a dos cuadras.', 'bolt', '#C0EB75'),
-        lv(10, 'Pie de calibre', 'Diez desafíos: medís la distancia con el empeine.', 'eye', '#82C91E'),
-        lv(30, 'Leyenda del entrenamiento', 'Treinta ganados. Los del club se quedan después de la práctica para verte.', 'crown', '#5C940D'),
+        lv(3, 'Campana de iglesia', 'Tres desafíos ganados. El "clang" se escucha a dos cuadras.'),
+        lv(10, 'Pie de calibre', 'Diez desafíos: medís la distancia con el empeine.'),
+        lv(30, 'Leyenda del entrenamiento', 'Treinta ganados. Los del club se quedan después de la práctica para verte.'),
       ],
     },
   ],
