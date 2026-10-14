@@ -102,9 +102,7 @@ export function TurnsBoard({ play, game, live, players }: { play: Play; game: Ga
                 {counts.map((e) => (
                   <li key={e.id} className="ev-row">
                     <span className="ev-row-label">
-                      <span>
-                        <span aria-hidden="true">{e.emoji}</span> {e.name}
-                      </span>
+                      <span>{e.name}</span>
                       {help && e.help && <span className="ev-row-help">{e.help}</span>}
                     </span>
                     <span className="stepper">
@@ -150,7 +148,7 @@ export function TurnsBoard({ play, game, live, players }: { play: Play; game: Ga
             return (
               <div key={e.id} className="holder-row">
                 <span className="grow">
-                  <span aria-hidden="true">{e.emoji}</span> {e.name}
+                  {e.name}
                   {e.points ? <span className="muted small"> ({e.points} pts)</span> : null}
                   {help && e.help && <span className="ev-row-help">{e.help}</span>}
                 </span>

@@ -114,11 +114,6 @@
   flex: none;
 }
 
-.winner-medals-btn {
-  margin-top: 6px;
-  border-color: color-mix(in srgb, var(--accent-2) 55%, var(--border));
-  color: var(--accent-2);
-}
 
 /* El único momento con autor: el nombre del ganador cae en su lugar y la frase llega detrás.
    Por defecto todo está visible; la animación sólo corre al terminar la partida. */
