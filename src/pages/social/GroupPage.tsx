@@ -10,6 +10,7 @@ import {
   MagnifyingGlassIcon,
   PencilSimpleIcon,
   PlusIcon,
+  PrinterIcon,
   ShareNetworkIcon,
   ShieldStarIcon,
   SignOutIcon,
@@ -34,6 +35,7 @@ import {
   removeMember,
   searchUsers,
   setClubSlug,
+  clubShareLink,
   setMemberRole,
   useActiveGroup,
   userAsPlayer,
@@ -43,8 +45,8 @@ import {
   type MyGroup,
 } from '../../lib/social'
 import { useData } from '../../lib/store'
-import { deactivateClub, inviteLink, SYNC_LABEL, syncNow, useSyncState } from '../../lib/sync'
-import { cleanSlugInput, shortLink, suggestSlug, validSlug } from '../../lib/clubLink'
+import { deactivateClub, SYNC_LABEL, syncNow, useSyncState } from '../../lib/sync'
+import { cleanSlugInput, suggestSlug, validSlug } from '../../lib/clubLink'
 import { SyncIcon } from '../../components/SyncIcon'
 import { MemberCard } from '../../components/MemberCard'
 import { memberNumber } from '../../lib/memberCard'
@@ -489,7 +491,7 @@ function InviteSection({ group, members }: { group: MyGroup; members: Member[] }
   const [invited, setInvited] = useState<string[]>([])
   const [copied, setCopied] = useState(false)
   const [error, setError] = useState('')
-  const link = group.slug ? shortLink(group.slug, window.location.href) : inviteLink(group.code)
+  const link = clubShareLink(group)
   const isAdmin = group.role === 'owner' || group.role === 'admin'
 
   const shown = q.trim().length >= 2 ? found : []
@@ -576,6 +578,14 @@ function InviteSection({ group, members }: { group: MyGroup; members: Member[] }
         </button>
       </div>
       {isAdmin && group.kind === 'group' && group.slug !== undefined && <ShortLinkEditor group={group} />}
+      {group.kind === 'group' && (
+        <div className="short-link">
+          <p className="muted small">Una tarjeta A5 con la medalla y el QR del club, lista para imprimir y dejar en el lugar.</p>
+          <Link to="/club/tarjeta" className="btn small">
+            <PrinterIcon /> Tarjeta para imprimir
+          </Link>
+        </div>
+      )}
     </section>
   )
 }

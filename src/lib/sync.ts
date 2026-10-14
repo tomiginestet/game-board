@@ -3,6 +3,7 @@ import { useSyncExternalStore } from 'react'
 import { applyEntities, entityKey, KINDS, listOf, type EntityChange, type EntityKind, type RemoteEntity } from './diff'
 import { applyRemote, copyCurrentTo, EMPTY, getData, hasScope, onLocalChanges, replaceAllFromRemote, switchScope } from './store'
 import type { AppData } from './types'
+import { inviteLinkFor } from './clubLink'
 
 /**
  * Sincronización con Supabase (la misma base y los mismos clubes que el Ping Pong Club).
@@ -461,9 +462,9 @@ export async function switchClub(code: string, name?: string): Promise<Club> {
   return club
 }
 
+/** Link de invitación para compartir (sin `#`, para que tenga vista previa; ver `clubLink.ts`). */
 export function inviteLink(code: string): string {
-  const base = window.location.href.split('#')[0]
-  return `${base}#/unirse/${code}`
+  return inviteLinkFor(code, window.location.href, import.meta.env.VITE_PUBLIC_URL as string | undefined)
 }
 
 // ---------------------------------------------------------------------------

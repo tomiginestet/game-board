@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { cleanSlugInput, hashRedirect, inviteTarget, shortLink, suggestSlug, tableLink, validSlug } from './clubLink'
+import { cleanSlugInput, hashRedirect, inviteLinkFor, inviteTarget, shortLink, suggestSlug, tableLink, validSlug } from './clubLink'
 
 describe('links cortos', () => {
   it('valida el nombre del link', () => {
@@ -27,16 +27,19 @@ describe('links cortos', () => {
     expect(cleanSlugInput('Peña  Ñandú!!')).toBe('pena-nandu')
   })
 
-  it('arma los links con #', () => {
-    expect(shortLink('lasartes', 'https://gameboard.app/#/grupo')).toBe('https://gameboard.app/#/c/lasartes')
-    expect(shortLink('lasartes', 'https://x.github.io/game-board/?a=1#/')).toBe('https://x.github.io/game-board/#/c/lasartes')
-    expect(tableLink('lasartes', 'pingpong', 'https://gameboard.app/')).toBe('https://gameboard.app/#/c/lasartes?juego=pingpong')
+  it('arma los links para compartir sin #', () => {
+    expect(shortLink('lasartes', 'https://gameboard.app/#/grupo')).toBe('https://gameboard.app/c/lasartes')
+    expect(shortLink('lasartes', 'https://x.github.io/game-board/?a=1#/')).toBe('https://x.github.io/game-board/c/lasartes')
+    expect(shortLink('lasartes', 'http://localhost:5173/#/grupo', 'https://game-board-club.vercel.app')).toBe('https://game-board-club.vercel.app/c/lasartes')
+    expect(tableLink('lasartes', 'pingpong', 'https://gameboard.app/')).toBe('https://gameboard.app/c/lasartes?juego=pingpong')
+    expect(inviteLinkFor('abc123', 'https://gameboard.app/#/club')).toBe('https://gameboard.app/unirse/abc123')
   })
 
   it('pasa los links sin # a la ruta con #', () => {
     expect(hashRedirect({ pathname: '/c/LasArtes', search: '', hash: '' })).toBe('/#/c/lasartes')
     expect(hashRedirect({ pathname: '/game-board/c/lasartes/', search: '?juego=pool', hash: '' })).toBe('/game-board/#/c/lasartes?juego=pool')
     expect(hashRedirect({ pathname: '/', search: '?c=lasartes&juego=pool', hash: '' })).toBe('/#/c/lasartes?juego=pool')
+    expect(hashRedirect({ pathname: '/unirse/AbC123', search: '', hash: '' })).toBe('/#/unirse/AbC123')
     expect(hashRedirect({ pathname: '/', search: '', hash: '' })).toBeNull()
     expect(hashRedirect({ pathname: '/c/lasartes', search: '', hash: '#/ranking' })).toBeNull()
   })

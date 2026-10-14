@@ -43,6 +43,7 @@ const Settings = page(() => import('./pages/Settings'), 'Settings')
 const Friends = page(() => import('./pages/social/Friends'), 'Friends')
 const GroupPage = page(() => import('./pages/social/GroupPage'), 'GroupPage')
 const Groups = page(() => import('./pages/social/Groups'), 'Groups')
+const PrintCard = page(() => import('./pages/social/PrintCard'), 'PrintCard')
 const NewGroupPage = page(() => import('./pages/social/Groups'), 'NewGroupPage')
 const SearchGroupsPage = page(() => import('./pages/social/Groups'), 'SearchGroupsPage')
 const Notifications = page(() => import('./pages/social/Notifications'), 'Notifications')
@@ -138,6 +139,8 @@ export default function App() {
           <Routes>
             {/* Marcador del ping pong a pantalla completa (el mismo del Ping Pong Club). */}
             <Route path="/partido/:id" element={<MatchScreen />} />
+            {/* Tarjeta del club para imprimir, sin la barra ni la navegación. */}
+            <Route path="/club/tarjeta" element={<PrintCard />} />
             <Route element={<Layout />}>
               <Route index element={<Home />} />
               <Route path="/anotar" element={<QuickPick />} />

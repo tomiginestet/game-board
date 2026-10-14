@@ -8,7 +8,8 @@ import { useEffect, useSyncExternalStore } from 'react'
 import type { RealtimeChannel } from '@supabase/supabase-js'
 import { currentUserId, useAuth } from './auth'
 import { BUILTIN_GAMES } from './games'
-import { activateClub, adoptLocalData, supabase, useSyncState, type Club } from './sync'
+import { activateClub, adoptLocalData, inviteLink, supabase, useSyncState, type Club } from './sync'
+import { shortLink } from './clubLink'
 
 function client() {
   const sb = supabase()
@@ -225,6 +226,11 @@ export async function createGroup(input: { name: string; description?: string; e
 export async function updateGroup(code: string, input: { name: string; description?: string; emoji?: string; isPublic: boolean }): Promise<void> {
   await rpc('update_group', { p_code: code, p_name: input.name, p_description: input.description ?? null, p_emoji: input.emoji ?? null, p_public: input.isPublic })
   await refreshGroups()
+}
+
+/** El link para compartir un club: el corto si tiene, si no el de invitación. */
+export function clubShareLink(g: { code: string; slug?: string | null }): string {
+  return g.slug ? shortLink(g.slug, window.location.href, import.meta.env.VITE_PUBLIC_URL as string | undefined) : inviteLink(g.code)
 }
 
 /** Pone, cambia o saca (`null`) el link corto del club. */
