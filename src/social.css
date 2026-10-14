@@ -521,7 +521,9 @@ button.group-row:hover {
 }
 
 .rank-row.me {
-  border-color: color-mix(in srgb, var(--accent-2) 60%, transparent);
+  margin: 0 -16px;
+  padding-inline: 16px;
+  background: color-mix(in srgb, var(--accent-2) 8%, transparent);
 }
 
 @media (prefers-reduced-motion: reduce) {

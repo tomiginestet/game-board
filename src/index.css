@@ -957,12 +957,6 @@ svg {
   flex-shrink: 0;
 }
 
-.btn.ghost-danger {
-  background: transparent;
-  border-color: transparent;
-  color: var(--loss);
-}
-
 .podium {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
@@ -987,43 +981,52 @@ svg {
   white-space: nowrap;
 }
 
-.podium-elo {
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-  font-size: 13px;
-  color: var(--muted);
-}
-
-.podium-elo svg {
-  color: var(--accent-2);
-}
-
-.podium-medal {
-  font-size: 32px;
-  line-height: 1;
-}
-
+/* El escalón lleva la gloria: la altura y el número dicen lo mismo. */
 .podium-block {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
   width: 100%;
-  border-radius: 12px 12px 4px 4px;
   margin-top: 6px;
+  padding-top: 10px;
+  border-radius: 12px 12px 0 0;
   background: var(--card);
   border: 1px solid var(--border);
+  border-bottom: 0;
+  font-size: 19px;
+  font-weight: 900;
+  line-height: 1.1;
+}
+
+.podium-block small {
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 600;
 }
 
 .place-1 .podium-block {
-  height: 80px;
-  background: rgba(255, 180, 0, 0.12);
-  border-color: rgba(255, 180, 0, 0.4);
+  height: 92px;
+  font-size: 23px;
+  background: color-mix(in srgb, var(--accent-2) 16%, var(--card));
+  border-color: color-mix(in srgb, var(--accent-2) 45%, var(--border));
 }
 
 .place-2 .podium-block {
-  height: 56px;
+  height: 70px;
 }
 
 .place-3 .podium-block {
-  height: 38px;
+  height: 58px;
+}
+
+.podium:has(.podium-block) {
+  border-bottom: 1px solid var(--border-strong);
+}
+
+.podium-gap {
+  margin: 10px 0 0;
+  color: var(--muted);
+  font-size: 14px;
 }
 
 .tournament-card {
@@ -1188,6 +1191,26 @@ svg {
 }
 
 /* ---------- Jugadores ---------- */
+
+/* Lista de jugadores: filas sin tarjeta, la gloria en dorado a la derecha (sin ícono: el color ya dice qué es). */
+.player-list {
+  gap: 0;
+}
+
+.player-list .player-row,
+.teams-link {
+  min-height: 60px;
+  padding: 8px 0;
+  border-bottom: 1px solid var(--border);
+  color: var(--text);
+}
+
+.player-gloria {
+  flex: none;
+  color: var(--accent-2);
+  font-size: 18px;
+  font-weight: 800;
+}
 
 .player-row {
   display: flex;
@@ -2233,46 +2256,92 @@ svg {
 
 /* ---------- Ranking ---------- */
 
+/* Rankings: filas separadas por líneas finas, sin tarjetas. El primero, con el puesto y el valor en dorado. */
 .ranking {
   display: flex;
   flex-direction: column;
-  gap: 6px;
 }
 
 .rank-row {
   display: flex;
   align-items: center;
   gap: 12px;
-  padding: 10px 14px;
-  background: var(--card);
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
+  min-height: 56px;
+  padding: 8px 0;
+  border-bottom: 1px solid var(--border);
   color: var(--text);
 }
 
-.rank-row.inactive {
-  background: var(--bg-2);
-  border-style: dashed;
-}
-
-.rank-row.inactive strong {
+.rank-row.inactive strong,
+.rank-row.inactive b {
   color: var(--muted);
 }
 
 .rank-pos {
-  width: 28px;
+  width: 24px;
+  flex: none;
   text-align: center;
   font-weight: 800;
-  font-size: 18px;
+  font-size: 17px;
   color: var(--muted);
+}
+
+.rank-row.first .rank-pos,
+.rank-row.first .rank-value {
+  color: var(--accent-2);
 }
 
 .rank-value {
   display: flex;
   flex-direction: column;
   align-items: flex-end;
-  font-size: 20px;
+  margin-left: auto;
+  font-size: 19px;
+  font-weight: 800;
   font-variant-numeric: tabular-nums;
+}
+
+/* Tabla del ranking del club: puesto, persona, columna del medio y valor, alineados. */
+.rank-table .rank-head,
+.rank-table .rank-row {
+  display: grid;
+  grid-template-columns: 24px 32px minmax(0, 1fr) 56px 64px;
+  gap: 10px;
+  align-items: center;
+}
+
+.rank-head {
+  padding: 4px 0 6px;
+  border-bottom: 1px solid var(--border);
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.rank-head span:nth-child(n + 4),
+.rank-mid {
+  text-align: right;
+}
+
+.rank-head span:first-child {
+  text-align: center;
+}
+
+.rank-who {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.rank-mid {
+  color: var(--text-soft);
+  font-size: 14px;
+  font-variant-numeric: tabular-nums;
+}
+
+.rank-table .rank-value {
+  margin-left: 0;
 }
 
 .help summary {
@@ -3120,17 +3189,80 @@ svg {
   }
 }
 
-.live-item {
+/* En juego (inicio): filas con juego, quiénes, marcador y minutos; descartar es un ícono discreto al costado. */
+.live-list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.live-row {
+  display: flex;
+  align-items: center;
+  border-bottom: 1px solid var(--border);
+}
+
+.live-link {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+  min-height: 60px;
+  padding: 8px 0;
+  color: var(--text);
+}
+
+.live-text {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  line-height: 1.3;
+}
+
+.live-text > span {
+  color: var(--muted);
+  font-size: 13px;
+}
+
+.live-score {
   display: flex;
   flex-direction: column;
   align-items: flex-end;
-  gap: 2px;
+  flex: none;
+  line-height: 1.2;
 }
 
-.live-item .match-row {
-  width: 100%;
+.live-score b {
+  font-size: 17px;
+  font-weight: 800;
 }
 
+.live-score small {
+  color: var(--win);
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.live-discard {
+  display: grid;
+  place-items: center;
+  flex: none;
+  width: 44px;
+  height: 44px;
+  margin-left: 4px;
+  border: 0;
+  border-radius: 10px;
+  background: none;
+  color: var(--muted);
+  font-size: 18px;
+  cursor: pointer;
+}
+
+.live-discard:hover {
+  color: var(--loss);
+}
 
 /* ---------- Club / sincronización ---------- */
 

@@ -1,9 +1,9 @@
-import { ArrowCounterClockwiseIcon, ArrowLeftIcon, FlagCheckeredIcon, TrashIcon, WarningIcon } from '@phosphor-icons/react'
+import { ArrowCounterClockwiseIcon, ArrowLeftIcon, FlagCheckeredIcon, SkipForwardIcon, TrashIcon, WarningIcon } from '@phosphor-icons/react'
 import { useEffect, useId, useMemo, useRef, useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 import { TeamAvatar } from '../components/Avatar'
 import { GameBadge, sideName, sidePlayersOf } from '../components/GameBits'
-import { computeLive, eliminateOf, isDraw, roundsOf, targetOf, winnerSides, type LiveState } from '../lib/engine'
+import { computeLive, eliminateOf, isDraw, nextTurn, roundsOf, targetOf, winnerSides, type LiveState } from '../lib/engine'
 import { planillaOf } from '../lib/games/planilla'
 import { bestOfText, setsLine, setsRuleOf } from '../lib/sets'
 import { formatScore } from '../lib/score'
@@ -16,7 +16,7 @@ import { formatDate, gameOrMissing, usePlayerMap } from '../lib/hooks'
 import { actions, getData, useData } from '../lib/store'
 import type { Id, Play, Player } from '../lib/types'
 import { ScoreAnnouncer } from './play/shared'
-import { entryText, useReducedMotion } from './play/playHooks'
+import { entryText, passTurn, useReducedMotion } from './play/playHooks'
 import { stakeText, winnerTitle } from './play/winnerText'
 import { stakePreview } from '../lib/stake'
 import { CounterBoard } from './play/CounterBoard'
@@ -55,6 +55,7 @@ function PlayView({ play, game }: { play: Play; game: GameDef }) {
   const [finishing, setFinishing] = useState(false)
   const backTo = play.cupId ? `/torneos/${play.cupId}` : '/'
   const finished = play.status === 'finished'
+  const turns = game.mode === 'turns'
   const scored = game.mode === 'counter' || game.mode === 'rounds' || game.mode === 'turns' || game.mode === 'sets'
 
   // "Terminar partida" con la partida incompleta: se pregunta ahí mismo, en la barra (no en un diálogo).
@@ -207,13 +208,23 @@ function PlayView({ play, game }: { play: Play; game: GameDef }) {
             (confirming && shortfall ? (
               <FinishConfirm text={`${shortfall}.${pendingNote} ¿Terminar igual?`} onKeep={keepPlaying} onFinish={finishNow} />
             ) : (
-              <div className="play-dock">
-                <button type="button" className="btn big dock-undo" onClick={undo} disabled={!play.log.length} aria-keyshortcuts={game.mode === 'rounds' ? undefined : 'Z Backspace'}>
-                  <ArrowCounterClockwiseIcon aria-hidden="true" /> Deshacer
+              // Por turnos, lo principal es pasar el turno: va al centro, en naranja; Deshacer y Terminar, a los costados y más chicos.
+              <div className={'play-dock' + (turns ? ' turns' : '')}>
+                <button type="button" className="btn big dock-undo" onClick={undo} disabled={!play.log.length} aria-keyshortcuts={game.mode === 'rounds' ? undefined : 'Z Backspace'} aria-label={turns ? 'Deshacer' : undefined}>
+                  <ArrowCounterClockwiseIcon aria-hidden="true" /> {!turns && 'Deshacer'}
                 </button>
+                {turns && (
+                  <button type="button" className="btn primary big dock-pass" onClick={() => passTurn(play, live)} aria-keyshortcuts="N Enter">
+                    <SkipForwardIcon weight="fill" aria-hidden="true" />
+                    <span className="dock-pass-text">
+                      {live.turnCount ? 'Pasar turno' : 'Arrancar'}
+                      <small>a {sideName(play.sides[nextTurn(play, live)], players)}</small>
+                    </span>
+                  </button>
+                )}
                 {/* Secundario en todos los modos: el único naranja de la pantalla es la acción de anotar (o "Pasar turno"). */}
                 <button ref={finishBtnRef} type="button" className="btn big dock-finish" onClick={askFinish}>
-                  <FlagCheckeredIcon aria-hidden="true" /> Terminar partida
+                  <FlagCheckeredIcon aria-hidden="true" /> {turns ? 'Terminar' : 'Terminar partida'}
                 </button>
               </div>
             ))

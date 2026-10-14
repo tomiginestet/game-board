@@ -150,50 +150,49 @@
 }
 
 /* Filas de partidas */
-.play-row {
-  flex-direction: row;
-  align-items: center;
-  gap: 12px;
-}
-
-.pr-body {
-  flex: 1;
-  min-width: 0;
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-}
-
-.pr-sides {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 4px 8px;
-  align-items: center;
-}
-
-.pr-side {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  min-width: 0;
-  max-width: 100%;
-}
-
-.pr-side.first {
+/* Fila de una partida (PlayRow): como la planilla del ping pong. Arriba el juego y la fecha; abajo el ganador. */
+.pr-game {
+  color: var(--text-soft);
   font-weight: 700;
 }
 
-.pr-side .crown {
+.pr-winner {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+  font-weight: 700;
+}
+
+.pr-winner .crown {
+  flex: none;
   color: var(--accent-2);
 }
 
 .pr-score {
-  font-variant-numeric: tabular-nums;
-  color: var(--muted);
+  margin-left: auto;
+  font-size: 18px;
+  font-weight: 800;
 }
 
-.pr-side.first .pr-score {
-  color: var(--text);
+.pr-rest,
+.pr-all {
+  margin: -2px 0 0;
+  color: var(--muted);
+  font-size: 14px;
+}
+
+.pr-rest {
+  padding-left: 38px;
+}
+
+.pr-rest-name {
+  color: var(--text-soft);
+}
+
+.pr-all {
+  color: var(--text-soft);
+  font-size: 15px;
 }
 
 .cup-row {
@@ -1120,10 +1119,6 @@
   background: color-mix(in srgb, var(--tc, #888) 30%, var(--card));
   border: 2px solid var(--tc, #888);
   line-height: 1;
-}
-
-.teams-link {
-  margin-bottom: 12px;
 }
 
 .team-chip.active {

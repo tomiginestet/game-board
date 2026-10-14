@@ -1,7 +1,10 @@
 // Ganchos y ayudas de la pantalla de partida (sin componentes, para que el refresco en caliente funcione).
 import { useEffect, useRef, useState, type MouseEvent, type PointerEvent } from 'react'
 import { sideName } from '../../components/GameBits'
+import { nextTurn, type LiveState } from '../../lib/engine'
 import type { GameDef } from '../../lib/games/schema'
+import { actions } from '../../lib/store'
+import { vibrate } from '../../lib/vibrate'
 import type { Id, LogEntry, Play, Player } from '../../lib/types'
 
 /** Distancia (px) a partir de la cual un toque se considera arrastre o scroll, no un toque. */
@@ -98,3 +101,9 @@ export function entryText(play: Play, game: GameDef, players: Map<Id, Player>, e
   return `Mano: ${e.sc.join(' / ')}`
 }
 
+
+/** Pasa el turno al siguiente (o arranca la partida por turnos). Lo usan el botón de la barra y la tecla N. */
+export function passTurn(play: Play, live: LiveState) {
+  vibrate(20)
+  actions.log(play.id, { k: 'turn', s: nextTurn(play, live) })
+}

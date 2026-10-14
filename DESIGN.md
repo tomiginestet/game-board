@@ -233,9 +233,17 @@ Para los juegos que se anotan en vivo (bochas, básquet, truco, fútbol), el mis
   - **Con sets o más de dos lados**: tira de TV (`ScoreStrip`) y una banda de todo el ancho por lado, con las jugadas al pie.
   - El "+2" de los juegos que lo tienen es un botón propio. El contador en cero sólo aparece en las jugadas que no suman puntos (las que cuentan para medallas).
 - **Atajos de teclado**: funcionan siempre, pero la leyenda sólo se muestra en pantallas de compu (900px o más, con mouse).
+- **Por turnos**: la barra de abajo tiene "Pasar turno" (naranja, al medio, con "a Juli" debajo) como acción principal; Deshacer es un ícono y Terminar va chico al costado. Arriba, en la franja fija, sólo "Turno 6 · le toca a Tomi".
 - **Por turnos** (Catán): sólo va abierta la tarjeta del que juega; las demás muestran su cabecera (nombre y puntaje) y se abren al tocarla. Usa las mismas pestañas Marcador / Jugadas. **Por manos** no las necesita: la tabla de manos ya es el relato.
 - **Jugadas** (`BoardTabs`) es el relato de la partida; lo oculto (cartas de Catán) nunca aparece. Con dos lados muestra el marcador entero de cada momento ("5–4"); con más, el total de quien anotó ("total 7"); los pases de turno van en filas bajas y apagadas.
 - El relato: minuto, color del lado, qué pasó, quién y el marcador de ese momento. Cualquier jugada se borra con su ✕, y el aviso ofrece deshacer. La ayuda ("Qué es cada jugada") va al pie de esta pestaña.
+
+### Listas del club
+- **En juego** (inicio): una lista, no tarjetas. Cada fila: juego, quiénes (o a quién le toca), el marcador y hace cuánto empezó; descartar es un ícono discreto al costado (con deshacer).
+- **Filas de partidas** (`PlayRow`): se leen como la planilla. Arriba el juego y la fecha; abajo el ganador con corona y su puntaje; debajo, el resto en orden ("2º Juli · 3º Nico") o "contra Nico". Nunca una fila de avatares que se parte en dos líneas.
+- **Podio de gloria**: el escalón lleva el número (la altura y el número dicen lo mismo) y debajo una línea de rivalidad ("Valen le lleva 292 de gloria a Tomi"). Sin medallitas 1-2-3.
+- **Rankings** (`.ranking`): filas separadas por líneas finas, sin tarjetas; el primero con el puesto y el valor en dorado. El del club es una tabla (`.rank-table`) con encabezados: puesto, persona, columna del medio (V / P, Efect., V–D) y el valor. Los filtros van sin emoji y la explicación de cómo se calcula, al pie.
+- **Jugadores**: lista sin tarjetas ordenada por gloria, con el detalle en una línea y la gloria en dorado sin ícono.
 
 ### Inputs / Fields
 Siempre con etiqueta visible (`.field` + `.field-label`); el placeholder es un ejemplo, no la etiqueta. Errores debajo del campo, enlazados con `aria-describedby`.
