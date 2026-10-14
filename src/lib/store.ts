@@ -167,9 +167,20 @@ function updateMatch(id: Id, fn: (m: Match) => Match) {
 }
 
 /** Aplica un nuevo listado de puntos y actualiza estado/ganador del partido. */
-function withPoints(m: Match, points: Side[]): Match {
+/**
+ * Horas de los puntos ya anotados, alineadas con `points`. Un partido que empezó antes de que se
+ * guardaran (o que viene de otra app) completa los que faltan con 0: "hora desconocida".
+ */
+function timesOf(m: Match): number[] {
+  const t = m.pointTimes ?? []
+  return m.points.map((_, i) => t[i] ?? 0)
+}
+
+function withPoints(m: Match, points: Side[], pointTimes?: number[]): Match {
   const state = computeMatch(points, m.config, m.firstServer)
   const next: Match = { ...m, points, status: state.finished ? 'finished' : 'live', startedAt: m.startedAt ?? Date.now() }
+  if (pointTimes) next.pointTimes = pointTimes
+  else delete next.pointTimes
   if (state.finished) {
     next.finishedAt = m.status === 'finished' && m.finishedAt ? m.finishedAt : Date.now()
     next.winner = state.winner === 'a' ? m.playerA : state.winner === 'b' ? m.playerB : null
@@ -434,11 +445,11 @@ export const actions = {
   },
 
   scorePoint(matchId: Id, side: Side) {
-    updateMatch(matchId, (m) => (m.status === 'finished' ? m : withPoints(m, [...m.points, side])))
+    updateMatch(matchId, (m) => (m.status === 'finished' ? m : withPoints(m, [...m.points, side], [...timesOf(m), Date.now()])))
   },
 
   undoPoint(matchId: Id) {
-    updateMatch(matchId, (m) => withPoints(m, m.points.slice(0, -1)))
+    updateMatch(matchId, (m) => withPoints(m, m.points.slice(0, -1), m.pointTimes?.slice(0, m.points.length - 1)))
   },
 
   /** Antes de empezar: cambiar quién saca primero. */
@@ -469,6 +480,7 @@ export const actions = {
       const next: Match = { ...m, points: [], status: m.tournamentId ? 'pending' : 'live' }
       delete next.winner
       delete next.finishedAt
+      delete next.pointTimes
       return next
     })
   },
