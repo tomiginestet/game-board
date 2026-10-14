@@ -90,11 +90,11 @@ export function Games() {
           Todos
         </button>
         <button className={'chip' + (cat === 'mine' ? ' active' : '')} onClick={() => setParam('cat', 'mine')} aria-pressed={cat === 'mine'}>
-          ⭐ Del club
+          Del club
         </button>
         {CATEGORIES.filter((c) => games.some((g) => g.category === c.id)).map((c) => (
           <button key={c.id} className={'chip' + (cat === c.id ? ' active' : '')} onClick={() => setParam('cat', c.id)} aria-pressed={cat === c.id}>
-            {c.emoji} {c.name}
+            {c.name}
           </button>
         ))}
       </div>

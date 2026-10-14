@@ -1,10 +1,12 @@
-import { ArrowCounterClockwiseIcon, ArrowLeftIcon, FlagCheckeredIcon, TrashIcon, WarningIcon } from '@phosphor-icons/react'
+import { ArrowCounterClockwiseIcon, ArrowLeftIcon, FlagCheckeredIcon, SkipForwardIcon, TrashIcon, WarningIcon } from '@phosphor-icons/react'
 import { useEffect, useId, useMemo, useRef, useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 import { TeamAvatar } from '../components/Avatar'
 import { GameBadge, sideName, sidePlayersOf } from '../components/GameBits'
-import { computeLive, eliminateOf, isDraw, roundsOf, targetOf, winnerSides, type LiveState } from '../lib/engine'
+import { computeLive, eliminateOf, isDraw, nextTurn, roundsOf, targetOf, winnerSides, type LiveState } from '../lib/engine'
 import { planillaOf } from '../lib/games/planilla'
+import { bestOfText, setsLine, setsRuleOf } from '../lib/sets'
+import { formatScore } from '../lib/score'
 import { clearToast, confirmAction, toast } from '../lib/feedback'
 import { directResult, finishShortfall } from '../lib/finish'
 import { clearPlanillaDraft, hasPlanilla, pendingPlanillaSides } from '../lib/games/planilla'
@@ -14,14 +16,17 @@ import { formatDate, gameOrMissing, usePlayerMap } from '../lib/hooks'
 import { actions, getData, useData } from '../lib/store'
 import type { Id, Play, Player } from '../lib/types'
 import { ScoreAnnouncer } from './play/shared'
-import { entryText, useReducedMotion } from './play/playHooks'
-import { winnerTitle } from './play/winnerText'
+import { entryText, passTurn, useReducedMotion } from './play/playHooks'
+import { stakeText, winnerTitle } from './play/winnerText'
+import { stakePreview } from '../lib/stake'
 import { CounterBoard } from './play/CounterBoard'
 import '../styles/playscreen.css'
 import { RoundsBoard } from './play/RoundsBoard'
 import { TurnsBoard } from './play/TurnsBoard'
 import { FinishForm } from './play/FinishForm'
 import { Summary } from './play/Summary'
+import { CallView } from './play/CallView'
+import { isCall } from '../lib/calls'
 
 export function PlayScreen() {
   const { id } = useParams()
@@ -37,7 +42,30 @@ export function PlayScreen() {
       </div>
     )
   }
-  return <PlayView key={play.id} play={play} game={gameOrMissing(data, play.gameId)} />
+  const game = gameOrMissing(data, play.gameId)
+  // La previa de un partido programado o de una convocatoria: quiénes vienen, antes de anotar nada.
+  if (play.status === 'pending' && !play.log.length && (isCall(play) || play.scheduledAt !== undefined)) return <CallPage play={play} game={game} />
+  return <PlayView key={play.id} play={play} game={game} />
+}
+
+function CallPage({ play, game }: { play: Play; game: GameDef }) {
+  const navigate = useNavigate()
+  const players = usePlayerMap()
+  return (
+    <div className="page" style={{ ['--gc' as string]: game.color }}>
+      <header className="play-head">
+        <button className="icon-btn" onClick={() => navigate(play.cupId ? `/torneos/${play.cupId}` : '/')} aria-label={play.cupId ? 'Volver al torneo' : 'Volver al inicio'}>
+          <ArrowLeftIcon />
+        </button>
+        <GameBadge game={game} size={36} />
+        <div className="grow play-title">
+          <h1 className="play-h1">{isCall(play) ? 'Convocatoria' : 'Próximo partido'}</h1>
+          <span className="muted small block">{game.name}</span>
+        </div>
+      </header>
+      <CallView play={play} game={game} players={players} />
+    </div>
+  )
 }
 
 /** Cuánto dura la pausa del punto final antes de pasar al resumen: lo justo para pasar el teléfono y mirar. */
@@ -52,7 +80,8 @@ function PlayView({ play, game }: { play: Play; game: GameDef }) {
   const [finishing, setFinishing] = useState(false)
   const backTo = play.cupId ? `/torneos/${play.cupId}` : '/'
   const finished = play.status === 'finished'
-  const scored = game.mode === 'counter' || game.mode === 'rounds' || game.mode === 'turns'
+  const turns = game.mode === 'turns'
+  const scored = game.mode === 'counter' || game.mode === 'rounds' || game.mode === 'turns' || game.mode === 'sets'
 
   // "Terminar partida" con la partida incompleta: se pregunta ahí mismo, en la barra (no en un diálogo).
   const [confirming, setConfirming] = useState(false)
@@ -66,7 +95,7 @@ function PlayView({ play, game }: { play: Play; game: GameDef }) {
     setPrevStatus(play.status)
     setConfirming(false)
     if (play.status === 'finished') {
-      if (!finishing && !beat && (game.mode === 'counter' || game.mode === 'rounds')) setBeat('auto')
+      if (!finishing && !beat && (game.mode === 'counter' || game.mode === 'rounds' || game.mode === 'sets')) setBeat('auto')
       setFinishing(false)
     } else setBeat(false)
   }
@@ -97,6 +126,15 @@ function PlayView({ play, game }: { play: Play; game: GameDef }) {
     if (!direct) setFinishing(true)
     else if (shortfall) setConfirming(true)
     else finishNow()
+  }
+  // Por turnos, "Terminar" es el banderín de arriba: como queda lejos del pulgar, pregunta antes (salvo que ya
+  // pregunte la barra porque falta algo, o que se abra el formulario de cierre).
+  const askFinishFromHead = async () => {
+    if (direct && !shortfall) {
+      const ok = await confirmAction({ title: '¿Terminar la partida?', detail: 'Se cierra con los puntos de ahora.', confirmLabel: 'Terminar partida' })
+      if (!ok) return
+    }
+    askFinish()
   }
   const finishBtnRef = useRef<HTMLButtonElement>(null)
   const keepPlaying = () => {
@@ -165,6 +203,11 @@ function PlayView({ play, game }: { play: Play; game: GameDef }) {
           {showLive ? <h1 className="play-h1">{game.name}</h1> : <strong>{game.name}</strong>}
           <span className="muted small block">{describePlay(game, play, live)}</span>
         </div>
+        {turns && showLive && !finishing && (
+          <button ref={finishBtnRef} type="button" className="icon-btn play-finish-flag" onClick={askFinishFromHead} aria-label="Terminar partida" title="Terminar partida">
+            <FlagCheckeredIcon />
+          </button>
+        )}
       </header>
 
       {!showLive ? (
@@ -175,8 +218,14 @@ function PlayView({ play, game }: { play: Play; game: GameDef }) {
         <>
           {/* Durante la pausa final el marcador queda a la vista pero no se puede tocar. */}
           <div className="play-board" inert={!!beat || undefined}>
+            {play.stake && (
+              <p className="stake-chip">
+                <span aria-hidden="true">{play.stake.emoji ?? '🎁'}</span> <span className="sr-only">Prenda: </span>
+                {stakePreview(play)}
+              </p>
+            )}
             {scored && <ScoreAnnouncer play={play} live={live} players={players} />}
-            {game.mode === 'counter' && <CounterBoard play={play} game={game} live={live} players={players} />}
+            {(game.mode === 'counter' || game.mode === 'sets') && <CounterBoard play={play} game={game} live={live} players={players} />}
             {game.mode === 'rounds' && <RoundsBoard play={play} game={game} live={live} players={players} />}
             {game.mode === 'turns' && <TurnsBoard play={play} game={game} live={live} players={players} />}
             {(game.mode === 'result' || game.mode === 'coop') && <FinishForm play={play} game={game} live={live} players={players} />}
@@ -187,7 +236,7 @@ function PlayView({ play, game }: { play: Play; game: GameDef }) {
             )}
           </div>
           {beat ? (
-            <FinalBeat play={play} players={players} onUndo={() => {
+            <FinalBeat play={play} game={game} players={players} onUndo={() => {
               // Terminada a mano: sólo se reabre (lo anotado queda como estaba).
               if (beat === 'auto') actions.undo(play.id)
               // Si deshacer no alcanzó para reabrirla (p. ej. la cerró otra cosa), se reabre igual.
@@ -198,14 +247,26 @@ function PlayView({ play, game }: { play: Play; game: GameDef }) {
             (confirming && shortfall ? (
               <FinishConfirm text={`${shortfall}.${pendingNote} ¿Terminar igual?`} onKeep={keepPlaying} onFinish={finishNow} />
             ) : (
-              <div className="play-dock">
-                <button type="button" className="btn big dock-undo" onClick={undo} disabled={!play.log.length} aria-keyshortcuts={game.mode === 'rounds' ? undefined : 'Z Backspace'}>
-                  <ArrowCounterClockwiseIcon aria-hidden="true" /> Deshacer
+              // Por turnos, pasar el turno ocupa toda la barra al lado de Deshacer; Terminar es el banderín de arriba.
+              <div className={'play-dock' + (turns ? ' turns' : '')}>
+                <button type="button" className="btn big dock-undo" onClick={undo} disabled={!play.log.length} aria-keyshortcuts={game.mode === 'rounds' ? undefined : 'Z Backspace'} aria-label={turns ? 'Deshacer' : undefined}>
+                  <ArrowCounterClockwiseIcon aria-hidden="true" /> {!turns && 'Deshacer'}
                 </button>
-                {/* Secundario en todos los modos: el único naranja de la pantalla es la acción de anotar (o "Pasar turno"). */}
-                <button ref={finishBtnRef} type="button" className="btn big dock-finish" onClick={askFinish}>
-                  <FlagCheckeredIcon aria-hidden="true" /> Terminar partida
-                </button>
+                {turns && (
+                  <button type="button" className="btn primary big dock-pass" onClick={() => passTurn(play, live)} aria-keyshortcuts="N Enter">
+                    <SkipForwardIcon weight="fill" aria-hidden="true" />
+                    <span className="dock-pass-text">
+                      {live.turnCount ? 'Pasar turno' : 'Arrancar'}
+                      <small>a {sideName(play.sides[nextTurn(play, live)], players)}</small>
+                    </span>
+                  </button>
+                )}
+                {/* Secundario en todos los modos: el único naranja de la pantalla es la acción de anotar. Por turnos va arriba. */}
+                {!turns && (
+                  <button ref={finishBtnRef} type="button" className="btn big dock-finish" onClick={askFinish}>
+                    <FlagCheckeredIcon aria-hidden="true" /> Terminar partida
+                  </button>
+                )}
               </div>
             ))
           )}
@@ -256,7 +317,7 @@ function FinishConfirm({ text, onKeep, onFinish }: { text: string; onKeep: () =>
  * con "Deshacer" por si fue un toque de más. Si alguien lo toca o lo recorre con el teclado, se queda;
  * con movimiento reducido no hay cuenta regresiva: espera a "Ver resumen".
  */
-function FinalBeat({ play, players, onUndo, onDone }: { play: Play; players: Map<Id, Player>; onUndo: () => void; onDone: () => void }) {
+function FinalBeat({ play, game, players, onUndo, onDone }: { play: Play; game: GameDef; players: Map<Id, Player>; onUndo: () => void; onDone: () => void }) {
   const reduce = useReducedMotion()
   const seeRef = useRef<HTMLButtonElement>(null)
   const winners = winnerSides(play)
@@ -268,12 +329,15 @@ function FinalBeat({ play, players, onUndo, onDone }: { play: Play; players: Map
   const raw = play.result?.scores
   const order = draw ? play.sides.map((_, i) => i) : [...winners, ...play.sides.map((_, i) => i).filter((i) => !winners.includes(i))]
   // Entre dos, "30 a 2"; con más, cada uno con su nombre ("Ana 26 · Beto 11 · Caro 8").
-  const score =
-    raw?.length && raw.every((v) => typeof v === 'number')
+  const sets = game.mode === 'sets' ? computeLive(game, play).sets : undefined
+  const score = sets?.done.length
+    ? setsLine(sets, winners[0] === 1 ? 1 : 0)
+    : raw?.length && raw.every((v) => typeof v === 'number')
       ? order.length > 2
-        ? order.map((i) => `${sideName(play.sides[i], players)} ${raw[i]}`).join(' · ')
-        : order.map((i) => raw[i]).join(' a ')
+        ? order.map((i) => `${sideName(play.sides[i], players)} ${formatScore(game, raw[i]!)}`).join(' · ')
+        : order.map((i) => formatScore(game, raw[i]!)).join(' a ')
       : ''
+  const stake = stakeText(play, players)
   const [paused, setPaused] = useState(false)
   const doneRef = useRef(onDone)
   useEffect(() => {
@@ -309,6 +373,11 @@ function FinalBeat({ play, players, onUndo, onDone }: { play: Play; players: Map
       </div>
       <strong className="fb-title">{title}</strong>
       {score && <span className="fb-score num">{score}</span>}
+      {stake && (
+        <span className="fb-stake">
+          <span aria-hidden="true">{play.stake?.emoji ?? '🎁'}</span> {stake}
+        </span>
+      )}
       <div className="fb-actions">
         <button type="button" className="btn big" onClick={onUndo}>
           <ArrowCounterClockwiseIcon aria-hidden="true" /> Deshacer
@@ -324,6 +393,15 @@ function FinalBeat({ play, players, onUndo, onDone }: { play: Play; players: Map
 
 function describePlay(game: GameDef, play: Play, live: LiveState): string {
   const parts: string[] = []
+  if (game.mode === 'sets') {
+    const rule = setsRuleOf(game, play.config)
+    parts.push(bestOfText(rule))
+    if (rule.kind === 'points') parts.push(`sets a ${rule.points}`)
+    if (rule.golden) parts.push('punto de oro')
+    if (play.venue) parts.push(play.venue)
+    return parts.join(' · ')
+  }
+  if (play.venue) parts.push(play.venue)
   const target = targetOf(game, play.config)
   const rounds = roundsOf(game, play.config)
   const burn = eliminateOf(game, play.config)

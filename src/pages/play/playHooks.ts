@@ -1,7 +1,10 @@
 // Ganchos y ayudas de la pantalla de partida (sin componentes, para que el refresco en caliente funcione).
 import { useEffect, useRef, useState, type MouseEvent, type PointerEvent } from 'react'
 import { sideName } from '../../components/GameBits'
+import { nextTurn, type LiveState } from '../../lib/engine'
 import type { GameDef } from '../../lib/games/schema'
+import { actions } from '../../lib/store'
+import { vibrate } from '../../lib/vibrate'
 import type { Id, LogEntry, Play, Player } from '../../lib/types'
 
 /** Distancia (px) a partir de la cual un toque se considera arrastre o scroll, no un toque. */
@@ -82,13 +85,31 @@ export function usePlayToggle(key: string, initial = false): [boolean, (v: boole
 
 /** Texto corto de una entrada del registro ("Ana +1", "🗣️ Envido: Beto"). */
 export function entryText(play: Play, game: GameDef, players: Map<Id, Player>, e: LogEntry): string {
+  // Con el cronómetro andando, cada jugada lleva su minuto: "Gol de Ana (Los Pibes) · 12'".
+  const minute = (e.k === 'pt' || e.k === 'ev') && e.m ? ` · ${e.m}'` : ''
+  return entryBase(play, game, players, e) + minute
+}
+
+function entryBase(play: Play, game: GameDef, players: Map<Id, Player>, e: LogEntry): string {
   const label = (i: number) => (i < 0 ? 'Mesa' : sideName(play.sides[i], players))
-  if (e.k === 'pt') return `${label(e.s)} +${e.n}`
+  const who = (id: Id | undefined) => (id ? players.get(id)?.name ?? '¿?' : undefined)
+  if (e.k === 'pt') {
+    const unit = game.perPlayer?.scorer ? (e.n === 1 ? (game.perPlayer.unitOne ?? game.scoring.quickLabel ?? 'punto') : (game.perPlayer.unit ?? 'puntos')) : undefined
+    if (e.pl) return `${unit ? `${unit.charAt(0).toUpperCase()}${unit.slice(1)} de ${who(e.pl)}` : `${who(e.pl)} +${e.n}`}${e.n > 1 ? ` (+${e.n})` : ''}${e.as ? `, pase de ${who(e.as)}` : ''} (${label(e.s)})`
+    return `${label(e.s)} +${e.n}`
+  }
   if (e.k === 'ev') {
     const def = game.events.find((x) => x.id === e.e)
-    return `${def?.emoji ?? ''} ${def?.name ?? e.e}: ${label(e.s)}${e.p !== undefined ? ` (+${e.p})` : ''}${e.n < 0 ? ' (−1)' : ''}`.trim()
+    const by = e.pl ? `${who(e.pl)} (${label(e.s)})` : label(e.s)
+    return `${def?.emoji ?? ''} ${def?.name ?? e.e}: ${by}${e.p !== undefined ? ` (+${e.p})` : ''}${e.n < 0 ? ' (−1)' : ''}`.trim()
   }
   if (e.k === 'turn') return `Turno de ${label(e.s)}`
   return `Mano: ${e.sc.join(' / ')}`
 }
 
+
+/** Pasa el turno al siguiente (o arranca la partida por turnos). Lo usan el botón de la barra y la tecla N. */
+export function passTurn(play: Play, live: LiveState) {
+  vibrate(20)
+  actions.log(play.id, { k: 'turn', s: nextTurn(play, live) })
+}

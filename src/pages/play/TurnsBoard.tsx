@@ -1,31 +1,34 @@
-import { LockSimpleIcon, MinusIcon, PlusIcon, SkipForwardIcon } from '@phosphor-icons/react'
-import { useEffect, useRef } from 'react'
+import { CaretDownIcon, LockSimpleIcon, MinusIcon, PlusIcon } from '@phosphor-icons/react'
+import { useEffect, useRef, useState } from 'react'
 import { TeamAvatar } from '../../components/Avatar'
 import { sideColor, sideName, sidePlayersOf } from '../../components/GameBits'
-import { nextTurn, targetOf, type LiveState } from '../../lib/engine'
-import { vibrate } from '../../lib/vibrate'
+import { targetOf, type LiveState } from '../../lib/engine'
 import type { GameDef } from '../../lib/games/schema'
 import { actions } from '../../lib/store'
 import type { Id, Play, Player } from '../../lib/types'
-import { LogList } from './CounterBoard'
+import { BoardTabs } from './BoardTabs'
 import { MiniScore } from './MiniScore'
-import { usePlayToggle, useReducedMotion } from './playHooks'
+import { passTurn, useReducedMotion } from './playHooks'
 import { KeyHint } from './KeyHint'
-import { HelpToggle } from './shared'
 import { undoLast, useScoreKeys } from './useScoreKeys'
 
 export function TurnsBoard({ play, game, live, players }: { play: Play; game: GameDef; live: LiveState; players: Map<Id, Player> }) {
   const started = live.turnCount > 0
   const current = live.turn
-  const pass = () => {
-    vibrate(20)
-    actions.log(play.id, { k: 'turn', s: nextTurn(play, live) })
-  }
+  const pass = () => passTurn(play, live)
   const target = targetOf(game, play.config)
   const counts = game.events.filter((e) => e.type === 'count' && !e.global)
   const holders = game.events.filter((e) => e.type === 'holder')
-  const [help, setHelp] = usePlayToggle(`help:${game.id}`)
-  const anyHelp = game.events.some((e) => e.help && !e.global)
+  const help = game.events.filter((e) => e.help && !e.global)
+  // Abierto, sólo el que juega (antes de arrancar, el primero); los demás en una fila que se abre al tocarla.
+  const [opened, setOpened] = useState<Set<number>>(() => new Set())
+  const toggle = (i: number) =>
+    setOpened((prev) => {
+      const next = new Set(prev)
+      if (next.has(i)) next.delete(i)
+      else next.add(i)
+      return next
+    })
   const reduce = useReducedMotion()
   const barRef = useRef<HTMLDivElement>(null)
   const cardRefs = useRef<(HTMLElement | null)[]>([])
@@ -61,34 +64,35 @@ export function TurnsBoard({ play, game, live, players }: { play: Play; game: Ga
             <span className="turn-who" aria-live="polite">
               {started ? (
                 <>
-                  <span className="muted small block">Turno {live.turnCount} · le toca a</span>
-                  <b className="turn-name ellipsis">{sideName(play.sides[current], players)}</b>
+                  <span className="muted">Turno {live.turnCount} · le toca a </span>
+                  <b className="turn-name">{sideName(play.sides[current], players)}</b>
                 </>
               ) : (
                 <b className="turn-name ellipsis">Empieza {sideName(play.sides[0], players)}</b>
               )}
             </span>
-            <button className="btn primary turn-pass" onClick={pass} aria-keyshortcuts="N Enter">
-              <SkipForwardIcon weight="fill" aria-hidden="true" /> {started ? 'Pasar turno' : 'Arrancar'}
-            </button>
           </div>
         </MiniScore>
       </div>
 
+      <BoardTabs play={play} game={game} players={players} help={help}>
       <div className="turn-sides">
         {play.sides.map((side, i) => {
           const isCurrent = started && i === current
+          const isActive = started ? isCurrent : i === 0
+          const open = isActive || opened.has(i)
           return (
             <section
               key={i}
               ref={(el) => {
                 cardRefs.current[i] = el
               }}
-              className={'card turn-side' + (isCurrent ? ' current' : '')}
+              className={'card turn-side' + (isCurrent ? ' current' : '') + (open ? '' : ' closed')}
               style={{ ['--pc' as string]: sideColor(side, players) }}
               aria-label={sideName(side, players) + (isCurrent ? ' (le toca)' : '')}
             >
-              <div className="rf-head">
+              {/* La cabecera abre y cierra la tarjeta (la del que juega queda siempre abierta). */}
+              <button type="button" className="rf-head turn-head" aria-expanded={open} disabled={isActive} onClick={() => toggle(i)}>
                 <TeamAvatar team={sidePlayersOf(side, players)} size={30} />
                 <b className="grow ellipsis">{sideName(side, players)}</b>
                 {isCurrent && <span className="turn-now">Le toca</span>}
@@ -97,15 +101,14 @@ export function TurnsBoard({ play, game, live, players }: { play: Play; game: Ga
                   {target ? <span className="muted small">/{target}</span> : null}
                   <span className="sr-only"> puntos a la vista</span>
                 </span>
-              </div>
+                {!isActive && <CaretDownIcon className={'turn-caret' + (open ? ' flip' : '')} aria-hidden="true" />}
+              </button>
+              {open && (
               <ul className="ev-rows">
                 {counts.map((e) => (
                   <li key={e.id} className="ev-row">
                     <span className="ev-row-label">
-                      <span>
-                        <span aria-hidden="true">{e.emoji}</span> {e.name}
-                      </span>
-                      {help && e.help && <span className="ev-row-help">{e.help}</span>}
+                      <span>{e.name}</span>
                     </span>
                     <span className="stepper">
                       {/* Lo oculto no se deshabilita en 0: si no, se notaría si alguien ya tiene alguno. */}
@@ -125,6 +128,7 @@ export function TurnsBoard({ play, game, live, players }: { play: Play; game: Ga
                   </li>
                 ))}
               </ul>
+              )}
             </section>
           )
         })}
@@ -137,12 +141,6 @@ export function TurnsBoard({ play, game, live, players }: { play: Play; game: Ga
         ]}
       />
 
-      {anyHelp && (
-        <div className="board-tools">
-          <HelpToggle on={help} onChange={setHelp} />
-        </div>
-      )}
-
       {holders.length > 0 && (
         <div className="card holders">
           {holders.map((e) => {
@@ -150,9 +148,8 @@ export function TurnsBoard({ play, game, live, players }: { play: Play; game: Ga
             return (
               <div key={e.id} className="holder-row">
                 <span className="grow">
-                  <span aria-hidden="true">{e.emoji}</span> {e.name}
+                  {e.name}
                   {e.points ? <span className="muted small"> ({e.points} pts)</span> : null}
-                  {help && e.help && <span className="ev-row-help">{e.help}</span>}
                 </span>
                 <div className="holder-chips" role="group" aria-label={e.name}>
                   {play.sides.map((side, i) => (
@@ -163,7 +160,7 @@ export function TurnsBoard({ play, game, live, players }: { play: Play; game: Ga
                       onClick={() => actions.log(play.id, { k: 'ev', s: h === i ? -1 : i, e: e.id, n: 1 })}
                       aria-pressed={h === i}
                     >
-                      <span aria-hidden="true">{sidePlayersOf(side, players)[0]?.emoji}</span> {sideName(side, players)}
+                      {sideName(side, players)}
                     </button>
                   ))}
                 </div>
@@ -178,7 +175,7 @@ export function TurnsBoard({ play, game, live, players }: { play: Play; game: Ga
           <LockSimpleIcon className="inline-icon" /> Lo oculto no se muestra hasta el final, para no revelar estrategias.
         </p>
       )}
-      <LogList play={play} game={game} players={players} />
+      </BoardTabs>
     </>
   )
 }

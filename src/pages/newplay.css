@@ -23,3 +23,25 @@
   color: var(--muted);
   font-weight: 400;
 }
+
+/* La prenda, opcional: cerrada es un botón tranquilo; abierta, una tarjeta con las sugeridas. */
+.stake-open {
+  justify-content: flex-start;
+  gap: 8px;
+  flex-wrap: wrap;
+  text-align: left;
+}
+
+.stake-card {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.stake-card .section-head h2 {
+  margin: 0;
+}
+
+.stake-card .field {
+  margin: 0;
+}

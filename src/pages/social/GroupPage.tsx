@@ -1,4 +1,5 @@
 import {
+  ArrowRightIcon,
   ArrowsClockwiseIcon,
   CheckIcon,
   CopyIcon,
@@ -7,9 +8,11 @@ import {
   LockSimpleIcon,
   MagnifyingGlassIcon,
   PencilSimpleIcon,
+  PlusIcon,
   ShareNetworkIcon,
   ShieldStarIcon,
   SignOutIcon,
+  SparkleIcon,
   UserPlusIcon,
   UsersIcon,
   XIcon,
@@ -39,7 +42,11 @@ import {
 import { useData } from '../../lib/store'
 import { deactivateClub, inviteLink, SYNC_LABEL, syncNow, useSyncState } from '../../lib/sync'
 import { SyncIcon } from '../../components/SyncIcon'
-import { formatDate, plural } from '../../lib/hooks'
+import { formatDate, plural, useBoard } from '../../lib/hooks'
+import { NextMedals } from '../../components/NextMedals'
+import { SquadGames, SquadLeaders, SquadShowcase, useGamesPlayed, useSquadMedals } from '../../components/Squad'
+import { teamRecord } from '../../lib/teams'
+import { TeamCrest } from '../Teams'
 import { ClubPage } from '../ClubPage'
 import { GroupForm } from './GroupForms'
 import { friendlyError } from '../../lib/text'
@@ -81,6 +88,9 @@ function GroupView({ group }: { group: MyGroup }) {
   const [requests, setRequests] = useState<JoinRequest[]>([])
   const [error, setError] = useState('')
   const [busy, setBusy] = useState(false)
+  const board = useBoard()
+  const medals = useSquadMedals()
+  const gamesPlayed = useGamesPlayed()
 
   const load = useCallback(() => {
     groupMembers(group.code)
@@ -109,55 +119,74 @@ function GroupView({ group }: { group: MyGroup }) {
 
   const playerCount = data.players.length
   const playsCount = data.plays.filter((p) => p.status === 'finished').length + data.matches.filter((m) => m.status === 'finished').length
+  const accountOf = new Map((members ?? []).filter((m) => m.player_id).map((m) => [m.player_id!, m]))
+  const roster = [...data.players].sort(
+    (a, b) => (board.players.get(b.id)?.gloria ?? 0) - (board.players.get(a.id)?.gloria ?? 0) || a.name.localeCompare(b.name, 'es'),
+  )
+  const teams = [...data.teams].sort((a, b) => a.name.localeCompare(b.name, 'es'))
+
+  if (editing) {
+    return (
+      <div className="page">
+        <h1>Editar club</h1>
+        <GroupForm initial={group} onDone={() => setEditing(false)} />
+        <button className="btn" onClick={() => setEditing(false)}>
+          Cancelar
+        </button>
+      </div>
+    )
+  }
 
   return (
     <div className="page">
-      {editing ? (
-        <>
-          <h1>Editar club</h1>
-          <GroupForm
-            initial={group}
-            onDone={() => {
-              setEditing(false)
-            }}
-          />
-          <button className="btn" onClick={() => setEditing(false)}>
-            Cancelar
-          </button>
-        </>
-      ) : (
-        <header className="group-head">
+      <header className="card club-hero">
+        <div className="club-hero-top">
           <span className="group-emoji huge" aria-hidden>
             {group.emoji ?? (duo ? '⚔️' : '🎲')}
           </span>
-          <div className="grow">
+          <div className="club-hero-title">
             <h1>{group.name}</h1>
-            {group.description && <p className="muted">{group.description}</p>}
-            <div className="chips">
+            <p className="club-meta">
               {duo ? (
-                <span className="pill">⚔️ Mano a mano</span>
+                <span>⚔️ Mano a mano</span>
               ) : (
-                <span className="pill">
-                  {group.is_public ? <GlobeHemisphereWestIcon /> : <LockSimpleIcon />} {group.is_public ? 'Público' : 'Privado'}
+                <span>
+                  {group.is_public ? <GlobeHemisphereWestIcon aria-hidden /> : <LockSimpleIcon aria-hidden />} {group.is_public ? 'Público' : 'Privado'}
                 </span>
               )}
-              <span className="pill">
-                {plural(playerCount, 'jugador', 'jugadores')} · {plural(playsCount, 'partida', 'partidas')}
-              </span>
               {sync.status !== 'off' && (
-                <span className={'pill sync-pill ' + sync.status}>
+                <span className={'sync-pill ' + sync.status}>
                   <SyncIcon status={sync.status} /> {SYNC_LABEL[sync.status]}
                 </span>
               )}
-            </div>
+            </p>
           </div>
           {isAdmin && !duo && (
-            <button className="btn small" onClick={() => setEditing(true)}>
-              <PencilSimpleIcon /> Editar
+            <button className="tool-btn club-edit" onClick={() => setEditing(true)} aria-label="Editar club" title="Editar club">
+              <PencilSimpleIcon />
             </button>
           )}
-        </header>
-      )}
+        </div>
+        {group.description && <p className="club-desc">{group.description}</p>}
+        <dl className="club-stats">
+          <div>
+            <dt>Jugadores</dt>
+            <dd className="num">{playerCount}</dd>
+          </div>
+          <div>
+            <dt>Partidas</dt>
+            <dd className="num">{playsCount}</dd>
+          </div>
+          <div>
+            <dt>Juegos</dt>
+            <dd className="num">{gamesPlayed}</dd>
+          </div>
+          <div>
+            <dt>Medallas</dt>
+            <dd className="num">{medals.earned.length}</dd>
+          </div>
+        </dl>
+      </header>
       {sync.error && sync.status === 'error' && (
         <p className="error" role="alert">
           {friendlyError(sync.error)}{' '}
@@ -195,17 +224,113 @@ function GroupView({ group }: { group: MyGroup }) {
         </section>
       )}
 
+      {playsCount === 0 && (
+        <div className="empty">
+          <p>
+            <b>Todavía no hay partidas.</b>
+          </p>
+          <p className="muted">Con la primera aparecen acá quién manda, las medallas del club y las que están por caer.</p>
+          <Link to="/anotar" className="btn primary mt">
+            <PlusIcon /> Anotar una partida
+          </Link>
+        </div>
+      )}
+
+      <SquadLeaders />
+      <NextMedals playerIds={data.players.map((p) => p.id)} title="Medallas a la vista" />
+      <SquadShowcase medals={medals.earned} title="Vitrina del club" />
+      <SquadGames />
+
       <section>
         <div className="section-head">
-          <h2>Integrantes</h2>
-          <Link to="/jugadores">Jugadores ({playerCount})</Link>
+          <h2>
+            Equipos {teams.length > 0 && <span className="muted small">{teams.length}</span>}
+          </h2>
+          <Link to={teams.length ? '/equipos' : '/equipos/nuevo'}>
+            {teams.length ? 'Ver todo' : 'Armar uno'} <ArrowRightIcon className="inline-icon" size="1em" />
+          </Link>
         </div>
-        <p className="muted small">Con cuenta. En “Jugadores” también están los que juegan sin cuenta.</p>
+        {teams.length ? (
+          <div className="club-teams">
+            {teams.map((t) => {
+              const rec = teamRecord(data, t)
+              return (
+                <Link key={t.id} to={`/equipos/${t.id}`} className="card club-team" style={{ ['--tc' as string]: t.color }}>
+                  <TeamCrest team={t} size={40} />
+                  <span className="grow">
+                    <b className="block ellipsis">{t.name}</b>
+                    <span className="muted small">
+                      {plural(t.players.length, 'jugador', 'jugadores')} · {rec.wins}G {rec.draws}E {rec.losses}P
+                    </span>
+                  </span>
+                  {rec.form.length > 0 && (
+                    <span className="club-team-form" aria-label={`Últimos: ${rec.form.slice(0, 3).join(' ')}`}>
+                      {rec.form.slice(0, 3).map((r, i) => (
+                        <span key={i} className={'form-dot small ' + (r === 'G' ? 'win' : r === 'P' ? 'loss' : 'draw')} aria-hidden>
+                          {r}
+                        </span>
+                      ))}
+                    </span>
+                  )}
+                </Link>
+              )
+            })}
+          </div>
+        ) : (
+          <p className="muted small">El fútbol 5 de los jueves, la pareja de pádel: armalos una vez y ves cómo le va a cada uno.</p>
+        )}
+      </section>
+
+      <section>
+        <div className="section-head">
+          <h2>
+            Integrantes <span className="muted small">{playerCount}</span>
+          </h2>
+          <Link to="/jugadores">
+            Ver todo <ArrowRightIcon className="inline-icon" size="1em" />
+          </Link>
+        </div>
+        <div className="list">
+          {roster.map((p) => {
+            const s = board.players.get(p.id)
+            const account = accountOf.get(p.id)
+            const won = medals.won.get(p.id) ?? 0
+            return (
+              <Link key={p.id} to={`/jugadores/${p.id}`} className="card club-member">
+                <Avatar player={p} size={44} />
+                <span className="grow">
+                  <b className="block ellipsis">
+                    {p.name} {p.id === group.player_id && <span className="muted small">(vos)</span>}
+                  </b>
+                  <span className="muted small">
+                    {account && account.role !== 'member' && !duo && (
+                      <>
+                        {account.role === 'owner' && <CrownIcon className="inline-icon" weight="fill" aria-hidden />} {ROLE_NAMES[account.role]} ·{' '}
+                      </>
+                    )}
+                    {plural(s?.played ?? 0, 'partida', 'partidas')} · {plural(s?.wins ?? 0, 'victoria', 'victorias')}
+                  </span>
+                </span>
+                <span className="club-member-score">
+                  <span className="club-member-gloria num" aria-label={`${s?.gloria ?? 0} de gloria`}>
+                    <SparkleIcon weight="fill" className="gloria-icon" aria-hidden /> {s?.gloria ?? 0}
+                  </span>
+                  {won > 0 && <span className="muted small">{plural(won, 'medalla', 'medallas')}</span>}
+                </span>
+              </Link>
+            )
+          })}
+        </div>
+      </section>
+
+      <section className="section-divided">
+        <h2>Cuentas del club</h2>
+        <p className="muted small">Quienes entraron con su cuenta. Los demás jugadores se anotan sin cuenta.</p>
         <div className="list">
           {members === null && <p className="muted">Cargando…</p>}
           {members?.map((m) => (
-            <div key={m.user_id} className="card member-row">
-              <Avatar player={userAsPlayer(m)} size={40} />
+            <div key={m.user_id} className="member-row">
+              <Avatar player={userAsPlayer(m)} size={36} />
               <span className="grow">
                 <b className="block ellipsis">
                   {m.display_name ?? 'Sin nombre'} {m.user_id === me && <span className="muted small">(vos)</span>}

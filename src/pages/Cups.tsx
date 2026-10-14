@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom'
 import { GameBadge } from '../components/GameBits'
 import { cupChampion, cupEntrantName } from '../lib/cups'
 import { CUP_FORMATS } from '../lib/games/schema'
-import { formatDate, gameOrMissing, usePlayerMap } from '../lib/hooks'
+import { gameOrMissing, usePlayerMap } from '../lib/hooks'
 import { tournamentChampion } from '../lib/pingpong/stats'
 import { useData } from '../lib/store'
 
@@ -60,14 +60,14 @@ export function Cups() {
           </Link>
         </div>
       )}
-      <div className="list">
+      <div className="list rows">
         {rows.map((r) => (
-          <Link key={r.id} to={r.to} className="card cup-row">
+          <Link key={r.id} to={r.to} className="cup-row">
             <GameBadge game={r.game} size={40} />
             <span className="grow">
               <b>{r.name}</b>
-              <span className="muted small block">
-                {r.game.name} · {r.format} · {r.count} inscriptos · {formatDate(r.at)}
+              <span className="muted small block ellipsis">
+                {r.game.name} · {r.format} · {r.count} inscriptos
               </span>
               {r.champion && (
                 <span className="small block win-text">

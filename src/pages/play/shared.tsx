@@ -1,4 +1,3 @@
-import { QuestionIcon } from '@phosphor-icons/react'
 import { useId, useRef, useState, type FormEvent } from 'react'
 import { ErrorText } from '../../components/Feedback'
 import { sideName } from '../../components/GameBits'
@@ -7,15 +6,6 @@ import { useModal } from '../../lib/feedback'
 import type { EventDef } from '../../lib/games/schema'
 import type { Id, Play, Player } from '../../lib/types'
 
-/** Botón "?" que muestra la ayuda de cada evento en pantalla (el `title` no se ve en el celular). */
-export function HelpToggle({ on, onChange, controls }: { on: boolean; onChange: (v: boolean) => void; controls?: string }) {
-  return (
-    <button type="button" className="help-toggle" aria-pressed={on} aria-controls={controls} onClick={() => onChange(!on)}>
-      <QuestionIcon weight={on ? 'fill' : 'regular'} aria-hidden="true" />
-      {on ? 'Ocultar ayuda' : 'Qué es cada uno'}
-    </button>
-  )
-}
 
 /** Anuncia el marcador a los lectores de pantalla cada vez que cambia ("Ana 7, Beto 5"). */
 export function ScoreAnnouncer({ play, live, players }: { play: Play; live: LiveState; players: Map<Id, Player> }) {
@@ -97,3 +87,76 @@ export function PointsDialog({ event, suggestion, onSubmit, onCancel }: { event:
 
 // ---------------------------------------------------------------------------
 // Marcador en vivo
+
+/**
+ * "¿Quién hizo el gol?": los jugadores del lado como botones grandes (un toque y listo) y, si el juego
+ * lleva asistencias, un segundo paso "¿Quién dio el pase?". Siempre se puede seguir sin decir quién.
+ * `extra`: integrantes del equipo fijo que no estaban en la partida (se suman al elegirlos).
+ */
+export function WhoDialog({
+  title,
+  assistTitle,
+  people,
+  extra = [],
+  onSubmit,
+  onCancel,
+}: {
+  title: string
+  /** Si viene, después del autor se pregunta por la asistencia. */
+  assistTitle?: string
+  people: Player[]
+  extra?: Player[]
+  onSubmit: (who: { pl?: Id; as?: Id }) => void
+  onCancel: () => void
+}) {
+  const ref = useRef<HTMLDialogElement>(null)
+  useModal(ref)
+  const id = useId()
+  // `undefined`: todavía se elige el autor; `null`: autor sin nombre.
+  const [author, setAuthor] = useState<Id | null | undefined>(undefined)
+  const step = author === undefined ? 'author' : 'assist'
+  const pick = (who: Id | null) => {
+    if (step === 'author') {
+      // Sin autor no tiene sentido preguntar por el pase.
+      if (!assistTitle || !who) return onSubmit(who ? { pl: who } : {})
+      return setAuthor(who)
+    }
+    onSubmit({ ...(author ? { pl: author } : {}), ...(who ? { as: who } : {}) })
+  }
+  const list = step === 'author' ? [...people, ...extra] : [...people, ...extra].filter((p) => p.id !== author)
+  return (
+    <dialog
+      ref={ref}
+      className="confirm-dialog who-dialog"
+      aria-labelledby={`${id}-title`}
+      onCancel={(e) => {
+        e.preventDefault()
+        onCancel()
+      }}
+      onClick={(e) => e.target === e.currentTarget && onCancel()}
+    >
+      <div className="confirm-body">
+        <h2 id={`${id}-title`}>{step === 'author' ? title : assistTitle}</h2>
+        <div className="who-grid" role="group" aria-labelledby={`${id}-title`}>
+          {list.map((p) => (
+            <button key={p.id} type="button" className="who-btn" style={{ ['--pc' as string]: p.color }} onClick={() => pick(p.id)}>
+              <span className="who-emoji" aria-hidden="true">
+                {p.emoji}
+              </span>
+              <span className="ellipsis">{p.name}</span>
+              {extra.some((x) => x.id === p.id) && <span className="muted small">del plantel</span>}
+            </button>
+          ))}
+        </div>
+        <div className="confirm-actions">
+          <button type="button" className="btn" onClick={onCancel}>
+            Cancelar
+          </button>
+          <button type="button" className="btn primary" onClick={() => pick(null)}>
+            {step === 'author' ? 'Anotar sin nombre' : 'Sin asistencia'}
+          </button>
+        </div>
+      </div>
+    </dialog>
+  )
+}

@@ -2,7 +2,8 @@
 // estado en vivo (puntajes, turnos, quién tiene qué) y cuándo termina.
 
 import type { EventDef, GameDef, OptionValue } from './games/schema'
-import type { LogEntry, Play, PlayResult } from './types'
+import { computeSets, pointSides, setsRuleOf, type SetsState } from './sets'
+import type { Id, LogEntry, Play, PlayResult } from './types'
 
 export function optionValue(game: GameDef, config: Record<string, OptionValue>, id: string | undefined): OptionValue | undefined {
   if (!id) return undefined
@@ -53,6 +54,8 @@ export interface LiveState {
   instantWinner?: number
   /** Eventos globales (empates del ta-te-ti). */
   globalCounts: Record<string, number>
+  /** Modo `sets`: games, sets y el punto en juego. `scores` son los sets ganados. */
+  sets?: SetsState
 }
 
 function eventDef(game: GameDef, id: string): EventDef | undefined {
@@ -97,7 +100,44 @@ export function computeLive(game: GameDef, play: Play): LiveState {
   if (game.mode === 'rounds' && elim !== undefined) {
     st.eliminated = st.scores.map((s) => s >= elim)
   }
+  if (game.mode === 'sets') {
+    st.sets = computeSets(setsRuleOf(game, play.config), pointSides(play.log), play.firstServer === 1 ? 1 : 0)
+    st.scores = play.sides.map((_, i) => st.sets!.won[i] ?? 0)
+  }
   return st
+}
+
+/** Lo que hizo cada jugador en una partida: lo que anotó, asistencias y eventos propios. */
+export interface PlayerLine {
+  /** Puntos (goles) anotados por el jugador. */
+  scored: number
+  assists: number
+  /** Eventos `byPlayer` por id. */
+  events: Record<string, number>
+}
+
+export function emptyLine(): PlayerLine {
+  return { scored: 0, assists: 0, events: {} }
+}
+
+/** Estadísticas por jugador de una partida, según lo anotado con nombre (`pl`/`as`). */
+export function playerLines(play: Pick<Play, 'log'>): Map<Id, PlayerLine> {
+  const out = new Map<Id, PlayerLine>()
+  const line = (id: Id) => {
+    let l = out.get(id)
+    if (!l) out.set(id, (l = emptyLine()))
+    return l
+  }
+  for (const e of play.log) {
+    if (e.k === 'pt') {
+      if (e.pl) line(e.pl).scored += e.n
+      if (e.as) line(e.as).assists++
+    } else if (e.k === 'ev' && e.pl) {
+      const l = line(e.pl)
+      l.events[e.e] = Math.max(0, (l.events[e.e] ?? 0) + e.n)
+    }
+  }
+  return out
 }
 
 function applyEntry(game: GameDef, st: LiveState, entry: LogEntry, n: number) {
@@ -232,6 +272,11 @@ export function autoResult(game: GameDef, play: Play, live = computeLive(game, p
     const rest = scores.filter((_, i) => i !== w)
     const places = scores.map((s, i) => (i === w ? 1 : 2 + rest.filter((o) => (lowWins ? o < s : o > s)).length))
     return { scores, places }
+  }
+
+  if (game.mode === 'sets') {
+    if (live.sets?.winner === undefined) return undefined
+    return { scores, places: placesFromScores(scores) }
   }
 
   if (game.mode === 'counter') {

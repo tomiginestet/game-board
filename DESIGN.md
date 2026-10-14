@@ -197,6 +197,57 @@ Alto mínimo **44px** (40px en `.btn.small`). Primario naranja relleno; secundar
 ### Cards / Containers
 `.card`: fondo `card`, borde `border`, radio 16px, padding 16px. Nunca tarjetas dentro de tarjetas.
 
+### Medallas
+La medalla es la protagonista: siempre **arriba y centrada**, con el texto debajo, también centrado. El largo del texto nunca depende de cuántas medallas hay.
+- **Familia completa** (ficha del juego, vista previa de un juego con IA): `MedalList` + `MedalListRow` (`src/components/MedalList.tsx`). Una `.card` por familia con los tres primeros niveles a 64px; si hay más, una chapita "+N" cuelga al costado sin correr las medallas. Debajo: nombre (18/700), lo que mide (`muted` 14) y quién llegó más alto (corona Phosphor rellena + nombre en `accent-2`) o "Nadie la tiene todavía". En pantallas anchas, de a dos.
+- **Una medalla por familia** (Vitrina, perfil del jugador): la del nivel más alto, sobre la misma superficie `card`. Ganada: borde dorado sólido; bloqueada: borde punteado y medalla en gris (el estado nunca es sólo color). La barra de progreso o los puntos de nivel van al pie, para que queden alineados en cada fila.
+- Cada medalla abre su ficha (`MedalSheet`); la ficha es la que muestra todos los niveles, así que las listas no repiten los nombres de los niveles (salvo la vista previa, donde se están revisando).
+
+### Perfil del club y del equipo
+Una vista consolidada de sus jugadores (`src/components/Squad.tsx`, con `ids` para limitarla a un plantel). Orden: presentación → lo que pide acción (quién sos, pedidos para entrar) → quién manda (podio de gloria, el primero al medio) → medallas a la vista → vitrina (las medallas más altas, con quién las tiene) → lo que más se juega (con el cinturón) → equipos → integrantes. Lo administrativo (cuentas y permisos, invitar, salir) va al final, después de una `.section-divided`.
+- **Presentación**: una `.card` con el emoji a 72px alineado al centro del nombre, la privacidad y el guardado como texto con ícono debajo del nombre (no píldoras apiladas), la descripción a todo el ancho y cuatro números del club abajo. Editar es un botón de ícono arriba a la derecha.
+
+### Listas de pasos (reglas)
+`RuleList`: pasos numerados sin tarjeta y **sin líneas entre puntos**, separados por aire (20px, interlineado 1.5). El número va en un círculo de 24px bajado 1px para quedar ópticamente centrado con la primera línea. Íconos y notas al pie se alinean a la columna del texto (36px), no al borde.
+
+### Separar secciones
+Una sola línea (`.section-divided`: borde superior + 24px) separa dos secciones de naturaleza distinta (medallas → reglas). Adentro de una sección, aire en vez de divisores; las líneas entre filas quedan para listas densas de datos (la ficha de la medalla, "Medallas a la vista").
+
+### Jerarquía de datos
+- **Una pastilla se toca o marca un estado.** Los datos descriptivos van como texto o en una franja, nunca como una fila de pastillas que no hacen nada.
+- **Ficha del juego**: la categoría va en la flecha de volver ("← Cartas") y el origen (IA, del club) a su lado. Lo práctico va en `.gd-spec`: columnas iguales (jugadores, peso, cómo se anota) separadas por líneas finas, sin cajas. Lo del club arranca en "En el club · N partidas" (cinturón y ranking).
+- **Un número protagonista por pantalla.** Los demás van en una frase, en una lista de etiqueta y valor (`.pd-ledger`, separada por aire) o en una tabla. Nada de grillas de cajas iguales con un número adentro. Un dato se cuenta una vez: partidas, victorias y porcentaje son una frase y una barra.
+- **Perfil del jugador**: encabezado a la izquierda (avatar, nombre, gloria y puesto), las victorias como número protagonista con la barra G/E/P, la "Forma" (últimas 8 partidas con letra G/P/E además del color) y "Sus juegos" como tabla (V–D, puesto en el club, Elo); tocar una fila la abre con la curva de Elo.
+- **Comparables en columna**: varios elementos del mismo tipo (juegos, sets) van en una tabla alineada antes que en tarjetas o chips de a uno.
+- **Planilla de sets** (`SetSheet`): una columna por set, el ganador del set en blanco y negrita, el total al final de la fila, como en el tenis. Es la única forma de mostrar sets (lista de partidas y resultado).
+- **Marcador chico** (`MiniScore`, por manos y por turnos): una franja de columnas separadas por líneas finas, sin cajas ni avatares; el primero con el total en dorado y corona, a quien le toca con una raya de su color al pie.
+- **Resumen de una partida**: el logo del podio y el ganador arriba; el podio como filas sin cajas (puesto, avatar, nombre, puntaje y Elo ganado o perdido); las medallas nuevas grandes y centradas debajo del podio, no detrás de un botón.
+- **Resultado**: el trofeo es una chapita sobre el avatar del ganador (no un ícono aparte), el título en Lilita, la planilla, el Elo en una línea ("+16 → 1016") y la medalla nueva grande y centrada con su nombre y su chiste debajo.
+
+### Marcador en vivo
+Para los juegos que se anotan en vivo (bochas, básquet, truco, fútbol), el mismo lenguaje que el ping pong:
+- **Tira de TV** arriba (`ScoreStrip`): reloj de la partida, lo último anotado ("Último: +2 de Tomi", confirma el toque) y una fila por lado con sus jugadas y el puntaje; el que va ganando, en naranja.
+- **Pantalla completa**: mientras se juega no hay barra del club ni navegación de abajo; sólo volver, el nombre del juego y la barra de Deshacer / Terminar.
+- **Pestañas Marcador / Jugadas.** En Marcador, dos formas según el partido:
+  - **Partido único de dos lados** (bochas, básquet, truco): dos columnas, cada una con su zona grande (tocar suma) y debajo sus jugadas en lista, una por fila, de 48px, con el nombre (sin emoji) y su contador. Arriba, sólo el reloj y lo último anotado. Si hay meta, cada columna lleva su propia barra al pie con lo que le falta ("Faltan 11"); nunca una barra compartida entre los dos lados.
+  - **Con sets o más de dos lados**: tira de TV (`ScoreStrip`) y una banda de todo el ancho por lado, con las jugadas al pie.
+  - El "+2" de los juegos que lo tienen es un botón propio. El contador en cero sólo aparece en las jugadas que no suman puntos (las que cuentan para medallas).
+- **Atajos de teclado**: funcionan siempre, pero la leyenda sólo se muestra en pantallas de compu (900px o más, con mouse).
+- **Por turnos**: la barra de abajo es sólo Deshacer (ícono) y "Pasar turno", que ocupa el resto (naranja, con "a Juli" debajo). Terminar es el banderín de la cabecera y pregunta antes de cerrar (o abre el formulario de cierre, que tiene "Seguir jugando"). Arriba, en la franja fija, sólo "Turno 6 · le toca a Tomi"; con más de 5 jugadores, la franja va en filas de 4 para que se vean todos los puntajes.
+- **Por turnos** (Catán): sólo va abierta la tarjeta del que juega; las demás muestran su cabecera (nombre y puntaje) y se abren al tocarla. Usa las mismas pestañas Marcador / Jugadas. **Por manos** no las necesita: la tabla de manos ya es el relato.
+- **Jugadas** (`BoardTabs`) es el relato de la partida; lo oculto (cartas de Catán) nunca aparece. Con dos lados muestra el marcador entero de cada momento ("5–4"); con más, el total de quien anotó ("total 7"); los pases de turno van en filas bajas y apagadas.
+- El relato: minuto, color del lado, qué pasó, quién y el marcador de ese momento. Cualquier jugada se borra con su ✕, y el aviso ofrece deshacer. La ayuda ("Qué es cada jugada") va al pie de esta pestaña.
+
+### Listas del club
+- **En juego** (inicio): una lista, no tarjetas. Cada fila: juego, quiénes (o a quién le toca), el marcador y hace cuánto empezó; descartar es un ícono discreto al costado (con deshacer).
+- **Filas de partidas** (`PlayRow`): se leen como la planilla. Arriba el juego y la fecha; abajo el ganador con corona y su puntaje; debajo, el resto en orden ("2º Juli · 3º Nico") o "contra Nico". Nunca una fila de avatares que se parte en dos líneas.
+- **Podio de gloria**: el escalón lleva el número (la altura y el número dicen lo mismo) y debajo una línea de rivalidad ("Valen le lleva 292 de gloria a Tomi"). Sin medallitas 1-2-3.
+- **Rankings** (`.ranking`): filas separadas por líneas finas, sin tarjetas; el primero con el puesto y el valor en dorado. El del club es una tabla (`.rank-table`) con encabezados: puesto, persona, columna del medio (V / P, Efect., V–D) y el valor. Los filtros van sin emoji y la explicación de cómo se calcula, al pie.
+- **Filtros de una lista** (`.filters`): las filas van juntas (8px). Qué mirar (Todas / Ganadas, Siempre / Este mes) va en un segmentado discreto (`.segmented.quiet`); de qué juego o categoría, en chips, que son el único naranja de los filtros. Sin emoji en los filtros ni en los títulos de sección. Una tercera fila (`.chips.sub`) marca lo elegido con borde, sin relleno.
+- **Récord de un equipo**: igual que el del perfil (victorias, barra, forma y los tantos en una frase); nunca cajas con números.
+- **Jugadores, equipos y torneos** (`.rows`): listas sin tarjetas.
+- **Jugadores**: lista sin tarjetas ordenada por gloria, con el detalle en una línea y la gloria en dorado sin ícono.
+
 ### Inputs / Fields
 Siempre con etiqueta visible (`.field` + `.field-label`); el placeholder es un ejemplo, no la etiqueta. Errores debajo del campo, enlazados con `aria-describedby`.
 
@@ -216,12 +267,16 @@ Cuatro cuadraditos (naranja, azul, verde, violeta; dorado para el ganador) anima
 ### Do:
 - Poner la acción de anotar arriba y lo del club antes que el catálogo.
 - Usar íconos Phosphor en la interfaz; emoji sólo los que elige la gente o en textos con humor.
+- Medallas arriba y centradas, texto abajo; la corona del líder es un ícono, no el emoji 👑.
 - Ofrecer "Deshacer" en vez de preguntar cuando se puede.
 - Con movimiento reducido, reemplazar desplazamientos por fundidos cortos (no apagar todo).
 
 ### Don't:
 - Rótulos chiquitos en mayúsculas arriba de los títulos (kickers/eyebrows).
 - Bordes laterales gruesos de color (para estado o para identificar jugadores: se tiñe la superficie).
+- Una línea divisoria en cada fila de una lista corta de texto, o una caja por punto: separa con aire.
 - Texto menor a 12px, objetivos táctiles menores a 44px.
 - `window.confirm/alert/prompt`.
 - Mostrar errores técnicos o en inglés.
+- Grillas de cajas iguales con un número y una etiqueta (la plantilla de "número grande").
+- Filas de pastillas que mezclan datos de distinta naturaleza (qué es, cómo se juega, qué pasó en el club).

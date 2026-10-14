@@ -1,4 +1,4 @@
-import { PlusIcon } from '@phosphor-icons/react'
+import { CaretRightIcon, PlusIcon, ShieldIcon } from '@phosphor-icons/react'
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { Avatar } from '../components/Avatar'
@@ -10,7 +10,9 @@ export function Players() {
   const data = useData()
   const board = useBoard()
   const [adding, setAdding] = useState(data.players.length === 0)
-  const players = [...data.players].sort((a, b) => a.name.localeCompare(b.name))
+  // De más a menos gloria, como el ranking: los que más juegan (los que más se buscan) quedan arriba.
+  const gloriaOf = (id: string) => board.players.get(id)?.gloria ?? 0
+  const players = [...data.players].sort((a, b) => gloriaOf(b.id) - gloriaOf(a.id) || a.name.localeCompare(b.name))
 
   return (
     <div className="page">
@@ -27,19 +29,31 @@ export function Players() {
         <PlayerForm submitLabel="Agregar jugador" onSubmit={(v) => actions.addPlayer(v.name, v.emoji, v.color)} onCancel={data.players.length ? () => setAdding(false) : undefined} />
       )}
 
-      <div className="list">
+      <Link to="/equipos" className="player-row teams-link">
+        <ShieldIcon size={24} aria-hidden="true" />
+        <div className="grow">
+          <strong>Equipos</strong>
+          <div className="muted small">{data.teams.length ? `${data.teams.length} ${data.teams.length === 1 ? 'equipo' : 'equipos'} del club` : 'Armá el de fútbol 5, la pareja de pádel…'}</div>
+        </div>
+        <CaretRightIcon aria-hidden="true" />
+      </Link>
+
+      <div className="list rows">
         {players.map((p) => {
           const s = board.players.get(p.id)
           return (
-            <Link key={p.id} to={`/jugadores/${p.id}`} className="card player-row">
-              <Avatar player={p} size={44} />
+            <Link key={p.id} to={`/jugadores/${p.id}`} className="player-row">
+              <Avatar player={p} size={40} />
               <div className="grow">
                 <strong>{p.name}</strong>
-                <div className="muted small">
-                  {plural(s?.played ?? 0, 'partida', 'partidas')} · {plural(s?.wins ?? 0, 'victoria', 'victorias')} · {plural(s?.gamesPlayed ?? 0, 'juego', 'juegos')}
+                <div className="muted small ellipsis">
+                  {s?.played ? `${plural(s.played, 'partida', 'partidas')} · juega ${plural(s.gamesPlayed, 'juego', 'juegos')}` : 'Todavía no jugó'}
                 </div>
               </div>
-              <span className="elo">✨ {s?.gloria ?? 0}</span>
+              <span className="player-gloria num">
+                {s?.gloria ?? 0}
+                <span className="sr-only"> de gloria</span>
+              </span>
             </Link>
           )
         })}

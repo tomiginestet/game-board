@@ -1,4 +1,4 @@
-import { ArrowLeftIcon, ArrowRightIcon, BookOpenIcon, CopyIcon, PencilSimpleIcon, PlayIcon, SparkleIcon, TrashIcon, TrophyIcon, UsersIcon } from '@phosphor-icons/react'
+import { ArrowLeftIcon, ArrowRightIcon, CopyIcon, CrownIcon, GaugeIcon, MegaphoneIcon, PencilSimpleIcon, PlayIcon, PulseIcon, ShieldIcon, SparkleIcon, TrashIcon, TrophyIcon, UsersIcon } from '@phosphor-icons/react'
 import { useMemo, useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 import { Avatar, TeamAvatar } from '../components/Avatar'
@@ -6,14 +6,15 @@ import { GameCover } from '../components/GameCover'
 import { PlayRow } from '../components/GameBits'
 import { LevelIcon } from '../components/icons'
 import { MatchRow } from '../components/MatchRow'
-import { Medal } from '../components/Medal'
+import { MedalList, MedalListRow, RuleList } from '../components/MedalList'
 import { confirmAction } from '../lib/feedback'
 import { MedalSheet, type MedalHolder } from '../components/MedalSheet'
-import { isBuiltin, playersLabel, WEIGHT_NAMES } from '../lib/games'
+import { isBuiltin, WEIGHT_NAMES } from '../lib/games'
 import { CATEGORIES, CUP_FORMATS, type GameDef, type PlayMode } from '../lib/games/schema'
 import { formatDate, plural, UNKNOWN_PLAYER, useBoard, useGame, useLeaderboard, usePlayerMap } from '../lib/hooks'
 import { gameMedals } from '../lib/medals'
-import { beltOf, gameStatsOf, levelFor, winRate } from '../lib/stats'
+import { isTeamGame } from '../lib/teams'
+import { beltOf, gameRanking, gameStatsOf, levelFor, winRate } from '../lib/stats'
 import { actions, useData } from '../lib/store'
 
 export const MODE_NAMES: Record<PlayMode, string> = {
@@ -23,6 +24,18 @@ export const MODE_NAMES: Record<PlayMode, string> = {
   turns: 'Por turnos, puntaje al final',
   result: 'Resultado final',
   coop: 'Cooperativo',
+  sets: 'Por sets, punto a punto',
+}
+
+/** Cómo se anota, en dos palabras: va en la franja de la ficha con "se anota" debajo. */
+const MODE_SHORT: Record<PlayMode, string> = {
+  rally: 'Punto a punto',
+  counter: 'En vivo',
+  rounds: 'Por manos',
+  turns: 'Por turnos',
+  result: 'Al final',
+  coop: 'En equipo',
+  sets: 'Por sets',
 }
 
 export function playPath(game: Pick<GameDef, 'id'>): string {
@@ -72,17 +85,11 @@ function GameView({ game }: { game: GameDef }) {
   const players = usePlayerMap()
   const builtin = isBuiltin(game.id)
 
-  const ranking = useMemo(
-    () =>
-      [...board.players.values()]
-        .map((s) => s.perGame.get(game.id))
-        .filter((s) => !!s && s.played > 0)
-        .sort((a, b) => b!.elo - a!.elo || b!.wins - a!.wins) as NonNullable<ReturnType<typeof gameStatsOf>>[],
-    [board, game.id],
-  )
+  const ranking = useMemo(() => gameRanking(board, game.id), [board, game.id])
   const belt = beltOf(board.views, game.id)
   const playCount = useMemo(() => board.views.filter((v) => v.gameId === game.id).length, [board.views, game.id])
   const coop = game.mode === 'coop'
+  const category = CATEGORIES.find((c) => c.id === game.category)
 
   // Para cada familia de medallas, cómo va cada jugador y quién llegó más alto.
   const leaders = useMemo(() => {
@@ -122,33 +129,49 @@ function GameView({ game }: { game: GameDef }) {
 
   return (
     <div className="page" style={{ ['--gc' as string]: game.color }}>
-      <Link to="/juegos" className="back">
-        <ArrowLeftIcon /> Catálogo
-      </Link>
+      {/* La categoría es dónde está el juego: va en la flecha de volver, no como un dato más. */}
+      <div className="gd-crumb">
+        <Link to={category ? `/juegos?cat=${category.id}` : '/juegos'} className="back">
+          <ArrowLeftIcon /> {category?.name ?? 'Catálogo'}
+        </Link>
+        {game.source === 'ai' && (
+          <span className="gd-source ai">
+            <SparkleIcon aria-hidden /> Armado con IA
+          </span>
+        )}
+        {game.source === 'custom' && <span className="gd-source">Del club</span>}
+      </div>
       <header className="gd-hero">
         <GameCover game={game} aspect="landscape" showTitle={false} className="gd-hero-cover" />
         <div className="gd-hero-info">
           <h1>{game.name}</h1>
           {game.tagline && <p className="gd-hero-tagline">{game.tagline}</p>}
-          <div className="gd-hero-chips">
-            <span className="cc-chip">
-              <span aria-hidden>{CATEGORIES.find((c) => c.id === game.category)?.emoji}</span> {CATEGORIES.find((c) => c.id === game.category)?.name}
-            </span>
-            {game.source === 'custom' && <span className="cc-chip">Del club</span>}
-            <span className="cc-chip">
-              <UsersIcon aria-hidden /> {playersLabel(game, true)}
-            </span>
-            <span className="cc-chip">{MODE_NAMES[game.mode]}</span>
-            {game.mode !== 'coop' && <span className="cc-chip">{WEIGHT_NAMES[game.weight]}</span>}
-            {game.source === 'ai' && (
-              <span className="cc-chip ai">
-                <SparkleIcon aria-hidden /> Juego armado con IA
-              </span>
-            )}
-            {playCount > 0 && <span className="cc-chip hot">{plural(playCount, 'partida', 'partidas')}</span>}
-          </div>
         </div>
       </header>
+
+      {/* Lo práctico, para comparar de un vistazo entre juegos: cuántos, qué tan pesado y cómo se anota. */}
+      <dl className="gd-spec">
+        <div>
+          <dt>{game.players.max === 1 ? 'jugador' : 'jugadores'}</dt>
+          <dd>
+            <UsersIcon aria-hidden /> {game.players.min === game.players.max ? game.players.min : `${game.players.min}–${game.players.max}`}
+          </dd>
+        </div>
+        {!coop && (
+          <div>
+            <dt>de peso</dt>
+            <dd>
+              <GaugeIcon aria-hidden /> {WEIGHT_NAMES[game.weight]}
+            </dd>
+          </div>
+        )}
+        <div title={MODE_NAMES[game.mode]}>
+          <dt>se anota</dt>
+          <dd>
+            <PulseIcon aria-hidden /> {MODE_SHORT[game.mode]}
+          </dd>
+        </div>
+      </dl>
 
       <div className="quick-actions">
         <Link to={playPath(game)} className="btn primary big">
@@ -159,32 +182,44 @@ function GameView({ game }: { game: GameDef }) {
             <TrophyIcon /> Torneo
           </Link>
         )}
+        {game.category === 'deporte' && game.id !== 'pingpong' && (
+          <Link to={`/convocar/${game.id}`} className="btn big">
+            <MegaphoneIcon /> Convocar
+          </Link>
+        )}
+        {isTeamGame(game) && game.category === 'deporte' && (
+          <Link to="/equipos" className="btn big">
+            <ShieldIcon /> Equipos
+          </Link>
+        )}
       </div>
 
-      {belt && (
-        <div className="card belt">
-          <span className="belt-icon" aria-hidden>
-            🥊
-          </span>
-          <div className="grow">
-            <span className="muted small">Cinturón de {game.name}</span>
-            <b className="block">{belt.holders.map((id) => players.get(id)?.name ?? '?').join(' & ')}</b>
-            <span className="muted small">
-              Desde {formatDate(belt.since)} · {plural(belt.defenses, 'defensa', 'defensas')}
-            </span>
-          </div>
-          <TeamAvatar team={belt.holders.map((id) => players.get(id) ?? UNKNOWN_PLAYER)} size={44} />
-        </div>
-      )}
-
-      {ranking.length > 0 && (
-        <section>
-          <h2>Ranking</h2>
+      {/* Todo lo del club arranca acá: cuántas partidas, el cinturón y el ranking. */}
+      {(belt || ranking.length > 0) && (
+        <section className="gd-club">
+          <h2>
+            En el club {playCount > 0 && <span className="muted">· {plural(playCount, 'partida', 'partidas')}</span>}
+          </h2>
+          {belt && (
+            <div className="card belt">
+              <span className="belt-icon" aria-hidden>
+                🥊
+              </span>
+              <div className="grow">
+                <span className="muted small">Cinturón de {game.name}</span>
+                <b className="block">{belt.holders.map((id) => players.get(id)?.name ?? '?').join(' & ')}</b>
+                <span className="muted small">
+                  Desde {formatDate(belt.since)} · {plural(belt.defenses, 'defensa', 'defensas')}
+                </span>
+              </div>
+              <TeamAvatar team={belt.holders.map((id) => players.get(id) ?? UNKNOWN_PLAYER)} size={44} />
+            </div>
+          )}
           <div className="list ranking">
             {ranking.slice(0, 10).map((s, i) => {
               const p = players.get(s.playerId) ?? UNKNOWN_PLAYER
               return (
-                <Link key={s.playerId} to={`/jugadores/${s.playerId}?juego=${game.id}`} className="card rank-row">
+                <Link key={s.playerId} to={`/jugadores/${s.playerId}?juego=${game.id}`} className={'rank-row' + (i === 0 ? ' first' : '')}>
                   <span className="rank-pos">{i + 1}</span>
                   <Avatar player={p} size={36} />
                   <span className="grow">
@@ -207,66 +242,74 @@ function GameView({ game }: { game: GameDef }) {
         </section>
       )}
 
+      {game.perPlayer?.scorer && ranking.some((s) => s.scored > 0) && (
+        <section>
+          <h2>Tabla de {game.perPlayer.unit ?? 'goleadores'}</h2>
+          <div className="list ranking">
+            {[...ranking]
+              .filter((s) => s.scored > 0)
+              .sort((a, b) => b.scored - a.scored || b.assists - a.assists)
+              .slice(0, 10)
+              .map((s, i) => {
+                const p = players.get(s.playerId) ?? UNKNOWN_PLAYER
+                return (
+                  <Link key={s.playerId} to={`/jugadores/${s.playerId}?juego=${game.id}`} className={'rank-row' + (i === 0 ? ' first' : '')}>
+                    <span className="rank-pos">{i + 1}</span>
+                    <Avatar player={p} size={36} />
+                    <span className="grow">
+                      <b>{p.name}</b>
+                      <span className="muted small block">
+                        {plural(s.played, 'partido', 'partidos')}
+                        {game.perPlayer?.assists && s.assists ? ` · ${plural(s.assists, 'asistencia', 'asistencias')}` : ''}
+                        {s.mvps ? ` · ${s.mvps} ${s.mvps === 1 ? 'vez' : 'veces'} figura` : ''}
+                      </span>
+                    </span>
+                    <span className="rank-value num">{s.scored}</span>
+                  </Link>
+                )
+              })}
+          </div>
+        </section>
+      )}
+
       <section>
         <div className="section-head">
-          <h2>Medallas de {game.name}</h2>
+          <h2>Medallas</h2>
           <Link to={`/medallas?juego=${game.id}`}>
             Vitrina <ArrowRightIcon className="inline-icon" size="1em" />
           </Link>
         </div>
-        <p className="muted small">Tocá una medalla para verla en grande y saber cómo se gana.</p>
-        <div className="award-list">
-          {leaders.map(({ fam, best }, k) => {
-            const extra = fam.family.levels.length - 3
-            return (
-              <div key={fam.family.id + fam.family.name} className="card award-row">
-                <div className="award-medals">
-                  {fam.family.levels.slice(0, 3).map((l, i) => (
-                    <button key={i} type="button" className="medal-btn" aria-haspopup="dialog" aria-label={`Ver ${l.name}`} onClick={() => setSheet({ k, level: i })}>
-                      <Medal family={fam.family} level={i} size={44} />
-                    </button>
-                  ))}
-                  {extra > 0 && (
-                    <button type="button" className="award-more" aria-label={`Ver ${plural(extra, 'nivel más', 'niveles más')}`} onClick={() => setSheet({ k, level: 3 })}>
-                      +{extra}
-                    </button>
-                  )}
-                </div>
-                <button type="button" className="grow award-info" aria-haspopup="dialog" onClick={() => setSheet({ k, level: best ? Math.min(best.level + 1, fam.family.levels.length - 1) : 0 })}>
-                  <b>{fam.family.name}</b>
-                  <span className="muted small block">{fam.family.measures}</span>
-                  <span className="small block">{fam.family.levels.map((l) => l.name).join(' · ')}</span>
-                  {best && (
-                    <span className="small block award-leader">
-                      👑 {players.get(best.id)?.name}: {fam.family.levels[best.level].name}
-                    </span>
-                  )}
-                </button>
-              </div>
-            )
-          })}
-        </div>
+        <p className="muted small section-lead">Tocá una medalla para verla en grande y saber cómo se gana.</p>
+        <MedalList>
+          {leaders.map(({ fam, best }, k) => (
+            <MedalListRow
+              key={fam.family.id + fam.family.name}
+              family={fam.family}
+              openLevel={best ? Math.min(best.level + 1, fam.family.levels.length - 1) : 0}
+              onOpen={(level) => setSheet({ k, level })}
+              detail={
+                best ? (
+                  <span className="medal-card-leader">
+                    <CrownIcon weight="fill" aria-hidden /> {players.get(best.id)?.name} · {fam.family.levels[best.level].name}
+                  </span>
+                ) : (
+                  <span className="medal-card-leader none">Nadie la tiene todavía</span>
+                )
+              }
+            />
+          ))}
+        </MedalList>
         {sheet && sheetFam && <MedalSheet family={sheetFam.fam.family} level={sheet.level} others={sheetFam.all} onClose={() => setSheet(null)} />}
       </section>
 
       {game.rules.length > 0 && (
-        <section className="card">
-          <h2>
-            <BookOpenIcon className="inline-icon" /> Reglas en dos minutos
-          </h2>
-          <ul className="rules">
-            {game.rules.map((r, i) => (
-              <li key={i}>{r}</li>
-            ))}
-          </ul>
-          {game.rulesUrl && (
-            <a href={game.rulesUrl} target="_blank" rel="noreferrer noopener" className="small">
-              Reglamento completo ↗
-            </a>
-          )}
-          {game.formats.length > 0 && (
-            <p className="muted small mt">Torneos: {game.formats.map((f) => CUP_FORMATS.find((x) => x.id === f)?.name).join(', ')}.</p>
-          )}
+        <section className="section-divided">
+          <h2>Reglas en dos minutos</h2>
+          <RuleList
+            rules={game.rules}
+            url={game.rulesUrl}
+            footnote={game.formats.length > 0 && `Torneos: ${game.formats.map((f) => CUP_FORMATS.find((x) => x.id === f)?.name).join(', ')}.`}
+          />
         </section>
       )}
 

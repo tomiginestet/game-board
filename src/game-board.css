@@ -150,50 +150,49 @@
 }
 
 /* Filas de partidas */
-.play-row {
-  flex-direction: row;
-  align-items: center;
-  gap: 12px;
-}
-
-.pr-body {
-  flex: 1;
-  min-width: 0;
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-}
-
-.pr-sides {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 4px 8px;
-  align-items: center;
-}
-
-.pr-side {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  min-width: 0;
-  max-width: 100%;
-}
-
-.pr-side.first {
+/* Fila de una partida (PlayRow): como la planilla del ping pong. Arriba el juego y la fecha; abajo el ganador. */
+.pr-game {
+  color: var(--text-soft);
   font-weight: 700;
 }
 
-.pr-side .crown {
+.pr-winner {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+  font-weight: 700;
+}
+
+.pr-winner .crown {
+  flex: none;
   color: var(--accent-2);
 }
 
 .pr-score {
-  font-variant-numeric: tabular-nums;
-  color: var(--muted);
+  margin-left: auto;
+  font-size: 18px;
+  font-weight: 800;
 }
 
-.pr-side.first .pr-score {
-  color: var(--text);
+.pr-rest,
+.pr-all {
+  margin: -2px 0 0;
+  color: var(--muted);
+  font-size: 14px;
+}
+
+.pr-rest {
+  padding-left: 38px;
+}
+
+.pr-rest-name {
+  color: var(--text-soft);
+}
+
+.pr-all {
+  color: var(--text-soft);
+  font-size: 15px;
 }
 
 .cup-row {
@@ -224,23 +223,6 @@
 .play-actions {
   display: flex;
   gap: 8px;
-}
-
-.counter-board {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-  gap: 10px;
-}
-
-.counter-board.two {
-  grid-template-columns: 1fr 1fr;
-}
-
-.counter-side {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  min-width: 0;
 }
 
 .counter-main {
@@ -296,17 +278,6 @@
   color: rgba(255, 255, 255, 0.55);
 }
 
-.cs-events {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 6px;
-}
-
-.cs-events .chip {
-  font-size: 13px;
-  padding: 7px 10px;
-}
-
 .chip-count {
   display: inline-block;
   margin-left: 6px;
@@ -324,12 +295,6 @@
 }
 
 
-.log-list ul {
-  margin: 6px 0 0;
-  padding-left: 18px;
-  color: var(--muted);
-  font-size: 13px;
-}
 
 /* Por manos */
 .rounds-table {
@@ -547,13 +512,13 @@
   background: linear-gradient(180deg, color-mix(in srgb, var(--gc, var(--accent)) 22%, var(--card)), var(--card));
 }
 
+/* Podio: filas separadas por líneas finas, sin cajas; el primero, en negrita con el puesto dorado. */
 .standings-list {
   list-style: none;
   margin: 0;
   padding: 0;
   display: flex;
   flex-direction: column;
-  gap: 8px;
   text-align: left;
 }
 
@@ -561,34 +526,32 @@
   display: flex;
   align-items: center;
   gap: 10px;
-  padding: 8px 10px;
-  border-radius: 12px;
-  background: var(--bg-2);
+  min-height: 48px;
+  padding: 6px 2px;
+  color: var(--text-soft);
+}
+
+.standings-list li + li {
+  border-top: 1px solid var(--border);
 }
 
 .standings-list li.first {
-  background: color-mix(in srgb, var(--accent-2) 16%, var(--bg-2));
+  color: var(--text);
   font-weight: 700;
 }
 
-.medal-up {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  width: 100%;
-  padding: 6px;
-  border: 0;
-  border-radius: 12px;
-  background: none;
-  color: inherit;
-  font: inherit;
-  text-align: left;
-  cursor: pointer;
+.standings-list li.first .pick-pos {
+  color: var(--accent-2);
 }
 
-.medal-up:hover {
-  background: var(--card-2);
+.standings-list .elo-delta {
+  min-width: 56px;
+  white-space: nowrap;
+  text-align: right;
+  font-size: 13px;
 }
+
+
 
 /* Torneos */
 .prize {
@@ -630,82 +593,195 @@
   font-size: 32px;
 }
 
-.award-list {
+/* Medallas (ficha del juego y vista previa): una tarjeta por familia, con las medallas arriba
+   (protagonistas) y el texto abajo, todo centrado. */
+.section-lead {
+  margin: -4px 0 12px;
+}
+
+.medal-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 280px), 1fr));
+  gap: 12px;
+}
+
+/* Centrada, como una vitrina: medallas y texto al medio. */
+.medal-card {
   display: flex;
   flex-direction: column;
-  gap: 10px;
-}
-
-.award-row {
-  display: flex;
-  gap: 12px;
   align-items: center;
+  gap: 14px;
+  padding: 16px 16px 18px;
+  text-align: center;
 }
 
-.award-row + .award-row {
-  margin-top: 12px;
-}
-
-.award-list .award-row + .award-row {
-  margin-top: 0;
-}
-
-.award-medals {
+.medal-card-art {
+  position: relative;
   display: flex;
   align-items: center;
-  flex-shrink: 0;
 }
 
-.award-medals .medal-btn + .medal-btn {
-  margin-left: -10px;
+.medal-card-stack {
+  display: flex;
+  align-items: center;
 }
 
-.award-medals .medal-btn:hover {
+.medal-card-stack .medal-btn + .medal-btn {
+  margin-left: -12px;
+}
+
+.medal-card-stack .medal-btn:hover {
   position: relative;
   z-index: 1;
 }
 
-.award-more {
-  margin-left: 2px;
-  padding: 3px 7px;
-  border-radius: 99px;
-  border: 1px solid var(--border);
-  background: var(--bg-2);
-  color: var(--muted);
-  font: inherit;
+/* Cuántos niveles más hay (la ficha los muestra todos). Cuelga al costado de la última medalla
+   para no correr las medallas del centro. */
+.medal-card-more {
+  position: absolute;
+  left: calc(100% + 6px);
+  padding: 2px 8px;
+  border-radius: 999px;
+  border: 1px solid var(--border-strong);
+  color: var(--text-soft);
   font-size: 12px;
   font-weight: 700;
-  cursor: pointer;
+  line-height: 1.4;
 }
 
-.award-info {
+.medal-card-info {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
   min-width: 0;
   padding: 0;
   border: 0;
+  border-radius: 8px;
   background: none;
   color: inherit;
   font: inherit;
-  text-align: left;
+  text-align: center;
   cursor: pointer;
 }
 
-.award-info:focus-visible,
-.award-more:focus-visible {
+.medal-card-name {
+  font-size: 18px;
+  font-weight: 700;
+  line-height: 1.25;
+}
+
+.medal-card-measure {
+  color: var(--muted);
+  font-size: 14px;
+  line-height: 1.4;
+}
+
+.medal-card-leader {
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  gap: 6px;
+  margin-top: 6px;
+  color: var(--accent-2);
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 1.4;
+}
+
+.medal-card-leader svg {
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+.medal-card-leader.none {
+  color: var(--muted);
+  font-weight: 400;
+}
+
+.medal-card-levels {
+  margin-top: 6px;
+  color: var(--text-soft);
+  font-size: 14px;
+  line-height: 1.4;
+}
+
+.medal-card-info:focus-visible,
+.rule-link:focus-visible {
   outline: 2px solid var(--accent-2);
   outline-offset: 2px;
 }
 
-.award-leader {
-  margin-top: 4px;
-  color: var(--accent-2);
+/* Una sola línea separa las medallas de las reglas; adentro, aire en vez de divisores. */
+.section-divided {
+  padding-top: 24px;
+  border-top: 1px solid var(--border);
 }
 
-.rules {
-  margin: 0 0 10px;
-  padding-left: 20px;
+/* Reglas: pasos numerados, separados por aire (sin líneas ni tarjeta). */
+.rule-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: 20px;
+}
+
+.rule-list li {
+  display: grid;
+  grid-template-columns: 24px minmax(0, 1fr);
+  gap: 12px;
+  align-items: start;
+  line-height: 1.5;
+  text-wrap: pretty;
+}
+
+.rule-num {
+  /* Alineación óptica: el texto se lee por sus minúsculas, más abajo que el centro de la línea.
+     Bajado 1px, el círculo queda entre la altura de las mayúsculas y la de las minúsculas. */
+  margin-top: 1px;
+  width: 24px;
+  height: 24px;
+  display: grid;
+  place-items: center;
+  border-radius: 999px;
+  background: var(--card-2);
+  color: var(--text-soft);
+  font-size: 12px;
+  font-weight: 700;
+  line-height: 1;
+}
+
+.rule-link {
+  display: inline-flex;
+  align-items: center;
+  align-self: flex-start;
+  /* El libro (20px) queda centrado bajo los números (24px) y el texto, en la columna de las reglas (36px). */
+  gap: 14px;
+  min-height: 44px;
+  margin-top: 12px;
+  padding-left: 2px;
+  border-radius: 8px;
+  font-weight: 600;
+}
+
+.rule-link svg {
+  width: 20px;
+  height: 20px;
+  flex-shrink: 0;
+}
+
+.rule-link-out {
+  margin-left: -6px;
+  color: var(--muted);
+}
+
+.rule-foot {
+  margin: 4px 0 0 36px;
 }
 
 .game-stats {
@@ -766,7 +842,12 @@
 .game-preview {
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 20px;
+}
+
+.game-preview > section {
+  display: flex;
+  flex-direction: column;
 }
 
 /* Inicio: medallas que están por caer. */
@@ -852,7 +933,7 @@
 .vitrina {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(104px, 1fr));
-  gap: 8px;
+  gap: 10px;
 }
 
 .vitrina-item {
@@ -861,10 +942,11 @@
   align-items: center;
   gap: 4px;
   min-width: 0;
-  padding: 12px 6px 10px;
+  padding: 14px 8px 12px;
   border-radius: var(--radius);
   border: 1px solid var(--border);
-  background: var(--bg-2);
+  /* La misma superficie que las tarjetas de medallas de la ficha del juego. */
+  background: var(--card);
   color: var(--text);
   font: inherit;
   text-align: center;
@@ -882,15 +964,14 @@
 }
 
 .vitrina-item.won {
-  background: color-mix(in srgb, var(--accent-2) 6%, var(--bg-2));
   border-color: color-mix(in srgb, var(--accent-2) 35%, transparent);
 }
 
 .vitrina-name {
-  margin-top: 2px;
-  font-size: 13px;
+  margin-top: 6px;
+  font-size: 14px;
   font-weight: 700;
-  line-height: 1.2;
+  line-height: 1.25;
 }
 
 .vitrina-sub {
@@ -898,18 +979,33 @@
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-  font-size: 12px;
+  font-size: 13px;
   color: var(--muted);
+}
+
+/* Quién llegó más alto: corona y nombre en dorado, como en la ficha del juego. */
+.vitrina-sub.leader {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  color: var(--accent-2);
+  font-weight: 600;
+}
+
+.vitrina-sub.leader svg {
+  flex-shrink: 0;
 }
 
 .vitrina-item:not(.won) .vitrina-name {
   color: var(--muted);
 }
 
+/* Los puntos de nivel van al pie, alineados entre tarjetas de una misma fila. */
 .vitrina-levels {
   display: flex;
   gap: 3px;
-  margin-top: 4px;
+  margin-top: auto;
+  padding-top: 8px;
 }
 
 .vitrina-levels i {
@@ -921,4 +1017,413 @@
 
 .vitrina-levels i.on {
   background: var(--accent-2);
+}
+
+/* ---------------------------------------------------------------------------
+   Deportes: quién hizo el gol, sets, figura, tiempos */
+
+.who-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+  gap: 8px;
+  max-height: 55vh;
+  overflow-y: auto;
+  margin: 12px 0;
+}
+
+.who-btn {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  min-height: 72px;
+  padding: 10px 8px;
+  border-radius: var(--radius);
+  border: 2px solid color-mix(in srgb, var(--pc, var(--border)) 60%, var(--border));
+  background: var(--card-2);
+  color: var(--text);
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+  max-width: 100%;
+}
+
+.who-btn:active {
+  transform: scale(0.97);
+}
+
+.who-btn .ellipsis {
+  max-width: 100%;
+}
+
+.who-emoji {
+  font-size: 26px;
+  line-height: 1;
+}
+
+.sets-strip {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: center;
+  gap: 4px 12px;
+  margin: 0 0 8px;
+  font-size: 15px;
+}
+
+.sets-sub {
+  display: flex;
+  gap: 12px;
+}
+
+.sets-final {
+  margin: 10px 0 0;
+  text-align: center;
+}
+
+.mvp-star {
+  color: var(--accent-2);
+}
+
+.mvp-pick {
+  margin-top: 8px;
+}
+
+.mvp-pick .chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.time-input {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 2px;
+}
+
+.player-lines td.left,
+.player-lines th.left {
+  text-align: left;
+  white-space: nowrap;
+}
+
+/* Equipos fijos */
+
+.team-crest {
+  display: inline-grid;
+  place-items: center;
+  flex: none;
+  border-radius: 30% 30% 45% 45%;
+  background: color-mix(in srgb, var(--tc, #888) 30%, var(--card));
+  border: 2px solid var(--tc, #888);
+  line-height: 1;
+}
+
+.team-chip.active {
+  border-color: var(--tc, var(--accent));
+}
+
+.team-col-head {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+}
+
+.team-col-head .icon-btn {
+  width: 32px;
+  height: 32px;
+  min-width: 32px;
+  margin-left: auto;
+}
+
+.balance-chance {
+  margin: 8px 0;
+}
+
+
+.form-dot {
+  display: inline-grid;
+  place-items: center;
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--on-fill);
+  background: var(--card-2);
+}
+
+.form-dot.win {
+  background: #15803d;
+}
+
+.form-dot.loss {
+  background: var(--loss-fill);
+}
+
+.captain-tag {
+  display: inline-grid;
+  place-items: center;
+  width: 18px;
+  height: 18px;
+  margin-left: 6px;
+  border-radius: 4px;
+  font-size: 11px;
+  font-weight: 700;
+  background: var(--accent-2);
+  color: #1a1a1a;
+}
+
+.plain-link {
+  color: inherit;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.team-form-body {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+
+/* Fixture con fecha y cancha */
+
+.fixture-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: inherit;
+  text-decoration: none;
+}
+
+.fixture-meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px 10px;
+  margin: 2px 4px 6px;
+}
+
+.fixture-meta .link-btn {
+  margin-left: auto;
+}
+
+.venue-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.venue-list .row .input {
+  flex: 1;
+  min-width: 0;
+}
+
+/* Convocatoria: ¿quién viene? */
+
+.call-view {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.call-title {
+  margin: 0 0 4px;
+}
+
+.call-meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px 12px;
+  margin: 0;
+}
+
+.call-count {
+  margin: 8px 0 0;
+  font-size: 18px;
+}
+
+.call-count b {
+  font-size: 28px;
+}
+
+.call-list-title {
+  margin-bottom: 0;
+}
+
+.rsvp-list {
+  list-style: none;
+  margin: 8px 0 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.rsvp-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 52px;
+  padding: 6px 8px 6px 10px;
+  border-radius: var(--radius);
+  background: var(--card);
+  border: 1px solid var(--border);
+}
+
+.rsvp-row.is-yes {
+  border-color: color-mix(in srgb, var(--win) 55%, var(--border));
+}
+
+.rsvp-row.is-no {
+  opacity: 0.7;
+}
+
+.rsvp-choices {
+  display: flex;
+  gap: 4px;
+  flex: none;
+}
+
+.rsvp-btn {
+  min-width: 52px;
+  min-height: 40px;
+  padding: 0 8px;
+  border-radius: 10px;
+  border: 1px solid var(--border);
+  background: var(--card-2);
+  color: var(--text-soft);
+  font: inherit;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.rsvp-btn.yes.active {
+  background: #15803d;
+  border-color: #15803d;
+  color: var(--on-fill);
+}
+
+.rsvp-btn.maybe.active {
+  background: var(--accent-2);
+  border-color: var(--accent-2);
+  color: #1a1a1a;
+}
+
+.rsvp-btn.no.active {
+  background: var(--loss-fill);
+  border-color: var(--loss-fill);
+  color: var(--on-fill);
+}
+
+@media (max-width: 380px) {
+  .rsvp-btn {
+    min-width: 44px;
+    padding: 0 6px;
+    font-size: 13px;
+  }
+}
+
+/* Cronómetro del partido */
+
+.clock-bar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px 12px;
+  margin: 0 0 10px;
+  padding: 10px 12px;
+  border-radius: var(--radius);
+  background: var(--card);
+  border: 1px solid var(--border);
+}
+
+.clock-bar.running {
+  border-color: color-mix(in srgb, var(--win) 50%, var(--border));
+}
+
+.clock-bar.over {
+  border-color: var(--accent-2);
+  background: color-mix(in srgb, var(--accent-2) 12%, var(--card));
+}
+
+.clock-read {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.clock-period {
+  font-size: 13px;
+  color: var(--muted);
+}
+
+.clock-time {
+  font-size: 30px;
+  font-weight: 700;
+  line-height: 1.1;
+}
+
+.clock-time small {
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.clock-extra {
+  color: var(--accent-2);
+}
+
+.clock-done {
+  font-weight: 700;
+  color: var(--accent-2);
+}
+
+.clock-actions {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .clock-bar.over .clock-done {
+    animation: clock-blink 1.2s ease-in-out 3;
+  }
+}
+
+@keyframes clock-blink {
+  50% {
+    opacity: 0.4;
+  }
+}
+
+/* Saque en los deportes por sets */
+
+.sets-serve {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--accent-2);
+}
+
+.serve-ball {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: #d4f542;
+  box-shadow: 0 0 0 2px rgba(0, 0, 0, 0.35);
+}
+
+.serve-switch {
+  margin: -4px auto 8px;
 }

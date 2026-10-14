@@ -1,17 +1,17 @@
-import { ArrowCounterClockwiseIcon, ArrowLeftIcon, ArrowsCounterClockwiseIcon, ArrowsLeftRightIcon, ConfettiIcon, HandshakeIcon, HouseIcon, PingPongIcon, SparkleIcon, StarIcon, TargetIcon, TrashIcon, TrophyIcon, XIcon } from '@phosphor-icons/react'
-import { LevelIcon } from '../../components/icons'
+import { ArrowCounterClockwiseIcon, ArrowLeftIcon, ArrowsCounterClockwiseIcon, ArrowsLeftRightIcon, ConfettiIcon, HandshakeIcon, HouseIcon, PingPongIcon, SparkleIcon, StarIcon, TargetIcon, TimerIcon, TrashIcon, TrophyIcon, XIcon } from '@phosphor-icons/react'
 import { useCallback, useEffect, useId, useMemo, useRef, useState, type ReactNode } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 import { TeamAvatar } from '../../components/Avatar'
 import { Medal } from '../../components/Medal'
+import { SetSheet } from '../../components/SetSheet'
 import { toast, useModal } from '../../lib/feedback'
 import { MedalCelebration } from '../../components/MedalCelebration'
 import { MedalSheet } from '../../components/MedalSheet'
 import { levelUps, type LevelUp } from '../../lib/pingpong/achievements'
 import { formatDate, UNKNOWN_PLAYER, usePlayerMap } from '../../lib/hooks'
 import { TIERS } from '../../lib/medalArt'
-import { computeMatch, describeConfig, other } from '../../lib/pingpong/scoring'
-import { computeLeaderboard, levelFor } from '../../lib/pingpong/stats'
+import { computeMatch, describeConfig, formatElapsed, gameStartedAt, other } from '../../lib/pingpong/scoring'
+import { computeLeaderboard } from '../../lib/pingpong/stats'
 import { actions, useData } from '../../lib/store'
 import { sidePlayers, teamAsPlayer, teamName } from '../../lib/pingpong/teams'
 import type { Match, Player, Side } from '../../lib/pingpong/types'
@@ -123,7 +123,9 @@ function Scoreboard({ match }: { match: Match }) {
 
   const sides: Side[] = flipped ? ['b', 'a'] : ['a', 'b']
   const playerOf = (s: Side) => (s === 'a' ? pA : pB)
-  const lastGame = state.games.filter((g) => g.winner).at(-1)
+  const doneGames = state.games.filter((g) => g.winner)
+  const lastGame = doneGames.at(-1)
+  const gameStart = gameStartedAt(match, state.games)
   // Para lectores de pantalla: el marcador se anuncia cada vez que cambia ("Ana 7, Beto 5").
   const announcement = !pending && match.points.length ? `${pA.name} ${state.current.a}, ${pB.name} ${state.current.b}` : ''
   const keepGoing = () => setSeenGames(completedGames)
@@ -147,17 +149,46 @@ function Scoreboard({ match }: { match: Match }) {
         </button>
       </div>
 
-      {state.games.length > 1 && (
-        <div className="sb-games-strip">
-          {state.games
-            .filter((g) => g.winner)
-            .map((g, i) => (
-              <span key={i} className={'game-chip ' + g.winner}>
-                {flipped ? `${g.b}-${g.a}` : `${g.a}-${g.b}`}
-              </span>
-            ))}
+      <div className="sb-tv">
+        <div className="tv-head">
+          <span className="tv-time">
+            <TimerIcon aria-hidden weight="bold" />
+            <span className="sr-only">Tiempo de partido:</span>
+            <Elapsed from={match.startedAt} to={match.finishedAt} /> total
+          </span>
+          {!finished && gameStart !== undefined && (
+            <span className="tv-time">
+              <span className="sr-only">Tiempo del</span> juego {state.games.length} <Elapsed from={gameStart} />
+            </span>
+          )}
         </div>
-      )}
+        {sides.map((s) => {
+          const p = playerOf(s)
+          const isServer = !finished && !pending && state.server === s
+          return (
+            <div key={s} className="tv-row" style={{ ['--pc' as string]: p.color }}>
+              <span className="tv-swatch" aria-hidden />
+              <span className={'tv-ball' + (isServer ? '' : ' off')} aria-hidden />
+              <span className="tv-name">
+                <span aria-hidden>{p.emoji}</span> {p.name}
+                {isServer && <span className="sr-only"> (saca)</span>}
+              </span>
+              <span className="tv-games">
+                {doneGames.map((g, i) => (
+                  <span key={i} className={'tv-game' + (g.winner === s ? ' won' : '')}>
+                    <span className="sr-only">Juego {i + 1}: </span>
+                    {g[s]}
+                  </span>
+                ))}
+              </span>
+              <span className="tv-won">
+                {state.gamesWon[s]}
+                <span className="sr-only"> {state.gamesWon[s] === 1 ? 'juego ganado' : 'juegos ganados'}</span>
+              </span>
+            </div>
+          )
+        })}
+      </div>
 
       <div className="court">
         {sides.map((s) => {
@@ -182,11 +213,6 @@ function Scoreboard({ match }: { match: Match }) {
               <div className="ch-player">
                 <span className="ch-emoji">{p.emoji}</span>
                 <span className="ch-name">{p.name}</span>
-              </div>
-              <div className="ch-games" aria-label={`${state.gamesWon[s]} juegos`}>
-                {Array.from({ length: state.gamesNeeded }, (_, i) => (
-                  <span key={i} className={'game-dot' + (i < state.gamesWon[s] ? ' won' : '')} />
-                ))}
               </div>
               <div key={state.current[s] + '-' + state.games.length} className="ch-score">
                 {state.current[s]}
@@ -276,6 +302,17 @@ function Scoreboard({ match }: { match: Match }) {
       {finished && <MatchResult match={match} teamA={teamA} teamB={teamB} onUndo={undo} backTo={backTo} />}
     </div>
   )
+}
+
+/** Reloj que corre desde `from` hasta `to` (o hasta ahora, si todavía no terminó). */
+function Elapsed({ from, to }: { from?: number; to?: number }) {
+  const [now, setNow] = useState(() => Date.now())
+  useEffect(() => {
+    if (!from || to) return
+    const t = setInterval(() => setNow(Date.now()), 1000)
+    return () => clearInterval(t)
+  }, [from, to])
+  return <span className="tv-clock">{formatElapsed(from ? (to ?? now) - from : 0)}</span>
 }
 
 /*
@@ -373,53 +410,72 @@ function MatchResult({ match, teamA, teamB, onUndo, backTo }: { match: Match; te
   }
 
   return (
-    <Overlay className="result" labelledBy={titleId} onEscape={() => navigate(backTo)}>
+    <Overlay className="result" labelledBy={titleId} onEscape={() => navigate(backTo)} initialFocus=".rs-main">
       {winner && <Confetti />}
       <MedalCelebration id={match.id} finishedAt={match.finishedAt} medals={fresh} />
       <div className="overlay-card">
-        {winner ? <TrophyIcon className="big-icon gold" weight="duotone" /> : <HandshakeIcon className="big-icon" weight="duotone" />}
+        {/* Quién ganó, una sola vez: el trofeo es una chapita sobre el avatar del ganador. */}
         {winner ? (
           <>
-            <TeamAvatar team={winnerTeam} size={80} />
-            <h2 id={titleId}>¡{winnerTeam.length > 1 ? 'Ganaron' : 'Ganó'} {winner.name}!</h2>
+            <span className="rs-winner">
+              <TeamAvatar team={winnerTeam} size={88} />
+              <span className="rs-trophy" aria-hidden>
+                <TrophyIcon weight="fill" />
+              </span>
+            </span>
+            <h2 id={titleId} className="rs-title">
+              ¡{winnerTeam.length > 1 ? 'Ganaron' : 'Ganó'} {winner.name}!
+            </h2>
           </>
         ) : (
-          <h2 id={titleId}>¡Empate!</h2>
+          <>
+            <HandshakeIcon className="big-icon" weight="duotone" />
+            <h2 id={titleId} className="rs-title">
+              ¡Empate!
+            </h2>
+          </>
         )}
-        <div className="result-score">
-          <div className={'rs-side' + (state.winner === 'a' ? ' w' : '')}>
-            <span>{pA.emoji} {pA.name}</span>
-            <b>{state.gamesWon.a}</b>
-            {delta && <span className={'elo-delta ' + (delta.a >= 0 ? 'up' : 'down')}>{delta.a >= 0 ? '+' : ''}{delta.a} Elo</span>}
-            <span className="muted small"><LevelIcon icon={levelFor(elo.a).icon} /> {elo.a}</span>
-          </div>
-          <span className="vs">-</span>
-          <div className={'rs-side' + (state.winner === 'b' ? ' w' : '')}>
-            <span>{pB.emoji} {pB.name}</span>
-            <b>{state.gamesWon.b}</b>
-            {delta && <span className={'elo-delta ' + (delta.b >= 0 ? 'up' : 'down')}>{delta.b >= 0 ? '+' : ''}{delta.b} Elo</span>}
-            <span className="muted small"><LevelIcon icon={levelFor(elo.b).icon} /> {elo.b}</span>
-          </div>
-        </div>
-        <p className="muted">{state.games.map((g) => `${g.a}-${g.b}`).join(' · ')}</p>
+        <p className="muted small num">
+          {match.config.bestOf > 1 ? `Al mejor de ${match.config.bestOf}` : 'A un set'} ·{' '}
+          {Math.max(state.gamesWon.a, state.gamesWon.b)} a {Math.min(state.gamesWon.a, state.gamesWon.b)} · {formatDate(match.finishedAt ?? match.createdAt)}
+        </p>
 
-        {newAchievements.length > 0 && (
-          <div className="new-achievements" role="status">
-            {newAchievements.map(({ player, ups }) =>
+        <SetSheet teams={{ a: teamA, b: teamB }} games={state.games} gamesWon={state.gamesWon} winner={state.winner} numbered avatarSize={28} />
+        {delta && (
+          <dl className="rs-elo num">
+            {(['a', 'b'] as const).map((s) => (
+              <div key={s} className={state.winner === s ? 'w' : undefined}>
+                <dt>{(s === 'a' ? pA : pB).name}</dt>
+                <dd>
+                  <span className={'elo-delta ' + (delta[s] >= 0 ? 'up' : 'down')}>
+                    {delta[s] >= 0 ? '+' : '−'}
+                    {Math.abs(delta[s])}
+                  </span>{' '}
+                  → {elo[s]}
+                </dd>
+              </div>
+            ))}
+          </dl>
+        )}
+
+        {/* La medalla es el momento: grande, arriba y centrada, con el texto debajo. Si son varias, en fila. */}
+        {fresh.length > 0 && (
+          <div className={'rs-medals' + (fresh.length > 1 ? ' many' : '')} role="status">
+            {newAchievements.flatMap(({ player, ups }) =>
               ups.map(({ family, level }) => (
                 <button
                   key={player.id + family.id}
                   type="button"
-                  className="achievement-toast"
+                  className="rs-medal"
                   aria-haspopup="dialog"
                   onClick={() => setShownUp({ player, family, level, value: withStats.get(player.id)?.[family.stat] ?? 0 })}
                 >
-                  <Medal family={family} level={level} size={44} />
-                  <span>
-                    <b>{player.name}</b>{' '}
-                    {level === 0 ? 'desbloqueó' : `subió a ${TIERS[level].name.toLowerCase()} en ${family.name}:`}{' '}
-                    <b>{family.levels[level].name}</b>
+                  <Medal family={family} level={level} size={fresh.length > 1 ? 64 : 104} />
+                  <span className="rs-medal-who">
+                    {player.name} {level === 0 ? 'desbloqueó' : `subió a ${TIERS[level].name.toLowerCase()}`}
                   </span>
+                  <span className="rs-medal-name">{family.levels[level].name}</span>
+                  {fresh.length === 1 && <span className="rs-medal-desc">{family.levels[level].description}</span>}
                 </button>
               )),
             )}
@@ -435,11 +491,11 @@ function MatchResult({ match, teamA, teamB, onUndo, backTo }: { match: Match; te
         )}
 
         {!match.tournamentId && (
-          <button className="btn primary big block" onClick={rematch}>
+          <button className="btn primary big block rs-main" onClick={rematch}>
             <ArrowsCounterClockwiseIcon /> Revancha
           </button>
         )}
-        <button className={'btn block' + (match.tournamentId ? ' primary big' : '')} onClick={() => navigate(backTo)}>
+        <button className={'btn block' + (match.tournamentId ? ' primary big rs-main' : '')} onClick={() => navigate(backTo)}>
           {match.tournamentId ? (
             <>
               <TrophyIcon /> Volver al torneo
@@ -469,7 +525,6 @@ function MatchResult({ match, teamA, teamB, onUndo, backTo }: { match: Match; te
             </button>
           )}
         </div>
-        <p className="muted small">{formatDate(match.finishedAt ?? match.createdAt)}</p>
       </div>
     </Overlay>
   )

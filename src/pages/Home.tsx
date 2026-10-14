@@ -1,16 +1,18 @@
-import { ArrowRightIcon, CaretLeftIcon, CaretRightIcon, CheckCircleIcon, GearSixIcon, PlusIcon, SparkleIcon, TrashIcon, TrophyIcon, UsersIcon } from '@phosphor-icons/react'
+import { ArrowRightIcon, CaretLeftIcon, CaretRightIcon, CheckCircleIcon, GearSixIcon, PlusIcon, TrashIcon, UsersIcon } from '@phosphor-icons/react'
 import { useRef, useState } from 'react'
 import { Link, useNavigate, type NavigateFunction } from 'react-router-dom'
-import { Avatar } from '../components/Avatar'
 import { toast } from '../lib/feedback'
 import { HeroCard, ShelfCard, Shelf } from '../components/GameCard'
 import { GameCover } from '../components/GameCover'
-import { GameBadge, PlayRow } from '../components/GameBits'
-import { PlaceMedal } from '../components/icons'
+import { GameBadge, PlayRow, playTitle, sideName } from '../components/GameBits'
 import { Logo } from '../components/Logo'
 import { MatchRow } from '../components/MatchRow'
 import { NextMedals } from '../components/NextMedals'
+import { GloriaPodium } from '../components/Squad'
 import { cupChampion } from '../lib/cups'
+import { computeLive } from '../lib/engine'
+import { computeMatch } from '../lib/pingpong/scoring'
+import { sidePlayers, teamName } from '../lib/pingpong/teams'
 import { FEATURED, findGame, HERO, pickGames } from '../lib/games'
 import type { Category, GameDef } from '../lib/games/schema'
 import { gameOrMissing, useBoard, useGames, usePlayerMap } from '../lib/hooks'
@@ -18,8 +20,9 @@ import { tournamentChampion } from '../lib/pingpong/stats'
 import { groupingOf, joinNames, planRematch, type RematchPlan } from '../lib/rematch'
 import { actions, getData, useData } from '../lib/store'
 import { syncAvailable, useSyncState } from '../lib/sync'
-import type { Play, PPMatch as Match } from '../lib/types'
+import type { Id, Play, Player, PPMatch as Match } from '../lib/types'
 import { playPath } from './GameDetail'
+import { formatWhen } from '../lib/schedule'
 
 /** Estantes por categoría del inicio. */
 const HOME_SHELVES: { cat: Category; title: string; subtitle: string }[] = [
@@ -27,6 +30,7 @@ const HOME_SHELVES: { cat: Category; title: string; subtitle: string }[] = [
   { cat: 'tcg', title: 'Duelos de cartas', subtitle: 'Magic, Pokémon, Yu-Gi-Oh! y compañía' },
   { cat: 'fiesta', title: 'Para la previa', subtitle: 'Juegos de fiesta para muchos' },
   { cat: 'mesa', title: 'Juegos de mesa', subtitle: 'Para sacar la caja y quedarse un rato' },
+  { cat: 'deporte', title: 'A la cancha', subtitle: 'Fútbol, pádel, vóley y compañía' },
 ]
 
 /** Se recuerda en el dispositivo si ya se cerró la guía de primeros pasos. */
@@ -50,7 +54,7 @@ function discardPlay(play: Play, gameName: string) {
  * vez y ofrece "Cambiar", que descarta la partida recién creada y lleva al armado.
  */
 function startRematch(game: GameDef, plan: RematchPlan, navigate: NavigateFunction) {
-  const p = actions.createPlay(game.id, plan.sides, plan.config)
+  const p = actions.createPlay(game.id, plan.sides, plan.config, plan.stake)
   navigate(`/partida/${p.id}`)
   const same = groupingOf(game, plan.from) === 'teams' ? 'Mismos equipos que la última vez' : 'Mismos jugadores que la última vez'
   toast(same, {
@@ -85,6 +89,14 @@ export function Home() {
     ...data.plays.filter((p) => p.status === 'live' && !p.cupId).map((p) => ({ kind: 'play' as const, at: p.startedAt ?? p.createdAt, p })),
     ...data.matches.filter((m) => m.status === 'live').map((m) => ({ kind: 'match' as const, at: m.startedAt ?? m.createdAt, m })),
   ].sort((x, y) => y.at - x.at)
+
+  // Partidos del fixture que vienen (o que arrancaron hace un rato y todavía no se anotaron).
+  const [openedAt] = useState(() => Date.now())
+  const soon = openedAt - 3 * 60 * 60 * 1000
+  const upcoming = data.plays
+    .filter((p) => p.status === 'pending' && p.scheduledAt !== undefined && p.scheduledAt >= soon)
+    .sort((a, b) => a.scheduledAt! - b.scheduledAt!)
+    .slice(0, 4)
 
   const recent = [
     ...data.plays.filter((p) => p.status === 'finished').map((p) => ({ kind: 'play' as const, at: p.finishedAt ?? p.createdAt, p })),
@@ -243,24 +255,40 @@ export function Home() {
       {live.length > 0 && (
         <section aria-labelledby="live-title">
           <h2 id="live-title">En juego</h2>
-          <div className="list">
+          {/* Una lista: juego, quiénes, cómo va y hace cuánto. Tocar la fila vuelve a la partida; descartar es un ícono discreto. */}
+          <ul className="live-list">
             {live.map((x) =>
               x.kind === 'play' ? (
-                <div key={x.p.id} className="live-item">
-                  <PlayRow play={x.p} game={gameOrMissing(data, x.p.gameId)} players={players} />
-                  <button className="btn ghost-danger" onClick={() => discardPlay(x.p, gameOrMissing(data, x.p.gameId).name)}>
-                    <TrashIcon aria-hidden /> Descartar partida
-                  </button>
-                </div>
+                <LivePlayRow key={x.p.id} play={x.p} game={gameOrMissing(data, x.p.gameId)} players={players} />
               ) : (
-                <div key={x.m.id} className="live-item">
-                  <MatchRow match={x.m} players={players} />
-                  <button className="btn ghost-danger" onClick={() => discardMatch(x.m)}>
-                    <TrashIcon aria-hidden /> Descartar partido
-                  </button>
-                </div>
+                <LiveMatchRow key={x.m.id} match={x.m} players={players} game={gameOrMissing(data, 'pingpong')} />
               ),
             )}
+          </ul>
+        </section>
+      )}
+
+      {upcoming.length > 0 && (
+        <section aria-labelledby="upcoming-title">
+          <h2 id="upcoming-title">Próximos partidos</h2>
+          <div className="list">
+            {upcoming.map((p) => {
+              const g = gameOrMissing(data, p.gameId)
+              const cup = p.cupId ? data.cups.find((c) => c.id === p.cupId) : undefined
+              return (
+                <Link key={p.id} to={`/partida/${p.id}`} className="card fixture-row">
+                  <GameBadge game={g} size={36} />
+                  <span className="grow">
+                    <b>{playTitle(p, players, data.teams)}</b>
+                    <span className="muted small block">
+                      {formatWhen(p.scheduledAt!)}
+                      {p.venue ? ` · ${p.venue}` : ''}
+                      {cup ? ` · ${cup.name}` : ''}
+                    </span>
+                  </span>
+                </Link>
+              )
+            })}
           </div>
         </section>
       )}
@@ -271,26 +299,7 @@ export function Home() {
             <h2 id="podium-title">Podio de gloria</h2>
             <SeeAll to="/ranking" label="Ver todo el ranking" />
           </div>
-          <div className="podium">
-            {[ranked[1], ranked[0], ranked[2]].map((s, i) => {
-              const p = s && players.get(s.playerId)
-              return p ? (
-                <Link key={p.id} to={`/jugadores/${p.id}`} className={'podium-spot place-' + [2, 1, 3][i]}>
-                  <span className="podium-medal">
-                    <PlaceMedal place={([2, 1, 3] as const)[i]} />
-                  </span>
-                  <Avatar player={p} size={i === 1 ? 64 : 48} />
-                  <span className="podium-name">{p.name}</span>
-                  <span className="podium-elo">
-                    <SparkleIcon weight="fill" aria-hidden /> <span className="num">{s.gloria}</span> de gloria
-                  </span>
-                  <div className="podium-block" />
-                </Link>
-              ) : (
-                <div key={i} className="podium-spot empty-spot" />
-              )
-            })}
-          </div>
+          <GloriaPodium top={ranked} />
         </section>
       )}
 
@@ -300,15 +309,14 @@ export function Home() {
             <h2 id="cups-title">Torneos en curso</h2>
             <SeeAll to="/torneos" label="Ver todos los torneos" />
           </div>
-          <div className="list">
+          <div className="list rows">
             {activeCups.map((c) => (
-              <Link key={c.id} to={c.to} className="card cup-row">
+              <Link key={c.id} to={c.to} className="cup-row">
                 <GameBadge game={gameOrMissing(data, c.gameId)} size={36} />
                 <span className="grow">
                   <b>{c.name}</b>
                   <span className="muted small block">{gameOrMissing(data, c.gameId).name}</span>
                 </span>
-                <TrophyIcon className="muted" aria-hidden />
               </Link>
             ))}
           </div>
@@ -477,5 +485,65 @@ function CatalogCta({ games }: { games: GameDef[] }) {
         <ArrowRightIcon />
       </span>
     </Link>
+  )
+}
+
+/** Hace cuánto empezó: "25′", o "3 h 31′" si pasó más de una hora. */
+function minutesSince(t?: number): string {
+  if (!t) return ''
+  const m = Math.max(0, Math.floor((Date.now() - t) / 60000))
+  return m < 60 ? `${m}′` : `${Math.floor(m / 60)} h ${String(m % 60).padStart(2, '0')}′`
+}
+
+/** Una partida en juego, en una fila: juego, quiénes (o a quién le toca), el marcador y hace cuánto empezó. */
+function LivePlayRow({ play, game, players }: { play: Play; game: GameDef; players: Map<Id, Player> }) {
+  const live = computeLive(game, play)
+  const names = play.sides.map((s) => sideName(s, players)).join(' · ')
+  const counts = game.mode === 'counter' || game.mode === 'sets' || game.mode === 'rounds' || game.mode === 'turns'
+  const best = game.scoring.lowWins ? Math.min(...live.scores) : Math.max(...live.scores)
+  const tied = live.scores.every((v) => v === best)
+  const score = !counts || !play.log.length ? '' : play.sides.length === 2 ? live.scores.join('–') : tied ? '' : `${sideName(play.sides[live.scores.indexOf(best)], players)} ${best}`
+  const sub = game.mode === 'turns' && live.turnCount ? `Turno ${live.turnCount} · le toca a ${sideName(play.sides[live.turn], players)}` : names
+  return (
+    <LiveRow to={`/partida/${play.id}`} game={game} sub={sub} score={score} since={play.startedAt ?? play.createdAt} onDiscard={() => discardPlay(play, game.name)} />
+  )
+}
+
+function LiveMatchRow({ match, game, players }: { match: Match; game: GameDef; players: Map<Id, Player> }) {
+  const state = computeMatch(match.points, match.config, match.firstServer)
+  const team = (s: 'a' | 'b') => teamName(sidePlayers(match, s).map((id) => players.get(id)).filter((p): p is Player => !!p))
+  return (
+    <LiveRow
+      to={`/partido/${match.id}`}
+      game={game}
+      sub={`${team('a')} · ${team('b')} · sets ${state.gamesWon.a}–${state.gamesWon.b}`}
+      score={`${state.current.a}–${state.current.b}`}
+      since={match.startedAt ?? match.createdAt}
+      onDiscard={() => discardMatch(match)}
+    />
+  )
+}
+
+function LiveRow({ to, game, sub, score, since, onDiscard }: { to: string; game: GameDef; sub: string; score: string; since?: number; onDiscard: () => void }) {
+  return (
+    <li className="live-row">
+      <Link to={to} className="live-link">
+        <GameBadge game={game} size={34} />
+        <span className="live-text">
+          <b className="ellipsis">{game.name}</b>
+          <span className="ellipsis">{sub}</span>
+        </span>
+        <span className="live-score num">
+          {score && <b>{score}</b>}
+          <small>
+            <span className="live-dot" aria-hidden /> {minutesSince(since)}
+            <span className="sr-only"> en juego</span>
+          </small>
+        </span>
+      </Link>
+      <button type="button" className="live-discard" onClick={onDiscard} aria-label={`Descartar la partida de ${game.name}`}>
+        <TrashIcon aria-hidden />
+      </button>
+    </li>
   )
 }

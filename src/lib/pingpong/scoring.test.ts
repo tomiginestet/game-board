@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { computeMatch, gameWinner, serverFor } from './scoring'
+import { computeMatch, formatElapsed, gameStartedAt, gameWinner, serverFor } from './scoring'
 import type { MatchConfig, Side } from './types'
 
 const cfg = (over: Partial<MatchConfig> = {}): MatchConfig => ({ pointsToWin: 11, winByTwo: true, bestOf: 3, serveEvery: 2, ...over })
@@ -83,5 +83,31 @@ describe('computeMatch', () => {
     const s = computeMatch(repeat('a', 11), cfg(), 'a')
     expect(s.games.length).toBe(2)
     expect(s.server).toBe('b')
+  })
+})
+
+describe('formatElapsed', () => {
+  it('muestra minutos y segundos, y horas cuando hacen falta', () => {
+    expect(formatElapsed(0)).toBe('0:00')
+    expect(formatElapsed(65_000)).toBe('1:05')
+    expect(formatElapsed((23 * 60 + 41) * 1000 + 999)).toBe('23:41')
+    expect(formatElapsed((3600 + 2 * 60 + 9) * 1000)).toBe('1:02:09')
+    expect(formatElapsed(-5000)).toBe('0:00')
+  })
+})
+
+describe('gameStartedAt', () => {
+  const points = [...repeat('a', 11), 'b', 'a'] as Side[]
+  const games = computeMatch(points, cfg(), 'a').games
+  const pointTimes = points.map((_, i) => 1000 + i * 10)
+  it('el primer juego arranca con el partido', () => {
+    expect(gameStartedAt({ startedAt: 500, pointTimes }, computeMatch(points.slice(0, 3), cfg(), 'a').games)).toBe(500)
+  })
+  it('los siguientes arrancan con el punto que cerró el anterior', () => {
+    expect(gameStartedAt({ startedAt: 500, pointTimes }, games)).toBe(1100)
+  })
+  it('sin horas guardadas no se sabe', () => {
+    expect(gameStartedAt({ startedAt: 500 }, games)).toBeUndefined()
+    expect(gameStartedAt({ startedAt: 500, pointTimes: pointTimes.map(() => 0) }, games)).toBeUndefined()
   })
 })

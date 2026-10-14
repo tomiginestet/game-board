@@ -6,7 +6,7 @@
 
 import { defaultConfig } from './engine'
 import type { GameDef, OptionValue } from './games/schema'
-import type { Id, Play, PlaySide } from './types'
+import type { Id, Play, PlaySide, PlayStake } from './types'
 
 /** Cómo se arman los lados: cada uno por su cuenta, por equipos o todos juntos (cooperativo). */
 export type Grouping = 'solo' | 'teams' | 'coop'
@@ -28,6 +28,8 @@ export function lastPlayOf(plays: Play[], gameId: string): Play | undefined {
  * más gente se juega por equipos. En el resto, lo que permita el juego.
  */
 export function soloMax(game: GameDef): number {
+  // Por sets (pádel, tenis, vóley) siempre son dos lados: cada uno solo es mano a mano.
+  if (game.mode === 'sets') return 2
   if (game.sides === 'either' && game.teamSize && (game.mode === 'counter' || game.mode === 'rally')) return 2
   return game.players.max
 }
@@ -68,6 +70,7 @@ export function setupProblem(game: GameDef, grouping: Grouping, sides: PlaySide[
     return undefined
   }
   if (sides.length < 2) return 'Repartí los jugadores en al menos 2 equipos'
+  if (game.mode === 'sets' && sides.length !== 2) return 'Se juega de a dos lados: armá 2 equipos'
   // En los de equipos (Código secreto) `teamSize` es el mínimo por equipo: 4 contra 4 vale.
   if (game.teamSize && game.sides === 'teams' && sides.some((s) => s.players.length < game.teamSize!)) return `Armá equipos de al menos ${jugadores(game.teamSize)}`
   // En los de las dos formas (truco 2 contra 2 o 3 contra 3) los equipos tienen que ser parejos.
@@ -84,7 +87,7 @@ export function joinNames(names: string[]): string {
 /** Los lados como texto ("Ana & Beto") y con qué se separan: "vs" entre dos lados o equipos, "·" entre varios solos. */
 export function previewParts(sides: PlaySide[], grouping: Grouping, nameOf: (id: Id) => string): { parts: string[]; sep: string } {
   if (grouping === 'coop') return { parts: [joinNames(sides.flatMap((s) => s.players).map(nameOf))], sep: '' }
-  const parts = sides.map((s) => s.players.map(nameOf).join(' & '))
+  const parts = sides.map((s) => (s.teamId && s.name) || s.players.map(nameOf).join(' & '))
   return { parts, sep: grouping === 'teams' || parts.length === 2 ? 'vs' : '·' }
 }
 
@@ -114,6 +117,8 @@ export interface RematchPlan {
   sides: PlaySide[]
   config: Record<string, OptionValue>
   playerIds: Id[]
+  /** La revancha se juega por lo mismo (nunca por el doble). */
+  stake?: PlayStake
 }
 
 /**
@@ -129,5 +134,5 @@ export function planRematch(game: GameDef, plays: Play[], existing: Iterable<Id>
   const playerIds = sides.flatMap((s) => s.players)
   if (!playerIds.length || playerIds.some((id) => !ids.has(id)) || new Set(playerIds).size !== playerIds.length) return undefined
   if (setupProblem(game, groupingOf(game, from), sides)) return undefined
-  return { from, sides, config: rematchConfig(game, from), playerIds }
+  return { from, sides, config: rematchConfig(game, from), playerIds, ...(from.stake ? { stake: from.stake } : {}) }
 }

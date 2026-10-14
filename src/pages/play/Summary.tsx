@@ -1,10 +1,9 @@
-import { ArrowsClockwiseIcon, ConfettiIcon, TrashIcon } from '@phosphor-icons/react'
+import { ArrowsClockwiseIcon, TrashIcon } from '@phosphor-icons/react'
 import { useMemo, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { TeamAvatar } from '../../components/Avatar'
 import { sideName, sidePlayersOf } from '../../components/GameBits'
 import { Medal } from '../../components/Medal'
-import { MedalCelebration } from '../../components/MedalCelebration'
 import { MedalSheet } from '../../components/MedalSheet'
 import { WinnerHero } from '../../components/WinnerHero'
 import { isDraw, sidesByPlace, type LiveState } from '../../lib/engine'
@@ -19,7 +18,10 @@ import { actions, useData } from '../../lib/store'
 import type { Id, Play, Player } from '../../lib/types'
 import { MedalDataCard } from './MedalDataCard'
 import { PlanillaSummary } from './PlanillaSummary'
-import { joinNames } from './winnerText'
+import { joinNames, stakeText } from './winnerText'
+import { formatScore } from '../../lib/score'
+import { setsLine } from '../../lib/sets'
+import { PlayerLinesCard } from './PlayerLines'
 
 /** Hasta cuánto después de terminarla se festeja como recién terminada (igual que las medallas). */
 const FRESH_MS = 15 * 60 * 1000
@@ -33,7 +35,7 @@ export function Summary({ play, game, live, players }: { play: Play; game: GameD
 
   // Medallas que se ganaron con esta partida (las de este juego y las generales): comparamos el
   // historial con y sin ella. Con lo de después sale también la próxima medalla de la mesa.
-  const { ups, hint } = useMemo(() => {
+  const { ups, hint, elo } = useMemo(() => {
     const before = computeBoard({ ...data, plays: data.plays.filter((p) => p.id !== play.id) })
     const after = computeBoard(data)
     const ids = play.sides.flatMap((s) => s.players)
@@ -46,7 +48,8 @@ export function Summary({ play, game, live, players }: { play: Play; game: GameD
       const a = after.players.get(id)
       if (a) for (const m of levelUps(b ? globalMedals(b) : [], globalMedals(a))) out.push({ player: p, medal: m })
     }
-    if (out.length) return { ups: out, hint: undefined }
+    const elo = after.eloDeltas.get(play.id)
+    if (out.length) return { ups: out, hint: undefined, elo }
     // Sin medallas nuevas: la más cercana de quien ganó; si no tiene ninguna a tiro (o no hubo ganador), la de cualquiera de la mesa.
     const reachOf = (id: Id) => {
       const s = after.players.get(id)
@@ -56,14 +59,19 @@ export function Summary({ play, game, live, players }: { play: Play; game: GameD
     const winnerIds = play.result?.coopWin === undefined ? play.sides.filter((_, i) => play.result?.places[i] === 1).flatMap((s) => s.players) : []
     const best = (winnerIds.length && !isDraw(play) ? near(winnerIds) : undefined) ?? near(ids)
     const who = best && players.get(best.playerId)
-    return { ups: out, hint: best && who ? { text: nextMedalHint(who.name, best), progress: best.progress } : undefined }
+    return { ups: out, hint: best && who ? { text: nextMedalHint(who.name, best), progress: best.progress } : undefined, elo }
   }, [data, play, game, players])
   const [shownUp, setShownUp] = useState<number | null>(null)
   const shown = shownUp !== null ? ups[shownUp] : undefined
-  const newMedals = useMemo(() => ups.map(({ player, medal }) => ({ who: player.name, family: medal.family, level: medal.level, value: medal.value })), [ups])
-  const [celebrate, setCelebrate] = useState(0)
+  // La misma medalla ganada por varios (un equipo) va una sola vez: "Ana y Beto".
+  const medals = ups
+    .map((u, k) => ({ ...u, k }))
+    .filter((u, i, all) => all.findIndex((x) => x.medal.family.id === u.medal.family.id && x.medal.level === u.medal.level) === i)
+    .map((u) => ({ ...u, who: ups.filter((x) => x.medal.family.id === u.medal.family.id && x.medal.level === u.medal.level).map((x) => x.player.name) }))
   // "Recién terminada" se decide al entrar: así la animación y el anuncio no se repiten al volver días después.
   const [fresh] = useState(() => !!play.finishedAt && Date.now() - play.finishedAt < FRESH_MS)
+
+  const stake = stakeText(play, players)
 
   const eventSummary = game.events
     .map((e) => {
@@ -73,15 +81,15 @@ export function Summary({ play, game, live, players }: { play: Play; game: GameD
     .filter((x) => x.per.some((v) => v > 0))
 
   const rematch = () => {
-    // Mismos lados (los bandos por rol vuelven a ser uno por jugador) y reglas, con opciones nuevas por defecto.
-    const p = actions.createPlay(game.id, rematchSides(play), rematchConfig(game, play))
+    // Mismos lados (los bandos por rol vuelven a ser uno por jugador), reglas y prenda, con opciones nuevas por defecto.
+    const p = actions.createPlay(game.id, rematchSides(play), rematchConfig(game, play), play.stake)
     navigate(`/partida/${p.id}`, { replace: true })
   }
 
   return (
     <div className="summary">
       <div className="card winner-card">
-        <WinnerHero play={play} game={game} players={players} fresh={fresh} newMedals={ups.length} onShowMedals={() => setCelebrate((n) => n + 1)} hint={hint} />
+        <WinnerHero play={play} game={game} players={players} fresh={fresh} hint={hint} />
         <ol className="standings-list" aria-label="Posiciones">
           {order.map((i) => (
             <li key={i} className={play.result?.places[i] === 1 && !draw && coop === undefined ? 'first' : ''}>
@@ -90,10 +98,50 @@ export function Summary({ play, game, live, players }: { play: Play; game: GameD
               <span className="grow ellipsis">
                 {sideName(play.sides[i], players)}
               </span>
-              {play.result?.scores?.[i] !== undefined && play.result.scores[i] !== null && <b className="num">{play.result.scores[i]}</b>}
+              {play.result?.scores?.[i] !== undefined && play.result.scores[i] !== null && <b className="num">{formatScore(game, play.result.scores[i]!)}</b>}
+              {elo && coop === undefined && elo[i] !== undefined && (
+                <span className={'elo-delta num ' + (elo[i] >= 0 ? 'up' : 'down')}>
+                  {elo[i] >= 0 ? '+' : '−'}
+                  {Math.abs(elo[i])} Elo
+                </span>
+              )}
             </li>
           ))}
         </ol>
+        {live.sets && live.sets.done.length > 0 && (
+          <p className="sets-final">
+            <span className="muted small">Sets</span> <b className="num">{setsLine(live.sets, (play.result?.places[1] === 1 && play.result?.places[0] !== 1 ? 1 : 0))}</b>
+          </p>
+        )}
+        {stake && (
+          <p className="rs-stake">
+            <span className="rs-stake-emoji" aria-hidden="true">{play.stake?.emoji ?? '🎁'}</span>
+            <span>{stake}</span>
+          </p>
+        )}
+        {/* La medalla nueva es el momento: grande, centrada, con su nombre y su chiste debajo. Si son varias, en fila. */}
+        {medals.length > 0 && (
+          <div className={'rs-medals' + (medals.length > 1 ? ' many' : '')} role="status">
+            {medals.map(({ medal, k, who }) => (
+              <button key={k} type="button" className="rs-medal" aria-haspopup="dialog" onClick={() => setShownUp(k)}>
+                <Medal family={medal.family} level={medal.level} size={medals.length > 1 ? 64 : 104} />
+                <span className="rs-medal-who">
+                  {joinNames(who)} {medal.level === 0 ? (who.length > 1 ? 'desbloquearon' : 'desbloqueó') : `${who.length > 1 ? 'subieron' : 'subió'} a ${TIERS[medal.level].name.toLowerCase()}`}
+                </span>
+                <span className="rs-medal-name">{medal.family.levels[medal.level].name}</span>
+                {medals.length === 1 && <span className="rs-medal-desc">{medal.family.levels[medal.level].description}</span>}
+              </button>
+            ))}
+            {shown && (
+              <MedalSheet
+                family={shown.medal.family}
+                level={shown.medal.level}
+                mine={{ name: shown.player.name, value: shown.medal.value, level: shown.medal.level }}
+                onClose={() => setShownUp(null)}
+              />
+            )}
+          </div>
+        )}
       </div>
 
       <div className="row">
@@ -116,46 +164,10 @@ export function Summary({ play, game, live, players }: { play: Play; game: GameD
         </Link>
       )}
       {/* Después de los botones: completar los datos nunca empuja "Revancha" fuera de la primera pantalla. */}
+      <PlayerLinesCard play={play} game={game} players={players} />
       <MedalDataCard play={play} game={game} players={players} />
       {/* Generala: la planilla completa queda a la vista al terminar (no rinde nada en otros juegos). */}
       <PlanillaSummary play={play} game={game} players={players} />
-
-      {/* El festejo del punto final ya celebró: las medallas se abren con "Ver medallas nuevas", no solas. */}
-      <MedalCelebration id={play.id} finishedAt={play.finishedAt} medals={newMedals} auto={false} requested={celebrate} />
-      {ups.length > 0 && (
-        <section className="card new-achievements">
-          <h2 className="summary-subtitle">
-            <ConfettiIcon className="inline-icon" /> ¡Medallas nuevas!
-          </h2>
-          {/* La misma medalla ganada por varios (un equipo) va en una sola fila: "Ana y Beto". */}
-          {ups
-            .map((u, k) => ({ ...u, k }))
-            .filter((u, i, all) => all.findIndex((x) => x.medal.family.id === u.medal.family.id && x.medal.level === u.medal.level) === i)
-            .map(({ medal, k }) => {
-              const who = ups.filter((x) => x.medal.family.id === medal.family.id && x.medal.level === medal.level).map((x) => x.player.name)
-              return (
-            <button key={k} type="button" className="medal-up" aria-haspopup="dialog" onClick={() => setShownUp(k)}>
-              <Medal family={medal.family} level={medal.level} size={72} />
-              <div>
-                <b>{medal.family.levels[medal.level].name}</b>
-                <span className="muted small block">
-                  {joinNames(who)} · {medal.family.name} · {TIERS[medal.level].name}
-                </span>
-                <span className="small">{medal.family.levels[medal.level].description}</span>
-              </div>
-            </button>
-              )
-            })}
-          {shown && (
-            <MedalSheet
-              family={shown.medal.family}
-              level={shown.medal.level}
-              mine={{ name: shown.player.name, value: shown.medal.value, level: shown.medal.level }}
-              onClose={() => setShownUp(null)}
-            />
-          )}
-        </section>
-      )}
 
       {eventSummary.length > 0 && (
         <section className="card">
@@ -178,9 +190,7 @@ export function Summary({ play, game, live, players }: { play: Play; game: GameD
               <tbody>
                 {eventSummary.map(({ e, per }) => (
                   <tr key={e.id}>
-                    <td className="small">
-                      {e.emoji} {e.name}
-                    </td>
+                    <td className="small">{e.name}</td>
                     {play.sides.map((_, i) => (
                       <td key={i}>{e.type === 'holder' ? (per[i] ? '✔' : '') : per[i] || ''}</td>
                     ))}

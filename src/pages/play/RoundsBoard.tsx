@@ -204,7 +204,7 @@ export function RoundForm({ play, game, live, players, onDone }: { play: Play; g
     return (
       <li key={e.id} className="rf-ev">
         <span className="rf-ev-name">
-          <span aria-hidden>{e.emoji}</span> {e.name}
+          {e.name}
           {e.points && !e.askPoints ? <span className="muted small num"> {e.points > 0 ? `+${e.points}` : e.points}</span> : null}
           {e.winsGame ? <span className="muted small"> gana la partida</span> : null}
         </span>

@@ -3,6 +3,8 @@ import { Link } from 'react-router-dom'
 import { isDraw, sidesByPlace } from '../lib/engine'
 import type { GameDef } from '../lib/games/schema'
 import { formatDate, UNKNOWN_PLAYER } from '../lib/hooks'
+import { formatScore } from '../lib/score'
+import { formatWhen } from '../lib/schedule'
 import type { Id, Play, PlaySide, Player } from '../lib/types'
 import { TeamAvatar } from './Avatar'
 
@@ -36,6 +38,16 @@ export function sideName(side: PlaySide, players: Map<Id, Player>): string {
   return side.name ?? names
 }
 
+/** Cómo se nombra un partido en una lista: los lados ("Los Pibes vs La Banda") o la convocatoria. */
+export function playTitle(play: Play, players: Map<Id, Player>, teams: { id: Id; name: string }[] = []): string {
+  if (play.invited && !play.sides.length) {
+    const team = play.callTeamId ? teams.find((t) => t.id === play.callTeamId) : undefined
+    const yes = Object.values(play.rsvp ?? {}).filter((r) => r === 'yes').length
+    return `${team ? `${team.name}: c` : 'C'}onvocatoria · ${yes} de ${play.invited.length} confirmados`
+  }
+  return play.sides.map((s) => sideName(s, players)).join(' vs ')
+}
+
 /** Color que representa a un lado (el de su primer jugador). */
 export function sideColor(side: PlaySide, players: Map<Id, Player>): string {
   return players.get(side.players[0])?.color ?? '#888'
@@ -62,43 +74,63 @@ export function PlayRow({ play, game, players, focus, showGame = true }: { play:
             : ' loss'
       : ''
   const scores = play.result?.scores
+  const score = (i: number) => (scores?.[i] !== undefined && scores?.[i] !== null ? formatScore(game, scores[i]!) : undefined)
+  // Se lee como la planilla: arriba el juego y la fecha; abajo quién ganó (con corona y su puntaje) y, debajo, el resto en orden.
+  const ranked = !live && coop === undefined && !draw
+  const lead = ranked ? order.filter((i) => play.result?.places[i] === 1) : []
+  const rest = ranked ? order.filter((i) => play.result?.places[i] !== 1) : []
+  const all = play.sides.length ? order.map((i) => sideName(play.sides[i], players)).join(' · ') : playTitle(play, players)
   return (
     <Link to={`/partida/${play.id}`} className={'match-row play-row' + resultClass + (live ? ' is-live' : '')}>
-      {showGame && <GameBadge game={game} size={36} />}
-      <div className="pr-body">
-        <div className="pr-sides">
-          {order.slice(0, 4).map((i, k) => {
-            const s = play.sides[i]
-            const first = play.result?.places[i] === 1 && !draw && coop === undefined
-            return (
-              <span key={i} className={'pr-side' + (first ? ' first' : '')}>
-                {k > 0 && <span className="muted">·</span>}
-                <TeamAvatar team={sidePlayersOf(s, players)} size={22} />
-                <span className="ellipsis">{sideName(s, players)}</span>
-                {first && <CrownIcon weight="fill" className="inline-icon crown" />}
-                {scores?.[i] !== undefined && scores?.[i] !== null && <b className="pr-score">{scores[i]}</b>}
-              </span>
-            )
-          })}
-          {order.length > 4 && <span className="muted small">+{order.length - 4}</span>}
-        </div>
-        <div className="mr-meta muted small">
-          {resultClass && <ResultTag result={resultClass.trim() as 'win' | 'loss'} />}
-          {showGame && <span>{game.name}</span>}
-          {live ? (
-            <span className="win-text">
-              {play.status === 'live' && <span className="live-dot" />} {play.status === 'pending' ? 'Pendiente' : 'En juego'}
-            </span>
-          ) : coop !== undefined ? (
-            <span>{coop ? '¡Ganaron!' : 'Perdieron contra el juego'}</span>
-          ) : draw ? (
-            <span>
-              <HandshakeIcon className="inline-icon" /> Empate
-            </span>
-          ) : null}
-          <span>{formatDate(play.finishedAt ?? play.startedAt ?? play.createdAt)}</span>
-        </div>
+      <div className="mr-meta">
+        {resultClass && <ResultTag result={resultClass.trim() as 'win' | 'loss'} />}
+        {showGame && <b className="pr-game">{game.name}</b>}
+        {play.stake && (
+          <span title={`Prenda: ${play.stake.text}`}>
+            <span aria-hidden="true">{play.stake.emoji ?? '🎁'}</span>
+            <span className="sr-only">Con prenda: {play.stake.text}</span>
+          </span>
+        )}
+        {live ? (
+          <span className="win-text">
+            {play.status === 'live' && <span className="live-dot" />} {play.status === 'pending' ? 'Pendiente' : 'En juego'}
+          </span>
+        ) : coop !== undefined ? (
+          <span>{coop ? 'Ganaron todos' : 'Perdieron contra el juego'}</span>
+        ) : draw ? (
+          <span>
+            <HandshakeIcon className="inline-icon" /> Empate
+          </span>
+        ) : null}
+        <span className="mr-date">{play.status === 'pending' && play.scheduledAt ? formatWhen(play.scheduledAt) : formatDate(play.finishedAt ?? play.startedAt ?? play.createdAt)}</span>
       </div>
+      {lead.length ? (
+        <>
+          {lead.map((i) => (
+            <div key={i} className="pr-winner">
+              <TeamAvatar team={sidePlayersOf(play.sides[i], players)} size={28} />
+              <span className="ellipsis">{sideName(play.sides[i], players)}</span>
+              <CrownIcon weight="fill" className="crown" aria-label="ganó" />
+              {score(i) !== undefined && <b className="pr-score num">{score(i)}</b>}
+            </div>
+          ))}
+          {rest.length > 0 && (
+            <p className="pr-rest">
+              {play.sides.length === 2 ? 'contra ' : ''}
+              {rest.map((i, k) => (
+                <span key={i}>
+                  {k > 0 && ' · '}
+                  {play.sides.length > 2 && `${play.result?.places[i]}º `}
+                  <span className="pr-rest-name">{sideName(play.sides[i], players)}</span>
+                  {score(i) !== undefined && <span className="num"> {score(i)}</span>}
+                </span>
+              ))}
+            </p>
+          )}
+        </>
+      ) : (
+        <p className="pr-all ellipsis">{all}</p>
+      )}
     </Link>
   )
 }

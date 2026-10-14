@@ -34,7 +34,7 @@ export function History() {
         </button>
         {used.map((g) => (
           <button key={g.id} className={'chip' + (gameId === g.id ? ' active' : '')} aria-pressed={gameId === g.id} onClick={() => setGameId(g.id)}>
-            {g.emoji} {g.name}
+            {g.name}
           </button>
         ))}
       </div>

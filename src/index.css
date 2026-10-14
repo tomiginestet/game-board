@@ -434,6 +434,9 @@ section > .section-head {
   display: flex;
   justify-content: center;
   min-height: 44px;
+  /* El iframe de Google es de esquema claro; si hereda el oscuro de la app, el navegador
+     le pinta un fondo blanco opaco alrededor de la píldora. Igualarlo lo deja transparente. */
+  color-scheme: light;
 }
 
 .link-btn {
@@ -550,6 +553,50 @@ section > .section-head {
   background: var(--accent-fill);
   border-color: var(--accent-fill);
   color: var(--on-fill);
+}
+
+/* Filtros de una lista: las filas van juntas (8px) y separadas del contenido por el aire de la página.
+   Qué mirar va en un segmentado discreto; de qué juego, en chips (el único naranja de los filtros). */
+.filters {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.filters .chip,
+.chips.scroll .chip {
+  min-height: 40px;
+  padding: 6px 14px;
+  font-size: 15px;
+}
+
+/* Una tercera fila (el juego del Elo) no compite con la de arriba: elegida, con borde y texto, sin relleno. */
+.chips.sub .chip.active {
+  background: var(--card-2);
+  border-color: var(--border-strong);
+  color: var(--text);
+}
+
+.segmented.quiet {
+  grid-template-columns: none;
+  grid-auto-flow: column;
+  grid-auto-columns: minmax(0, 1fr);
+  padding: 3px;
+  gap: 2px;
+  border-radius: 12px;
+  background: var(--bg-2);
+}
+
+.segmented.quiet button {
+  min-height: 40px;
+  padding: 6px 4px;
+  font-size: 14px;
+  line-height: 1.2;
+}
+
+.segmented.quiet button.active {
+  background: var(--card-2);
+  color: var(--text);
 }
 
 .stepper {
@@ -957,12 +1004,6 @@ svg {
   flex-shrink: 0;
 }
 
-.btn.ghost-danger {
-  background: transparent;
-  border-color: transparent;
-  color: var(--loss);
-}
-
 .podium {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
@@ -987,43 +1028,52 @@ svg {
   white-space: nowrap;
 }
 
-.podium-elo {
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-  font-size: 13px;
-  color: var(--muted);
-}
-
-.podium-elo svg {
-  color: var(--accent-2);
-}
-
-.podium-medal {
-  font-size: 32px;
-  line-height: 1;
-}
-
+/* El escalón lleva la gloria: la altura y el número dicen lo mismo. */
 .podium-block {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
   width: 100%;
-  border-radius: 12px 12px 4px 4px;
   margin-top: 6px;
+  padding-top: 10px;
+  border-radius: 12px 12px 0 0;
   background: var(--card);
   border: 1px solid var(--border);
+  border-bottom: 0;
+  font-size: 19px;
+  font-weight: 900;
+  line-height: 1.1;
+}
+
+.podium-block small {
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 600;
 }
 
 .place-1 .podium-block {
-  height: 80px;
-  background: rgba(255, 180, 0, 0.12);
-  border-color: rgba(255, 180, 0, 0.4);
+  height: 92px;
+  font-size: 23px;
+  background: color-mix(in srgb, var(--accent-2) 16%, var(--card));
+  border-color: color-mix(in srgb, var(--accent-2) 45%, var(--border));
 }
 
 .place-2 .podium-block {
-  height: 56px;
+  height: 70px;
 }
 
 .place-3 .podium-block {
-  height: 38px;
+  height: 58px;
+}
+
+.podium:has(.podium-block) {
+  border-bottom: 1px solid var(--border-strong);
+}
+
+.podium-gap {
+  margin: 10px 0 0;
+  color: var(--muted);
+  font-size: 14px;
 }
 
 .tournament-card {
@@ -1097,51 +1147,81 @@ svg {
   color: var(--accent-2);
 }
 
-.mr-players {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
+/* Planilla de sets (SetSheet): una columna por set, el ganador del set en negrita, el total al final. */
+.set-sheet {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) repeat(var(--sets), minmax(20px, auto)) 28px;
+  align-items: center;
+  gap: 8px 4px;
 }
 
-.mr-player {
+.ss-row {
+  display: contents;
+}
+
+.ss-who {
   display: flex;
   align-items: center;
   gap: 10px;
+  min-width: 0;
   color: var(--muted);
 }
 
-.mr-player.winner {
+.ss-row.winner .ss-who,
+.ss-row.live .ss-who {
   color: var(--text);
   font-weight: 700;
 }
 
-.mr-name {
-  flex: 1;
+.ss-name {
   min-width: 0;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
-.mr-games {
-  font-size: 20px;
-  font-weight: 800;
-  font-variant-numeric: tabular-nums;
-  min-width: 20px;
-  text-align: right;
+.ss-serve {
+  flex: none;
+  color: var(--accent-2);
 }
 
-.match-row.is-live .mr-player {
+.ss-cell {
+  text-align: center;
+  font-size: 14px;
+  color: var(--muted);
+}
+
+.ss-cell.w {
+  color: var(--text);
+  font-weight: 800;
+}
+
+.ss-cell.current {
+  color: var(--win);
+  font-weight: 800;
+}
+
+.ss-total {
+  text-align: right;
+  font-size: 22px;
+  font-weight: 900;
+  color: var(--muted);
+}
+
+.ss-row.winner .ss-total,
+.ss-row.live .ss-total {
   color: var(--text);
 }
 
-.mr-games.live {
-  color: var(--win);
+.ss-head span {
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 600;
+  text-align: center;
 }
 
-.mr-serve {
-  font-size: 14px;
-  flex-shrink: 0;
+.ss-head span:first-child {
+  text-align: left;
 }
 
 .mr-meta {
@@ -1153,15 +1233,37 @@ svg {
   flex-wrap: wrap;
 }
 
-.mr-detail {
-  font-variant-numeric: tabular-nums;
-}
-
 .mr-date {
   margin-left: auto;
 }
 
 /* ---------- Jugadores ---------- */
+
+/* Listas del club (jugadores, equipos, torneos): filas sin tarjeta, la gloria en dorado a la derecha (sin ícono: el color ya dice qué es). */
+.rows {
+  gap: 0;
+}
+
+.rows > a,
+.teams-link {
+  min-height: 60px;
+  padding: 8px 0;
+  border-bottom: 1px solid var(--border);
+  color: var(--text);
+}
+
+.team-score-line {
+  margin: 12px 0 0;
+  color: var(--text-soft);
+  font-size: 15px;
+}
+
+.player-gloria {
+  flex: none;
+  color: var(--accent-2);
+  font-size: 18px;
+  font-weight: 800;
+}
 
 .player-row {
   display: flex;
@@ -1352,11 +1454,245 @@ svg {
   color: var(--muted);
 }
 
-.stat-grid {
+/* ---------- Perfil del jugador ---------- */
+
+.pd-head {
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 14px;
+}
+
+.pd-head h1 {
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+
+.pd-sub {
+  margin: 2px 0 0;
+  color: var(--text-soft);
+  font-size: 15px;
+}
+
+.pd-sub svg {
+  color: var(--accent-2);
+  vertical-align: -2px;
+}
+
+.pd-sub b {
+  color: var(--accent-2);
+}
+
+.pd-edit {
+  width: 44px;
+  padding: 0;
+}
+
+.pd-big {
+  margin: 0;
+  color: var(--muted);
+  font-size: 20px;
+  font-weight: 700;
+  line-height: 1.2;
+}
+
+.pd-big .num {
+  color: var(--text);
+  font-size: 44px;
+  font-weight: 900;
+  letter-spacing: -0.02em;
+  vertical-align: -4px;
+}
+
+/* Victorias, empates y derrotas en proporción; el porcentaje va escrito debajo. */
+.pd-bar {
+  display: flex;
+  gap: 2px;
+  height: 8px;
+  margin-top: 14px;
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.pd-bar .win { background: var(--win); }
+.pd-bar .draw { background: var(--border-strong); }
+.pd-bar .loss { background: var(--loss); }
+
+.pd-bar-labels {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  margin: 6px 0 0;
+  color: var(--muted);
+  font-size: 13px;
+}
+
+.pd-bar-labels .win {
+  color: var(--win);
+  font-weight: 700;
+}
+
+.pd-form {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-top: 20px;
+}
+
+.pd-form-label {
+  color: var(--muted);
+  font-size: 14px;
+}
+
+.pd-form ol {
+  display: flex;
+  gap: 4px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.pd-form li {
+  display: grid;
+  place-items: center;
+  width: 24px;
+  height: 24px;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.pd-form .win { background: color-mix(in srgb, var(--win) 22%, var(--bg)); color: #86efac; }
+.pd-form .loss { background: color-mix(in srgb, var(--loss) 22%, var(--bg)); color: #fecaca; }
+.pd-form .draw { background: var(--card-2); color: var(--text-soft); }
+.pd-form .last { outline: 2px solid var(--text-soft); outline-offset: 1px; }
+
+/* Lo secundario: etiqueta y valor, separados por aire. */
+.pd-ledger {
+  display: grid;
+  gap: 10px;
+  margin: 20px 0 0;
+}
+
+.pd-ledger > div {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 12px;
+}
+
+.pd-ledger dt {
+  color: var(--text-soft);
+}
+
+.pd-ledger dd {
+  margin: 0;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+}
+
+.pd-ledger small {
+  color: var(--muted);
+  font-size: 13px;
+  font-weight: 400;
+}
+
+/* Sus juegos: una tabla, comparables en columna. */
+.pd-games {
+  --pd-cols: minmax(0, 1fr) 56px 64px 52px;
+}
+
+.pd-games-head,
+.pd-game-row {
+  display: grid;
+  grid-template-columns: var(--pd-cols);
+  align-items: center;
   gap: 8px;
 }
+
+.pd-games-head {
+  padding-bottom: 6px;
+  border-bottom: 1px solid var(--border);
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.pd-games-head span:not(:first-child),
+.pd-game-row > span:not(:first-child),
+.pd-game-row > b {
+  text-align: right;
+}
+
+.pd-game {
+  border-bottom: 1px solid var(--border);
+}
+
+.pd-game-row {
+  width: 100%;
+  min-height: 52px;
+  padding: 8px 0;
+  background: none;
+  border: 0;
+  color: var(--text);
+  font: inherit;
+  font-size: 15px;
+  text-align: left;
+  cursor: pointer;
+}
+
+.pd-game-name {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+}
+
+.pd-game-name > span:last-child {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.pd-game.open .pd-game-name {
+  font-weight: 700;
+}
+
+.pd-game-row .first {
+  color: var(--accent-2);
+  font-weight: 700;
+}
+
+.pd-game-row .first svg {
+  margin-right: 4px;
+  vertical-align: -2px;
+}
+
+.pd-game.open {
+  margin: 0 -16px;
+  padding: 0 16px;
+  background: color-mix(in srgb, var(--accent) 6%, transparent);
+}
+
+.pd-game-detail {
+  display: grid;
+  gap: 8px;
+  padding: 0 0 14px;
+}
+
+.pd-game-detail .sparkline {
+  height: 44px;
+}
+
+.pd-games + section {
+  margin-top: 28px;
+}
+
+.pd-game-detail p {
+  margin: 0;
+}
+
 
 .kv-list {
   display: grid;
@@ -1393,29 +1729,8 @@ svg {
   }
 }
 
-.stat {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  text-align: center;
-  min-width: 0;
-  padding: 12px 4px;
-  background: var(--card);
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
-}
 
-.stat-value {
-  font-size: 20px;
-  font-weight: 800;
-  font-variant-numeric: tabular-nums;
-}
 
-.stat-label {
-  font-size: 12px;
-  color: var(--muted);
-  line-height: 1.2;
-}
 
 .sparkline {
   width: 100%;
@@ -1451,7 +1766,7 @@ svg {
 .medals {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
-  gap: 8px;
+  gap: 10px;
 }
 
 .medal-tile {
@@ -1459,11 +1774,12 @@ svg {
   flex-direction: column;
   align-items: center;
   text-align: center;
-  gap: 3px;
-  padding: 12px 10px;
+  gap: 2px;
+  padding: 16px 12px 14px;
   border-radius: var(--radius);
-  background: var(--bg-2);
-  border: 1px dashed var(--border);
+  /* La misma superficie que las tarjetas de medallas de la ficha del juego. */
+  background: var(--card);
+  border: 1px dashed var(--border-strong);
   color: var(--text);
   font: inherit;
   cursor: pointer;
@@ -1472,8 +1788,16 @@ svg {
 
 .medal-tile.unlocked {
   border-style: solid;
-  border-color: rgba(255, 180, 0, 0.45);
-  background: rgba(255, 180, 0, 0.06);
+  border-color: color-mix(in srgb, var(--accent-2) 45%, transparent);
+}
+
+/* La barra va al pie: en una fila de tarjetas de distinto alto, las barras quedan alineadas. */
+.medal-tile .medal-bar {
+  margin-top: auto;
+}
+
+.medal-tile .medal-sub {
+  margin-bottom: 10px;
 }
 
 .medal-tile:focus-visible {
@@ -1488,9 +1812,16 @@ svg {
 }
 
 .medal-name {
+  margin-top: 8px;
   font-weight: 700;
-  font-size: 14px;
-  line-height: 1.2;
+  font-size: 16px;
+  line-height: 1.25;
+}
+
+.medal-tile-family {
+  font-size: 13px;
+  color: var(--muted);
+  line-height: 1.3;
 }
 
 .medal-tile:not(.unlocked) .medal-name {
@@ -1498,9 +1829,11 @@ svg {
 }
 
 .medal-sub {
-  font-size: 12px;
-  color: var(--muted);
+  margin-top: 4px;
+  font-size: 13px;
+  color: var(--text-soft);
   line-height: 1.3;
+  font-variant-numeric: tabular-nums;
 }
 
 .medal-bar {
@@ -1950,46 +2283,92 @@ svg {
 
 /* ---------- Ranking ---------- */
 
+/* Rankings: filas separadas por líneas finas, sin tarjetas. El primero, con el puesto y el valor en dorado. */
 .ranking {
   display: flex;
   flex-direction: column;
-  gap: 6px;
 }
 
 .rank-row {
   display: flex;
   align-items: center;
   gap: 12px;
-  padding: 10px 14px;
-  background: var(--card);
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
+  min-height: 56px;
+  padding: 8px 0;
+  border-bottom: 1px solid var(--border);
   color: var(--text);
 }
 
-.rank-row.inactive {
-  background: var(--bg-2);
-  border-style: dashed;
-}
-
-.rank-row.inactive strong {
+.rank-row.inactive strong,
+.rank-row.inactive b {
   color: var(--muted);
 }
 
 .rank-pos {
-  width: 28px;
+  width: 24px;
+  flex: none;
   text-align: center;
   font-weight: 800;
-  font-size: 18px;
+  font-size: 17px;
   color: var(--muted);
+}
+
+.rank-row.first .rank-pos,
+.rank-row.first .rank-value {
+  color: var(--accent-2);
 }
 
 .rank-value {
   display: flex;
   flex-direction: column;
   align-items: flex-end;
-  font-size: 20px;
+  margin-left: auto;
+  font-size: 19px;
+  font-weight: 800;
   font-variant-numeric: tabular-nums;
+}
+
+/* Tabla del ranking del club: puesto, persona, columna del medio y valor, alineados. */
+.rank-table .rank-head,
+.rank-table .rank-row {
+  display: grid;
+  grid-template-columns: 24px 32px minmax(0, 1fr) 56px 64px;
+  gap: 10px;
+  align-items: center;
+}
+
+.rank-head {
+  padding: 4px 0 6px;
+  border-bottom: 1px solid var(--border);
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.rank-head span:nth-child(n + 4),
+.rank-mid {
+  text-align: right;
+}
+
+.rank-head span:first-child {
+  text-align: center;
+}
+
+.rank-who {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.rank-mid {
+  color: var(--text-soft);
+  font-size: 14px;
+  font-variant-numeric: tabular-nums;
+}
+
+.rank-table .rank-value {
+  margin-left: 0;
 }
 
 .help summary {
@@ -2217,37 +2596,21 @@ svg {
 }
 
 .sb-topbar {
-  position: absolute;
-  top: env(safe-area-inset-top);
-  left: 0;
-  right: 0;
+  flex: none;
   display: flex;
   align-items: center;
   gap: 8px;
-  padding: 10px;
-  z-index: 3;
-  pointer-events: none;
-}
-
-.sb-topbar > * {
-  pointer-events: auto;
+  padding: calc(env(safe-area-inset-top) + 10px) 16px 12px;
 }
 
 .sb-info {
   flex: 1;
+  min-width: 0;
   display: flex;
   flex-direction: column;
   align-items: center;
   font-size: 12px;
-  color: rgba(255, 255, 255, 0.75);
-  text-shadow: 0 1px 3px #000;
-  pointer-events: none !important;
-}
-
-.sb-info > * {
-  padding: 0 10px;
-  border-radius: 8px;
-  background: rgba(0, 0, 0, 0.45);
+  color: rgba(255, 255, 255, 0.72);
 }
 
 .sb-info strong {
@@ -2255,25 +2618,141 @@ svg {
   color: var(--on-fill);
 }
 
-.sb-games-strip {
-  position: absolute;
-  top: calc(env(safe-area-inset-top) + 62px);
-  left: 0;
-  right: 0;
-  display: flex;
-  justify-content: center;
-  gap: 6px;
-  z-index: 3;
-  pointer-events: none;
+/* Barra tipo transmisión: tiempos, quién saca, cada juego y juegos ganados. */
+.sb-tv {
+  flex: none;
+  margin: 0 16px 16px;
+  border-radius: 12px;
+  overflow: hidden;
+  background: var(--bg);
+  box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.12);
+  font-variant-numeric: tabular-nums;
 }
 
-.game-chip {
-  padding: 2px 8px;
-  border-radius: 999px;
-  background: rgba(0, 0, 0, 0.5);
-  font-size: 12px;
-  font-weight: 700;
-  font-variant-numeric: tabular-nums;
+.tv-head {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 6px 12px;
+  background: var(--bg-2);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.6);
+}
+
+.tv-time {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.tv-time svg {
+  color: var(--accent);
+}
+
+.tv-clock {
+  font-size: 13px;
+  letter-spacing: 0;
+  color: var(--on-fill);
+}
+
+.tv-row {
+  display: grid;
+  grid-template-columns: 5px 18px minmax(0, 1fr) auto 36px;
+  align-items: center;
+  gap: 8px;
+  height: 44px;
+}
+
+.tv-row + .tv-row {
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.tv-swatch {
+  align-self: stretch;
+  background: var(--pc);
+}
+
+.tv-ball {
+  justify-self: center;
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: var(--on-fill);
+  box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.22);
+}
+
+.tv-ball.off {
+  visibility: hidden;
+}
+
+.tv-name {
+  font-size: 16px;
+  font-weight: 800;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Acostado la altura es poca: barra y botones más bajos para que la cancha conserve el número. */
+@media (orientation: landscape) and (max-height: 500px) {
+  .sb-topbar {
+    padding-top: calc(env(safe-area-inset-top) + 6px);
+    padding-bottom: 8px;
+  }
+
+  .sb-tv {
+    margin-bottom: 10px;
+  }
+
+  .tv-head {
+    padding-block: 3px;
+  }
+
+  .tv-row {
+    height: 34px;
+  }
+
+  .court-half {
+    padding-block: 8px 12px;
+    gap: 6px;
+  }
+}
+
+/* Con muchos juegos se ven los últimos: los primeros quedan cortados a la izquierda. */
+.tv-games {
+  display: flex;
+  justify-content: flex-end;
+  gap: 2px;
+  max-width: 50vw;
+  overflow: hidden;
+}
+
+.tv-game {
+  flex: none;
+  min-width: 22px;
+  text-align: center;
+  font-size: 14px;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.4);
+}
+
+.tv-game.won {
+  font-weight: 900;
+  color: var(--on-fill);
+}
+
+.tv-won {
+  align-self: stretch;
+  display: grid;
+  place-items: center;
+  background: var(--accent);
+  color: #000;
+  font-size: 18px;
+  font-weight: 900;
 }
 
 .court {
@@ -2295,10 +2774,10 @@ svg {
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 4px;
+  gap: 12px;
   border: none;
   margin: 0;
-  padding: 70px 12px 20px;
+  padding: 16px 16px 20px;
   cursor: pointer;
   color: var(--on-fill);
   background: radial-gradient(circle at 50% 60%, color-mix(in srgb, var(--pc) 55%, #000), color-mix(in srgb, var(--pc) 22%, #000));
@@ -2362,22 +2841,6 @@ svg {
   100% {
     transform: scale(1);
   }
-}
-
-.ch-games {
-  display: flex;
-  gap: 6px;
-}
-
-.game-dot {
-  width: 14px;
-  height: 14px;
-  border-radius: 50%;
-  border: 2px solid rgba(255, 255, 255, 0.7);
-}
-
-.game-dot.won {
-  background: var(--on-fill);
 }
 
 .ch-tags {
@@ -2516,32 +2979,160 @@ svg {
   min-width: 0;
 }
 
-.result-score {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 12px;
-  width: 100%;
+/* Resultado de ping pong: ganador, planilla, Elo y la medalla como protagonista. */
+.rs-winner {
+  position: relative;
+  display: inline-flex;
+  margin-top: 4px;
 }
 
-.rs-side {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 2px;
-  color: var(--muted);
-  min-width: 0;
+.rs-trophy {
+  position: absolute;
+  right: -6px;
+  bottom: -2px;
+  display: grid;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: var(--accent-2);
+  color: var(--bg);
+  border: 3px solid var(--card);
+  font-size: 18px;
 }
 
-.rs-side b {
-  font-size: 44px;
-  font-weight: 900;
+.overlay-card .rs-title {
+  font-family: var(--font-brand);
+  font-weight: 400;
+  font-size: 32px;
   line-height: 1.1;
 }
 
-.rs-side.w {
+.overlay-card .set-sheet {
+  width: 100%;
+  margin-top: 6px;
+  padding: 12px 14px;
+  border-radius: 16px;
+  background: var(--bg-2);
+  text-align: left;
+}
+
+.rs-elo {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  width: 100%;
+  margin: 0;
+  font-size: 14px;
+}
+
+.rs-elo > div {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 0 4px;
+  min-width: 0;
+}
+
+.rs-elo > div + div {
+  border-left: 1px solid var(--border);
+  padding-left: 12px;
+}
+
+.rs-elo dt {
+  color: var(--muted);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.rs-elo .w dt {
   color: var(--text);
+}
+
+.rs-elo .elo-delta {
+  font-size: 14px;
+}
+
+.rs-elo dd {
+  margin: 0;
+  white-space: nowrap;
+}
+
+/* La prenda resuelta: a quién le toca, con nombre. */
+.rs-stake {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  margin: 12px 0 0;
+  padding: 10px 14px;
+  border-radius: 12px;
+  background: color-mix(in srgb, var(--accent-2) 14%, transparent);
+  border: 1px solid color-mix(in srgb, var(--accent-2) 40%, transparent);
+  color: var(--text);
+  font-weight: 700;
+  line-height: 1.3;
+  text-wrap: balance;
+}
+
+.rs-stake-emoji {
+  flex: none;
+  font-size: 26px;
+  line-height: 1;
+}
+
+.rs-medals {
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
+  margin: 12px 0 8px;
+}
+
+.rs-medals.many {
+  overflow-x: auto;
+  justify-content: flex-start;
+}
+
+.rs-medal {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  min-width: 0;
+  padding: 4px 8px;
+  background: none;
+  border: 0;
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
+}
+
+.rs-medals.many .rs-medal {
+  flex: 0 0 104px;
+}
+
+.rs-medal-who {
+  margin-top: 6px;
+  color: var(--text-soft);
+  font-size: 14px;
+}
+
+.rs-medal-name {
+  font-family: var(--font-brand);
+  font-size: 24px;
+  line-height: 1.1;
+  color: var(--accent-2);
+}
+
+.rs-medals.many .rs-medal-name {
+  font-size: 16px;
+}
+
+.rs-medal-desc {
+  max-width: 30ch;
+  color: var(--muted);
+  font-size: 14px;
 }
 
 .new-achievements {
@@ -2625,17 +3216,80 @@ svg {
   }
 }
 
-.live-item {
+/* En juego (inicio): filas con juego, quiénes, marcador y minutos; descartar es un ícono discreto al costado. */
+.live-list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.live-row {
+  display: flex;
+  align-items: center;
+  border-bottom: 1px solid var(--border);
+}
+
+.live-link {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+  min-height: 60px;
+  padding: 8px 0;
+  color: var(--text);
+}
+
+.live-text {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  line-height: 1.3;
+}
+
+.live-text > span {
+  color: var(--muted);
+  font-size: 13px;
+}
+
+.live-score {
   display: flex;
   flex-direction: column;
   align-items: flex-end;
-  gap: 2px;
+  flex: none;
+  line-height: 1.2;
 }
 
-.live-item .match-row {
-  width: 100%;
+.live-score b {
+  font-size: 17px;
+  font-weight: 800;
 }
 
+.live-score small {
+  color: var(--win);
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.live-discard {
+  display: grid;
+  place-items: center;
+  flex: none;
+  width: 44px;
+  height: 44px;
+  margin-left: 4px;
+  border: 0;
+  border-radius: 10px;
+  background: none;
+  color: var(--muted);
+  font-size: 18px;
+  cursor: pointer;
+}
+
+.live-discard:hover {
+  color: var(--loss);
+}
 
 /* ---------- Club / sincronización ---------- */
 
@@ -2811,12 +3465,6 @@ svg {
 .segmented button,
 .serve-tag,
 .level-badge,
-.stat-value {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 6px;
-}
 
 .stepper button {
   display: inline-flex;
@@ -2832,11 +3480,6 @@ svg {
 
 .champion-banner .big-icon {
   margin: 0;
-}
-
-.mr-serve {
-  display: inline-flex;
-  color: var(--accent-2);
 }
 
 /* ---------- Avisos y confirmaciones ---------- */

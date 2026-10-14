@@ -87,6 +87,12 @@ export interface BracketSlot {
 
 /** Índice de inscripto de un lado de una partida de torneo. */
 export function entrantOfSide(cup: Cup, play: Play, side: number): number {
+  // Un equipo fijo se reconoce por el equipo, aunque ese día hayan jugado otros del plantel.
+  const teamId = play.sides[side]?.teamId
+  if (teamId) {
+    const byTeam = cup.entrants.findIndex((e) => e.teamId === teamId)
+    if (byTeam >= 0) return byTeam
+  }
   const ids = play.sides[side]?.players ?? []
   return cup.entrants.findIndex((e) => e.players.length === ids.length && e.players.every((p) => ids.includes(p)))
 }
@@ -131,6 +137,8 @@ export interface CupStanding {
   score: number
   /** Diferencia de puntaje (ligas de a dos). */
   diff: number
+  /** Puntaje en contra (goles en contra), en las partidas de a dos con puntaje. */
+  against: number
 }
 
 /** Puntos por puesto en una mesa: uno por cada lado que quedó atrás. */
@@ -139,7 +147,7 @@ export function placePoints(places: number[], side: number): number {
 }
 
 export function cupStandings(cup: Cup, plays: Play[], lowWins = false): CupStanding[] {
-  const rows: CupStanding[] = cup.entrants.map((_, i) => ({ entrant: i, played: 0, wins: 0, draws: 0, losses: 0, points: 0, score: 0, diff: 0 }))
+  const rows: CupStanding[] = cup.entrants.map((_, i) => ({ entrant: i, played: 0, wins: 0, draws: 0, losses: 0, points: 0, score: 0, diff: 0, against: 0 }))
   const isFinal = (p: Play) => cup.format === 'tables' && cup.final && p.round === (cup.rounds ?? 0)
   for (const play of plays) {
     if (play.status !== 'finished' || !play.result || isFinal(play)) continue
@@ -160,7 +168,10 @@ export function cupStandings(cup: Cup, plays: Play[], lowWins = false): CupStand
       if (cup.format === 'league' || cup.format === 'knockout') {
         row.points += won ? 3 : drawn ? 1 : 0
         const other = scores?.[1 - side] ?? null
-        if (own !== null && other !== null) row.diff += own - other
+        if (own !== null && other !== null) {
+          row.diff += own - other
+          row.against += other
+        }
       } else row.points += placePoints(play.result!.places, side)
     })
   }
@@ -202,8 +213,8 @@ export function cupChampion(cup: Cup, plays: Play[], lowWins = false): number | 
   return cupStandings(cup, plays, lowWins)[0]?.entrant
 }
 
-export function cupEntrantName(cup: Cup, index: number, nameOf: (id: string) => string): string {
+export function cupEntrantName(cup: Cup, index: number, nameOf: (id: string) => string, teamName?: (id: string) => string | undefined): string {
   const e = cup.entrants[index]
   if (!e) return '—'
-  return e.name ?? e.players.map(nameOf).join(' & ')
+  return (e.teamId && teamName?.(e.teamId)) || e.name || e.players.map(nameOf).join(' & ')
 }

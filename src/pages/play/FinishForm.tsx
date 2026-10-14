@@ -8,6 +8,7 @@ import { vibrate } from '../../lib/vibrate'
 import type { GameDef } from '../../lib/games/schema'
 import { actions, useData } from '../../lib/store'
 import type { Id, Play, PlayResult, Player } from '../../lib/types'
+import { parseTime } from '../../lib/score'
 
 export function FinishForm({ play, game, live, players, onCancel }: { play: Play; game: GameDef; live: LiveState; players: Map<Id, Player>; onCancel?: () => void }) {
   const data = useData()
@@ -149,11 +150,15 @@ export function FinishForm({ play, game, live, players, onCancel }: { play: Play
 
       {askScores && (
         <section className="card">
-          <h2>{coop ? 'Puntaje del equipo' : `Puntaje final${game.scoring.pointsName ? ` (${game.scoring.pointsName})` : ''}`}</h2>
+          <h2>{coop ? 'Puntaje del equipo' : game.scoring.time ? 'Tiempos' : `Puntaje final${game.scoring.pointsName ? ` (${game.scoring.pointsName})` : ''}`}</h2>
+          {game.scoring.time && <p className="hint">Como en el reloj: 25:14, o 1:02:05 si pasó la hora. Gana el más rápido.</p>}
           {game.mode === 'turns' && <p className="hint">Ya sumamos lo que se vio en la partida y lo oculto. Corregí si hace falta.</p>}
           {(coop ? [{ players: allPlayers }] : play.sides).map((side, i) => (
             <div key={i} className="row-between score-row">
               <span className="ellipsis">{coop ? 'Todos' : sideName(side, players)}</span>
+              {game.scoring.time ? (
+                <TimeInput label={`Tiempo de ${sideName(side, players)}`} onChange={(v) => setScores(scores.map((x, k) => (k === i ? v : x)))} />
+              ) : (
               <input
                 className="input score-input"
                 type="number"
@@ -163,6 +168,7 @@ export function FinishForm({ play, game, live, players, onCancel }: { play: Play
                 placeholder={game.scoring.maxScore ? `de ${game.scoring.maxScore}` : '0'}
                 onChange={(e) => setScores(scores.map((v, k) => (k === i ? (e.target.value === '' ? null : Number(e.target.value)) : v)))}
               />
+              )}
             </div>
           ))}
           {tieAtTop && (
@@ -230,5 +236,31 @@ export function FinishForm({ play, game, live, players, onCancel }: { play: Play
         </div>
       </div>
     </div>
+  )
+}
+
+/** Tiempo como se lee en el reloj ("25:14"); se guarda en segundos. */
+function TimeInput({ label, onChange }: { label: string; onChange: (seconds: number | null) => void }) {
+  const [text, setText] = useState('')
+  const parsed = parseTime(text)
+  const bad = text.trim() !== '' && parsed === null
+  return (
+    <span className="time-input">
+      <input
+        className="input score-input"
+        type="text"
+        inputMode="decimal"
+        autoComplete="off"
+        placeholder="mm:ss"
+        aria-label={label}
+        aria-invalid={bad || undefined}
+        value={text}
+        onChange={(e) => {
+          setText(e.target.value)
+          onChange(parseTime(e.target.value))
+        }}
+      />
+      {bad && <span className="error small">Escribilo así: 25:14</span>}
+    </span>
   )
 }
