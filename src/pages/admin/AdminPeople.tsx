@@ -1,6 +1,6 @@
-import { ArrowLeftIcon, DownloadSimpleIcon, MagnifyingGlassIcon, ProhibitIcon, RobotIcon, TrashIcon } from '@phosphor-icons/react'
+import { ArrowLeftIcon, DownloadSimpleIcon, MagnifyingGlassIcon, ProhibitIcon, RobotIcon } from '@phosphor-icons/react'
 import { useDeferredValue, useState } from 'react'
-import { Link, useNavigate, useParams } from 'react-router-dom'
+import { Link, useParams } from 'react-router-dom'
 import { Avatar } from '../../components/Avatar'
 import { Loader } from '../../components/Logo'
 import { actionLabel, admin, downloadJson, runAdmin, useAdminData, userName, type AdminUser } from '../../lib/admin'
@@ -20,7 +20,7 @@ function Badges({ u }: { u: AdminUser }) {
     <>
       {u.is_admin && <span className="pill tiny gold">admin</span>}
       {u.deleted && <span className="pill tiny danger">en la papelera</span>}
-      {u.banned && !u.deleted && <span className="pill tiny danger">bloqueada</span>}
+      {u.banned && <span className="pill tiny danger">desactivada</span>}
       {u.ai_blocked && <span className="pill tiny">sin IA</span>}
       {!u.username && !u.deleted && <span className="pill tiny">sin perfil</span>}
     </>
@@ -70,7 +70,6 @@ export function AdminPeople() {
 
 export function AdminPerson() {
   const { id = '' } = useParams()
-  const navigate = useNavigate()
   const { data: u, error, loading, reload } = useAdminData(() => admin.user(id), [id])
   if (!u) {
     return (
@@ -223,42 +222,20 @@ export function AdminPerson() {
               onClick={async () => {
                 if (!u.banned) {
                   const ok = await confirmAction({
-                    title: `¿Bloquear a ${name}?`,
-                    detail: 'Se cierra su sesión en todos lados y no puede volver a entrar hasta que la desbloquees. Sus clubes y datos no se tocan.',
-                    confirmLabel: 'Bloquear cuenta',
+                    title: `¿Desactivar la cuenta de ${name}?`,
+                    detail: 'No puede volver a entrar hasta que la reactives; la sesión que tiene abierta se corta en menos de una hora. Sus clubes, jugadores y partidas no se tocan.',
+                    confirmLabel: 'Desactivar cuenta',
                     danger: true,
                   })
                   if (!ok) return
                 }
-                await runAdmin(u.banned ? 'Cuenta desbloqueada' : 'Cuenta bloqueada', () => admin.setBanned(u.user_id, !u.banned), reload)
+                await runAdmin(u.banned ? 'Cuenta reactivada' : 'Cuenta desactivada', () => admin.setBanned(u.user_id, !u.banned), reload)
               }}
             >
-              <ProhibitIcon /> {u.banned ? 'Desbloquear' : 'Bloquear'}
-            </button>
-          )}
-          {!u.is_admin && !u.deleted && (
-            <button
-              className="btn danger"
-              onClick={async () => {
-                const ok = await confirmAction({
-                  title: `¿Borrar la cuenta de ${name}?`,
-                  detail:
-                    'Se cierra su sesión y sale de sus clubes y de sus amistades. Sus jugadores y partidas quedan en los clubes, como jugadores sin cuenta. Si era dueño de un club, pasa al admin más antiguo. Durante 30 días lo podés deshacer desde la papelera; después se borra para siempre.',
-                  confirmLabel: 'Borrar cuenta',
-                  danger: true,
-                })
-                if (ok && (await runAdmin('Cuenta borrada', () => admin.deleteUser(u.user_id)))) navigate('/admin/personas')
-              }}
-            >
-              <TrashIcon /> Borrar cuenta
+              <ProhibitIcon /> {u.banned ? 'Reactivar cuenta' : 'Desactivar cuenta'}
             </button>
           )}
         </div>
-        {u.deleted && (
-          <p className="muted small">
-            Está en la papelera. <Link to="/admin/papelera">Recuperarla</Link>
-          </p>
-        )}
       </section>
 
       {u.log.length > 0 && (

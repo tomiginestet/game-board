@@ -88,16 +88,15 @@ Google; cada función `admin_*` lo verifica en el servidor (`supabase/migrations
 
 - **Resumen**: cuentas, personas activas por día, clubes, partidas, juegos agregados, gasto de IA, retención y
   los juegos más anotados (con las vistas de `metricas`).
-- **Personas, clubes y juegos agregados**: ver todo, editar clubes, cambiar el dueño, sacar a alguien, bloquear una
-  cuenta, cortarle la IA, bajar sus datos en JSON y borrar.
-- **Papelera**: lo que se borra desde el panel se puede recuperar durante 30 días; después se borra para siempre
-  (se revisa cada vez que se abre el panel). Juegos, partidas, jugadores y torneos se marcan como borrados, igual que
-  desde la app, para que el borrado llegue a todos los dispositivos. Al borrar una cuenta, sus jugadores quedan en los
-  clubes como jugadores sin cuenta y sus clubes pasan al admin más antiguo.
+- **Personas, clubes y juegos agregados**: ver todo, editar clubes, cambiar el dueño, cortarle la IA a alguien, bajar
+  datos en JSON, y **desactivar** (y reactivar) cuentas y clubes. Por ahora el panel no borra filas: una cuenta
+  desactivada no puede entrar; un club desactivado deja de sincronizar en las dos apps y sale del buscador.
+- **Papelera**: juegos, partidas, jugadores y torneos que se borran desde el panel se marcan como borrados, igual que
+  desde la app (así llega a todos los dispositivos), y se pueden recuperar durante 30 días.
 - **Reportes**: con cuenta se puede reportar un club público o una persona desde el buscador.
 - **Control**: apagar la IA o cambiar sus topes (la función `generate-game` lo respeta), un anuncio arriba de la app
   y mensajes a todas las cuentas, a un club o a una persona (llegan a las notificaciones).
-- **Salud**: clubes vacíos, abandonados o sin dueño, cuentas sin perfil y partidas rotas o colgadas.
+- **Salud**: clubes vacíos, abandonados, desactivados o sin dueño, cuentas sin perfil y partidas rotas o colgadas.
 - **Registro**: todo lo que se hizo desde el panel (`admin_log`).
 - Desde esta versión se guarda quién sube cada cosa (`entities.created_by`): lo anterior figura como "autor desconocido".
 - Para sumar otro admin: `insert into public.app_admins (user_id) select id from auth.users where email = '…';`

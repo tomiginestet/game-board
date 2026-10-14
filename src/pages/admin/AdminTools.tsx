@@ -88,7 +88,7 @@ export function AdminTrash() {
   return (
     <>
       <AdminHead title="Papelera" onReload={reload} loading={loading} />
-      <p className="muted">Lo que se borra desde el panel queda acá 30 días. Después se borra para siempre (se revisa cada vez que abrís el panel).</p>
+      <p className="muted">Los juegos, partidas, jugadores y torneos que borrás desde el panel quedan acá 30 días para recuperarlos. Después ya no se pueden recuperar (se revisa cada vez que abrís el panel).</p>
       <AdminError error={error} />
       {!data && loading && <Loader />}
       {data && !pending.length && <p className="empty">La papelera está vacía.</p>}
@@ -393,6 +393,16 @@ export function AdminHealth() {
             render={(c) => (
               <Link to={`/admin/clubes/${c.code}`}>
                 {c.name} <span className="muted small">· última vez {when(c.last)}</span>
+              </Link>
+            )}
+          />
+          <HealthList
+            title="Clubes desactivados"
+            hint="Desactivados desde el panel: no sincronizan. Se reactivan desde la página del club."
+            items={data.disabled_clubs}
+            render={(c) => (
+              <Link to={`/admin/clubes/${c.code}`}>
+                {c.name} <span className="muted small">· {when(c.disabled_at)}</span>
               </Link>
             )}
           />

@@ -1,6 +1,6 @@
-import { ArrowLeftIcon, CrownIcon, DownloadSimpleIcon, MagnifyingGlassIcon, PaperPlaneTiltIcon, TrashIcon, UserMinusIcon } from '@phosphor-icons/react'
+import { ArrowLeftIcon, CrownIcon, DownloadSimpleIcon, MagnifyingGlassIcon, PaperPlaneTiltIcon, PowerIcon, TrashIcon } from '@phosphor-icons/react'
 import { useDeferredValue, useMemo, useState } from 'react'
-import { Link, useNavigate, useParams } from 'react-router-dom'
+import { Link, useParams } from 'react-router-dom'
 import { Loader } from '../../components/Logo'
 import { actionLabel, admin, runAdmin, downloadJson, useAdminData, type AdminClubDetail, type AdminPlay } from '../../lib/admin'
 import { confirmAction, toast } from '../../lib/feedback'
@@ -60,6 +60,7 @@ export function AdminClubs() {
                 <span>{c.plays} partidas</span>
                 {c.games > 0 && <span>{c.games} juegos propios</span>}
                 {c.is_public && <span className="pill tiny">público</span>}
+                {c.disabled_at && <span className="pill tiny danger">desactivado</span>}
                 {c.open_reports > 0 && <span className="pill tiny danger">{c.open_reports} reportes</span>}
               </span>
             </div>
@@ -134,7 +135,6 @@ function ClubEditor({ club, onSaved }: { club: AdminClubDetail; onSaved: () => v
 
 export function AdminClub() {
   const { code = '' } = useParams()
-  const navigate = useNavigate()
   const { data: club, error, loading, reload } = useAdminData(() => admin.club(code), [code])
   const names = useMemo(() => new Map((club?.players ?? []).map((p) => [p.id, `${p.emoji} ${p.name}`])), [club])
   const [message, setMessage] = useState({ title: '', text: '' })
@@ -165,6 +165,7 @@ export function AdminClub() {
           <h1 className="admin-name">{club.name}</h1>
           {club.description && <p className="muted">{club.description}</p>}
           <span className="muted small">
+            {club.disabled_at ? 'Desactivado · ' : ''}
             {club.kind === 'duo' ? 'Mano a mano' : club.is_public ? 'Club público' : 'Club privado'} · código <code>{club.code}</code> · creado {when(club.created_at)}
           </span>
         </div>
@@ -241,14 +242,6 @@ export function AdminClub() {
                     <CrownIcon />
                   </button>
                 )}
-                <button
-                  className="btn small ghost-danger"
-                  aria-label={`Sacar a ${m.label} del club`}
-                  title="Sacar del club"
-                  onClick={() => void runAdmin(`${m.label} ya no está en el club`, () => admin.removeMember(club.code, m.user_id), reload)}
-                >
-                  <UserMinusIcon />
-                </button>
               </div>
             </div>
           ))}
@@ -377,20 +370,26 @@ export function AdminClub() {
           <button className="btn" onClick={() => void admin.exportClub(club.code).then((d) => downloadJson(`club-${club.name}.json`, d), (e) => toast(friendlyError(e)))}>
             <DownloadSimpleIcon /> Bajar los datos del club
           </button>
-          <button
-            className="btn danger"
-            onClick={async () => {
-              const ok = await confirmAction({
-                title: `¿Borrar ${club.name}?`,
-                detail: `Se borra el club con sus ${club.players.length} jugadores y ${(club.counts.play ?? 0) + (club.counts.match ?? 0)} partidas, para todos sus integrantes (también en el Ping Pong Club). Durante 30 días lo podés recuperar desde la papelera, con el mismo código.`,
-                confirmLabel: 'Borrar club',
-                danger: true,
-              })
-              if (ok && (await runAdmin('Club borrado', () => admin.deleteClub(club.code)))) navigate('/admin/clubes')
-            }}
-          >
-            <TrashIcon /> Borrar club
-          </button>
+          {club.disabled_at ? (
+            <button className="btn primary" onClick={() => void runAdmin('Club reactivado', () => admin.setClubDisabled(club.code, false), reload)}>
+              <PowerIcon /> Reactivar club
+            </button>
+          ) : (
+            <button
+              className="btn danger"
+              onClick={async () => {
+                const ok = await confirmAction({
+                  title: `¿Desactivar ${club.name}?`,
+                  detail: 'Deja de sincronizar para todos sus integrantes (también en el Ping Pong Club), sale del buscador y no se puede entrar con el link. No se borra nada: lo reactivás desde acá cuando quieras.',
+                  confirmLabel: 'Desactivar club',
+                  danger: true,
+                })
+                if (ok) await runAdmin('Club desactivado', () => admin.setClubDisabled(club.code, true), reload)
+              }}
+            >
+              <PowerIcon /> Desactivar club
+            </button>
+          )}
         </div>
       </section>
 

@@ -3,16 +3,14 @@
 -- - Acceso: `is_app_admin()` exige que la cuenta esté en `app_admins` y que su sesión sea de
 --   Google. Todas las funciones `admin_*` lo verifican antes de leer o tocar algo; esconder la
 --   pantalla no alcanza.
--- - Borrar con "deshacer" por 30 días (`admin_trash`):
+-- - Por ahora el panel no borra filas de la base: desactiva.
+--   * cuentas: `banned_until` (no pueden entrar; la sesión abierta se corta al vencer, en menos
+--     de una hora). Sus clubes y datos no se tocan. Se reactivan desde el panel;
+--   * clubes: `clubs.disabled_at`. Dejan de sincronizar (las dos apps ven "Club inexistente"),
+--     salen del buscador y no se puede entrar con el link. Se reactivan desde el panel;
 --   * juegos, partidas, jugadores y torneos: se marcan borrados (`deleted`, con una versión nueva)
---     igual que cuando se borran desde la app, así el borrado llega a todos los dispositivos. Un
---     DELETE común no sirve: el próximo celular que sincronice volvería a subirlos;
---   * clubes: se guarda una copia completa (club, datos, integrantes) y se borra el club. Los
---     dispositivos ven "Club inexistente" hasta que se recupera (con el mismo código);
---   * cuentas: se bloquea la cuenta, se cierran sus sesiones y se saca su perfil, sus clubes y
---     amistades. Sus jugadores quedan en los clubes como jugadores sin cuenta. A los 30 días se
---     borra la cuenta de verdad. Si era dueña de un club, el club pasa al admin (o integrante) más antiguo.
---   Lo vencido se borra solo cada vez que se abre el panel (`admin_overview`).
+--     igual que cuando se borran desde la app, así llega a todos los dispositivos. Se pueden
+--     recuperar durante 30 días desde la papelera (`admin_trash`); después se descarta la copia.
 -- - Todo lo que se hace desde el panel queda en `admin_log`.
 -- - `entities.created_by` / `updated_by`: quién subió cada cosa (null = sin cuenta o anterior a esto).
 -- - Actividad (`user_activity`): un renglón por cuenta y día en que abrió la app, para personas activas.
@@ -23,6 +21,8 @@
 
 -- ---------------------------------------------------------------------------
 -- Tablas
+
+alter table public.clubs add column disabled_at timestamptz;
 
 create table public.app_admins (
   user_id uuid primary key references auth.users (id) on delete cascade,
@@ -134,7 +134,7 @@ declare
   applied integer;
   me uuid := (select auth.uid());
 begin
-  if not exists (select 1 from public.clubs c where c.code = p_code) then
+  if not exists (select 1 from public.clubs c where c.code = p_code and c.disabled_at is null) then
     raise exception 'Club inexistente';
   end if;
   if jsonb_typeof(p_items) <> 'array' or jsonb_array_length(p_items) > 1000 then
@@ -166,6 +166,58 @@ begin
   get diagnostics applied = row_count;
   return applied;
 end;
+$$;
+
+-- Un club desactivado desde el panel es, para las dos apps, un club que no existe.
+create or replace function public.pull_changes(p_code text, p_since timestamptz default null)
+returns table (kind text, id text, data jsonb, deleted boolean, v bigint, updated_at timestamptz)
+language plpgsql
+stable
+security definer
+set search_path = ''
+as $$
+begin
+  if not exists (select 1 from public.clubs c where c.code = p_code and c.disabled_at is null) then
+    raise exception 'Club inexistente';
+  end if;
+  return query
+    select e.kind, e.id, e.data, e.deleted, e.v, e.updated_at
+    from public.entities e
+    where e.club_code = p_code
+      and e.kind in ('player', 'match', 'tournament')
+      and (p_since is null or e.updated_at > p_since)
+    order by e.updated_at;
+end;
+$$;
+
+create or replace function public.pull_changes_all(p_code text, p_since timestamptz default null)
+returns table (kind text, id text, data jsonb, deleted boolean, v bigint, updated_at timestamptz)
+language plpgsql
+stable
+security definer
+set search_path = ''
+as $$
+begin
+  if not exists (select 1 from public.clubs c where c.code = p_code and c.disabled_at is null) then
+    raise exception 'Club inexistente';
+  end if;
+  return query
+    select e.kind, e.id, e.data, e.deleted, e.v, e.updated_at
+    from public.entities e
+    where e.club_code = p_code
+      and (p_since is null or e.updated_at > p_since)
+    order by e.updated_at;
+end;
+$$;
+
+create or replace function public.get_club(p_code text)
+returns text
+language sql
+stable
+security definer
+set search_path = ''
+as $$
+  select c.name from public.clubs c where c.code = p_code and c.disabled_at is null;
 $$;
 
 -- ---------------------------------------------------------------------------
@@ -335,7 +387,7 @@ begin
 end;
 $$;
 
-create function public._admin_purge_one(p_id bigint)
+create or replace function public._admin_purge_one(p_id bigint)
 returns void
 language plpgsql
 volatile
@@ -349,11 +401,8 @@ begin
   if not found then
     return;
   end if;
-  if t.kind = 'user' then
-    delete from auth.users u where u.id = (t.ref ->> 'user_id')::uuid;
-  end if;
-  -- Juegos, partidas y demás quedan marcados como borrados (lo necesita la sincronización);
-  -- clubes e integrantes ya no están. Sólo se descarta la copia.
+  -- Juegos, partidas y demás quedan marcados como borrados (lo necesita la sincronización).
+  -- Sólo se descarta la copia.
   update public.admin_trash set purged_at = now(), snapshot = null where id = t.id;
 end;
 $$;
@@ -515,68 +564,6 @@ begin
 end;
 $$;
 
--- Borra la cuenta (con 30 días para deshacer). Sus jugadores quedan en los clubes, sin cuenta.
-create function public.admin_delete_user(p_user uuid, p_reason text default null)
-returns bigint
-language plpgsql
-volatile
-security definer
-set search_path = ''
-as $$
-declare
-  me uuid := public._assert_app_admin();
-  snap jsonb;
-  label text := public._admin_user_label(p_user);
-  trash_id bigint;
-  c record;
-  transfers jsonb := '[]'::jsonb;
-  heir uuid;
-begin
-  if p_user = me then
-    raise exception 'No podés borrar tu propia cuenta desde el panel';
-  end if;
-  if not exists (select 1 from auth.users u where u.id = p_user) then
-    raise exception 'Esa cuenta no existe';
-  end if;
-  if exists (select 1 from public.admin_trash t where t.kind = 'user' and t.ref ->> 'user_id' = p_user::text and t.restored_at is null and t.purged_at is null) then
-    raise exception 'Esa cuenta ya está en la papelera';
-  end if;
-
-  snap := jsonb_build_object(
-    'banned_until', (select u.banned_until from auth.users u where u.id = p_user),
-    'profile', (select to_jsonb(p) from public.profiles p where p.user_id = p_user),
-    'memberships', (select coalesce(jsonb_agg(to_jsonb(m)), '[]'::jsonb) from public.memberships m where m.user_id = p_user),
-    'friendships', (select coalesce(jsonb_agg(to_jsonb(f)), '[]'::jsonb) from public.friendships f where p_user in (f.user_low, f.user_high)),
-    'flags', (select to_jsonb(f) from public.user_flags f where f.user_id = p_user));
-
-  -- Fuera de sus clubes (los clubes que eran suyos pasan a otro integrante).
-  for c in select m.club_code, m.role from public.memberships m where m.user_id = p_user loop
-    delete from public.memberships m using (select 1) x where m.club_code = c.club_code and m.user_id = p_user;
-    if c.role = 'owner' or (select cl.owner_id from public.clubs cl where cl.code = c.club_code) = p_user then
-      heir := public._admin_heir(c.club_code);
-      transfers := transfers || jsonb_build_array(jsonb_build_object('code', c.club_code, 'to', heir));
-    end if;
-  end loop;
-  update public.clubs set owner_id = null where owner_id = p_user;
-  delete from public.friendships f using (select 1) x where p_user in (f.user_low, f.user_high);
-  delete from public.join_requests r using (select 1) x where r.user_id = p_user and r.status = 'pending';
-  delete from public.group_invites i using (select 1) x where i.invited_user = p_user and i.status = 'pending';
-  delete from public.profiles p using (select 1) x where p.user_id = p_user;
-
-  -- Bloqueada y sin sesiones abiertas.
-  update auth.users set banned_until = now() + interval '100 years' where id = p_user;
-  delete from auth.sessions s using (select 1) x where s.user_id = p_user;
-  delete from auth.refresh_tokens r using (select 1) x where r.user_id = p_user::text;
-
-  insert into public.admin_trash (kind, label, ref, snapshot, reason, deleted_by)
-  values ('user', label, jsonb_build_object('user_id', p_user, 'email', (select u.email::text from auth.users u where u.id = p_user)),
-          snap || jsonb_build_object('transfers', transfers), nullif(trim(coalesce(p_reason, '')), ''), me)
-  returning id into trash_id;
-  perform public._admin_log('delete_user', 'user', p_user::text, label, jsonb_build_object('reason', p_reason, 'transfers', transfers), trash_id);
-  return trash_id;
-end;
-$$;
-
 create function public.admin_set_banned(p_user uuid, p_banned boolean)
 returns void
 language plpgsql
@@ -588,15 +575,12 @@ declare
   me uuid := public._assert_app_admin();
 begin
   if p_user = me then
-    raise exception 'No podés bloquear tu propia cuenta';
+    raise exception 'No podés desactivar tu propia cuenta';
   end if;
+  -- No puede volver a entrar ni renovar la sesión (la que tiene abierta vence en menos de una hora).
   update auth.users set banned_until = case when p_banned then now() + interval '100 years' else null end where id = p_user;
   if not found then
     raise exception 'Esa cuenta no existe';
-  end if;
-  if p_banned then
-    delete from auth.sessions s using (select 1) x where s.user_id = p_user;
-    delete from auth.refresh_tokens r using (select 1) x where r.user_id = p_user::text;
   end if;
   perform public._admin_log(case when p_banned then 'ban_user' else 'unban_user' end, 'user', p_user::text, public._admin_user_label(p_user));
 end;
@@ -634,7 +618,7 @@ begin
   return (
     select coalesce(jsonb_agg(to_jsonb(x) order by x.last_activity desc nulls last), '[]'::jsonb)
     from (
-      select c.code, c.id, c.name, c.kind, c.emoji, c.description, c.is_public, c.created_at,
+      select c.code, c.id, c.name, c.kind, c.emoji, c.description, c.is_public, c.created_at, c.disabled_at,
              c.owner_id, case when c.owner_id is not null then public._admin_user_label(c.owner_id) end as owner,
              (select count(*) from public.memberships m where m.club_code = c.code) as members,
              (select count(*) from public.entities e where e.club_code = c.code and e.kind = 'player' and not e.deleted) as players,
@@ -752,7 +736,7 @@ begin
     set name = left(trim(p_name), 60),
         description = nullif(left(trim(coalesce(p_description, '')), 200), ''),
         emoji = nullif(left(p_emoji, 16), ''),
-        is_public = coalesce(p_public, false) and kind = 'group'
+        is_public = coalesce(p_public, false) and kind = 'group' and disabled_at is null
   where code = p_code;
   perform public._admin_log('update_club', 'club', p_code, left(trim(p_name), 60), jsonb_build_object('before', prev));
 end;
@@ -784,67 +768,27 @@ begin
 end;
 $$;
 
-create function public.admin_remove_member(p_code text, p_user uuid)
-returns bigint
+-- Desactiva (o reactiva) un club: deja de sincronizar y sale del buscador. No se borra nada.
+create function public.admin_set_club_disabled(p_code text, p_disabled boolean)
+returns void
 language plpgsql
 volatile
 security definer
 set search_path = ''
 as $$
 declare
-  me uuid := public._assert_app_admin();
-  m public.memberships;
-  trash_id bigint;
-  label text;
+  club_name text;
 begin
-  select * into m from public.memberships x where x.club_code = p_code and x.user_id = p_user;
-  if not found then
-    raise exception 'No es parte de ese club';
-  end if;
-  label := public._admin_user_label(p_user) || ' de ' || (select name from public.clubs where code = p_code);
-  delete from public.memberships x using (select 1) y where x.club_code = p_code and x.user_id = p_user;
-  if m.role = 'owner' then
-    perform public._admin_heir(p_code);
-  end if;
-  insert into public.admin_trash (kind, label, ref, snapshot, deleted_by)
-  values ('member', label, jsonb_build_object('code', p_code, 'user_id', p_user), to_jsonb(m), me)
-  returning id into trash_id;
-  perform public._admin_log('remove_member', 'member', p_code || '/' || p_user, label, '{}'::jsonb, trash_id);
-  return trash_id;
-end;
-$$;
-
--- Borra un club (con 30 días para deshacer, con el mismo código).
-create function public.admin_delete_club(p_code text, p_reason text default null)
-returns bigint
-language plpgsql
-volatile
-security definer
-set search_path = ''
-as $$
-declare
-  me uuid := public._assert_app_admin();
-  c public.clubs;
-  snap jsonb;
-  trash_id bigint;
-begin
-  select * into c from public.clubs x where x.code = p_code;
-  if not found then
+  perform public._assert_app_admin();
+  update public.clubs
+    set disabled_at = case when p_disabled then coalesce(disabled_at, now()) end,
+        is_public = case when p_disabled then false else is_public end
+  where code = p_code
+  returning name into club_name;
+  if club_name is null then
     raise exception 'Ese club no existe';
   end if;
-  snap := jsonb_build_object(
-    'club', to_jsonb(c),
-    'entities', (select coalesce(jsonb_agg(to_jsonb(e)), '[]'::jsonb) from public.entities e where e.club_code = p_code),
-    'memberships', (select coalesce(jsonb_agg(to_jsonb(m)), '[]'::jsonb) from public.memberships m where m.club_code = p_code),
-    'duo_of', (select coalesce(jsonb_agg(jsonb_build_object('user_low', f.user_low, 'user_high', f.user_high)), '[]'::jsonb)
-               from public.friendships f where f.duo_code = p_code));
-  delete from public.clubs x using (select 1) y where x.code = p_code;
-  insert into public.admin_trash (kind, label, ref, snapshot, reason, deleted_by)
-  values ('club', coalesce(c.emoji || ' ', '') || c.name, jsonb_build_object('code', p_code, 'group_id', c.id), snap,
-          nullif(trim(coalesce(p_reason, '')), ''), me)
-  returning id into trash_id;
-  perform public._admin_log('delete_club', 'club', p_code, c.name, jsonb_build_object('reason', p_reason), trash_id);
-  return trash_id;
+  perform public._admin_log(case when p_disabled then 'disable_club' else 'enable_club' end, 'club', p_code, club_name);
 end;
 $$;
 
@@ -898,7 +842,7 @@ end;
 $$;
 
 -- Borra un juego, una partida, un jugador o un torneo como lo haría la app (llega a todos los dispositivos).
-create function public.admin_delete_entity(p_code text, p_kind text, p_id text, p_reason text default null)
+create function public.admin_trash_entity(p_code text, p_kind text, p_id text, p_reason text default null)
 returns bigint
 language plpgsql
 volatile
@@ -926,7 +870,7 @@ begin
   values ('entity', label, jsonb_build_object('code', p_code, 'kind', p_kind, 'id', p_id), jsonb_build_object('data', e.data, 'created_by', e.created_by),
           nullif(trim(coalesce(p_reason, '')), ''), me)
   returning id into trash_id;
-  perform public._admin_log('delete_' || p_kind, 'entity', p_code || '/' || p_kind || '/' || p_id, label, jsonb_build_object('reason', p_reason), trash_id);
+  perform public._admin_log('trash_' || p_kind, 'entity', p_code || '/' || p_kind || '/' || p_id, label, jsonb_build_object('reason', p_reason), trash_id);
   return trash_id;
 end;
 $$;
@@ -963,107 +907,23 @@ set search_path = ''
 as $$
 declare
   t public.admin_trash;
-  s jsonb;
-  uid uuid;
-  item jsonb;
 begin
   perform public._assert_app_admin();
   select * into t from public.admin_trash x where x.id = p_id for update;
   if not found or t.restored_at is not null or t.purged_at is not null then
     raise exception 'Ya no se puede recuperar';
   end if;
-  s := t.snapshot;
-
-  if t.kind = 'entity' then
-    update public.entities
-      set deleted = false, data = s -> 'data', v = greatest(v + 1, public._now_ms()), updated_at = clock_timestamp(), updated_by = (select auth.uid())
-    where club_code = t.ref ->> 'code' and kind = t.ref ->> 'kind' and id = t.ref ->> 'id' and deleted;
-    if not found then
-      raise exception 'No se puede recuperar: el club ya no existe o se volvió a crear con otros datos';
-    end if;
-
-  elsif t.kind = 'club' then
-    if exists (select 1 from public.clubs c where c.code = t.ref ->> 'code') then
-      raise exception 'Ya hay un club con ese código';
-    end if;
-    -- Las cuentas que ya no existen (dueño, autores) quedan en null.
-    insert into public.clubs
-      select (jsonb_populate_record(null::public.clubs, s -> 'club' || jsonb_build_object(
-        'owner_id', case when exists (select 1 from auth.users u where u.id::text = s -> 'club' ->> 'owner_id') then s -> 'club' -> 'owner_id' end))).*;
-    insert into public.entities
-      select (jsonb_populate_record(null::public.entities, it || jsonb_build_object(
-        'updated_at', clock_timestamp(),
-        'created_by', case when exists (select 1 from auth.users u where u.id::text = it ->> 'created_by') then it -> 'created_by' end,
-        'updated_by', case when exists (select 1 from auth.users u where u.id::text = it ->> 'updated_by') then it -> 'updated_by' end))).*
-      from jsonb_array_elements(s -> 'entities') it;
-    insert into public.memberships
-      select (jsonb_populate_record(null::public.memberships, it)).*
-      from jsonb_array_elements(s -> 'memberships') it
-      where exists (select 1 from auth.users u where u.id = (it ->> 'user_id')::uuid)
-    on conflict do nothing;
-    if (select c.owner_id from public.clubs c where c.code = t.ref ->> 'code') is null then
-      perform public._admin_heir(t.ref ->> 'code');
-    end if;
-    for item in select * from jsonb_array_elements(s -> 'duo_of') loop
-      update public.friendships set duo_code = t.ref ->> 'code'
-      where user_low = (item ->> 'user_low')::uuid and user_high = (item ->> 'user_high')::uuid and duo_code is null;
-    end loop;
-
-  elsif t.kind = 'member' then
-    if not exists (select 1 from public.clubs c where c.code = t.ref ->> 'code') then
-      raise exception 'El club ya no existe';
-    end if;
-    insert into public.memberships
-      select (jsonb_populate_record(null::public.memberships, s)).*
-    on conflict do nothing;
-    -- Si el club ya tiene otro dueño, vuelve como admin.
-    update public.memberships m set role = 'admin'
-    where m.club_code = t.ref ->> 'code' and m.user_id = (t.ref ->> 'user_id')::uuid and m.role = 'owner'
-      and exists (select 1 from public.memberships o where o.club_code = m.club_code and o.role = 'owner' and o.user_id <> m.user_id);
-    if (select role from public.memberships where club_code = t.ref ->> 'code' and user_id = (t.ref ->> 'user_id')::uuid) = 'owner' then
-      update public.clubs set owner_id = (t.ref ->> 'user_id')::uuid where code = t.ref ->> 'code';
-    end if;
-
-  elsif t.kind = 'user' then
-    uid := (t.ref ->> 'user_id')::uuid;
-    if not exists (select 1 from auth.users u where u.id = uid) then
-      raise exception 'La cuenta ya no existe';
-    end if;
-    update auth.users set banned_until = (s ->> 'banned_until')::timestamptz where id = uid;
-    if s -> 'profile' is not null and jsonb_typeof(s -> 'profile') = 'object' then
-      insert into public.profiles
-        select (jsonb_populate_record(null::public.profiles,
-          s -> 'profile' || case when exists (select 1 from public.profiles p where p.username = s -> 'profile' ->> 'username')
-                                 then jsonb_build_object('username', null) else '{}'::jsonb end)).*
-      on conflict (user_id) do nothing;
-    end if;
-    -- Vuelve a sus clubes (si el jugador no lo tomó otra cuenta). Si su club ya tiene otro dueño, vuelve como admin.
-    for item in select * from jsonb_array_elements(s -> 'memberships') loop
-      continue when not exists (select 1 from public.clubs c where c.code = item ->> 'club_code');
-      insert into public.memberships (user_id, club_code, player_id, joined_at, role)
-      values (uid, item ->> 'club_code',
-              case when exists (select 1 from public.memberships o where o.club_code = item ->> 'club_code' and o.player_id = item ->> 'player_id')
-                   then null else item ->> 'player_id' end,
-              (item ->> 'joined_at')::timestamptz,
-              case when item ->> 'role' = 'owner' and exists (select 1 from public.memberships o where o.club_code = item ->> 'club_code' and o.role = 'owner')
-                   then 'admin' else item ->> 'role' end)
-      on conflict do nothing;
-      if item ->> 'role' = 'owner' and (select c.owner_id from public.clubs c where c.code = item ->> 'club_code') is null then
-        update public.clubs set owner_id = uid where code = item ->> 'club_code';
-        update public.memberships set role = 'owner' where club_code = item ->> 'club_code' and user_id = uid;
-      end if;
-    end loop;
-    insert into public.friendships
-      select (jsonb_populate_record(null::public.friendships, it || jsonb_build_object(
-        'duo_code', case when exists (select 1 from public.clubs c where c.code = it ->> 'duo_code') then it -> 'duo_code' end))).*
-      from jsonb_array_elements(s -> 'friendships') it
-      where exists (select 1 from auth.users u where u.id = (it ->> 'user_low')::uuid)
-        and exists (select 1 from auth.users u where u.id = (it ->> 'user_high')::uuid)
-    on conflict do nothing;
+  if t.kind <> 'entity' then
+    raise exception 'Eso no se puede recuperar desde acá';
   end if;
-
+  update public.entities
+    set deleted = false, data = t.snapshot -> 'data', v = greatest(v + 1, public._now_ms()), updated_at = clock_timestamp(), updated_by = (select auth.uid())
+  where club_code = t.ref ->> 'code' and kind = t.ref ->> 'kind' and id = t.ref ->> 'id' and deleted;
+  if not found then
+    raise exception 'No se puede recuperar: el club ya no existe o se volvió a crear con otros datos';
+  end if;
   update public.admin_trash set restored_at = now() where id = t.id;
-  perform public._admin_log('restore_' || t.kind, t.kind, coalesce(t.ref ->> 'user_id', t.ref ->> 'code'), t.label, '{}'::jsonb, t.id);
+  perform public._admin_log('restore_' || t.kind, t.kind, t.ref ->> 'code', t.label, '{}'::jsonb, t.id);
 end;
 $$;
 
@@ -1274,6 +1134,9 @@ begin
       from public.clubs c
       join (select e.club_code, max(e.updated_at) as last from public.entities e group by e.club_code) x on x.club_code = c.code
       where x.last < now() - interval '60 days'),
+    'disabled_clubs', (
+      select coalesce(jsonb_agg(jsonb_build_object('code', c.code, 'name', c.name, 'kind', c.kind, 'disabled_at', c.disabled_at)), '[]'::jsonb)
+      from public.clubs c where c.disabled_at is not null),
     'ownerless_clubs', (
       select coalesce(jsonb_agg(jsonb_build_object('code', c.code, 'name', c.name, 'kind', c.kind,
         'members', (select count(*) from public.memberships m where m.club_code = c.code))), '[]'::jsonb)
@@ -1374,18 +1237,16 @@ begin
     'public.admin_overview()',
     'public.admin_users(text)',
     'public.admin_user(uuid)',
-    'public.admin_delete_user(uuid, text)',
     'public.admin_set_banned(uuid, boolean)',
     'public.admin_set_ai_blocked(uuid, boolean)',
     'public.admin_clubs(text)',
     'public.admin_club(text)',
     'public.admin_update_club(text, text, text, text, boolean)',
     'public.admin_set_club_owner(text, uuid)',
-    'public.admin_remove_member(text, uuid)',
-    'public.admin_delete_club(text, text)',
+    'public.admin_set_club_disabled(text, boolean)',
     'public.admin_games(text)',
     'public.admin_entity(text, text, text)',
-    'public.admin_delete_entity(text, text, text, text)',
+    'public.admin_trash_entity(text, text, text, text)',
     'public.admin_trash_list()',
     'public.admin_restore(bigint)',
     'public.admin_purge(bigint)',

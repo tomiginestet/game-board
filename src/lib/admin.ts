@@ -171,6 +171,7 @@ export interface AdminClub {
   description: string | null
   is_public: boolean
   created_at: string
+  disabled_at: string | null
   owner_id: string | null
   owner: string | null
   members: number
@@ -262,6 +263,7 @@ export interface Settings {
 export interface Health {
   empty_clubs: { code: string; name: string; kind: string; created_at: string }[]
   abandoned_clubs: { code: string; name: string; kind: string; last: string }[]
+  disabled_clubs: { code: string; name: string; kind: string; disabled_at: string }[]
   ownerless_clubs: { code: string; name: string; kind: string; members: number }[]
   no_profile: { user_id: string; email: string | null; created_at: string }[]
   broken_plays: { code: string; club: string; id: string; gameId: string | null }[]
@@ -277,7 +279,6 @@ export const admin = {
   overview: () => rpc<Overview>('admin_overview'),
   users: (q = '') => rpc<AdminUser[]>('admin_users', { p_query: q }),
   user: (id: string) => rpc<AdminUserDetail>('admin_user', { p_user: id }),
-  deleteUser: (id: string) => rpc<number>('admin_delete_user', { p_user: id }),
   setBanned: (id: string, banned: boolean) => rpc<void>('admin_set_banned', { p_user: id, p_banned: banned }),
   setAiBlocked: (id: string, blocked: boolean) => rpc<void>('admin_set_ai_blocked', { p_user: id, p_blocked: blocked }),
   clubs: (q = '') => rpc<AdminClub[]>('admin_clubs', { p_query: q }),
@@ -285,12 +286,11 @@ export const admin = {
   updateClub: (code: string, c: { name: string; description: string; emoji: string; is_public: boolean }) =>
     rpc<void>('admin_update_club', { p_code: code, p_name: c.name, p_description: c.description, p_emoji: c.emoji, p_public: c.is_public }),
   setClubOwner: (code: string, user: string) => rpc<void>('admin_set_club_owner', { p_code: code, p_user: user }),
-  removeMember: (code: string, user: string) => rpc<number>('admin_remove_member', { p_code: code, p_user: user }),
-  deleteClub: (code: string) => rpc<number>('admin_delete_club', { p_code: code }),
+  setClubDisabled: (code: string, disabled: boolean) => rpc<void>('admin_set_club_disabled', { p_code: code, p_disabled: disabled }),
   games: (q = '') => rpc<AdminGame[]>('admin_games', { p_query: q }),
   entity: (code: string, kind: string, id: string) =>
     rpc<{ data: Record<string, unknown> | null; deleted: boolean; updated_at: string; author: string | null } | null>('admin_entity', { p_code: code, p_kind: kind, p_id: id }),
-  deleteEntity: (code: string, kind: string, id: string) => rpc<number>('admin_delete_entity', { p_code: code, p_kind: kind, p_id: id }),
+  deleteEntity: (code: string, kind: string, id: string) => rpc<number>('admin_trash_entity', { p_code: code, p_kind: kind, p_id: id }),
   trash: () => rpc<TrashItem[]>('admin_trash_list'),
   restore: (id: number) => rpc<void>('admin_restore', { p_id: id }),
   purge: (id: number) => rpc<void>('admin_purge', { p_id: id }),
@@ -336,29 +336,25 @@ export function downloadJson(name: string, data: unknown) {
 }
 
 const ACTIONS: Record<string, string> = {
-  delete_user: 'Borró la cuenta',
-  ban_user: 'Bloqueó la cuenta',
-  unban_user: 'Desbloqueó la cuenta',
+  ban_user: 'Desactivó la cuenta',
+  unban_user: 'Reactivó la cuenta',
   block_ai: 'Le cortó la IA',
   unblock_ai: 'Le devolvió la IA',
   update_club: 'Editó el club',
   set_owner: 'Cambió el dueño',
   remove_member: 'Sacó del club',
-  delete_club: 'Borró el club',
-  delete_game: 'Borró el juego',
-  delete_play: 'Borró la partida',
-  delete_match: 'Borró el partido',
-  delete_player: 'Borró el jugador',
-  delete_cup: 'Borró el torneo',
-  delete_tournament: 'Borró el torneo',
+  disable_club: 'Desactivó el club',
+  enable_club: 'Reactivó el club',
+  trash_game: 'Borró el juego',
+  trash_play: 'Borró la partida',
+  trash_match: 'Borró el partido',
+  trash_player: 'Borró el jugador',
+  trash_cup: 'Borró el torneo',
+  trash_tournament: 'Borró el torneo',
   restore_entity: 'Recuperó',
-  restore_club: 'Recuperó el club',
-  restore_member: 'Devolvió al club',
-  restore_user: 'Recuperó la cuenta',
   purge_entity: 'Borró para siempre',
   purge_club: 'Borró para siempre el club',
   purge_member: 'Descartó',
-  purge_user: 'Borró para siempre la cuenta',
   report_resolved: 'Resolvió un reporte',
   report_dismissed: 'Descartó un reporte',
   report_open: 'Reabrió un reporte',
