@@ -13,9 +13,9 @@ export const handball: GameDef = {
   teamSize: 2,
   mode: 'counter',
   weight: 2,
-  scoring: { quick: [1], quickLabel: 'Gol', pointsName: 'goles', allowDraw: true },
+  scoring: { quick: [1], quickLabel: 'Gol', pointsName: 'goles', allowDraw: true, clock: { periods: 2, minutes: 30, minutesOption: 'half' } },
   perPlayer: { scorer: true, unit: 'goles', unitOne: 'gol', assists: true, mvp: true },
-  options: [],
+  options: [{ id: 'half', label: 'Cada tiempo', type: 'select', default: 30, choices: [{ value: 20, label: '20 minutos' }, { value: 25, label: '25 minutos' }, { value: 30, label: '30 minutos' }] }],
   events: [
     { id: 'atajadaHb', name: 'Atajada', emoji: '🧤', type: 'count', byPlayer: true },
     { id: 'exclusion', name: 'Exclusión (2 min)', emoji: '⏱️', type: 'count', byPlayer: true },

@@ -52,6 +52,14 @@ de datos) que el [Ping Pong Club](https://github.com/tomiginestet/ping-pong-web-
     el mismo día…); los partidos de una fecha se reparten entre las canchas y cada uno se puede reprogramar. Los
     próximos partidos aparecen en el inicio.
   - **Goleadores del torneo** y figuras, en los deportes que los llevan.
+  - La tabla de las ligas muestra perdidos, goles (o puntos) a favor, en contra y la diferencia.
+- **Convocatorias** ("¿quién viene el jueves?"): día, cancha y citados (el plantel de un equipo o los de siempre).
+  Se manda al grupo por WhatsApp, cada uno marca Voy / Capaz / No voy y con los que van se arman los equipos parejos;
+  la convocatoria pasa a ser el partido. Los partidos del fixture también tienen su previa con quién viene.
+- **Cronómetro** en los deportes por tiempo (fútbol, futsal, básquet, handball, hockey, rugby): períodos, pausa y aviso
+  al cumplirse el tiempo; cada gol guarda su minuto.
+- **Saque** en los deportes por sets: en tenis y pádel cambia en cada game (en el tie-break, de a dos) y en dobles
+  rota dentro de la pareja; en vóley, fútbol tenis o bádminton saca el que ganó el punto.
 - **Equipos fijos del club** (el fútbol 5 de los jueves, la pareja de pádel): nombre, escudo, color, plantel, capitán
   y cancha de local. Juegan partidos y se anotan en ligas y torneos con su plantel; cada equipo tiene su campaña
   (G-E-P, goles a favor y en contra, últimos resultados), su tabla de goleadores y sus próximos partidos.

@@ -13,9 +13,10 @@ export const futbol: GameDef = {
   teamSize: 4,
   mode: 'counter',
   weight: 3,
-  scoring: { quick: [1], quickLabel: 'Gol', pointsName: 'goles', allowDraw: true },
+  scoring: { quick: [1], quickLabel: 'Gol', pointsName: 'goles', allowDraw: true, clock: { periods: 2, minutes: 35, minutesOption: 'half' } },
   perPlayer: { scorer: true, unit: 'goles', unitOne: 'gol', assists: true, mvp: true },
   options: [
+    { id: 'half', label: 'Cada tiempo', type: 'select', default: 35, choices: [{ value: 25, label: '25 minutos' }, { value: 30, label: '30 minutos' }, { value: 35, label: '35 minutos' }, { value: 45, label: '45 minutos' }] },
     { id: 'format', label: 'Formato', type: 'select', default: 7, choices: [{ value: 7, label: 'Fútbol 7' }, { value: 8, label: 'Fútbol 8' }, { value: 11, label: 'Fútbol 11' }] },
   ],
   events: [

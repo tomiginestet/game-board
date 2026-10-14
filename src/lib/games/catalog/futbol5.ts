@@ -13,10 +13,10 @@ export const futbol5: GameDef = {
   teamSize: 2,
   mode: 'counter',
   weight: 2,
-  scoring: { quick: [1], quickLabel: 'Gol', pointsName: 'goles', allowDraw: true },
+  scoring: { quick: [1], quickLabel: 'Gol', pointsName: 'goles', allowDraw: true, clock: { periods: 2, minutes: 25, minutesOption: 'half' } },
   perPlayer: { scorer: true, unit: 'goles', unitOne: 'gol', assists: true, mvp: true },
   options: [
-    { id: 'length', label: 'Duración', type: 'select', default: 60, choices: [{ value: 50, label: '50 minutos' }, { value: 60, label: '1 hora' }, { value: 90, label: '1 hora y media' }] },
+    { id: 'half', label: 'Cada tiempo', type: 'select', default: 25, choices: [{ value: 20, label: '20 minutos' }, { value: 25, label: '25 minutos' }, { value: 30, label: '30 minutos' }] },
     { id: 'changes', label: 'Arquero rotativo', type: 'boolean', default: true, help: 'Cada tanto (o cada gol en contra) pasa otro al arco.' },
   ],
   events: [

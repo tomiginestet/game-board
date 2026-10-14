@@ -53,7 +53,10 @@ export function teamRecord(data: Pick<AppData, 'plays'>, team: Team): TeamRecord
   }
   for (const play of data.plays) {
     const side = teamSide(play, team.id)
-    if (side < 0) continue
+    if (side < 0) {
+      if (play.callTeamId === team.id && play.status === 'pending') rec.upcoming.push(play)
+      continue
+    }
     if (play.status !== 'finished' || !play.result) {
       rec.upcoming.push(play)
       continue

@@ -16,13 +16,13 @@ export interface PlaySide {
 
 /** Lo que va pasando en una partida, en orden. Los índices de lado son posiciones en `Play.sides`. */
 export type LogEntry =
-  /** Puntos en el marcador en vivo; `e` si vienen de un evento. `pl`: quién lo anotó; `as`: quién dio el pase. */
-  | { k: 'pt'; s: number; n: number; e?: string; pl?: Id; as?: Id; t: number }
+  /** Puntos en el marcador en vivo; `e` si vienen de un evento. `pl`: quién lo anotó; `as`: quién dio el pase; `m`: minuto del partido. */
+  | { k: 'pt'; s: number; n: number; e?: string; pl?: Id; as?: Id; m?: number; t: number }
   /**
    * Evento: `n` es +1/-1 para `count`; para `holder`, `s` es el nuevo dueño (-1 = nadie). `p`: puntos elegidos.
-   * `pl`: el jugador que lo hizo (eventos `byPlayer`).
+   * `pl`: el jugador que lo hizo (eventos `byPlayer`). `m`: minuto del partido, si corre el cronómetro.
    */
-  | { k: 'ev'; s: number; e: string; n: number; p?: number; pl?: Id; t: number }
+  | { k: 'ev'; s: number; e: string; n: number; p?: number; pl?: Id; m?: number; t: number }
   /** Empieza el turno de un lado. */
   | { k: 'turn'; s: number; t: number }
   /**
@@ -86,6 +86,32 @@ export interface Play {
   venue?: string
   /** Por qué se juega (no en torneos: ahí manda el premio o castigo del torneo). */
   stake?: PlayStake
+  /**
+   * Convocatoria: los citados a un partido que todavía no tiene equipos armados ("¿quién viene el jueves?").
+   * Mientras está pendiente, `sides` puede estar vacío.
+   */
+  invited?: Id[]
+  /** Quién confirmó que viene, que no viene o que capaz. */
+  rsvp?: Record<Id, Rsvp>
+  /** Equipo fijo al que se convocó (su plantel), si fue desde un equipo. */
+  callTeamId?: Id
+  /** Cronómetro del partido (deportes por tiempo). */
+  clock?: PlayClock
+  /** Modo sets: lado que saca primero (0 o 1). */
+  firstServer?: number
+}
+
+/** Respuesta a una convocatoria. */
+export type Rsvp = 'yes' | 'maybe' | 'no'
+
+/** Reloj de juego: tiempo corrido del período en curso, con pausa. */
+export interface PlayClock {
+  /** Período en juego (0 = primer tiempo). */
+  period: number
+  /** Milisegundos ya jugados del período, sin contar el tramo en marcha. */
+  elapsed: number
+  /** Desde cuándo corre (si está en marcha). */
+  runningSince?: number
 }
 
 /** Un equipo o jugador inscripto en un torneo. */

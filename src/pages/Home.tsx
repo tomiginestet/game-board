@@ -4,7 +4,7 @@ import { Link, useNavigate, type NavigateFunction } from 'react-router-dom'
 import { toast } from '../lib/feedback'
 import { HeroCard, ShelfCard, Shelf } from '../components/GameCard'
 import { GameCover } from '../components/GameCover'
-import { GameBadge, PlayRow, sideName } from '../components/GameBits'
+import { GameBadge, PlayRow, playTitle, sideName } from '../components/GameBits'
 import { Logo } from '../components/Logo'
 import { MatchRow } from '../components/MatchRow'
 import { NextMedals } from '../components/NextMedals'
@@ -279,7 +279,7 @@ export function Home() {
                 <Link key={p.id} to={`/partida/${p.id}`} className="card fixture-row">
                   <GameBadge game={g} size={36} />
                   <span className="grow">
-                    <b>{p.sides.map((s) => s.name ?? s.players.map((id) => players.get(id)?.name ?? '?').join(' & ')).join(' vs ')}</b>
+                    <b>{playTitle(p, players, data.teams)}</b>
                     <span className="muted small block">
                       {formatWhen(p.scheduledAt!)}
                       {p.venue ? ` · ${p.venue}` : ''}

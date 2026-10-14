@@ -32,6 +32,13 @@ export interface SetsState {
   call: [string, string]
   /** Puntos jugados que cuentan (los que llegan después del final se ignoran). */
   played: number
+  /** Lado que saca el próximo punto. */
+  server: 0 | 1
+  /**
+   * Turnos de saque que empezó cada lado (contando el actual). En dobles de tenis o pádel, el que saca dentro
+   * de la pareja va rotando: turno 1 el primero, turno 2 el segundo…
+   */
+  serveTurns: [number, number]
 }
 
 function opt(game: GameDef, config: Record<string, OptionValue>, id: string | undefined): OptionValue | undefined {
@@ -70,7 +77,12 @@ function closes(p: number, q: number, to: number, by: number, cap?: number): boo
 }
 
 /** Estado del partido después de una secuencia de puntos (0 = ganó el lado A, 1 = el B). */
-export function computeSets(rule: ResolvedSets, points: number[]): SetsState {
+/**
+ * Estado del partido después de una secuencia de puntos (0 = ganó el lado A, 1 = el B).
+ * Saque: en tenis y pádel cambia en cada game (en el tie-break, después del primer punto, cada dos);
+ * en los de sets a N puntos saca el que ganó el último punto.
+ */
+export function computeSets(rule: ResolvedSets, points: number[], firstServer: 0 | 1 = 0): SetsState {
   const need = Math.floor(rule.bestOf / 2) + 1
   const st: SetsState = {
     done: [],
@@ -82,6 +94,14 @@ export function computeSets(rule: ResolvedSets, points: number[]): SetsState {
     need,
     call: ['0', '0'],
     played: 0,
+    server: firstServer,
+    serveTurns: [firstServer === 0 ? 1 : 0, firstServer === 1 ? 1 : 0],
+  }
+  // Quién sacó el primer punto del tie-break en curso (y cuántos puntos lleva).
+  let tbFirst: 0 | 1 = firstServer
+  const giveServe = (side: 0 | 1) => {
+    if (side !== st.server) st.serveTurns[side]++
+    st.server = side
   }
   const deciding = () => st.won[0] === need - 1 && st.won[1] === need - 1
   const startSet = () => {
@@ -89,6 +109,7 @@ export function computeSets(rule: ResolvedSets, points: number[]): SetsState {
     st.game = [0, 0]
     st.superTb = rule.kind === 'tennis' && rule.superTb && rule.bestOf > 1 && deciding()
     st.tiebreak = st.superTb
+    if (st.superTb) tbFirst = st.server
   }
   const closeSet = (s: 0 | 1, set: SetScore) => {
     st.done.push(set)
@@ -110,6 +131,7 @@ export function computeSets(rule: ResolvedSets, points: number[]): SetsState {
       // El tope corre a la par del objetivo: un set a 15 con tope 30 se cierra a 15 + 15.
       const cap = rule.cap !== undefined ? rule.cap - rule.points + to : undefined
       if (closes(st.current[s], st.current[o], to, rule.winBy, cap)) closeSet(s, { score: [...st.current] as [number, number] })
+      giveServe(s)
       continue
     }
     // Tenis / pádel.
@@ -118,11 +140,17 @@ export function computeSets(rule: ResolvedSets, points: number[]): SetsState {
       const to = st.superTb ? 10 : 7
       if (closes(st.game[s], st.game[o], to, 2)) {
         const tb = [...st.game] as [number, number]
+        // El que recibió primero en el tie-break saca primero en el set siguiente.
+        giveServe((1 - tbFirst) as 0 | 1)
         if (st.superTb) closeSet(s, { score: s === 0 ? [1, 0] : [0, 1], tb, superTb: true })
         else {
           st.current[s]++
           closeSet(s, { score: [...st.current] as [number, number], tb })
         }
+      } else {
+        // Primer punto: saca uno; después, dos y dos.
+        const k = st.game[0] + st.game[1]
+        giveServe(Math.ceil(k / 2) % 2 === 1 ? ((1 - tbFirst) as 0 | 1) : tbFirst)
       }
       continue
     }
@@ -131,9 +159,13 @@ export function computeSets(rule: ResolvedSets, points: number[]): SetsState {
     if (!gameWon) continue
     st.game = [0, 0]
     st.current[s]++
+    giveServe((1 - st.server) as 0 | 1)
     const g = rule.games
     if (closes(st.current[s], st.current[o], g, 2)) closeSet(s, { score: [...st.current] as [number, number] })
-    else if (st.current[0] === g && st.current[1] === g) st.tiebreak = true
+    else if (st.current[0] === g && st.current[1] === g) {
+      st.tiebreak = true
+      tbFirst = st.server
+    }
   }
 
   if (st.winner === undefined) {

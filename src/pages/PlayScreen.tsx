@@ -25,6 +25,8 @@ import { RoundsBoard } from './play/RoundsBoard'
 import { TurnsBoard } from './play/TurnsBoard'
 import { FinishForm } from './play/FinishForm'
 import { Summary } from './play/Summary'
+import { CallView } from './play/CallView'
+import { isCall } from '../lib/calls'
 
 export function PlayScreen() {
   const { id } = useParams()
@@ -40,7 +42,30 @@ export function PlayScreen() {
       </div>
     )
   }
-  return <PlayView key={play.id} play={play} game={gameOrMissing(data, play.gameId)} />
+  const game = gameOrMissing(data, play.gameId)
+  // La previa de un partido programado o de una convocatoria: quiénes vienen, antes de anotar nada.
+  if (play.status === 'pending' && !play.log.length && (isCall(play) || play.scheduledAt !== undefined)) return <CallPage play={play} game={game} />
+  return <PlayView key={play.id} play={play} game={game} />
+}
+
+function CallPage({ play, game }: { play: Play; game: GameDef }) {
+  const navigate = useNavigate()
+  const players = usePlayerMap()
+  return (
+    <div className="page" style={{ ['--gc' as string]: game.color }}>
+      <header className="play-head">
+        <button className="icon-btn" onClick={() => navigate(play.cupId ? `/torneos/${play.cupId}` : '/')} aria-label={play.cupId ? 'Volver al torneo' : 'Volver al inicio'}>
+          <ArrowLeftIcon />
+        </button>
+        <GameBadge game={game} size={36} />
+        <div className="grow play-title">
+          <h1 className="play-h1">{isCall(play) ? 'Convocatoria' : 'Próximo partido'}</h1>
+          <span className="muted small block">{game.name}</span>
+        </div>
+      </header>
+      <CallView play={play} game={game} players={players} />
+    </div>
+  )
 }
 
 /** Cuánto dura la pausa del punto final antes de pasar al resumen: lo justo para pasar el teléfono y mirar. */

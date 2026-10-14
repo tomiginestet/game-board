@@ -15,7 +15,7 @@ interface GameOption { id: string; label: string; type: 'number' | 'boolean' | '
 interface EventDef { id: string; name: string; emoji: string; type: 'count' | 'holder'; points?: number; askPoints?: boolean; hidden?: boolean; replaces?: string; global?: boolean; winsGame?: boolean; byPlayer?: boolean; help?: string }
 // Deportes de equipo: scorer anota quién hizo cada punto (gol); assists pregunta el pase; mvp elige la figura al final.
 interface PerPlayer { scorer?: boolean; unit?: string; unitOne?: string; assists?: boolean; mvp?: boolean }
-// Modo sets. tennis: 15-30-40 y sets a `games` (6) con tie-break; points: sets a `points` con `winBy` (2) de diferencia.
+// Modo sets. tennis: 15-30-40 y sets a games (6) con tie-break; points: sets a points con winBy (2) de diferencia.
 interface SetsRule { kind: 'tennis' | 'points'; bestOf: number; bestOfOption?: string; points?: number; pointsOption?: string; lastSetPoints?: number; winBy?: number; cap?: number; games?: number; goldenPointOption?: string; superTiebreakOption?: string }
 // Dato que se pregunta al final para cada lado.
 interface StatDef { id: string; label: string; type: 'number' | 'choice'; choices?: string[]; help?: string }
@@ -31,7 +31,7 @@ interface AwardDef { id: string; name: string; measures: string; metric: Metric;
 // knockout y league: partidas de 2 lados. tables: mesas rotativas de 3 a 6. series: partida acumulada.
 type CupFormat = 'knockout' | 'league' | 'tables' | 'series'
 // scorer de rounds: sum (número directo + eventos), skullKing (apuesta y bazas), bidTricks (con bidHit, bidPerTrick, bidMiss).
-interface Scoring { target?: number; targetOption?: string; lowWins?: boolean; eliminateAt?: number; eliminateOption?: string; rounds?: number; roundsOption?: string; roundLabels?: string[]; scorer?: 'sum' | 'skullKing' | 'bidTricks'; bidHit?: number; bidPerTrick?: number; bidMiss?: number; allowDraw?: boolean; quick?: number[]; quickLabel?: string; finalScores?: boolean; maxScore?: number; pointsName?: string; sets?: SetsRule; time?: boolean /* puntaje final es un tiempo en segundos; va con lowWins */ }
+interface Scoring { target?: number; targetOption?: string; lowWins?: boolean; eliminateAt?: number; eliminateOption?: string; rounds?: number; roundsOption?: string; roundLabels?: string[]; scorer?: 'sum' | 'skullKing' | 'bidTricks'; bidHit?: number; bidPerTrick?: number; bidMiss?: number; allowDraw?: boolean; quick?: number[]; quickLabel?: string; finalScores?: boolean; maxScore?: number; pointsName?: string; sets?: SetsRule; time?: boolean /* puntaje final es un tiempo en segundos; va con lowWins */; clock?: { periods: number; minutes: number; minutesOption?: string; periodName?: 'tiempo' | 'cuarto' } /* deportes por tiempo: cronómetro */ }
 interface GameDef {
   id: string; name: string; emoji: string; color: string; category: Category; tagline: string
   players: { min: number; max: number }; sides: SidesKind; teamSize?: number; mode: PlayMode

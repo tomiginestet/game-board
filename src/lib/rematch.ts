@@ -28,6 +28,8 @@ export function lastPlayOf(plays: Play[], gameId: string): Play | undefined {
  * más gente se juega por equipos. En el resto, lo que permita el juego.
  */
 export function soloMax(game: GameDef): number {
+  // Por sets (pádel, tenis, vóley) siempre son dos lados: cada uno solo es mano a mano.
+  if (game.mode === 'sets') return 2
   if (game.sides === 'either' && game.teamSize && (game.mode === 'counter' || game.mode === 'rally')) return 2
   return game.players.max
 }
@@ -68,6 +70,7 @@ export function setupProblem(game: GameDef, grouping: Grouping, sides: PlaySide[
     return undefined
   }
   if (sides.length < 2) return 'Repartí los jugadores en al menos 2 equipos'
+  if (game.mode === 'sets' && sides.length !== 2) return 'Se juega de a dos lados: armá 2 equipos'
   // En los de equipos (Código secreto) `teamSize` es el mínimo por equipo: 4 contra 4 vale.
   if (game.teamSize && game.sides === 'teams' && sides.some((s) => s.players.length < game.teamSize!)) return `Armá equipos de al menos ${jugadores(game.teamSize)}`
   // En los de las dos formas (truco 2 contra 2 o 3 contra 3) los equipos tienen que ser parejos.
