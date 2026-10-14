@@ -56,16 +56,14 @@
   padding: 16px 18px 12px;
 }
 .ps-rays {
+  /* Los rayos son una imagen (no un degradé cónico con máscara): así se ven igual en cualquier visor de PDF. */
   position: absolute !important;
   left: 50%;
   top: -40px;
   width: 380px;
   height: 380px;
   transform: translateX(-50%);
-  border-radius: 50%;
-  background: repeating-conic-gradient(from 0deg, rgba(255, 180, 0, 0.16) 0 6deg, transparent 6deg 15deg);
-  -webkit-mask: radial-gradient(circle, #000 18%, transparent 68%);
-  mask: radial-gradient(circle, #000 18%, transparent 68%);
+  background: url('/print/rayos.png') center / contain no-repeat;
 }
 .ps-kicker {
   display: inline-flex;
