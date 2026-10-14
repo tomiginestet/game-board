@@ -292,6 +292,20 @@ export interface Scoring {
   sets?: SetsRule
   /** El puntaje final es un tiempo (en segundos, se carga y se muestra como 25:14). Va con `lowWins`. */
   time?: boolean
+  /** Se juega por tiempo: cronómetro con pausa y períodos (dos tiempos, cuatro cuartos). */
+  clock?: ClockRule
+}
+
+/** Cronómetro de los deportes por tiempo. */
+export interface ClockRule {
+  /** Cantidad de períodos (2 tiempos, 4 cuartos). */
+  periods: number
+  /** Minutos de cada período. */
+  minutes: number
+  /** Opción de la partida que define los minutos de cada período. */
+  minutesOption?: string
+  /** "tiempo" o "cuarto". */
+  periodName?: 'tiempo' | 'cuarto'
 }
 
 export interface GameDef {

@@ -117,7 +117,8 @@ export function WhoDialog({
   const step = author === undefined ? 'author' : 'assist'
   const pick = (who: Id | null) => {
     if (step === 'author') {
-      if (!assistTitle) return onSubmit(who ? { pl: who } : {})
+      // Sin autor no tiene sentido preguntar por el pase.
+      if (!assistTitle || !who) return onSubmit(who ? { pl: who } : {})
       return setAuthor(who)
     }
     onSubmit({ ...(author ? { pl: author } : {}), ...(who ? { as: who } : {}) })

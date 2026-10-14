@@ -4,7 +4,7 @@ import { Link, useNavigate, type NavigateFunction } from 'react-router-dom'
 import { toast } from '../lib/feedback'
 import { HeroCard, ShelfCard, Shelf } from '../components/GameCard'
 import { GameCover } from '../components/GameCover'
-import { GameBadge, PlayRow, sideName } from '../components/GameBits'
+import { GameBadge, PlayRow, playTitle, sideName } from '../components/GameBits'
 import { Logo } from '../components/Logo'
 import { MatchRow } from '../components/MatchRow'
 import { NextMedals } from '../components/NextMedals'
@@ -23,6 +23,8 @@ import { syncAvailable, useSyncState } from '../lib/sync'
 import type { Id, Play, Player, PPMatch as Match } from '../lib/types'
 import { playPath } from './GameDetail'
 import { formatWhen } from '../lib/schedule'
+import { lineup } from '../lib/calls'
+import { useMyPlayerId } from '../lib/me'
 
 /** Estantes por categoría del inicio. */
 const HOME_SHELVES: { cat: Category; title: string; subtitle: string }[] = [
@@ -92,6 +94,7 @@ export function Home() {
 
   // Partidos del fixture que vienen (o que arrancaron hace un rato y todavía no se anotaron).
   const [openedAt] = useState(() => Date.now())
+  const me = useMyPlayerId()
   const soon = openedAt - 3 * 60 * 60 * 1000
   const upcoming = data.plays
     .filter((p) => p.status === 'pending' && p.scheduledAt !== undefined && p.scheduledAt >= soon)
@@ -279,8 +282,10 @@ export function Home() {
                 <Link key={p.id} to={`/partida/${p.id}`} className="card fixture-row">
                   <GameBadge game={g} size={36} />
                   <span className="grow">
-                    <b>{p.sides.map((s) => s.name ?? s.players.map((id) => players.get(id)?.name ?? '?').join(' & ')).join(' vs ')}</b>
+                    <b>{playTitle(p, players, data.teams)}</b>
                     <span className="muted small block">
+                      {dayTag(p.scheduledAt!, openedAt) && <b className="day-tag">{dayTag(p.scheduledAt!, openedAt)}</b>}
+                      {myStatus(p, me) && <b className={'my-status ' + myStatus(p, me)!.kind}>{myStatus(p, me)!.text}</b>}
                       {formatWhen(p.scheduledAt!)}
                       {p.venue ? ` · ${p.venue}` : ''}
                       {cup ? ` · ${cup.name}` : ''}
@@ -546,4 +551,23 @@ function LiveRow({ to, game, sub, score, since, onDiscard }: { to: string; game:
       </button>
     </li>
   )
+}
+
+/** "Hoy" o "Mañana" para los partidos que vienen (nada si es más adelante). */
+function dayTag(ts: number, now: number): string | undefined {
+  const day = (t: number) => new Date(t).toDateString()
+  if (day(ts) === day(now)) return 'Hoy'
+  if (day(ts) === day(now + 24 * 60 * 60 * 1000)) return 'Mañana'
+  return undefined
+}
+
+/** Tu respuesta a una convocatoria: vas, estás en espera o todavía no respondiste. */
+function myStatus(play: Play, me: Id | undefined): { kind: string; text: string } | undefined {
+  if (!me || !play.invited?.includes(me)) return undefined
+  const { inIds, waitIds } = lineup(play, play.invited)
+  if (inIds.includes(me)) return { kind: 'yes', text: 'Vas' }
+  if (waitIds.includes(me)) return { kind: 'wait', text: 'En espera' }
+  if (play.rsvp?.[me] === 'no') return { kind: 'no', text: 'No vas' }
+  if (play.rsvp?.[me] === 'maybe') return { kind: 'maybe', text: 'Capaz' }
+  return { kind: 'pending', text: '¿Venís?' }
 }

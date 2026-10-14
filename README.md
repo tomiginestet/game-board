@@ -52,6 +52,20 @@ de datos) que el [Ping Pong Club](https://github.com/tomiginestet/ping-pong-web-
     el mismo día…); los partidos de una fecha se reparten entre las canchas y cada uno se puede reprogramar. Los
     próximos partidos aparecen en el inicio.
   - **Goleadores del torneo** y figuras, en los deportes que los llevan.
+  - La tabla de las ligas muestra perdidos, goles (o puntos) a favor, en contra y la diferencia.
+- **Convocatorias** ("¿quién viene el jueves?"): día, cancha y citados (el plantel de un equipo o los de siempre).
+  Se manda al grupo por WhatsApp, cada uno marca Voy / Capaz / No voy y con los que van se arman los equipos parejos;
+  la convocatoria pasa a ser el partido. Los partidos del fixture también tienen su previa con quién viene.
+  - Con cuenta, cada uno marca lo suyo (quien organizó, también por los demás) y a los citados les llega el aviso.
+  - **Cupo y lista de espera**: los primeros en confirmar entran; si alguien se baja, entra el primero en espera y le
+    llega el aviso.
+  - **Agendar**: al calendario del teléfono (con aviso 2 horas antes) o a Google Calendar. En el inicio, "Hoy" o
+    "Mañana" y tu estado (vas, en espera, ¿venís?).
+- **Tabla de equipos del club**: puntos, diferencia y un Elo de equipo por los partidos entre equipos del club.
+- **Cronómetro** en los deportes por tiempo (fútbol, futsal, básquet, handball, hockey, rugby): períodos, pausa y aviso
+  al cumplirse el tiempo; cada gol guarda su minuto.
+- **Saque** en los deportes por sets: en tenis y pádel cambia en cada game (en el tie-break, de a dos) y en dobles
+  rota dentro de la pareja; en vóley, fútbol tenis o bádminton saca el que ganó el punto.
 - **Equipos fijos del club** (el fútbol 5 de los jueves, la pareja de pádel): nombre, escudo, color, plantel, capitán
   y cancha de local. Juegan partidos y se anotan en ligas y torneos con su plantel; cada equipo tiene su campaña
   (G-E-P, goles a favor y en contra, últimos resultados), su tabla de goleadores y sus próximos partidos.
@@ -90,6 +104,36 @@ La app funciona offline: todo se guarda en el navegador y, si el dispositivo est
   opcionales: `AI_MODEL`, `AI_MONTHLY_LIMIT_USD` (10) y `AI_DAILY_PER_USER` (10). La función usa una versión
   resumida del esquema (`sources.ts`, más barata por llamada): si cambia el esquema, actualizarla. Después de
   cambiar el pedido: `npm run build:ai` y volver a publicar la función.
+
+## Métricas
+
+- **Uso de los clubes** (Supabase): el esquema `metricas` (`supabase/migrations/20261014000000_metricas.sql`) tiene
+  vistas para el editor SQL: `metricas.resumen` (lo principal en una fila), `metricas.semanal` (clubes activos,
+  partidas, clubes y cuentas nuevas, IA), `metricas.juegos` (los más anotados) y `metricas.retencion` (si los clubes
+  vuelven 1 a 4 semanas después). No está en la API: la app no lo puede leer. Sólo cuenta lo que se sincronizó.
+- **Visitas** (Vercel Web Analytics, sin cookies): `src/components/Visits.tsx`. Se manda sólo la pantalla genérica
+  (`/unirse/:code`, `/juegos/:id`), nunca la dirección real, que puede llevar el código secreto del club
+  (`src/lib/visits.ts`). Hay que activar Web Analytics en el proyecto de Vercel; en desarrollo no se manda nada.
+
+## Panel de administración
+
+`#/admin` (también desde Perfil → Panel de admin). Sólo lo ven las cuentas de la tabla `app_admins` que entraron con
+Google; cada función `admin_*` lo verifica en el servidor (`supabase/migrations/20261015000000_admin.sql`).
+
+- **Resumen**: cuentas, personas activas por día, clubes, partidas, juegos agregados, gasto de IA, retención y
+  los juegos más anotados (con las vistas de `metricas`).
+- **Personas, clubes y juegos agregados**: ver todo, editar clubes, cambiar el dueño, cortarle la IA a alguien, bajar
+  datos en JSON, y **desactivar** (y reactivar) cuentas y clubes. Por ahora el panel no borra filas: una cuenta
+  desactivada no puede entrar; un club desactivado deja de sincronizar en las dos apps y sale del buscador.
+- **Papelera**: juegos, partidas, jugadores y torneos que se borran desde el panel se marcan como borrados, igual que
+  desde la app (así llega a todos los dispositivos), y se pueden recuperar durante 30 días.
+- **Reportes**: con cuenta se puede reportar un club público o una persona desde el buscador.
+- **Control**: apagar la IA o cambiar sus topes (la función `generate-game` lo respeta), un anuncio arriba de la app
+  y mensajes a todas las cuentas, a un club o a una persona (llegan a las notificaciones).
+- **Salud**: clubes vacíos, abandonados, desactivados o sin dueño, cuentas sin perfil y partidas rotas o colgadas.
+- **Registro**: todo lo que se hizo desde el panel (`admin_log`).
+- Desde esta versión se guarda quién sube cada cosa (`entities.created_by`): lo anterior figura como "autor desconocido".
+- Para sumar otro admin: `insert into public.app_admins (user_id) select id from auth.users where email = '…';`
 
 ## Desarrollo
 

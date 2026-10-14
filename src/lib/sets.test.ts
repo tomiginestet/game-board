@@ -82,3 +82,26 @@ describe('tiempos', () => {
     expect(formatTime(3725)).toBe('1:02:05')
   })
 })
+
+describe('saque', () => {
+  const game = (s: number) => [s, s, s, s]
+  it('en tenis cambia en cada game y rota dentro de la pareja', () => {
+    expect(computeSets(tennis, [], 1).server).toBe(1)
+    const st = computeSets(tennis, [...game(0), ...game(0)], 0)
+    expect(st.server).toBe(0)
+    expect(st.serveTurns).toEqual([2, 1])
+    expect(computeSets(tennis, game(1), 0).server).toBe(1)
+  })
+
+  it('en el tie-break saca uno y después dos y dos', () => {
+    // 6-6: doce games, el que sacó primero en el partido vuelve a sacar el primer punto del tie-break.
+    const sixAll = Array.from({ length: 6 }, () => [...game(0), ...game(1)]).flat()
+    const servers = [0, 1, 1, 0, 0, 1].map((_, k) => computeSets(tennis, [...sixAll, ...Array(k).fill(0)], 0).server)
+    expect(servers).toEqual([0, 1, 1, 0, 0, 1])
+  })
+
+  it('en vóley saca el que ganó el último punto', () => {
+    expect(computeSets(volley, [1], 0).server).toBe(1)
+    expect(computeSets(volley, [1, 0], 0).server).toBe(0)
+  })
+})

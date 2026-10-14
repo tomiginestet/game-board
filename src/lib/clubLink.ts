@@ -1,7 +1,7 @@
 // Links de los clubes: el corto (`/c/lasartes`), el de invitación (`/unirse/<código>`) y lo que viene en un QR.
 //
 // El link corto es lo que se imprime en la tarjeta del bar: lo elige un admin y apunta al club (ver
-// `supabase/migrations/20261015000000_club_links_venues.sql`). Los links que se comparten van sin `#`
+// `supabase/migrations/20261015000200_club_links_venues.sql`). Los links que se comparten van sin `#`
 // (`…/c/lasartes`), así los servidores que arman la vista previa (WhatsApp, Telegram…) llegan a
 // `api/club.ts`, que responde con la carátula y manda a la persona a la ruta de la app (`#/c/lasartes`).
 

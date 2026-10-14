@@ -434,6 +434,9 @@ section > .section-head {
   display: flex;
   justify-content: center;
   min-height: 44px;
+  /* El iframe de Google es de esquema claro; si hereda el oscuro de la app, el navegador
+     le pinta un fondo blanco opaco alrededor de la píldora. Igualarlo lo deja transparente. */
+  color-scheme: light;
 }
 
 .link-btn {

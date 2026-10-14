@@ -5,6 +5,7 @@ import type { GameDef } from '../lib/games/schema'
 import { formatDate, UNKNOWN_PLAYER } from '../lib/hooks'
 import { formatScore } from '../lib/score'
 import { formatWhen } from '../lib/schedule'
+import { lineup } from '../lib/calls'
 import type { Id, Play, PlaySide, Player } from '../lib/types'
 import { TeamAvatar } from './Avatar'
 
@@ -38,6 +39,17 @@ export function sideName(side: PlaySide, players: Map<Id, Player>): string {
   return side.name ?? names
 }
 
+/** Cómo se nombra un partido en una lista: los lados ("Los Pibes vs La Banda") o la convocatoria. */
+export function playTitle(play: Play, players: Map<Id, Player>, teams: { id: Id; name: string }[] = []): string {
+  if (play.invited && !play.sides.length) {
+    const team = play.callTeamId ? teams.find((t) => t.id === play.callTeamId) : undefined
+    const { inIds, waitIds } = lineup(play, play.invited)
+    const count = play.capacity ? `${inIds.length}/${play.capacity} confirmados` : `${inIds.length} de ${play.invited.length} confirmados`
+    return `${team ? `${team.name}: c` : 'C'}onvocatoria · ${count}${waitIds.length ? ` · ${waitIds.length} en espera` : ''}`
+  }
+  return play.sides.map((s) => sideName(s, players)).join(' vs ')
+}
+
 /** Color que representa a un lado (el de su primer jugador). */
 export function sideColor(side: PlaySide, players: Map<Id, Player>): string {
   return players.get(side.players[0])?.color ?? '#888'
@@ -69,7 +81,7 @@ export function PlayRow({ play, game, players, focus, showGame = true }: { play:
   const ranked = !live && coop === undefined && !draw
   const lead = ranked ? order.filter((i) => play.result?.places[i] === 1) : []
   const rest = ranked ? order.filter((i) => play.result?.places[i] !== 1) : []
-  const all = order.map((i) => sideName(play.sides[i], players)).join(' · ')
+  const all = play.sides.length ? order.map((i) => sideName(play.sides[i], players)).join(' · ') : playTitle(play, players)
   return (
     <Link to={`/partida/${play.id}`} className={'match-row play-row' + resultClass + (live ? ' is-live' : '')}>
       <div className="mr-meta">

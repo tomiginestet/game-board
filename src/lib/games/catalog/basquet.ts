@@ -13,9 +13,9 @@ export const basquet: GameDef = {
   teamSize: 2,
   mode: 'counter',
   weight: 2,
-  scoring: { quick: [2, 3, 1], quickLabel: 'Doble', pointsName: 'puntos' },
+  scoring: { quick: [2, 3, 1], quickLabel: 'Doble', pointsName: 'puntos', clock: { periods: 4, minutes: 10, minutesOption: 'quarter', periodName: 'cuarto' } },
   perPlayer: { scorer: true, unit: 'puntos', unitOne: 'punto', assists: true, mvp: true },
-  options: [],
+  options: [{ id: 'quarter', label: 'Cada cuarto', type: 'select', default: 10, choices: [{ value: 8, label: '8 minutos' }, { value: 10, label: '10 minutos' }, { value: 12, label: '12 minutos' }] }],
   events: [
     { id: 'tapa', name: 'Tapa', emoji: '🖐️', type: 'count', byPlayer: true, help: 'Tapón: bloqueó un tiro.' },
     { id: 'robo', name: 'Robo', emoji: '🥷', type: 'count', byPlayer: true },

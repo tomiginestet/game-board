@@ -1,4 +1,4 @@
-import { CaretDownIcon } from '@phosphor-icons/react'
+import { ArrowsLeftRightIcon, CaretDownIcon } from '@phosphor-icons/react'
 import { useEffect, useMemo, useState } from 'react'
 import { TeamAvatar } from '../../components/Avatar'
 import { sideColor, sideName, sidePlayersOf } from '../../components/GameBits'
@@ -14,6 +14,7 @@ import { usePlayToggle, useTapGuard } from './playHooks'
 import { KeyHint } from './KeyHint'
 import { PointsDialog, WhoDialog } from './shared'
 import { BoardTabs, lastText } from './BoardTabs'
+import { ClockBar } from './ClockBar'
 import { sideKeys, undoLast, useScoreKeys } from './useScoreKeys'
 
 /** Cuántas jugadas se muestran de entrada por lado; el resto queda detrás de "Ver todo". */
@@ -145,8 +146,14 @@ export function CounterBoard({ play, game, live, players }: { play: Play; game: 
           onSubmit={whoDone}
         />
       )}
+      {game.scoring.clock && <ClockBar play={play} game={game} />}
       {columns ? <MatchLine play={play} game={game} players={players} /> : <ScoreStrip play={play} game={game} live={live} players={players} />}
       {live.sets && <SetsStrip live={live} />}
+      {live.sets && !live.sets.played && (
+        <button type="button" className="link-btn small center-block serve-switch" onClick={() => actions.patchPlay(play.id, { firstServer: live.sets!.server === 0 ? 1 : 0 })}>
+          <ArrowsLeftRightIcon className="inline-icon" aria-hidden="true" /> Cambiar quién saca primero
+        </button>
+      )}
       <BoardTabs play={play} game={game} players={players} help={helpItems}>
         <div className={columns ? 'cols' : 'bands' + (two ? ' two' : '')}>
           {play.sides.map((side, s) => (
@@ -214,6 +221,9 @@ function SideScore({ side, score, game, target, quick, players, shortcut, onTap,
   const sets = live.sets
   if (sets) {
     const tennis = game.scoring.sets?.kind === 'tennis'
+    // En dobles de tenis y pádel, dentro de la pareja saca uno por vez, turno y turno.
+    const team = sidePlayersOf(side, players)
+    const server = tennis && team.length > 1 && sets.server === index ? team[(Math.max(1, sets.serveTurns[index]) - 1) % team.length] : undefined
     return (
       <button type="button" className="counter-main sets-main" aria-keyshortcuts={shortcut} {...guard}>
         <span className="cs-name">
@@ -222,6 +232,12 @@ function SideScore({ side, score, game, target, quick, players, shortcut, onTap,
         <span key={sets.call[index] + sets.played} className="cs-score" aria-label={`${sets.call[index]} en este ${tennis && !sets.tiebreak ? 'game' : sets.tiebreak ? 'tie-break' : 'set'}`}>
           {sets.call[index]}
         </span>
+        {sets.winner === undefined && sets.server === index && (
+          <span className="sets-serve">
+            <span className="serve-ball" aria-hidden="true" />
+            {server ? `Saca ${server.name}` : 'Saca'}
+          </span>
+        )}
         <span className="cs-sub sets-sub">
           <span>
             Sets <b className="num">{sets.won[index]}</b>

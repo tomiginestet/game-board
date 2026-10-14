@@ -137,6 +137,8 @@ export interface CupStanding {
   score: number
   /** Diferencia de puntaje (ligas de a dos). */
   diff: number
+  /** Puntaje en contra (goles en contra), en las partidas de a dos con puntaje. */
+  against: number
 }
 
 /** Puntos por puesto en una mesa: uno por cada lado que quedó atrás. */
@@ -145,7 +147,7 @@ export function placePoints(places: number[], side: number): number {
 }
 
 export function cupStandings(cup: Cup, plays: Play[], lowWins = false): CupStanding[] {
-  const rows: CupStanding[] = cup.entrants.map((_, i) => ({ entrant: i, played: 0, wins: 0, draws: 0, losses: 0, points: 0, score: 0, diff: 0 }))
+  const rows: CupStanding[] = cup.entrants.map((_, i) => ({ entrant: i, played: 0, wins: 0, draws: 0, losses: 0, points: 0, score: 0, diff: 0, against: 0 }))
   const isFinal = (p: Play) => cup.format === 'tables' && cup.final && p.round === (cup.rounds ?? 0)
   for (const play of plays) {
     if (play.status !== 'finished' || !play.result || isFinal(play)) continue
@@ -166,7 +168,10 @@ export function cupStandings(cup: Cup, plays: Play[], lowWins = false): CupStand
       if (cup.format === 'league' || cup.format === 'knockout') {
         row.points += won ? 3 : drawn ? 1 : 0
         const other = scores?.[1 - side] ?? null
-        if (own !== null && other !== null) row.diff += own - other
+        if (own !== null && other !== null) {
+          row.diff += own - other
+          row.against += other
+        }
       } else row.points += placePoints(play.result!.places, side)
     })
   }

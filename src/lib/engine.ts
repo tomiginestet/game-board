@@ -101,7 +101,7 @@ export function computeLive(game: GameDef, play: Play): LiveState {
     st.eliminated = st.scores.map((s) => s >= elim)
   }
   if (game.mode === 'sets') {
-    st.sets = computeSets(setsRuleOf(game, play.config), pointSides(play.log))
+    st.sets = computeSets(setsRuleOf(game, play.config), pointSides(play.log), play.firstServer === 1 ? 1 : 0)
     st.scores = play.sides.map((_, i) => st.sets!.won[i] ?? 0)
   }
   return st

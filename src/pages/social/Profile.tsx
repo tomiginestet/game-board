@@ -1,8 +1,9 @@
-import { GearSixIcon, PencilSimpleIcon, RankingIcon, SignOutIcon, UsersThreeIcon } from '@phosphor-icons/react'
+import { GearSixIcon, PencilSimpleIcon, RankingIcon, ShieldCheckIcon, SignOutIcon, UsersThreeIcon } from '@phosphor-icons/react'
 import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { Avatar } from '../../components/Avatar'
 import { ProfileForm } from '../../components/ProfileForm'
+import { useIsAdmin } from '../../lib/admin'
 import { signOut, useAuth } from '../../lib/auth'
 import { confirmAction } from '../../lib/feedback'
 import { plural } from '../../lib/hooks'
@@ -14,6 +15,7 @@ export function Profile() {
   const { groups } = useMyGroups()
   const navigate = useNavigate()
   const [editing, setEditing] = useState(false)
+  const isAdmin = useIsAdmin()
 
   if (!auth.session || !profile) {
     return (
@@ -77,6 +79,15 @@ export function Profile() {
             <span className="muted small block">Copia de seguridad de los datos del club</span>
           </span>
         </Link>
+        {isAdmin && (
+          <Link to="/admin" className="card cup-row">
+            <ShieldCheckIcon />
+            <span className="grow">
+              <b>Panel de admin</b>
+              <span className="muted small block">Personas, clubes, juegos, métricas y control de la app</span>
+            </span>
+          </Link>
+        )}
       </div>
 
       <button

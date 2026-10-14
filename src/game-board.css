@@ -1224,3 +1224,294 @@
   flex: 1;
   min-width: 0;
 }
+
+/* Convocatoria: ¿quién viene? */
+
+.call-view {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.call-title {
+  margin: 0 0 4px;
+}
+
+.call-meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px 12px;
+  margin: 0;
+}
+
+.call-count {
+  margin: 8px 0 0;
+  font-size: 18px;
+}
+
+.call-count b {
+  font-size: 28px;
+}
+
+.call-list-title {
+  margin-bottom: 0;
+}
+
+.rsvp-list {
+  list-style: none;
+  margin: 8px 0 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.rsvp-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 52px;
+  padding: 6px 8px 6px 10px;
+  border-radius: var(--radius);
+  background: var(--card);
+  border: 1px solid var(--border);
+}
+
+.rsvp-row.is-yes {
+  border-color: color-mix(in srgb, var(--win) 55%, var(--border));
+}
+
+.rsvp-row.is-no {
+  opacity: 0.7;
+}
+
+.rsvp-choices {
+  display: flex;
+  gap: 4px;
+  flex: none;
+}
+
+.rsvp-btn {
+  min-width: 52px;
+  min-height: 40px;
+  padding: 0 8px;
+  border-radius: 10px;
+  border: 1px solid var(--border);
+  background: var(--card-2);
+  color: var(--text-soft);
+  font: inherit;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.rsvp-btn.yes.active {
+  background: #15803d;
+  border-color: #15803d;
+  color: var(--on-fill);
+}
+
+.rsvp-btn.maybe.active {
+  background: var(--accent-2);
+  border-color: var(--accent-2);
+  color: #1a1a1a;
+}
+
+.rsvp-btn.no.active {
+  background: var(--loss-fill);
+  border-color: var(--loss-fill);
+  color: var(--on-fill);
+}
+
+@media (max-width: 380px) {
+  .rsvp-btn {
+    min-width: 44px;
+    padding: 0 6px;
+    font-size: 13px;
+  }
+}
+
+/* Cronómetro del partido */
+
+.clock-bar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px 12px;
+  margin: 0 0 10px;
+  padding: 10px 12px;
+  border-radius: var(--radius);
+  background: var(--card);
+  border: 1px solid var(--border);
+}
+
+.clock-bar.running {
+  border-color: color-mix(in srgb, var(--win) 50%, var(--border));
+}
+
+.clock-bar.over {
+  border-color: var(--accent-2);
+  background: color-mix(in srgb, var(--accent-2) 12%, var(--card));
+}
+
+.clock-read {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.clock-period {
+  font-size: 13px;
+  color: var(--muted);
+}
+
+.clock-time {
+  font-size: 30px;
+  font-weight: 700;
+  line-height: 1.1;
+}
+
+.clock-time small {
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.clock-extra {
+  color: var(--accent-2);
+}
+
+.clock-done {
+  font-weight: 700;
+  color: var(--accent-2);
+}
+
+.clock-actions {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .clock-bar.over .clock-done {
+    animation: clock-blink 1.2s ease-in-out 3;
+  }
+}
+
+@keyframes clock-blink {
+  50% {
+    opacity: 0.4;
+  }
+}
+
+/* Saque en los deportes por sets */
+
+.sets-serve {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--accent-2);
+}
+
+.serve-ball {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: #d4f542;
+  box-shadow: 0 0 0 2px rgba(0, 0, 0, 0.35);
+}
+
+.serve-switch {
+  margin: -4px auto 8px;
+}
+
+/* Convocatoria: vos, lista de espera y agenda */
+
+.rsvp-row.is-me {
+  border-width: 2px;
+  border-color: var(--accent);
+}
+
+.rsvp-row.is-waiting {
+  border-style: dashed;
+}
+
+.rsvp-name {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 2px 6px;
+  min-width: 0;
+}
+
+.rsvp-name .block {
+  flex-basis: 100%;
+}
+
+.rsvp-answer {
+  flex: none;
+  padding: 6px 10px;
+  border-radius: 10px;
+  font-size: 14px;
+  font-weight: 600;
+  background: var(--card-2);
+  color: var(--muted);
+}
+
+.rsvp-answer.yes {
+  color: var(--on-fill);
+  background: #15803d;
+}
+
+.rsvp-answer.maybe {
+  color: #1a1a1a;
+  background: var(--accent-2);
+}
+
+.rsvp-answer.no {
+  color: var(--on-fill);
+  background: var(--loss-fill);
+}
+
+.call-calendar {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.input.narrow {
+  width: auto;
+  min-width: 150px;
+}
+
+.day-tag,
+.my-status {
+  display: inline-block;
+  margin-right: 6px;
+  padding: 0 6px;
+  border-radius: 6px;
+  font-size: 12px;
+  line-height: 18px;
+  background: var(--card-2);
+  color: var(--text);
+}
+
+.day-tag {
+  background: var(--accent-fill);
+  color: var(--on-fill);
+}
+
+.my-status.yes {
+  background: #15803d;
+  color: var(--on-fill);
+}
+
+.my-status.pending,
+.my-status.maybe,
+.my-status.wait {
+  background: var(--accent-2);
+  color: #1a1a1a;
+}

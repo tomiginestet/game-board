@@ -8,6 +8,7 @@ import { Loader } from '../components/Logo'
 import { MedalList, MedalListRow, RuleList } from '../components/MedalList'
 import { MedalSheet } from '../components/MedalSheet'
 import { generateWithApi, parseGameResponse, promptForChat, type Checked } from '../lib/ai'
+import { useAppConfig } from '../lib/appConfig'
 import { aiSpentThisMonth, useAuth } from '../lib/auth'
 import { findGame } from '../lib/games'
 import type { GameDef } from '../lib/games/schema'
@@ -187,6 +188,7 @@ function ApiFlow({ input, onDraft }: { input: { name: string; notes: string; rul
   const [spent, setSpent] = useState<number | null>(null)
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState('')
+  const config = useAppConfig()
   useEffect(() => {
     if (!auth.session) return
     aiSpentThisMonth()
@@ -195,6 +197,7 @@ function ApiFlow({ input, onDraft }: { input: { name: string; notes: string; rul
   }, [auth.session])
 
   if (!syncAvailable) return <div className="card">La IA automática no está disponible en esta versión de la app.</div>
+  if (config?.ai_enabled === false) return <div className="card">La IA automática está apagada por ahora. Probá con IA gratis: copiás las instrucciones y las pegás en cualquier chat.</div>
   if (!auth.session)
     return (
       <div className="card">

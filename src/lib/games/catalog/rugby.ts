@@ -13,9 +13,9 @@ export const rugby: GameDef = {
   teamSize: 2,
   mode: 'counter',
   weight: 2,
-  scoring: { quick: [5, 2, 3], quickLabel: 'Try', pointsName: 'puntos', allowDraw: true },
+  scoring: { quick: [5, 2, 3], quickLabel: 'Try', pointsName: 'puntos', allowDraw: true, clock: { periods: 2, minutes: 40, minutesOption: 'half' } },
   perPlayer: { scorer: true, unit: 'puntos', unitOne: 'punto', mvp: true },
-  options: [{ id: 'touch', label: 'Touch (sin tackle)', type: 'boolean', default: false, help: 'En touch, cada try vale 1: usá sólo el botón grande y contá de a uno.' }],
+  options: [{ id: 'half', label: 'Cada tiempo', type: 'select', default: 40, choices: [{ value: 20, label: '20 minutos' }, { value: 30, label: '30 minutos' }, { value: 35, label: '35 minutos' }, { value: 40, label: '40 minutos' }] }, { id: 'touch', label: 'Touch (sin tackle)', type: 'boolean', default: false, help: 'En touch, cada try vale 1: usá sólo el botón grande y contá de a uno.' }],
   events: [
     { id: 'tackle', name: 'Tackle tremendo', emoji: '💪', type: 'count', byPlayer: true },
   ],
