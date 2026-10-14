@@ -30,9 +30,11 @@ export function MedalsSection({ title, list, playerName }: { title: string; list
               aria-haspopup="dialog"
               onClick={() => setOpenId(k)}
             >
-              <span className="medal-family">{family.name}</span>
+              {/* Como las tarjetas de la ficha del juego: la medalla arriba y el texto abajo, centrados.
+                  Ganada, el título es el nivel y abajo la familia; bloqueada, el título es la familia. */}
               <Medal family={family} level={Math.max(level, 0)} locked={level < 0} size={84} />
-              <span className="medal-name">{level >= 0 ? family.levels[level].name : 'Bloqueado'}</span>
+              <span className="medal-name">{level >= 0 ? family.levels[level].name : family.name}</span>
+              {level >= 0 && <span className="medal-tile-family">{family.name}</span>}
               <span className="medal-sub">
                 {next ? `${value} de ${next.at} para ${TIERS[level + 1].name.toLowerCase()}` : `Nivel máximo · ${TIERS[level].name}`}
               </span>

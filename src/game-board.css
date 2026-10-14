@@ -970,7 +970,7 @@
 .vitrina {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(104px, 1fr));
-  gap: 8px;
+  gap: 10px;
 }
 
 .vitrina-item {
@@ -979,10 +979,11 @@
   align-items: center;
   gap: 4px;
   min-width: 0;
-  padding: 12px 6px 10px;
+  padding: 14px 8px 12px;
   border-radius: var(--radius);
   border: 1px solid var(--border);
-  background: var(--bg-2);
+  /* La misma superficie que las tarjetas de medallas de la ficha del juego. */
+  background: var(--card);
   color: var(--text);
   font: inherit;
   text-align: center;
@@ -1000,15 +1001,14 @@
 }
 
 .vitrina-item.won {
-  background: color-mix(in srgb, var(--accent-2) 6%, var(--bg-2));
   border-color: color-mix(in srgb, var(--accent-2) 35%, transparent);
 }
 
 .vitrina-name {
-  margin-top: 2px;
-  font-size: 13px;
+  margin-top: 6px;
+  font-size: 14px;
   font-weight: 700;
-  line-height: 1.2;
+  line-height: 1.25;
 }
 
 .vitrina-sub {
@@ -1016,18 +1016,33 @@
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-  font-size: 12px;
+  font-size: 13px;
   color: var(--muted);
+}
+
+/* Quién llegó más alto: corona y nombre en dorado, como en la ficha del juego. */
+.vitrina-sub.leader {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  color: var(--accent-2);
+  font-weight: 600;
+}
+
+.vitrina-sub.leader svg {
+  flex-shrink: 0;
 }
 
 .vitrina-item:not(.won) .vitrina-name {
   color: var(--muted);
 }
 
+/* Los puntos de nivel van al pie, alineados entre tarjetas de una misma fila. */
 .vitrina-levels {
   display: flex;
   gap: 3px;
-  margin-top: 4px;
+  margin-top: auto;
+  padding-top: 8px;
 }
 
 .vitrina-levels i {

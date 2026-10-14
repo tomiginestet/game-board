@@ -1,4 +1,4 @@
-import { ArrowLeftIcon } from '@phosphor-icons/react'
+import { ArrowLeftIcon, CrownIcon } from '@phosphor-icons/react'
 import { useMemo, useState } from 'react'
 import { Link, useSearchParams } from 'react-router-dom'
 import { Medal } from '../components/Medal'
@@ -160,7 +160,13 @@ export function Medals() {
                 >
                   <Medal family={e.family} level={Math.max(e.best, 0)} locked={e.best < 0} size={72} />
                   <span className="vitrina-name">{e.family.name}</span>
-                  <span className="vitrina-sub">{top ? `👑 ${top.name}` : 'Nadie todavía'}</span>
+                  {top ? (
+                    <span className="vitrina-sub leader">
+                      <CrownIcon weight="fill" aria-hidden /> <span className="ellipsis">{top.name}</span>
+                    </span>
+                  ) : (
+                    <span className="vitrina-sub">Nadie todavía</span>
+                  )}
                   <span className="vitrina-levels" aria-label={`${e.best + 1} de ${e.family.levels.length} niveles`}>
                     {e.family.levels.map((_, i) => (
                       <i key={i} className={i <= e.best ? 'on' : ''} />
