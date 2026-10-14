@@ -209,6 +209,15 @@ La medalla es la protagonista: siempre **arriba y centrada**, con el texto debaj
 ### Separar secciones
 Una sola línea (`.section-divided`: borde superior + 24px) separa dos secciones de naturaleza distinta (medallas → reglas). Adentro de una sección, aire en vez de divisores; las líneas entre filas quedan para listas densas de datos (la ficha de la medalla, "Medallas a la vista").
 
+### Jerarquía de datos
+- **Una pastilla se toca o marca un estado.** Los datos descriptivos van como texto o en una franja, nunca como una fila de pastillas que no hacen nada.
+- **Ficha del juego**: la categoría va en la flecha de volver ("← Cartas") y el origen (IA, del club) a su lado. Lo práctico va en `.gd-spec`: columnas iguales (jugadores, peso, cómo se anota) separadas por líneas finas, sin cajas. Lo del club arranca en "En el club · N partidas" (cinturón y ranking).
+- **Un número protagonista por pantalla.** Los demás van en una frase, en una lista de etiqueta y valor (`.pd-ledger`, separada por aire) o en una tabla. Nada de grillas de cajas iguales con un número adentro. Un dato se cuenta una vez: partidas, victorias y porcentaje son una frase y una barra.
+- **Perfil del jugador**: encabezado a la izquierda (avatar, nombre, gloria y puesto), las victorias como número protagonista con la barra G/E/P, la "Forma" (últimas 8 partidas con letra G/P/E además del color) y "Sus juegos" como tabla (V–D, puesto en el club, Elo); tocar una fila la abre con la curva de Elo.
+- **Comparables en columna**: varios elementos del mismo tipo (juegos, sets) van en una tabla alineada antes que en tarjetas o chips de a uno.
+- **Planilla de sets** (`SetSheet`): una columna por set, el ganador del set en blanco y negrita, el total al final de la fila, como en el tenis. Es la única forma de mostrar sets (lista de partidas y resultado).
+- **Resultado**: el trofeo es una chapita sobre el avatar del ganador (no un ícono aparte), el título en Lilita, la planilla, el Elo en una línea ("+16 → 1016") y la medalla nueva grande y centrada con su nombre y su chiste debajo.
+
 ### Inputs / Fields
 Siempre con etiqueta visible (`.field` + `.field-label`); el placeholder es un ejemplo, no la etiqueta. Errores debajo del campo, enlazados con `aria-describedby`.
 
@@ -239,3 +248,5 @@ Cuatro cuadraditos (naranja, azul, verde, violeta; dorado para el ganador) anima
 - Texto menor a 12px, objetivos táctiles menores a 44px.
 - `window.confirm/alert/prompt`.
 - Mostrar errores técnicos o en inglés.
+- Grillas de cajas iguales con un número y una etiqueta (la plantilla de "número grande").
+- Filas de pastillas que mezclan datos de distinta naturaleza (qué es, cómo se juega, qué pasó en el club).

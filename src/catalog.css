@@ -730,16 +730,83 @@
   font-size: 16px;
 }
 
-.gd-hero-chips {
+/* Miga de pan: la categoría del juego y, si corresponde, de dónde salió. */
+.gd-crumb {
   display: flex;
-  flex-wrap: wrap;
-  gap: 6px;
-  margin-top: 4px;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
 }
 
-.gd-hero-chips .cc-chip {
+.gd-source {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--muted);
+  font-size: 14px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.gd-source.ai {
+  color: var(--ai-soft);
+}
+
+/* Franja de datos prácticos: columnas iguales separadas por líneas finas, sin cajas. */
+.gd-spec {
+  display: grid;
+  grid-auto-flow: column;
+  grid-auto-columns: minmax(0, 1fr);
+  margin: 0;
+  border-block: 1px solid var(--border);
+}
+
+.gd-spec > div {
+  display: flex;
+  flex-direction: column-reverse;
+  gap: 2px;
+  padding: 12px;
+  min-width: 0;
+}
+
+.gd-spec > div:first-child {
+  padding-left: 0;
+}
+
+.gd-spec > div + div {
+  border-left: 1px solid var(--border);
+}
+
+.gd-spec dd {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin: 0;
+  font-size: 17px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.gd-spec dd svg {
+  flex: none;
+  color: var(--accent);
+}
+
+.gd-spec dt {
+  color: var(--muted);
   font-size: 13px;
-  padding: 3px 10px;
+}
+
+.gd-club h2 .muted {
+  font-size: 16px;
+  font-weight: 400;
+}
+
+.gd-club > .belt {
+  margin-bottom: 12px;
 }
 
 @media (min-width: 700px) {
