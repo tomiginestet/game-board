@@ -124,9 +124,11 @@ export function Medals() {
         </span>
       </header>
 
-      <div className="chips">
+      {/* Filtros: qué mirar (segmentado, discreto) y de qué juego (chips, el único naranja). */}
+      <div className="filters">
+      <div className="segmented quiet">
         {SHOW.map((s) => (
-          <button key={s.id} className={'chip' + (show === s.id ? ' active' : '')} aria-pressed={show === s.id} onClick={() => setParam('ver', s.id === 'all' ? undefined : s.id)}>
+          <button key={s.id} className={show === s.id ? 'active' : ''} aria-pressed={show === s.id} onClick={() => setParam('ver', s.id === 'all' ? undefined : s.id)}>
             {s.name}
           </button>
         ))}
@@ -137,16 +139,15 @@ export function Medals() {
         </button>
         {shelves.map((s) => (
           <button key={s.id} className={'chip' + (shelfId === s.id ? ' active' : '')} aria-pressed={shelfId === s.id} onClick={() => setParam('juego', s.id)}>
-            {s.emoji} {s.name}
+            {s.name}
           </button>
         ))}
+      </div>
       </div>
 
       {visible.map((s) => (
         <section key={s.id}>
-          <h2>
-            {s.emoji} {s.name}
-          </h2>
+          <h2>{s.name}</h2>
           <div className="vitrina">
             {s.entries.map((e) => {
               const top = e.best >= 0 ? e.holders.filter((h) => h.level === e.best).sort((a, b) => b.value - a.value)[0] : undefined

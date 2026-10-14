@@ -38,7 +38,8 @@ export function MiniScore({
   const showLead = alive.some((t) => t !== best)
   return (
     <div className="mini-score" role="group" aria-label="Marcador">
-      <ul className="mscore-row" style={{ ['--n' as string]: play.sides.length }}>
+      {/* Con más de 5, dos filas de 4: todos los puntajes a la vista, sin desplazar de costado. */}
+      <ul className={'mscore-row' + (play.sides.length > 5 ? ' many' : '')} style={{ ['--n' as string]: play.sides.length }}>
         {play.sides.map((side, i) => {
           const lead = showLead && totals[i] === best && !out?.[i]
           const name = sideName(side, players)

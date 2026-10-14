@@ -103,6 +103,15 @@ function PlayView({ play, game }: { play: Play; game: GameDef }) {
     else if (shortfall) setConfirming(true)
     else finishNow()
   }
+  // Por turnos, "Terminar" es el banderín de arriba: como queda lejos del pulgar, pregunta antes (salvo que ya
+  // pregunte la barra porque falta algo, o que se abra el formulario de cierre).
+  const askFinishFromHead = async () => {
+    if (direct && !shortfall) {
+      const ok = await confirmAction({ title: '¿Terminar la partida?', detail: 'Se cierra con los puntos de ahora.', confirmLabel: 'Terminar partida' })
+      if (!ok) return
+    }
+    askFinish()
+  }
   const finishBtnRef = useRef<HTMLButtonElement>(null)
   const keepPlaying = () => {
     setConfirming(false)
@@ -170,6 +179,11 @@ function PlayView({ play, game }: { play: Play; game: GameDef }) {
           {showLive ? <h1 className="play-h1">{game.name}</h1> : <strong>{game.name}</strong>}
           <span className="muted small block">{describePlay(game, play, live)}</span>
         </div>
+        {turns && showLive && !finishing && (
+          <button ref={finishBtnRef} type="button" className="icon-btn play-finish-flag" onClick={askFinishFromHead} aria-label="Terminar partida" title="Terminar partida">
+            <FlagCheckeredIcon />
+          </button>
+        )}
       </header>
 
       <ReadOnlyNote kind="play" entity={play} />
@@ -210,7 +224,7 @@ function PlayView({ play, game }: { play: Play; game: GameDef }) {
             (confirming && shortfall ? (
               <FinishConfirm text={`${shortfall}.${pendingNote} ¿Terminar igual?`} onKeep={keepPlaying} onFinish={finishNow} />
             ) : (
-              // Por turnos, lo principal es pasar el turno: va al centro, en naranja; Deshacer y Terminar, a los costados y más chicos.
+              // Por turnos, pasar el turno ocupa toda la barra al lado de Deshacer; Terminar es el banderín de arriba.
               <div className={'play-dock' + (turns ? ' turns' : '')}>
                 <button type="button" className="btn big dock-undo" onClick={undo} disabled={!play.log.length} aria-keyshortcuts={game.mode === 'rounds' ? undefined : 'Z Backspace'} aria-label={turns ? 'Deshacer' : undefined}>
                   <ArrowCounterClockwiseIcon aria-hidden="true" /> {!turns && 'Deshacer'}
@@ -224,10 +238,12 @@ function PlayView({ play, game }: { play: Play; game: GameDef }) {
                     </span>
                   </button>
                 )}
-                {/* Secundario en todos los modos: el único naranja de la pantalla es la acción de anotar (o "Pasar turno"). */}
-                <button ref={finishBtnRef} type="button" className="btn big dock-finish" onClick={askFinish}>
-                  <FlagCheckeredIcon aria-hidden="true" /> {turns ? 'Terminar' : 'Terminar partida'}
-                </button>
+                {/* Secundario en todos los modos: el único naranja de la pantalla es la acción de anotar. Por turnos va arriba. */}
+                {!turns && (
+                  <button ref={finishBtnRef} type="button" className="btn big dock-finish" onClick={askFinish}>
+                    <FlagCheckeredIcon aria-hidden="true" /> Terminar partida
+                  </button>
+                )}
               </div>
             ))
           )}

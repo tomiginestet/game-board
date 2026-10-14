@@ -1,7 +1,7 @@
 // Resumen de un conjunto de jugadores (todo el club o el plantel de un equipo):
 // quién manda, las medallas que ganaron entre todos y lo que más juegan.
 
-import { ArrowRightIcon, CrownIcon, SparkleIcon } from '@phosphor-icons/react'
+import { ArrowRightIcon, CrownIcon } from '@phosphor-icons/react'
 import { useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { findGame } from '../lib/games'
@@ -94,30 +94,47 @@ export function SquadLeaders({ ids, title = 'Quién manda' }: { ids?: Id[]; titl
           Ranking <ArrowRightIcon className="inline-icon" size="1em" />
         </Link>
       </div>
-      <ol className="podium">
-        {top.map((s, i) => {
-          const p = players.get(s.playerId)!
-          return (
-            <li key={s.playerId} className={'podium-spot' + (i === 0 ? ' first' : '')}>
-              <Link to={`/jugadores/${p.id}`} className="podium-link">
-                <span className="podium-avatar">
-                  {i === 0 && <CrownIcon weight="fill" className="podium-crown" aria-hidden />}
-                  <Avatar player={p} size={i === 0 ? 56 : 48} />
-                </span>
-                <span className="podium-place" aria-label={`Puesto ${i + 1}`}>
-                  {i + 1}
-                </span>
-                <b className="podium-name ellipsis">{p.name}</b>
-                <span className="podium-gloria num">
-                  <SparkleIcon weight="fill" className="gloria-icon" aria-hidden /> {s.gloria}
-                </span>
-                <span className="muted small">{plural(s.wins, 'victoria', 'victorias')}</span>
-              </Link>
-            </li>
+      <GloriaPodium top={top} />
+    </section>
+  )
+}
+
+/**
+ * Podio de gloria (inicio, club, equipo): el segundo, el primero y el tercero, cada uno con su escalón; el escalón
+ * lleva la gloria (la altura y el número dicen lo mismo). Debajo, cuánto le lleva el primero al segundo.
+ */
+export function GloriaPodium({ top }: { top: { playerId: Id; gloria: number }[] }) {
+  const players = usePlayerMap()
+  const name = (i: number) => players.get(top[i]?.playerId)?.name
+  return (
+    <>
+      <div className="podium">
+        {[top[1], top[0], top[2]].map((s, i) => {
+          const p = s && players.get(s.playerId)
+          const place = ([2, 1, 3] as const)[i]
+          return p ? (
+            <Link key={p.id} to={`/jugadores/${p.id}`} className={'podium-spot place-' + place}>
+              <Avatar player={p} size={i === 1 ? 64 : 48} />
+              <span className="podium-name">
+                <span className="sr-only">{place}º, </span>
+                {p.name}
+              </span>
+              <span className="podium-block num">
+                {s.gloria}
+                <small>de gloria</small>
+              </span>
+            </Link>
+          ) : (
+            <div key={i} className="podium-spot empty-spot" />
           )
         })}
-      </ol>
-    </section>
+      </div>
+      {top[1] && name(0) && name(1) && (
+        <p className="podium-gap">
+          {top[0].gloria === top[1].gloria ? `${name(0)} y ${name(1)} están empatados.` : `${name(0)} le lleva ${top[0].gloria - top[1].gloria} de gloria a ${name(1)}.`}
+        </p>
+      )}
+    </>
   )
 }
 
