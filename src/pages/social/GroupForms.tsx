@@ -1,5 +1,6 @@
 import { CheckIcon, GlobeHemisphereWestIcon, HourglassIcon, LockSimpleIcon, MagnifyingGlassIcon, SparkleIcon, UsersThreeIcon } from '@phosphor-icons/react'
 import { useEffect, useState } from 'react'
+import { ReportButton } from '../../components/ReportButton'
 import { cancelJoinRequest, createGroup, requestJoin, searchGroups, updateGroup, type FoundGroup, type MyGroup } from '../../lib/social'
 import { useData } from '../../lib/store'
 import { friendlyError } from '../../lib/text'
@@ -162,6 +163,7 @@ export function GroupSearch({ onOpenMine }: { onOpenMine?: (groupId: string) => 
                 <UsersThreeIcon className="inline-icon" /> {g.members} {g.members === 1 ? 'integrante' : 'integrantes'}
               </span>
             </span>
+            {g.my_status !== 'member' && <ReportButton target={{ kind: 'group', group_id: g.id }} name={g.name} />}
             {g.my_status === 'member' ? (
               <button className="btn small" onClick={() => onOpenMine?.(g.id)}>
                 <CheckIcon /> Sos parte

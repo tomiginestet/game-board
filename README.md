@@ -99,6 +99,36 @@ La app funciona offline: todo se guarda en el navegador y, si el dispositivo est
   resumida del esquema (`sources.ts`, más barata por llamada): si cambia el esquema, actualizarla. Después de
   cambiar el pedido: `npm run build:ai` y volver a publicar la función.
 
+## Métricas
+
+- **Uso de los clubes** (Supabase): el esquema `metricas` (`supabase/migrations/20261014000000_metricas.sql`) tiene
+  vistas para el editor SQL: `metricas.resumen` (lo principal en una fila), `metricas.semanal` (clubes activos,
+  partidas, clubes y cuentas nuevas, IA), `metricas.juegos` (los más anotados) y `metricas.retencion` (si los clubes
+  vuelven 1 a 4 semanas después). No está en la API: la app no lo puede leer. Sólo cuenta lo que se sincronizó.
+- **Visitas** (Vercel Web Analytics, sin cookies): `src/components/Visits.tsx`. Se manda sólo la pantalla genérica
+  (`/unirse/:code`, `/juegos/:id`), nunca la dirección real, que puede llevar el código secreto del club
+  (`src/lib/visits.ts`). Hay que activar Web Analytics en el proyecto de Vercel; en desarrollo no se manda nada.
+
+## Panel de administración
+
+`#/admin` (también desde Perfil → Panel de admin). Sólo lo ven las cuentas de la tabla `app_admins` que entraron con
+Google; cada función `admin_*` lo verifica en el servidor (`supabase/migrations/20261015000000_admin.sql`).
+
+- **Resumen**: cuentas, personas activas por día, clubes, partidas, juegos agregados, gasto de IA, retención y
+  los juegos más anotados (con las vistas de `metricas`).
+- **Personas, clubes y juegos agregados**: ver todo, editar clubes, cambiar el dueño, cortarle la IA a alguien, bajar
+  datos en JSON, y **desactivar** (y reactivar) cuentas y clubes. Por ahora el panel no borra filas: una cuenta
+  desactivada no puede entrar; un club desactivado deja de sincronizar en las dos apps y sale del buscador.
+- **Papelera**: juegos, partidas, jugadores y torneos que se borran desde el panel se marcan como borrados, igual que
+  desde la app (así llega a todos los dispositivos), y se pueden recuperar durante 30 días.
+- **Reportes**: con cuenta se puede reportar un club público o una persona desde el buscador.
+- **Control**: apagar la IA o cambiar sus topes (la función `generate-game` lo respeta), un anuncio arriba de la app
+  y mensajes a todas las cuentas, a un club o a una persona (llegan a las notificaciones).
+- **Salud**: clubes vacíos, abandonados, desactivados o sin dueño, cuentas sin perfil y partidas rotas o colgadas.
+- **Registro**: todo lo que se hizo desde el panel (`admin_log`).
+- Desde esta versión se guarda quién sube cada cosa (`entities.created_by`): lo anterior figura como "autor desconocido".
+- Para sumar otro admin: `insert into public.app_admins (user_id) select id from auth.users where email = '…';`
+
 ## Desarrollo
 
 ```bash
