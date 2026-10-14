@@ -7,7 +7,7 @@ import type { Play, PlayResult } from './types'
 
 /** Modos en los que el tablero lleva el puntaje mientras se juega. */
 export function hasLiveScore(game: GameDef): boolean {
-  return game.mode === 'counter' || game.mode === 'rounds' || game.mode === 'turns'
+  return game.mode === 'counter' || game.mode === 'rounds' || game.mode === 'turns' || game.mode === 'sets'
 }
 
 /** Puntaje final según lo anotado: en `turns` se suma lo oculto (que se revela al final). */
@@ -45,6 +45,11 @@ export function canFinishDirectly(game: GameDef, play: Play, live: LiveState): b
  */
 export function finishShortfall(game: GameDef, play: Play, live: LiveState, scores: (number | null)[] = liveFinalScores(game, live)): string | undefined {
   if (!hasLiveScore(game)) return undefined
+  if (game.mode === 'sets') {
+    const st = live.sets
+    if (st && st.winner === undefined) return st.need === 1 ? 'Falta terminar el set' : `Nadie ganó ${st.need} sets todavía`
+    return undefined
+  }
   const burns = eliminateOf(game, play.config) !== undefined
   if (game.mode === 'rounds' && !burns) {
     const total = roundsOf(game, play.config)

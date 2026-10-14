@@ -1,4 +1,4 @@
-import { PlusIcon } from '@phosphor-icons/react'
+import { CaretRightIcon, PlusIcon, ShieldIcon } from '@phosphor-icons/react'
 import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { Avatar } from '../components/Avatar'
@@ -26,6 +26,15 @@ export function Players() {
       {adding && (
         <PlayerForm submitLabel="Agregar jugador" onSubmit={(v) => actions.addPlayer(v.name, v.emoji, v.color)} onCancel={data.players.length ? () => setAdding(false) : undefined} />
       )}
+
+      <Link to="/equipos" className="card player-row teams-link">
+        <ShieldIcon size={28} aria-hidden="true" />
+        <div className="grow">
+          <strong>Equipos</strong>
+          <div className="muted small">{data.teams.length ? `${data.teams.length} ${data.teams.length === 1 ? 'equipo' : 'equipos'} del club` : 'Armá el de fútbol 5, la pareja de pádel…'}</div>
+        </div>
+        <CaretRightIcon aria-hidden="true" />
+      </Link>
 
       <div className="list">
         {players.map((p) => {

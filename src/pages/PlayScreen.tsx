@@ -5,6 +5,8 @@ import { TeamAvatar } from '../components/Avatar'
 import { GameBadge, sideName, sidePlayersOf } from '../components/GameBits'
 import { computeLive, eliminateOf, isDraw, roundsOf, targetOf, winnerSides, type LiveState } from '../lib/engine'
 import { planillaOf } from '../lib/games/planilla'
+import { bestOfText, setsLine, setsRuleOf } from '../lib/sets'
+import { formatScore } from '../lib/score'
 import { clearToast, confirmAction, toast } from '../lib/feedback'
 import { directResult, finishShortfall } from '../lib/finish'
 import { clearPlanillaDraft, hasPlanilla, pendingPlanillaSides } from '../lib/games/planilla'
@@ -52,7 +54,7 @@ function PlayView({ play, game }: { play: Play; game: GameDef }) {
   const [finishing, setFinishing] = useState(false)
   const backTo = play.cupId ? `/torneos/${play.cupId}` : '/'
   const finished = play.status === 'finished'
-  const scored = game.mode === 'counter' || game.mode === 'rounds' || game.mode === 'turns'
+  const scored = game.mode === 'counter' || game.mode === 'rounds' || game.mode === 'turns' || game.mode === 'sets'
 
   // "Terminar partida" con la partida incompleta: se pregunta ahí mismo, en la barra (no en un diálogo).
   const [confirming, setConfirming] = useState(false)
@@ -66,7 +68,7 @@ function PlayView({ play, game }: { play: Play; game: GameDef }) {
     setPrevStatus(play.status)
     setConfirming(false)
     if (play.status === 'finished') {
-      if (!finishing && !beat && (game.mode === 'counter' || game.mode === 'rounds')) setBeat('auto')
+      if (!finishing && !beat && (game.mode === 'counter' || game.mode === 'rounds' || game.mode === 'sets')) setBeat('auto')
       setFinishing(false)
     } else setBeat(false)
   }
@@ -176,7 +178,7 @@ function PlayView({ play, game }: { play: Play; game: GameDef }) {
           {/* Durante la pausa final el marcador queda a la vista pero no se puede tocar. */}
           <div className="play-board" inert={!!beat || undefined}>
             {scored && <ScoreAnnouncer play={play} live={live} players={players} />}
-            {game.mode === 'counter' && <CounterBoard play={play} game={game} live={live} players={players} />}
+            {(game.mode === 'counter' || game.mode === 'sets') && <CounterBoard play={play} game={game} live={live} players={players} />}
             {game.mode === 'rounds' && <RoundsBoard play={play} game={game} live={live} players={players} />}
             {game.mode === 'turns' && <TurnsBoard play={play} game={game} live={live} players={players} />}
             {(game.mode === 'result' || game.mode === 'coop') && <FinishForm play={play} game={game} live={live} players={players} />}
@@ -187,7 +189,7 @@ function PlayView({ play, game }: { play: Play; game: GameDef }) {
             )}
           </div>
           {beat ? (
-            <FinalBeat play={play} players={players} onUndo={() => {
+            <FinalBeat play={play} game={game} players={players} onUndo={() => {
               // Terminada a mano: sólo se reabre (lo anotado queda como estaba).
               if (beat === 'auto') actions.undo(play.id)
               // Si deshacer no alcanzó para reabrirla (p. ej. la cerró otra cosa), se reabre igual.
@@ -256,7 +258,7 @@ function FinishConfirm({ text, onKeep, onFinish }: { text: string; onKeep: () =>
  * con "Deshacer" por si fue un toque de más. Si alguien lo toca o lo recorre con el teclado, se queda;
  * con movimiento reducido no hay cuenta regresiva: espera a "Ver resumen".
  */
-function FinalBeat({ play, players, onUndo, onDone }: { play: Play; players: Map<Id, Player>; onUndo: () => void; onDone: () => void }) {
+function FinalBeat({ play, game, players, onUndo, onDone }: { play: Play; game: GameDef; players: Map<Id, Player>; onUndo: () => void; onDone: () => void }) {
   const reduce = useReducedMotion()
   const seeRef = useRef<HTMLButtonElement>(null)
   const winners = winnerSides(play)
@@ -268,11 +270,13 @@ function FinalBeat({ play, players, onUndo, onDone }: { play: Play; players: Map
   const raw = play.result?.scores
   const order = draw ? play.sides.map((_, i) => i) : [...winners, ...play.sides.map((_, i) => i).filter((i) => !winners.includes(i))]
   // Entre dos, "30 a 2"; con más, cada uno con su nombre ("Ana 26 · Beto 11 · Caro 8").
-  const score =
-    raw?.length && raw.every((v) => typeof v === 'number')
+  const sets = game.mode === 'sets' ? computeLive(game, play).sets : undefined
+  const score = sets?.done.length
+    ? setsLine(sets, winners[0] === 1 ? 1 : 0)
+    : raw?.length && raw.every((v) => typeof v === 'number')
       ? order.length > 2
-        ? order.map((i) => `${sideName(play.sides[i], players)} ${raw[i]}`).join(' · ')
-        : order.map((i) => raw[i]).join(' a ')
+        ? order.map((i) => `${sideName(play.sides[i], players)} ${formatScore(game, raw[i]!)}`).join(' · ')
+        : order.map((i) => formatScore(game, raw[i]!)).join(' a ')
       : ''
   const [paused, setPaused] = useState(false)
   const doneRef = useRef(onDone)
@@ -324,6 +328,15 @@ function FinalBeat({ play, players, onUndo, onDone }: { play: Play; players: Map
 
 function describePlay(game: GameDef, play: Play, live: LiveState): string {
   const parts: string[] = []
+  if (game.mode === 'sets') {
+    const rule = setsRuleOf(game, play.config)
+    parts.push(bestOfText(rule))
+    if (rule.kind === 'points') parts.push(`sets a ${rule.points}`)
+    if (rule.golden) parts.push('punto de oro')
+    if (play.venue) parts.push(play.venue)
+    return parts.join(' · ')
+  }
+  if (play.venue) parts.push(play.venue)
   const target = targetOf(game, play.config)
   const rounds = roundsOf(game, play.config)
   const burn = eliminateOf(game, play.config)

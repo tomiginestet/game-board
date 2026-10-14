@@ -21,13 +21,17 @@ de datos) que el [Ping Pong Club](https://github.com/tomiginestet/ping-pong-web-
   - **notificaciones** (solicitudes, invitaciones, amistades) en tiempo real;
   - **ranking de cada grupo** (el de siempre) y **ranking global** (todas las cuentas, todos los grupos).
 
-- **Biblioteca de juegos**: vienen 60 de fábrica (truco, Catán, buraco, Skull King, El Impostor, Pistas cruzadas,
+- **Biblioteca de juegos**: vienen 97 de fábrica (truco, Catán, buraco, Skull King, El Impostor, Pistas cruzadas,
   ta-te-ti, chinchón, generala, La Podrida, TEG, Código Secreto, Dixit, Carcassonne, ¡Aventureros al tren!,
   Mario Kart, EA FC, Among Us…) y se pueden **agregar más**.
   - **Cartas coleccionables** (TCG/LCG): Magic, Pokémon TCG, Yu-Gi-Oh!, Lorcana, One Piece, Mitos y Leyendas,
     Flesh and Blood, Digimon, Dragon Ball Super, Star Wars: Unlimited, Riftbound, Marvel Champions y Arkham Horror LCG;
     más Hearthstone y Marvel Snap en videojuegos. Se anotan al mejor de N games y cada uno trae sus formatos como
     opción de la partida (Commander, Draft, Speed Duel, Primer Bloque…).
+  - **Deportes**: de raqueta y red (pádel, tenis, fútbol tenis, vóley, beach vóley, pickleball, bádminton, squash,
+    pelota paleta), de equipo (fútbol 5, fútbol 7/11, futsal, básquet, básquet 3x3, handball, hockey, rugby, ultimate),
+    de precisión y de bar (pool, metegol, dardos, bowling, bochas, petanca, tejo, sapo, minigolf, golf, cornhole,
+    beer pong) y de marcas y tiempos (running, natación, ciclismo, escalada, penales, tiros libres, travesaño).
   - Para sumar otros:
     - **con IA gratis**: la app arma el pedido, lo pegás en cualquier chat (Claude, ChatGPT…) y pegás la respuesta;
     - **con IA automática**: un botón que usa la API de Claude, con tope de gasto mensual (USD 10);
@@ -37,10 +41,25 @@ de datos) que el [Ping Pong Club](https://github.com/tomiginestet/ping-pong-web-
   - *por manos* (buraco, chinchón con eliminación, generala por categorías, Skull King y La Podrida con apuestas y bazas);
   - *por turnos con puntaje oculto* (Catán: turnos, poblados, ciudades, camino más largo, ejército, cartas ocultas);
   - *resultado final* (orden de llegada, puntajes, roles secretos como impostor/tripulante);
-  - *cooperativo* (se gana o se pierde todos juntos).
+  - *cooperativo* (se gana o se pierde todos juntos);
+  - *por sets*, punto a punto (pádel y tenis con 15-30-40, punto de oro, tie-break y super tie-break; vóley,
+    fútbol tenis y bádminton con sets a N puntos);
+  - *por tiempos* (carreras: se carga 25:14 y gana el más rápido).
   - El ping pong usa el marcador del Ping Pong Club, punto a punto.
 - **Torneos según el juego**: eliminación directa, liga, mesas rotativas (para juegos de 3 a 6, con mesa final)
   y partida acumulada. Con premio o castigo en texto libre.
+  - **Fecha y cancha**: el fixture sale con día, hora y cancha de cada partido (una fecha por semana, cada dos, todo
+    el mismo día…); los partidos de una fecha se reparten entre las canchas y cada uno se puede reprogramar. Los
+    próximos partidos aparecen en el inicio.
+  - **Goleadores del torneo** y figuras, en los deportes que los llevan.
+- **Equipos fijos del club** (el fútbol 5 de los jueves, la pareja de pádel): nombre, escudo, color, plantel, capitán
+  y cancha de local. Juegan partidos y se anotan en ligas y torneos con su plantel; cada equipo tiene su campaña
+  (G-E-P, goles a favor y en contra, últimos resultados), su tabla de goleadores y sus próximos partidos.
+- **Estadísticas por jugador dentro del equipo**: en los deportes de equipo cada gol (o punto) se le anota a quien lo
+  hizo, con su asistencia; las tarjetas, atajadas o tapas, a quien las hizo; y al final se elige la figura. Salen
+  tablas de goleadores (del juego, del equipo y del torneo) y medallas como Hat-trick, Pasador, Figura o Valla invicta.
+- **Equipos parejos**: al armar una partida por equipos, un botón reparte a los que vinieron según su Elo en ese juego
+  (o en deportes parecidos, si nunca lo jugaron) y muestra las chances de cada lado.
 - **Rankings**: puntos de gloria (normalizados por tamaño de mesa y peso del juego), victorias, ELO por juego,
   todoterreno (juegos distintos ganados) y **cinturones** por juego. Por temporada: siempre, año, mes o semana.
 - **Medallas** con ilustraciones propias y niveles bronce → leyenda:

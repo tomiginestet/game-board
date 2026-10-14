@@ -24,6 +24,8 @@ const LEGACY_SYNC_KEY = 'game-board-sync-v1'
 const ACTIVE_KEY = 'game-board-active-club-v1'
 const clubSyncKey = (code: string) => `game-board-sync-v1:${code}`
 const PULL_INTERVAL_MS = 30_000
+/** Tipos que pueden no estar habilitados todavía en el servidor (ver la migración de equipos). */
+const NEWER_KINDS = new Set<EntityKind>(['team'])
 /** Margen al pedir cambios, por transacciones que confirman fuera de orden. */
 const PULL_OVERLAP_MS = 15_000
 
@@ -199,6 +201,7 @@ async function push(): Promise<void> {
     await pushing
     return schedulePush(0)
   }
+  let newerRejected = false
   pushing = (async () => {
     const items = Object.values(persisted.outbox)
     if (!items.length) return
@@ -211,11 +214,25 @@ async function push(): Promise<void> {
           const entity = listOf(data, it.kind).find((e) => e.id === it.id)
           return entity ? { kind: it.kind, id: it.id, v: it.v, deleted: false, data: entity } : { kind: it.kind, id: it.id, v: it.v, deleted: true }
         })
-        const { error } = await sb.rpc('push_changes', { p_code: club.code, p_items: payload })
-        if (error) throw error
+        // Los equipos son nuevos: si el servidor todavía no los acepta (falta su migración), quedan en la cola
+        // de este dispositivo sin frenar el resto de lo que hay que guardar.
+        const known = payload.filter((x) => !NEWER_KINDS.has(x.kind))
+        const newer = payload.filter((x) => NEWER_KINDS.has(x.kind))
+        const sent = new Set<string>()
+        if (known.length) {
+          const { error } = await sb.rpc('push_changes', { p_code: club.code, p_items: known })
+          if (error) throw error
+          for (const x of known) sent.add(entityKey(x.kind, x.id))
+        }
+        if (newer.length) {
+          const { error } = await sb.rpc('push_changes', { p_code: club.code, p_items: newer })
+          if (error && !/kind_check/.test(describeError(error))) throw error
+          if (!error) for (const x of newer) sent.add(entityKey(x.kind, x.id))
+          else newerRejected = true
+        }
         // Se cambió de grupo mientras subíamos: la cola de este grupo se limpia la próxima vez.
         if (persisted.club?.code !== club.code) return
-        for (const it of chunk) {
+        for (const it of chunk.filter((x) => sent.has(entityKey(x.kind, x.id)))) {
           const key = entityKey(it.kind, it.id)
           // Sólo se saca de la cola si no hubo otro cambio mientras subíamos.
           if (persisted.outbox[key]?.v === it.v) delete persisted.outbox[key]
@@ -233,7 +250,8 @@ async function push(): Promise<void> {
   } finally {
     pushing = null
   }
-  if (Object.keys(persisted.outbox).length && state.status === 'ok') schedulePush(0)
+  // Lo que el servidor no aceptó (equipos sin migración) se reintenta en la próxima sincronización, no ya.
+  if (Object.keys(persisted.outbox).length && state.status === 'ok' && !newerRejected) schedulePush(0)
 }
 
 interface PulledRow extends RemoteEntity {

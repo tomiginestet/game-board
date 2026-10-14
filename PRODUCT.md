@@ -5,7 +5,7 @@
 web
 
 ## Users
-Grupos de amigos, familia o compañeros de trabajo que se juntan a jugar (cartas, juegos de mesa, de fiesta, ping pong, videojuegos). Anotan las partidas **en la juntada, con el teléfono en la mano**: a veces con poca luz, con ruido, pasando el teléfono de mano en mano y con la atención puesta en el juego, no en la app. Una persona del grupo suele ser la que anota; el resto mira el ranking y las medallas.
+Grupos de amigos, familia o compañeros de trabajo que se juntan a jugar (cartas, juegos de mesa, de fiesta, ping pong, videojuegos) o a hacer deporte (el fútbol 5 de los jueves, el pádel, el vóley de la playa). Anotan las partidas **en la juntada, con el teléfono en la mano**: a veces con poca luz, con ruido, pasando el teléfono de mano en mano y con la atención puesta en el juego, no en la app. Una persona del grupo suele ser la que anota; el resto mira el ranking y las medallas.
 
 ## Product Purpose
 Llevar el historial de juegos de un club: partidas, torneos, rankings y medallas de cualquier juego. El éxito es que anotar una partida sea más rápido que discutir quién ganó la última vez, y que el club vuelva a la app para ver "quién manda en cada juego".
@@ -20,8 +20,9 @@ Un solo lugar para todos los juegos del club, cada uno anotado a su manera (truc
 - Comparte base de datos con Ping Pong Club.
 
 ## Capabilities and Constraints
-- Catálogo de 45 juegos de fábrica + juegos agregados por el club (a mano o con IA).
-- Torneos: eliminación, liga, mesas rotativas, partida acumulada.
+- Catálogo de 97 juegos de fábrica (37 deportes) + juegos agregados por el club (a mano o con IA).
+- Equipos fijos del club, estadísticas por jugador (goles, asistencias, figura) y equipos parejos por Elo.
+- Torneos: eliminación, liga, mesas rotativas, partida acumulada; con fecha, hora y cancha de cada partido.
 - Rankings: gloria, victorias, Elo, todoterreno, cinturones; ranking del club y global.
 
 ### Glosario (un concepto, una palabra)
@@ -35,6 +36,10 @@ Un solo lugar para todos los juegos del club, cada uno anotado a su manera (truc
 | victorias | ganadas |
 | jugadores | participantes, inscriptos (salvo en torneos) |
 | integrantes (del club) | miembros |
+| equipo (fijo, del club) | plantilla, escuadra |
+| plantel | roster |
+| figura (del partido) | MVP |
+| cancha | sede, venue |
 | mano a mano | duelo, dupla |
 | mail | email, correo |
 | Elo | ELO |

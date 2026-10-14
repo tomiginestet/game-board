@@ -4,7 +4,7 @@ import type { AppData, Id } from './types'
  * Tipos de entidad que se sincronizan. `player`, `match` y `tournament` son los
  * mismos del Ping Pong Club (las dos apps los comparten); el resto son de Game Board.
  */
-export type EntityKind = 'player' | 'match' | 'tournament' | 'play' | 'cup' | 'game'
+export type EntityKind = 'player' | 'match' | 'tournament' | 'play' | 'cup' | 'game' | 'team'
 
 export interface EntityChange {
   kind: EntityKind
@@ -26,6 +26,7 @@ const LISTS = {
   play: 'plays',
   cup: 'cups',
   game: 'games',
+  team: 'teams',
 } as const
 
 export const KINDS = Object.keys(LISTS) as EntityKind[]

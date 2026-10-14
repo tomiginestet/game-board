@@ -12,6 +12,7 @@ import type {
   AppData,
   Cup,
   CupEntrant,
+  CupSchedule,
   CustomGame,
   Id,
   LogEntry,
@@ -21,6 +22,7 @@ import type {
   Player,
   PPMatch as Match,
   PPTournament as Tournament,
+  Team,
 } from './types'
 
 const STORAGE_KEY = 'game-board-data-v1'
@@ -28,7 +30,7 @@ const STORAGE_KEY = 'game-board-data-v1'
 const SCOPE_PREFIX = STORAGE_KEY + ':'
 let storageKey = STORAGE_KEY
 
-export const EMPTY: AppData = { version: 1, players: [], matches: [], tournaments: [], plays: [], cups: [], games: [] }
+export const EMPTY: AppData = { version: 1, players: [], matches: [], tournaments: [], plays: [], cups: [], games: [], teams: [] }
 
 export const PLAYER_COLORS = ['#ff5a5f', '#ffb400', '#00a699', '#3b82f6', '#a855f7', '#ec4899', '#22c55e', '#f97316', '#14b8a6', '#eab308']
 export const PLAYER_EMOJIS = ['🦊', '🐯', '🐼', '🐸', '🦁', '🐙', '🦄', '🐲', '🦅', '🐺', '🐻', '🐵', '🦈', '🐝', '🦖', '🐧', '🐨', '🐔', '🤖', '👽', '🔥', '⚡', '🌮', '🍕']
@@ -62,6 +64,7 @@ export function validate(input: unknown): AppData {
     plays: list(d.plays),
     cups: list(d.cups),
     games: list(d.games),
+    teams: list(d.teams),
   }
 }
 
@@ -209,7 +212,7 @@ function settle(p: Play): Play {
   if (!game) return p
   const result = autoResult(game, p, computeLive(game, p))
   if (result) return { ...p, status: 'finished', result, finishedAt: p.status === 'finished' && p.finishedAt ? p.finishedAt : Date.now() }
-  if (p.status === 'finished' && (game.mode === 'counter' || game.mode === 'rounds')) {
+  if (p.status === 'finished' && (game.mode === 'counter' || game.mode === 'rounds' || game.mode === 'sets')) {
     // Se deshizo el punto que la terminaba: vuelve a estar en juego.
     const next: Play = { ...p, status: 'live' }
     delete next.result
@@ -234,7 +237,33 @@ function newPlay(gameId: string, sides: PlaySide[], config: Record<string, Optio
   }
 }
 
-const entrantSide = (e: CupEntrant): PlaySide => ({ players: e.players, ...(e.name ? { name: e.name } : {}) })
+/** Lado de una partida de torneo: un equipo fijo juega con su plantel de ese momento. */
+function entrantSide(e: CupEntrant): PlaySide {
+  const team = e.teamId ? data.teams.find((t) => t.id === e.teamId) : undefined
+  const players = team?.players.length ? [...team.players] : e.players
+  return { players, ...(team || e.name ? { name: team?.name ?? e.name } : {}), ...(e.teamId ? { teamId: e.teamId } : {}) }
+}
+
+/**
+ * Día, hora y cancha de cada partida de una fecha: la fecha `round` cae `everyDays` días después de la
+ * anterior; los partidos de esa fecha se reparten entre las canchas y, si hay más partidos que canchas,
+ * se juegan uno después del otro (cada `gapMinutes`).
+ */
+export function slotTime(schedule: CupSchedule | undefined, venues: string[] | undefined, round: number, index: number, perRound = 1): Pick<Play, 'scheduledAt' | 'venue'> {
+  const out: Pick<Play, 'scheduledAt' | 'venue'> = {}
+  const count = venues?.length ?? 0
+  if (count) out.venue = venues![index % count]
+  if (schedule) {
+    let turn = Math.floor(index / Math.max(1, count))
+    // Todo el mismo día: cada fecha empieza cuando termina la anterior.
+    if (!schedule.everyDays) turn += round * Math.ceil(Math.max(1, perRound) / Math.max(1, count))
+    const base = new Date(schedule.start)
+    // Se suma por días de calendario (no por milisegundos) para que el cambio de horario no corra la hora.
+    base.setDate(base.getDate() + round * schedule.everyDays)
+    out.scheduledAt = base.getTime() + turn * (schedule.gapMinutes ?? 60) * 60_000
+  }
+  return out
+}
 
 export interface NewCup {
   gameId: string
@@ -247,6 +276,8 @@ export interface NewCup {
   tableSize?: number
   final?: boolean
   prize?: string
+  schedule?: CupSchedule
+  venues?: string[]
 }
 
 const playActions = {
@@ -328,11 +359,21 @@ const playActions = {
       entrants: input.entrants,
       config: input.config,
       ...(input.prize?.trim() ? { prize: input.prize.trim() } : {}),
+      ...(input.schedule ? { schedule: input.schedule } : {}),
+      ...(input.venues?.length ? { venues: input.venues } : {}),
     }
     const plays: Play[] = []
     const order = shuffle(input.entrants.map((_, i) => i))
+    const perRound = input.format === 'series' ? 1 : Math.floor(input.entrants.length / 2)
     const pending = (sides: PlaySide[], round: number, slot: number, i = 0) =>
-      newPlay(input.gameId, sides, input.config, { status: 'pending', cupId: id, round, slot, createdAt: now + round * 100 + i })
+      newPlay(input.gameId, sides, input.config, {
+        status: 'pending',
+        cupId: id,
+        round,
+        slot,
+        createdAt: now + round * 100 + i,
+        ...slotTime(cup.schedule, cup.venues, round, slot, perRound),
+      })
     if (input.format === 'league') {
       cup.doubleRound = !!input.doubleRound
       roundRobinIdx(input.entrants.length, cup.doubleRound).forEach((round, r) =>
@@ -340,6 +381,26 @@ const playActions = {
       )
     } else if (input.format === 'knockout') {
       cup.seeds = knockoutSeedsIdx(order)
+      // Con fixture, la primera ronda queda armada desde el principio (con su día y su cancha).
+      if (cup.schedule || cup.venues) {
+        const seeds = cup.seeds
+        let k = 0
+        for (let slot = 0; slot < seeds.length / 2; slot++) {
+          const a = seeds[2 * slot]
+          const b = seeds[2 * slot + 1]
+          if (a === null || b === null) continue
+          plays.push(
+            newPlay(input.gameId, [entrantSide(input.entrants[a]), entrantSide(input.entrants[b])], input.config, {
+              status: 'pending',
+              cupId: id,
+              round: 0,
+              slot,
+              createdAt: now + slot,
+              ...slotTime(cup.schedule, cup.venues, 0, k++, perRound),
+            }),
+          )
+        }
+      }
     } else if (input.format === 'tables') {
       cup.rounds = Math.max(1, input.rounds ?? 3)
       cup.tableSize = Math.max(2, input.tableSize ?? 4)
@@ -366,9 +427,59 @@ const playActions = {
       updatePlay(existing.id, () => fixed)
       return fixed
     }
-    const p = newPlay(cup.gameId, sides, cup.config, { status: 'pending', cupId, round, slot })
+    const p = newPlay(cup.gameId, sides, cup.config, { status: 'pending', cupId, round, slot, ...slotTime(cup.schedule, cup.venues, round, slot, Math.floor(cup.entrants.length / 2)) })
     commit({ ...data, plays: [...data.plays, p] })
     return p
+  },
+
+  /** Cambia el día, la hora o la cancha de una partida (`null` borra el dato). */
+  schedulePlay(playId: Id, when: { scheduledAt?: number | null; venue?: string | null }) {
+    updatePlay(playId, (p) => {
+      const next: Play = { ...p }
+      if (when.scheduledAt === null) delete next.scheduledAt
+      else if (when.scheduledAt !== undefined) next.scheduledAt = when.scheduledAt
+      if (when.venue === null || when.venue === '') delete next.venue
+      else if (when.venue !== undefined) next.venue = when.venue.trim()
+      return next
+    })
+  },
+
+  /** Suma a alguien a un lado de una partida (un refuerzo que llegó, un fichaje nuevo del equipo). */
+  addToSide(playId: Id, side: number, playerId: Id) {
+    updatePlay(playId, (p) =>
+      p.sides[side] && !p.sides.some((s) => s.players.includes(playerId))
+        ? { ...p, sides: p.sides.map((s, i) => (i === side ? { ...s, players: [...s.players, playerId] } : s)) }
+        : p,
+    )
+  },
+
+  /** Elige (o saca) la figura del partido. */
+  setMvp(playId: Id, playerId: Id | null) {
+    updatePlay(playId, (p) => {
+      if (!p.result) return p
+      const result = { ...p.result }
+      if (playerId) result.mvp = playerId
+      else delete result.mvp
+      return { ...p, result }
+    })
+  },
+
+  saveTeam(team: Omit<Team, 'id' | 'createdAt'> & { id?: Id; createdAt?: number }): Team {
+    const t: Team = { ...team, name: team.name.trim(), id: team.id || uid(), createdAt: team.createdAt ?? Date.now() } as Team
+    if (t.captain && !t.players.includes(t.captain)) delete t.captain
+    const exists = data.teams.some((x) => x.id === t.id)
+    commit({ ...data, teams: exists ? data.teams.map((x) => (x.id === t.id ? t : x)) : [...data.teams, t] })
+    return t
+  },
+
+  /** Borra un equipo. Sus partidas quedan en el historial, con el nombre que tenían. */
+  deleteTeam(id: Id) {
+    commit({ ...data, teams: data.teams.filter((t) => t.id !== id) })
+  },
+
+  restoreTeam(team: Team) {
+    if (data.teams.some((t) => t.id === team.id)) return
+    commit({ ...data, teams: [...data.teams, team] })
   },
 
   /** Mesas rotativas: arma la próxima ronda (o la mesa final con los mejores). */
@@ -422,7 +533,10 @@ export const actions = {
     if (data.tournaments.some((t) => t.playerIds.includes(id))) return false
     if (data.plays.some((p) => p.sides.some((s) => s.players.includes(id)))) return false
     if (data.cups.some((c) => c.entrants.some((e) => e.players.includes(id)))) return false
-    commit({ ...data, players: data.players.filter((p) => p.id !== id) })
+    const teams = data.teams.some((t) => t.players.includes(id))
+      ? data.teams.map((t) => (t.players.includes(id) ? { ...t, players: t.players.filter((x) => x !== id), ...(t.captain === id ? { captain: undefined } : {}) } : t))
+      : data.teams
+    commit({ ...data, players: data.players.filter((p) => p.id !== id), teams })
     return true
   },
 

@@ -1,4 +1,4 @@
-import { ArrowLeftIcon, ArrowRightIcon, BookOpenIcon, CopyIcon, PencilSimpleIcon, PlayIcon, SparkleIcon, TrashIcon, TrophyIcon, UsersIcon } from '@phosphor-icons/react'
+import { ArrowLeftIcon, ArrowRightIcon, BookOpenIcon, CopyIcon, PencilSimpleIcon, PlayIcon, ShieldIcon, SparkleIcon, TrashIcon, TrophyIcon, UsersIcon } from '@phosphor-icons/react'
 import { useMemo, useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 import { Avatar, TeamAvatar } from '../components/Avatar'
@@ -13,6 +13,7 @@ import { isBuiltin, playersLabel, WEIGHT_NAMES } from '../lib/games'
 import { CATEGORIES, CUP_FORMATS, type GameDef, type PlayMode } from '../lib/games/schema'
 import { formatDate, plural, UNKNOWN_PLAYER, useBoard, useGame, useLeaderboard, usePlayerMap } from '../lib/hooks'
 import { gameMedals } from '../lib/medals'
+import { isTeamGame } from '../lib/teams'
 import { beltOf, gameStatsOf, levelFor, winRate } from '../lib/stats'
 import { actions, useData } from '../lib/store'
 
@@ -23,6 +24,7 @@ export const MODE_NAMES: Record<PlayMode, string> = {
   turns: 'Por turnos, puntaje al final',
   result: 'Resultado final',
   coop: 'Cooperativo',
+  sets: 'Por sets, punto a punto',
 }
 
 export function playPath(game: Pick<GameDef, 'id'>): string {
@@ -159,6 +161,11 @@ function GameView({ game }: { game: GameDef }) {
             <TrophyIcon /> Torneo
           </Link>
         )}
+        {isTeamGame(game) && game.category === 'deporte' && (
+          <Link to="/equipos" className="btn big">
+            <ShieldIcon /> Equipos
+          </Link>
+        )}
       </div>
 
       {belt && (
@@ -203,6 +210,36 @@ function GameView({ game }: { game: GameDef }) {
                 </Link>
               )
             })}
+          </div>
+        </section>
+      )}
+
+      {game.perPlayer?.scorer && ranking.some((s) => s.scored > 0) && (
+        <section>
+          <h2>Tabla de {game.perPlayer.unit ?? 'goleadores'}</h2>
+          <div className="list ranking">
+            {[...ranking]
+              .filter((s) => s.scored > 0)
+              .sort((a, b) => b.scored - a.scored || b.assists - a.assists)
+              .slice(0, 10)
+              .map((s, i) => {
+                const p = players.get(s.playerId) ?? UNKNOWN_PLAYER
+                return (
+                  <Link key={s.playerId} to={`/jugadores/${s.playerId}?juego=${game.id}`} className="card rank-row">
+                    <span className="rank-pos">{i + 1}</span>
+                    <Avatar player={p} size={36} />
+                    <span className="grow">
+                      <b>{p.name}</b>
+                      <span className="muted small block">
+                        {plural(s.played, 'partido', 'partidos')}
+                        {game.perPlayer?.assists && s.assists ? ` · ${plural(s.assists, 'asistencia', 'asistencias')}` : ''}
+                        {s.mvps ? ` · ${s.mvps} ${s.mvps === 1 ? 'vez' : 'veces'} figura` : ''}
+                      </span>
+                    </span>
+                    <span className="rank-value num">{s.scored}</span>
+                  </Link>
+                )
+              })}
           </div>
         </section>
       )}

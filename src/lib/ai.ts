@@ -36,7 +36,7 @@ export function slugify(name: string): string {
   )
 }
 
-const MODES = ['rally', 'counter', 'rounds', 'turns', 'result', 'coop'] as const
+const MODES = ['rally', 'counter', 'rounds', 'turns', 'result', 'coop', 'sets'] as const
 const SIDES = ['individual', 'teams', 'either', 'coop'] as const
 
 export interface Checked {
@@ -87,6 +87,7 @@ export function checkGame(raw: unknown, opts: { source?: GameDef['source']; keep
       ...(typeof e.replaces === 'string' ? { replaces: e.replaces } : {}),
       ...(e.global ? { global: true } : {}),
       ...(e.winsGame ? { winsGame: true } : {}),
+      ...(e.byPlayer ? { byPlayer: true } : {}),
       ...(typeof e.help === 'string' ? { help: e.help } : {}),
     }))
     .filter((e, i, all) => all.findIndex((x) => x.id === e.id) === i)
@@ -103,6 +104,14 @@ export function checkGame(raw: unknown, opts: { source?: GameDef['source']; keep
     .filter((s, i, all) => all.findIndex((x) => x.id === s.id) === i)
   const statIds = new Set(stats.map((s) => s.id))
   const roles = arr(r.roles).map(String).filter(Boolean)
+  const pp = (r.perPlayer && typeof r.perPlayer === 'object' ? r.perPlayer : {}) as Record<string, unknown>
+  const perPlayer = {
+    ...(pp.scorer ? { scorer: true } : {}),
+    ...(typeof pp.unit === 'string' ? { unit: pp.unit } : {}),
+    ...(typeof pp.unitOne === 'string' ? { unitOne: pp.unitOne } : {}),
+    ...(pp.assists ? { assists: true } : {}),
+    ...(pp.mvp ? { mvp: true } : {}),
+  }
 
   const metricOk = (m: Metric): boolean => {
     switch (m.type) {
@@ -118,6 +127,13 @@ export function checkGame(raw: unknown, opts: { source?: GameDef['source']; keep
         return statIds.has(m.stat) && typeof m.value === 'string'
       case 'winsAsRole':
         return roles.includes(m.role)
+      case 'scored':
+      case 'scoredMax':
+        return !!perPlayer.scorer
+      case 'assists':
+        return !!perPlayer.assists
+      case 'mvp':
+        return !!perPlayer.mvp
       case 'wins':
       case 'played':
       case 'bestStreak':
@@ -173,6 +189,19 @@ export function checkGame(raw: unknown, opts: { source?: GameDef['source']; keep
   }
   if (scoring.scorer && !['sum', 'skullKing', 'bidTricks'].includes(scoring.scorer)) delete scoring.scorer
   if (mode === 'counter' && !scoring.target && !scoring.targetOption) warnings.push('El marcador en vivo no tiene puntaje objetivo: la partida se termina a mano.')
+  if (mode === 'sets') {
+    const st = scoring.sets
+    if (!st || typeof st !== 'object' || (st.kind !== 'tennis' && st.kind !== 'points')) {
+      warnings.push('Faltaba cómo se cuentan los sets: quedó al mejor de 3 sets a 21 puntos.')
+      scoring.sets = { kind: 'points', bestOf: 3, points: 21 }
+    } else {
+      st.bestOf = Math.max(1, Math.round(num(st.bestOf, 3)))
+      for (const key of ['bestOfOption', 'pointsOption', 'goldenPointOption', 'superTiebreakOption'] as const)
+        if (st[key] && !options.some((o) => o.id === st[key])) delete st[key]
+    }
+    if (min > 4) min = 2
+    if (max > 4) max = 4
+  }
 
   const category = CATEGORIES.some((c) => c.id === r.category) ? (r.category as GameDef['category']) : 'mesa'
   const formatIds = CUP_FORMATS.map((f) => f.id) as string[]
@@ -199,6 +228,7 @@ export function checkGame(raw: unknown, opts: { source?: GameDef['source']; keep
     events,
     stats,
     ...(roles.length ? { roles } : {}),
+    ...(Object.keys(perPlayer).length ? { perPlayer } : {}),
     awards,
     formats,
     rules: arr(r.rules).map(String).slice(0, 12),

@@ -25,7 +25,7 @@ function finished(gameId: string, sides: string[][], places: number[], extra: Pa
 }
 
 const t = 0
-const data = (plays: Play[], cups: Cup[] = []): AppData => ({ version: 1, players: [], matches: [], tournaments: [], plays, cups, games: [] })
+const data = (plays: Play[], cups: Cup[] = []): AppData => ({ version: 1, players: [], matches: [], tournaments: [], plays, cups, games: [], teams: [] })
 
 describe('motor', () => {
   it('truco: suma puntos y eventos y termina al llegar a 30', () => {

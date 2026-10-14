@@ -20,6 +20,9 @@ import type { Id, Play, Player } from '../../lib/types'
 import { MedalDataCard } from './MedalDataCard'
 import { PlanillaSummary } from './PlanillaSummary'
 import { joinNames } from './winnerText'
+import { formatScore } from '../../lib/score'
+import { setsLine } from '../../lib/sets'
+import { PlayerLinesCard } from './PlayerLines'
 
 /** Hasta cuánto después de terminarla se festeja como recién terminada (igual que las medallas). */
 const FRESH_MS = 15 * 60 * 1000
@@ -90,10 +93,15 @@ export function Summary({ play, game, live, players }: { play: Play; game: GameD
               <span className="grow ellipsis">
                 {sideName(play.sides[i], players)}
               </span>
-              {play.result?.scores?.[i] !== undefined && play.result.scores[i] !== null && <b className="num">{play.result.scores[i]}</b>}
+              {play.result?.scores?.[i] !== undefined && play.result.scores[i] !== null && <b className="num">{formatScore(game, play.result.scores[i]!)}</b>}
             </li>
           ))}
         </ol>
+        {live.sets && live.sets.done.length > 0 && (
+          <p className="sets-final">
+            <span className="muted small">Sets</span> <b className="num">{setsLine(live.sets, (play.result?.places[1] === 1 && play.result?.places[0] !== 1 ? 1 : 0))}</b>
+          </p>
+        )}
       </div>
 
       <div className="row">
@@ -116,6 +124,7 @@ export function Summary({ play, game, live, players }: { play: Play; game: GameD
         </Link>
       )}
       {/* Después de los botones: completar los datos nunca empuja "Revancha" fuera de la primera pantalla. */}
+      <PlayerLinesCard play={play} game={game} players={players} />
       <MedalDataCard play={play} game={game} players={players} />
       {/* Generala: la planilla completa queda a la vista al terminar (no rinde nada en otros juegos). */}
       <PlanillaSummary play={play} game={game} players={players} />
