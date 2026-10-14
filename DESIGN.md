@@ -216,6 +216,8 @@ Una sola línea (`.section-divided`: borde superior + 24px) separa dos secciones
 - **Perfil del jugador**: encabezado a la izquierda (avatar, nombre, gloria y puesto), las victorias como número protagonista con la barra G/E/P, la "Forma" (últimas 8 partidas con letra G/P/E además del color) y "Sus juegos" como tabla (V–D, puesto en el club, Elo); tocar una fila la abre con la curva de Elo.
 - **Comparables en columna**: varios elementos del mismo tipo (juegos, sets) van en una tabla alineada antes que en tarjetas o chips de a uno.
 - **Planilla de sets** (`SetSheet`): una columna por set, el ganador del set en blanco y negrita, el total al final de la fila, como en el tenis. Es la única forma de mostrar sets (lista de partidas y resultado).
+- **Marcador chico** (`MiniScore`, por manos y por turnos): una franja de columnas separadas por líneas finas, sin cajas ni avatares; el primero con el total en dorado y corona, a quien le toca con una raya de su color al pie.
+- **Resumen de una partida**: el logo del podio y el ganador arriba; el podio como filas sin cajas (puesto, avatar, nombre, puntaje y Elo ganado o perdido); las medallas nuevas grandes y centradas debajo del podio, no detrás de un botón.
 - **Resultado**: el trofeo es una chapita sobre el avatar del ganador (no un ícono aparte), el título en Lilita, la planilla, el Elo en una línea ("+16 → 1016") y la medalla nueva grande y centrada con su nombre y su chiste debajo.
 
 ### Marcador en vivo

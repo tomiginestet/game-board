@@ -613,31 +613,53 @@ body.in-play .sticky-actions {
 
 .mscore-row {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
-  gap: 6px;
+  grid-auto-flow: column;
+  grid-auto-columns: minmax(76px, 1fr);
   margin: 0;
   padding: 0;
   list-style: none;
+  overflow-x: auto;
+  scrollbar-width: none;
 }
 
 .mscore-cell {
+  position: relative;
   display: flex;
   align-items: center;
-  gap: 8px;
   min-width: 0;
-  padding: 5px 8px;
-  border-radius: 12px;
-  border: 1px solid color-mix(in srgb, var(--pc) 30%, transparent);
-  background: color-mix(in srgb, var(--pc) 10%, var(--card));
+  padding: 2px 12px 6px;
 }
 
-.mscore-cell.lead {
-  border-color: color-mix(in srgb, var(--accent-2) 70%, transparent);
+.mscore-cell:first-child {
+  padding-left: 0;
 }
 
-.mscore-cell.current {
-  border-color: var(--pc);
-  box-shadow: inset 0 0 0 1px var(--pc);
+.mscore-cell + .mscore-cell {
+  border-left: 1px solid var(--border);
+}
+
+/* A quién le toca: una raya de su color al pie de su columna (y "le toca" para lectores de pantalla). */
+.mscore-cell.current::after {
+  content: '';
+  position: absolute;
+  left: 12px;
+  right: 12px;
+  bottom: 0;
+  height: 3px;
+  border-radius: 2px;
+  background: var(--pc);
+}
+
+.mscore-cell.current:first-child::after {
+  left: 0;
+}
+
+.mscore-cell.current .mscore-name {
+  color: var(--text);
+}
+
+.mscore-cell.lead .mscore-total b {
+  color: var(--accent-2);
 }
 
 .mscore-cell.out {
@@ -665,7 +687,7 @@ body.in-play .sticky-actions {
 }
 
 .mscore-total b {
-  font-size: 18px;
+  font-size: 20px;
   font-weight: 800;
 }
 

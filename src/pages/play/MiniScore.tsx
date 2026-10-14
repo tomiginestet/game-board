@@ -1,12 +1,12 @@
 import { CrownIcon } from '@phosphor-icons/react'
 import type { ReactNode } from 'react'
-import { TeamAvatar } from '../../components/Avatar'
-import { sideColor, sideName, sidePlayersOf } from '../../components/GameBits'
+import { sideColor, sideName } from '../../components/GameBits'
 import type { Id, Play, Player } from '../../lib/types'
 
 /**
- * Marcador chico pegado debajo del encabezado: el total de cada uno siempre a la vista,
- * aunque la planilla o las tarjetas sean largas. Quien va primero lleva corona y "1º" (no sólo color).
+ * Marcador chico pegado debajo del encabezado: una franja con el total de cada uno siempre a la vista,
+ * aunque la planilla o las tarjetas sean largas. Columnas separadas por líneas finas, sin cajas.
+ * Quien va primero lleva corona y "1º" (no sólo color); a quien le toca, una raya de su color debajo.
  */
 export function MiniScore({
   play,
@@ -48,7 +48,6 @@ export function MiniScore({
               className={'mscore-cell' + (lead ? ' lead' : '') + (current === i ? ' current' : '') + (out?.[i] ? ' out' : '')}
               style={{ ['--pc' as string]: sideColor(side, players) }}
             >
-              <TeamAvatar team={sidePlayersOf(side, players)} size={26} />
               <span className="mscore-text">
                 <span className="mscore-name ellipsis">{name}</span>
                 <span className="mscore-total">

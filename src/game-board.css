@@ -519,13 +519,13 @@
   background: linear-gradient(180deg, color-mix(in srgb, var(--gc, var(--accent)) 22%, var(--card)), var(--card));
 }
 
+/* Podio: filas separadas por líneas finas, sin cajas; el primero, en negrita con el puesto dorado. */
 .standings-list {
   list-style: none;
   margin: 0;
   padding: 0;
   display: flex;
   flex-direction: column;
-  gap: 8px;
   text-align: left;
 }
 
@@ -533,34 +533,32 @@
   display: flex;
   align-items: center;
   gap: 10px;
-  padding: 8px 10px;
-  border-radius: 12px;
-  background: var(--bg-2);
+  min-height: 48px;
+  padding: 6px 2px;
+  color: var(--text-soft);
+}
+
+.standings-list li + li {
+  border-top: 1px solid var(--border);
 }
 
 .standings-list li.first {
-  background: color-mix(in srgb, var(--accent-2) 16%, var(--bg-2));
+  color: var(--text);
   font-weight: 700;
 }
 
-.medal-up {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  width: 100%;
-  padding: 6px;
-  border: 0;
-  border-radius: 12px;
-  background: none;
-  color: inherit;
-  font: inherit;
-  text-align: left;
-  cursor: pointer;
+.standings-list li.first .pick-pos {
+  color: var(--accent-2);
 }
 
-.medal-up:hover {
-  background: var(--card-2);
+.standings-list .elo-delta {
+  min-width: 56px;
+  white-space: nowrap;
+  text-align: right;
+  font-size: 13px;
 }
+
+
 
 /* Torneos */
 .prize {
