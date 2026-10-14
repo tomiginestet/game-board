@@ -19,16 +19,18 @@ interface Near {
 
 /**
  * Inicio: las medallas que están por caer. Si sabemos qué jugador sos en el grupo, las tuyas;
- * si no, la más cercana de cada uno del grupo.
+ * si no, la más cercana de cada uno del grupo. Con `playerIds` (perfil del club o de un equipo),
+ * siempre las de todos ellos.
  */
-export function NextMedals() {
+export function NextMedals({ playerIds, title, max = 3 }: { playerIds?: string[]; title?: string; max?: number } = {}) {
   const data = useData()
   const board = useBoard()
   const pp = useLeaderboard()
   const players = usePlayerMap()
   const sync = useSyncState()
   const { groups } = useMyGroups()
-  const meId = groups?.find((g) => g.code === sync.club?.code)?.player_id ?? undefined
+  const meId = playerIds ? undefined : (groups?.find((g) => g.code === sync.club?.code)?.player_id ?? undefined)
+  const idsKey = playerIds?.join(',')
   const [open, setOpen] = useState<Near | null>(null)
 
   const list = useMemo(() => {
@@ -42,23 +44,24 @@ export function NextMedals() {
       }
       return closestFirst(out)
     }
-    if (meId && board.players.has(meId)) return of(meId).slice(0, 3)
+    if (meId && board.players.has(meId)) return of(meId).slice(0, max)
     // Del grupo: las más cercanas, sin repetir jugador y, si alcanza, tampoco medalla, para que la lista sea variada.
-    const all = closestFirst([...board.players.keys()].flatMap(of))
+    const only = idsKey === undefined ? undefined : new Set(idsKey.split(','))
+    const all = closestFirst([...board.players.keys()].filter((id) => !only || only.has(id)).flatMap(of))
     const picked: Near[] = []
     const usedPlayers = new Set<string>()
     const usedMedals = new Set<string>()
     for (const variedOnly of [true, false]) {
       for (const x of all) {
         const medal = x.where + ':' + x.progress.family.id
-        if (picked.length === 3 || usedPlayers.has(x.playerId) || (variedOnly && usedMedals.has(medal))) continue
+        if (picked.length === max || usedPlayers.has(x.playerId) || (variedOnly && usedMedals.has(medal))) continue
         picked.push(x)
         usedPlayers.add(x.playerId)
         usedMedals.add(medal)
       }
     }
     return closestFirst(picked)
-  }, [data, board, pp, meId])
+  }, [data, board, pp, meId, idsKey, max])
 
   if (!list.length) return null
   const mine = !!meId && list.every((x) => x.playerId === meId)
@@ -66,7 +69,7 @@ export function NextMedals() {
   return (
     <section>
       <div className="section-head">
-        <h2>{mine ? 'Tus próximas medallas' : 'Medallas a la vista'}</h2>
+        <h2>{title ?? (mine ? 'Tus próximas medallas' : 'Medallas a la vista')}</h2>
         <Link to="/medallas">
           Vitrina <ArrowRightIcon className="inline-icon" size="1em" />
         </Link>
