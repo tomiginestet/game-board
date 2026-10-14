@@ -1,10 +1,12 @@
 import { HouseIcon, RankingIcon, SquaresFourIcon, TrophyIcon, UsersIcon, UsersThreeIcon } from '@phosphor-icons/react'
-import { HashRouter, Link, NavLink, Outlet, Route, Routes, useLocation } from 'react-router-dom'
+import { createRoutesFromElements, HashRouter, Link, NavLink, Outlet, Route, Routes, useLocation } from 'react-router-dom'
 import { lazy, Suspense, type ComponentType } from 'react'
+import { Announcement } from './components/Announcement'
 import { ErrorBoundary } from './components/ErrorBoundary'
 import { FeedbackHost } from './components/Feedback'
 import { Loader, Logo } from './components/Logo'
 import { TopBar } from './components/TopBar'
+import { Visits } from './components/Visits'
 import { useAuth } from './lib/auth'
 import { useDocumentTitle } from './lib/hooks'
 import { loaderForPath } from './lib/logo'
@@ -48,6 +50,19 @@ const NewGroupPage = page(() => import('./pages/social/Groups'), 'NewGroupPage')
 const SearchGroupsPage = page(() => import('./pages/social/Groups'), 'SearchGroupsPage')
 const Notifications = page(() => import('./pages/social/Notifications'), 'Notifications')
 const Profile = page(() => import('./pages/social/Profile'), 'Profile')
+const AdminLayout = page(() => import('./pages/admin/Admin'), 'AdminLayout')
+const AdminOverview = page(() => import('./pages/admin/Admin'), 'AdminOverview')
+const AdminPeople = page(() => import('./pages/admin/AdminPeople'), 'AdminPeople')
+const AdminPerson = page(() => import('./pages/admin/AdminPeople'), 'AdminPerson')
+const AdminClubs = page(() => import('./pages/admin/AdminClubs'), 'AdminClubs')
+const AdminClub = page(() => import('./pages/admin/AdminClubs'), 'AdminClub')
+const AdminGames = page(() => import('./pages/admin/AdminGames'), 'AdminGames')
+const AdminGame = page(() => import('./pages/admin/AdminGames'), 'AdminGame')
+const AdminReports = page(() => import('./pages/admin/AdminTools'), 'AdminReports')
+const AdminTrash = page(() => import('./pages/admin/AdminTools'), 'AdminTrash')
+const AdminLog = page(() => import('./pages/admin/AdminTools'), 'AdminLog')
+const AdminControl = page(() => import('./pages/admin/AdminTools'), 'AdminControl')
+const AdminHealth = page(() => import('./pages/admin/AdminTools'), 'AdminHealth')
 
 function PageLoader() {
   const location = useLocation()
@@ -80,6 +95,7 @@ const TITLES: [RegExp, string][] = [
   [/^\/amigos/, 'Amigos'],
   [/^\/notificaciones/, 'Notificaciones'],
   [/^\/(perfil|cuenta)/, 'Perfil'],
+  [/^\/admin/, 'Admin'],
 ]
 
 function Layout() {
@@ -94,6 +110,7 @@ function Layout() {
         Saltar al contenido
       </a>
       <TopBar />
+      <Announcement />
       <main className="content" id="contenido" tabIndex={-1}>
         {/* Se reinicia al cambiar de pantalla. */}
         <ErrorBoundary key={location.pathname}>
@@ -138,56 +155,77 @@ function JoinRoute() {
   return auth.session ? <JoinByLink /> : <ClubPage />
 }
 
+/** Las rutas de la app. De acá sale también la pantalla genérica que se cuenta en las visitas. */
+const routes = (
+  <>
+    {/* Marcador del ping pong a pantalla completa (el mismo del Ping Pong Club). */}
+    <Route path="/partido/:id" element={<MatchScreen />} />
+    <Route element={<Layout />}>
+      <Route index element={<Home />} />
+      <Route path="/anotar" element={<QuickPick />} />
+      <Route path="/juegos" element={<Games />} />
+      <Route path="/juegos/nuevo" element={<AddGame />} />
+      <Route path="/juegos/:id" element={<GameDetail />} />
+      <Route path="/juegos/:id/editar" element={<EditGame />} />
+      <Route path="/jugar/:gameId" element={<NewPlay />} />
+      <Route path="/partida/:id" element={<PlayScreen />} />
+      <Route path="/ping-pong/nuevo" element={<NewMatch />} />
+      <Route path="/partido/nuevo" element={<NewMatch />} />
+      <Route path="/ping-pong/torneo/nuevo" element={<NewTournament />} />
+      <Route path="/ping-pong/torneos/:id" element={<TournamentDetail />} />
+      <Route path="/torneos" element={<Cups />} />
+      <Route path="/torneos/nuevo" element={<NewCup />} />
+      <Route path="/torneos/:id" element={<CupDetail />} />
+      <Route path="/ranking" element={<Ranking />} />
+      <Route path="/medallas" element={<Medals />} />
+      <Route path="/jugadores" element={<Players />} />
+      <Route path="/jugadores/:id" element={<PlayerDetail />} />
+      <Route path="/equipos" element={<Teams />} />
+      <Route path="/equipos/nuevo" element={<NewTeam />} />
+      <Route path="/equipos/:id" element={<TeamDetail />} />
+      <Route path="/convocar/:gameId" element={<NewCall />} />
+      <Route path="/historial" element={<History />} />
+      <Route path="/ajustes" element={<Settings />} />
+      <Route path="/club" element={<GroupPage />} />
+      <Route path="/cuenta" element={<Profile />} />
+      <Route path="/unirse/:code" element={<JoinRoute />} />
+      <Route path="/grupo" element={<GroupPage />} />
+      <Route path="/grupos" element={<Groups />} />
+      <Route path="/grupos/nuevo" element={<NewGroupPage />} />
+      <Route path="/grupos/buscar" element={<SearchGroupsPage />} />
+      <Route path="/amigos" element={<Friends />} />
+      <Route path="/notificaciones" element={<Notifications />} />
+      <Route path="/perfil" element={<Profile />} />
+      <Route path="/admin" element={<AdminLayout />}>
+        <Route index element={<AdminOverview />} />
+        <Route path="personas" element={<AdminPeople />} />
+        <Route path="personas/:id" element={<AdminPerson />} />
+        <Route path="clubes" element={<AdminClubs />} />
+        <Route path="clubes/:code" element={<AdminClub />} />
+        <Route path="juegos" element={<AdminGames />} />
+        <Route path="juegos/:code/:id" element={<AdminGame />} />
+        <Route path="reportes" element={<AdminReports />} />
+        <Route path="papelera" element={<AdminTrash />} />
+        <Route path="registro" element={<AdminLog />} />
+        <Route path="control" element={<AdminControl />} />
+        <Route path="salud" element={<AdminHealth />} />
+      </Route>
+      <Route path="*" element={<NotFound />} />
+    </Route>
+  </>
+)
+const ROUTES = createRoutesFromElements(routes)
+
 export default function App() {
   return (
     <HashRouter>
       <Gate>
         <Suspense fallback={<PageLoader />}>
-          <Routes>
-            {/* Marcador del ping pong a pantalla completa (el mismo del Ping Pong Club). */}
-            <Route path="/partido/:id" element={<MatchScreen />} />
-            <Route element={<Layout />}>
-              <Route index element={<Home />} />
-              <Route path="/anotar" element={<QuickPick />} />
-              <Route path="/juegos" element={<Games />} />
-              <Route path="/juegos/nuevo" element={<AddGame />} />
-              <Route path="/juegos/:id" element={<GameDetail />} />
-              <Route path="/juegos/:id/editar" element={<EditGame />} />
-              <Route path="/jugar/:gameId" element={<NewPlay />} />
-              <Route path="/partida/:id" element={<PlayScreen />} />
-              <Route path="/ping-pong/nuevo" element={<NewMatch />} />
-              <Route path="/partido/nuevo" element={<NewMatch />} />
-              <Route path="/ping-pong/torneo/nuevo" element={<NewTournament />} />
-              <Route path="/ping-pong/torneos/:id" element={<TournamentDetail />} />
-              <Route path="/torneos" element={<Cups />} />
-              <Route path="/torneos/nuevo" element={<NewCup />} />
-              <Route path="/torneos/:id" element={<CupDetail />} />
-              <Route path="/ranking" element={<Ranking />} />
-              <Route path="/medallas" element={<Medals />} />
-              <Route path="/jugadores" element={<Players />} />
-              <Route path="/jugadores/:id" element={<PlayerDetail />} />
-              <Route path="/equipos" element={<Teams />} />
-              <Route path="/equipos/nuevo" element={<NewTeam />} />
-              <Route path="/equipos/:id" element={<TeamDetail />} />
-              <Route path="/convocar/:gameId" element={<NewCall />} />
-              <Route path="/historial" element={<History />} />
-              <Route path="/ajustes" element={<Settings />} />
-              <Route path="/club" element={<GroupPage />} />
-              <Route path="/cuenta" element={<Profile />} />
-              <Route path="/unirse/:code" element={<JoinRoute />} />
-              <Route path="/grupo" element={<GroupPage />} />
-              <Route path="/grupos" element={<Groups />} />
-              <Route path="/grupos/nuevo" element={<NewGroupPage />} />
-              <Route path="/grupos/buscar" element={<SearchGroupsPage />} />
-              <Route path="/amigos" element={<Friends />} />
-              <Route path="/notificaciones" element={<Notifications />} />
-              <Route path="/perfil" element={<Profile />} />
-              <Route path="*" element={<NotFound />} />
-            </Route>
-          </Routes>
+          <Routes>{routes}</Routes>
         </Suspense>
       </Gate>
       <FeedbackHost />
+      <Visits routes={ROUTES} />
     </HashRouter>
   )
 }

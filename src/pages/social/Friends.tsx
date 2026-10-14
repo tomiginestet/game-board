@@ -2,6 +2,7 @@ import { CheckIcon, HourglassIcon, MagnifyingGlassIcon, SwordIcon, UserMinusIcon
 import { useCallback, useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Avatar } from '../../components/Avatar'
+import { ReportButton } from '../../components/ReportButton'
 import { myFriends, openDuo, removeFriend, respondFriendRequest, searchUsers, sendFriendRequest, userAsPlayer, type Friend, type FoundUser } from '../../lib/social'
 import { friendlyError } from '../../lib/text'
 import { ErrorText } from '../../components/Feedback'
@@ -73,6 +74,7 @@ export function Friends() {
                 <b className="block">{u.display_name}</b>
                 <span className="muted small">@{u.username}</span>
               </span>
+              <ReportButton target={{ kind: 'user', user_id: u.user_id }} name={`a @${u.username}`} />
               {u.friend_status === 'friend' ? (
                 <span className="pill">Amigos</span>
               ) : u.friend_status === 'outgoing' ? (

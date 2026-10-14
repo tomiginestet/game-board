@@ -339,11 +339,12 @@ export type NotificationData = {
   request_id?: number
   invite_id?: number
   message?: string | null
+  /** Mensajes del panel de admin. */
+  title?: string
   from?: WhoData
   by?: WhoData
   /** Convocatorias: el partido, su nombre, cuándo y dónde. */
   play_id?: string
-  title?: string
   when?: number | null
   venue?: string | null
 }
