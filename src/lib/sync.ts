@@ -142,6 +142,11 @@ function setState(patch: Partial<SyncState>) {
   listeners.forEach((l) => l())
 }
 
+/** Código del club activo (si el dispositivo está en uno). */
+export function currentClubCode(): string | undefined {
+  return persisted.club?.code
+}
+
 export function useSyncState(): SyncState {
   return useSyncExternalStore(
     (l) => {

@@ -7,7 +7,7 @@ import type { GameDef } from './games/schema'
 import { gameMedals } from './medals'
 import { computeBoard, gameStatsOf } from './stats'
 import { slotTime } from './store'
-import { teamRecord } from './teams'
+import { teamRanking, teamRecord } from './teams'
 import type { AppData, Cup, LogEntry, Play, Team } from './types'
 
 const game = (id: string): GameDef => {
@@ -130,5 +130,21 @@ describe('campaña de un equipo', () => {
     expect(rec.form).toEqual(['P', 'G'])
     expect(rec.scorers[0]).toMatchObject({ id: 'ana', scored: 2 })
     expect(rec.upcoming.map((p) => p.id)).toEqual(['p3'])
+  })
+})
+
+describe('ranking de equipos', () => {
+  it('ordena por puntos y calcula el Elo con los partidos entre equipos', () => {
+    const pibes: Team = { id: 'pibes', name: 'Los Pibes', emoji: '⚽', color: '#000', players: ['ana', 'beto'], createdAt: 0 }
+    const banda: Team = { id: 'banda', name: 'La Banda', emoji: '🔥', color: '#000', players: ['caro', 'dani'], createdAt: 0 }
+    const vs = (id: string, places: number[], scores: number[]) =>
+      partido(id, [], { sides: [{ players: ['ana', 'beto'], teamId: 'pibes' }, { players: ['caro', 'dani'], teamId: 'banda' }], result: { places, scores } })
+    const rows = teamRanking(data([vs('a', [1, 2], [3, 1]), vs('b', [1, 1], [2, 2])], [pibes, banda]), [pibes, banda])
+    expect(rows.map((r) => [r.team.id, r.points])).toEqual([
+      ['pibes', 4],
+      ['banda', 1],
+    ])
+    expect(rows[0].elo).toBeGreaterThan(1000)
+    expect(rows[0].elo + rows[1].elo).toBe(2000)
   })
 })

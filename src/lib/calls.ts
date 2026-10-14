@@ -37,8 +37,12 @@ export function rsvpCounts(play: Pick<Play, 'rsvp'>, people: Id[]): RsvpCounts {
 }
 
 /** Los que van (y, si se pide, los "capaz"), en el orden de los citados. */
-export function goingIds(play: Pick<Play, 'rsvp'>, people: Id[], withMaybe = false): Id[] {
-  return people.filter((id) => play.rsvp?.[id] === 'yes' || (withMaybe && play.rsvp?.[id] === 'maybe'))
+export function goingIds(play: Pick<Play, 'rsvp' | 'rsvpAt' | 'capacity'>, people: Id[], withMaybe = false): Id[] {
+  // Con cupo, juegan los que entraron (no los de la lista de espera).
+  const { inIds } = lineup(play, people)
+  if (!withMaybe) return inIds
+  const room = play.capacity ? Math.max(0, play.capacity - inIds.length) : Infinity
+  return [...inIds, ...people.filter((id) => play.rsvp?.[id] === 'maybe').slice(0, room)]
 }
 
 export const RSVP_LABEL: Record<Rsvp, string> = { yes: 'Voy', maybe: 'Capaz', no: 'No voy' }
@@ -50,4 +54,31 @@ export function rsvpSummary(c: RsvpCounts): string {
   if (c.no) parts.push(`${c.no} no`)
   if (c.pending) parts.push(`${c.pending} sin responder`)
   return parts.join(' · ')
+}
+
+/**
+ * Quiénes entran y quiénes quedan en lista de espera: con cupo, entran los primeros que dijeron que van
+ * (por hora de respuesta); el resto espera y entra solo si alguien se baja.
+ */
+export function lineup(play: Pick<Play, 'rsvp' | 'rsvpAt' | 'capacity'>, people: Id[]): { inIds: Id[]; waitIds: Id[] } {
+  const order = new Map(people.map((id, i) => [id, i]))
+  const yes = people
+    .filter((id) => play.rsvp?.[id] === 'yes')
+    .sort((a, b) => (play.rsvpAt?.[a] ?? Infinity) - (play.rsvpAt?.[b] ?? Infinity) || order.get(a)! - order.get(b)!)
+  if (!play.capacity || play.capacity <= 0) return { inIds: yes, waitIds: [] }
+  return { inIds: yes.slice(0, play.capacity), waitIds: yes.slice(play.capacity) }
+}
+
+/**
+ * Si `me` puede marcar la respuesta de `id`. Sin cuenta (o sin saber quién sos) cualquiera marca por todos,
+ * como en la juntada; con cuenta, cada uno lo suyo, y quien organizó también por los demás.
+ */
+export function canAnswerFor(play: Pick<Play, 'organizer'>, me: Id | undefined, id: Id): boolean {
+  if (!me) return true
+  return id === me || !play.organizer || play.organizer === me
+}
+
+/** Los que entraron al partido con este cambio (se liberó un lugar). */
+export function newlyIn(before: Id[], after: Id[]): Id[] {
+  return after.filter((id) => !before.includes(id))
 }

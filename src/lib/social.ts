@@ -343,6 +343,10 @@ export type NotificationData = {
   title?: string
   from?: WhoData
   by?: WhoData
+  /** Convocatorias: el partido, su nombre, cuándo y dónde. */
+  play_id?: string
+  when?: number | null
+  venue?: string | null
 }
 
 export interface AppNotification {

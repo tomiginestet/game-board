@@ -8,6 +8,8 @@ import { lastPlayOf } from '../lib/rematch'
 import { fromLocalInput, nextWeekday, toLocalInput } from '../lib/schedule'
 import { actions, useData } from '../lib/store'
 import type { Id } from '../lib/types'
+import { notifyCall } from '../lib/callNotify'
+import { useMyPlayerId } from '../lib/me'
 
 /** Convocar a un partido: día, cancha y a quiénes se les pregunta si vienen. */
 export function NewCall() {
@@ -32,6 +34,9 @@ export function NewCall() {
     const base = prev?.scheduledAt ? new Date(prev.scheduledAt) : undefined
     return toLocalInput(base ? nextWeekday(base.getDay(), base.getHours()) + base.getMinutes() * 60_000 : nextWeekday(new Date().getDay(), 20))
   })
+  // Cupo: el de la última convocatoria de este juego (fútbol 5: 10).
+  const [capacity, setCapacity] = useState(() => data.plays.filter((p) => p.gameId === gameId && p.invited).sort((a, b) => b.createdAt - a.createdAt)[0]?.capacity ?? 0)
+  const me = useMyPlayerId()
   const [venue, setVenue] = useState(() => team?.home ?? data.plays.filter((p) => p.gameId === gameId && p.venue).at(-1)?.venue ?? '')
 
   if (!game) return <div className="page">Juego no encontrado.</div>
@@ -40,7 +45,9 @@ export function NewCall() {
 
   const create = () => {
     if (!ready) return
-    const p = actions.createCall({ gameId: game.id, invited, scheduledAt: at, venue, ...(team ? { teamId: team.id } : {}) })
+    const p = actions.createCall({ gameId: game.id, invited, scheduledAt: at, venue, capacity, ...(me ? { organizer: me } : {}), ...(team ? { teamId: team.id } : {}) })
+    // A los citados con cuenta les llega el aviso en la app.
+    void notifyCall('call', p, team ? `${team.name}: ${game.name}` : game.name, invited.filter((pid) => pid !== me))
     navigate(`/partida/${p.id}`, { replace: true })
   }
 
@@ -68,6 +75,17 @@ export function NewCall() {
       <div className="field">
         <label htmlFor={`${id}-venue`}>Cancha (opcional)</label>
         <input id={`${id}-venue`} className="input" value={venue} maxLength={60} placeholder="Cancha 3 del club" onChange={(e) => setVenue(e.target.value)} />
+      </div>
+
+      <div className="field">
+        <label htmlFor={`${id}-cap`}>Cupo (opcional)</label>
+        <select id={`${id}-cap`} className="input" value={capacity} onChange={(e) => setCapacity(Number(e.target.value))}>
+          {[0, 6, 8, 10, 12, 14, 16, 18, 22].map((n) => (
+            <option key={n} value={n}>
+              {n ? `${n} jugadores (el resto, en lista de espera)` : 'Sin cupo'}
+            </option>
+          ))}
+        </select>
       </div>
 
       <section>

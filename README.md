@@ -56,6 +56,12 @@ de datos) que el [Ping Pong Club](https://github.com/tomiginestet/ping-pong-web-
 - **Convocatorias** ("¿quién viene el jueves?"): día, cancha y citados (el plantel de un equipo o los de siempre).
   Se manda al grupo por WhatsApp, cada uno marca Voy / Capaz / No voy y con los que van se arman los equipos parejos;
   la convocatoria pasa a ser el partido. Los partidos del fixture también tienen su previa con quién viene.
+  - Con cuenta, cada uno marca lo suyo (quien organizó, también por los demás) y a los citados les llega el aviso.
+  - **Cupo y lista de espera**: los primeros en confirmar entran; si alguien se baja, entra el primero en espera y le
+    llega el aviso.
+  - **Agendar**: al calendario del teléfono (con aviso 2 horas antes) o a Google Calendar. En el inicio, "Hoy" o
+    "Mañana" y tu estado (vas, en espera, ¿venís?).
+- **Tabla de equipos del club**: puntos, diferencia y un Elo de equipo por los partidos entre equipos del club.
 - **Cronómetro** en los deportes por tiempo (fútbol, futsal, básquet, handball, hockey, rugby): períodos, pausa y aviso
   al cumplirse el tiempo; cada gol guarda su minuto.
 - **Saque** en los deportes por sets: en tenis y pádel cambia en cada game (en el tie-break, de a dos) y en dobles
