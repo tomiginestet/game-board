@@ -218,6 +218,12 @@ Una sola línea (`.section-divided`: borde superior + 24px) separa dos secciones
 - **Planilla de sets** (`SetSheet`): una columna por set, el ganador del set en blanco y negrita, el total al final de la fila, como en el tenis. Es la única forma de mostrar sets (lista de partidas y resultado).
 - **Resultado**: el trofeo es una chapita sobre el avatar del ganador (no un ícono aparte), el título en Lilita, la planilla, el Elo en una línea ("+16 → 1016") y la medalla nueva grande y centrada con su nombre y su chiste debajo.
 
+### Marcador en vivo
+Para los juegos que se anotan en vivo (bochas, básquet, truco, fútbol), el mismo lenguaje que el ping pong:
+- **Tira de TV** arriba (`ScoreStrip`): reloj de la partida, lo último anotado ("Último: +2 de Tomi", confirma el toque) y una fila por lado con sus jugadas y el puntaje; el que va ganando, en naranja.
+- **Pestañas Marcador / Jugadas.** En Marcador, una **banda de todo el ancho por lado**: tocar la banda suma; las jugadas van adentro, al pie, como botones de 48px con el nombre (sin emoji) y su contador. El "+2" de los juegos que lo tienen es un botón propio.
+- **Jugadas** es el relato de la partida: minuto, color del lado, qué pasó, quién y el marcador de ese momento. Cualquier jugada se borra con su ✕, y el aviso ofrece deshacer. La ayuda ("Qué es cada jugada") va al pie de esta pestaña.
+
 ### Inputs / Fields
 Siempre con etiqueta visible (`.field` + `.field-label`); el placeholder es un ejemplo, no la etiqueta. Errores debajo del campo, enlazados con `aria-describedby`.
 
