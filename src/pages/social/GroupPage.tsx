@@ -5,6 +5,7 @@ import {
   CopyIcon,
   CrownIcon,
   GlobeHemisphereWestIcon,
+  LinkIcon,
   LockSimpleIcon,
   MagnifyingGlassIcon,
   PencilSimpleIcon,
@@ -13,6 +14,7 @@ import {
   ShieldStarIcon,
   SignOutIcon,
   SparkleIcon,
+  StorefrontIcon,
   UserPlusIcon,
   UsersIcon,
   XIcon,
@@ -31,6 +33,7 @@ import {
   refreshGroups,
   removeMember,
   searchUsers,
+  setClubSlug,
   setMemberRole,
   useActiveGroup,
   userAsPlayer,
@@ -41,6 +44,7 @@ import {
 } from '../../lib/social'
 import { useData } from '../../lib/store'
 import { deactivateClub, inviteLink, SYNC_LABEL, syncNow, useSyncState } from '../../lib/sync'
+import { cleanSlugInput, shortLink, suggestSlug, validSlug } from '../../lib/clubLink'
 import { SyncIcon } from '../../components/SyncIcon'
 import { formatDate, plural, useBoard } from '../../lib/hooks'
 import { NextMedals } from '../../components/NextMedals'
@@ -149,6 +153,10 @@ function GroupView({ group }: { group: MyGroup }) {
             <p className="club-meta">
               {duo ? (
                 <span>⚔️ Mano a mano</span>
+              ) : group.venue ? (
+                <span>
+                  <StorefrontIcon aria-hidden /> {group.venue.address || 'Club de un lugar'}
+                </span>
               ) : (
                 <span>
                   {group.is_public ? <GlobeHemisphereWestIcon aria-hidden /> : <LockSimpleIcon aria-hidden />} {group.is_public ? 'Público' : 'Privado'}
@@ -466,7 +474,8 @@ function InviteSection({ group, members }: { group: MyGroup; members: Member[] }
   const [invited, setInvited] = useState<string[]>([])
   const [copied, setCopied] = useState(false)
   const [error, setError] = useState('')
-  const link = inviteLink(group.code)
+  const link = group.slug ? shortLink(group.slug, window.location.href) : inviteLink(group.code)
+  const isAdmin = group.role === 'owner' || group.role === 'admin'
 
   const shown = q.trim().length >= 2 ? found : []
 
@@ -527,6 +536,9 @@ function InviteSection({ group, members }: { group: MyGroup; members: Member[] }
       </div>
       <ErrorText>{error}</ErrorText>
       <p className="muted small mt">O compartí el link (quien lo tenga puede entrar sin pedir permiso):</p>
+      <div className="invite-box">
+        <code>{link}</code>
+      </div>
       <div className="row gap wrap">
         <button
           className="btn"
@@ -548,6 +560,97 @@ function InviteSection({ group, members }: { group: MyGroup; members: Member[] }
           {copied ? <CheckIcon /> : <CopyIcon />} {copied ? 'Copiado' : 'Copiar'}
         </button>
       </div>
+      {isAdmin && group.kind === 'group' && group.slug !== undefined && <ShortLinkEditor group={group} />}
     </section>
+  )
+}
+
+/** Link corto del club (`/c/lasartes`): el que va impreso en el QR de un bar o se dice en voz alta. */
+function ShortLinkEditor({ group }: { group: MyGroup }) {
+  const [editing, setEditing] = useState(false)
+  const [value, setValue] = useState(group.slug ?? suggestSlug(group.name))
+  const [busy, setBusy] = useState(false)
+  const [error, setError] = useState('')
+  const valid = validSlug(value)
+
+  const save = async (slug: string | null) => {
+    setBusy(true)
+    setError('')
+    try {
+      await setClubSlug(group.code, slug)
+      setEditing(false)
+    } catch (e) {
+      setError(friendlyError(e))
+    } finally {
+      setBusy(false)
+    }
+  }
+
+  if (group.slug && !editing) {
+    return (
+      <div className="short-link">
+        <p className="muted small">
+          Link corto: <b className="mono">/c/{group.slug}</b>. Es el que va en el QR.
+        </p>
+        <button className="link-btn small" onClick={() => setEditing(true)}>
+          <PencilSimpleIcon /> Cambiar link corto
+        </button>
+      </div>
+    )
+  }
+  if (!editing) {
+    return (
+      <div className="short-link">
+        <p className="muted small">Un link corto con el nombre del club es más fácil de decir y entra mejor en un QR.</p>
+        <button className="btn small" onClick={() => setEditing(true)}>
+          <LinkIcon /> Elegir link corto
+        </button>
+      </div>
+    )
+  }
+  return (
+    <form
+      className="short-link"
+      onSubmit={(e) => {
+        e.preventDefault()
+        if (valid) void save(value)
+      }}
+    >
+      <label className="field">
+        <span className="field-label">Link corto</span>
+        <span className="slug-input">
+          <span className="muted" aria-hidden>
+            /c/
+          </span>
+          <input
+            className="input"
+            value={value}
+            onChange={(e) => setValue(cleanSlugInput(e.target.value))}
+            autoCapitalize="none"
+            autoCorrect="off"
+            spellCheck={false}
+            maxLength={30}
+            aria-describedby="slug-help"
+          />
+        </span>
+      </label>
+      <p id="slug-help" className="muted small">
+        De 3 a 30 letras sin acentos, números o guiones. Si lo cambiás, los QR impresos con el link anterior dejan de andar.
+      </p>
+      <ErrorText>{error}</ErrorText>
+      <div className="row gap wrap">
+        <button className="btn primary small" disabled={busy || !valid || value === group.slug}>
+          {busy ? 'Guardando…' : 'Guardar link'}
+        </button>
+        <button type="button" className="btn small" onClick={() => setEditing(false)}>
+          Cancelar
+        </button>
+        {group.slug && (
+          <button type="button" className="btn small danger" disabled={busy} onClick={() => void save(null)}>
+            Sacar link corto
+          </button>
+        )}
+      </div>
+    </form>
   )
 }

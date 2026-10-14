@@ -1,7 +1,8 @@
 import { createClient, type RealtimeChannel, type SupabaseClient } from '@supabase/supabase-js'
 import { useSyncExternalStore } from 'react'
-import { entityKey, KINDS, listOf, type EntityChange, type EntityKind, type RemoteEntity } from './diff'
+import { applyEntities, entityKey, KINDS, listOf, type EntityChange, type EntityKind, type RemoteEntity } from './diff'
 import { applyRemote, copyCurrentTo, EMPTY, getData, hasScope, onLocalChanges, replaceAllFromRemote, switchScope } from './store'
+import type { AppData } from './types'
 
 /**
  * Sincronización con Supabase (la misma base y los mismos clubes que el Ping Pong Club).
@@ -356,6 +357,17 @@ export async function findClub(code: string): Promise<string | null> {
   const { data, error } = await sb.rpc('get_club', { p_code: normalizeCode(code) })
   if (error) throw new Error(describeError(error))
   return (data as string | null) ?? null
+}
+
+/**
+ * Los datos de un club sin entrar (para la vista previa de un link o un QR): no tocan los de este dispositivo.
+ */
+export async function fetchClubSnapshot(code: string): Promise<AppData> {
+  const sb = getClient()
+  if (!sb) throw new Error('Los clubes compartidos no están disponibles en esta versión de la app')
+  const { data, error } = await sb.rpc('pull_changes_all', { p_code: normalizeCode(code), p_since: null })
+  if (error) throw new Error(describeError(error))
+  return applyEntities(EMPTY, (data ?? []) as RemoteEntity[])
 }
 
 /**

@@ -16,11 +16,13 @@ import { ErrorText } from '../components/Feedback'
 const createClub = (name: string) => createClubRaw(name).then(async (c) => (await linkClub(c.code).catch(() => {}), c))
 const joinClub = (code: string, mode: 'replace' | 'merge') => joinClubRaw(code, mode).then(async (c) => (await linkClub(c.code).catch(() => {}), c))
 
-export function ClubPage() {
+/** `inviteCode`: el club de una invitación, si no viene en la ruta (`/unirse/:code`). */
+export function ClubPage({ inviteCode: forcedCode }: { inviteCode?: string } = {}) {
   const sync = useSyncState()
   const data = useData()
   const navigate = useNavigate()
-  const { code: inviteCode } = useParams()
+  const { code: routeCode } = useParams()
+  const inviteCode = forcedCode ?? routeCode
   const [name, setName] = useState('Los del club')
   const [code, setCode] = useState(inviteCode ?? '')
   const [busy, setBusy] = useState(false)

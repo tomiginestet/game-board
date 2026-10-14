@@ -690,3 +690,94 @@ button.group-row:hover {
     font-size: 20px;
   }
 }
+
+/* Invitación por link o QR: el club, cómo sumarse y su ranking. */
+.invite-brand {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-family: 'Lilita One', system-ui, sans-serif;
+  font-size: 20px;
+  margin-bottom: 4px;
+}
+.invite-kicker {
+  margin: 0 0 4px;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--accent);
+}
+.invite-game {
+  margin: 0;
+  font-weight: 600;
+}
+.invite-ranking {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.invite-ranking h2 {
+  margin: 0;
+}
+.invite-game-head {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+/* Link corto del club. */
+.short-link {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 8px;
+  margin-top: 14px;
+  padding-top: 14px;
+  border-top: 1px solid var(--border);
+}
+.short-link .field {
+  width: 100%;
+  margin: 0;
+}
+.slug-input {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.slug-input .input {
+  flex: 1;
+  min-width: 0;
+  font-family: ui-monospace, 'SF Mono', Menlo, monospace;
+}
+
+/* Club de un lugar: dirección y juegos. */
+.venue-fields {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 12px;
+  border-radius: 12px;
+  background: var(--bg-2);
+}
+.venue-fields .field {
+  margin: 0;
+}
+.venue-games {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.venue-games li {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 2px 2px 2px 6px;
+  border-radius: 999px;
+  background: var(--card-2);
+  font-size: 14px;
+  font-weight: 600;
+}
