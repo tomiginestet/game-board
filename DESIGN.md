@@ -233,7 +233,7 @@ Para los juegos que se anotan en vivo (bochas, básquet, truco, fútbol), el mis
   - **Con sets o más de dos lados**: tira de TV (`ScoreStrip`) y una banda de todo el ancho por lado, con las jugadas al pie.
   - El "+2" de los juegos que lo tienen es un botón propio. El contador en cero sólo aparece en las jugadas que no suman puntos (las que cuentan para medallas).
 - **Atajos de teclado**: funcionan siempre, pero la leyenda sólo se muestra en pantallas de compu (900px o más, con mouse).
-- **Por turnos**: la barra de abajo tiene "Pasar turno" (naranja, al medio, con "a Juli" debajo) como acción principal; Deshacer es un ícono y Terminar va chico al costado. Arriba, en la franja fija, sólo "Turno 6 · le toca a Tomi".
+- **Por turnos**: la barra de abajo es sólo Deshacer (ícono) y "Pasar turno", que ocupa el resto (naranja, con "a Juli" debajo). Terminar es el banderín de la cabecera y pregunta antes de cerrar (o abre el formulario de cierre, que tiene "Seguir jugando"). Arriba, en la franja fija, sólo "Turno 6 · le toca a Tomi"; con más de 5 jugadores, la franja va en filas de 4 para que se vean todos los puntajes.
 - **Por turnos** (Catán): sólo va abierta la tarjeta del que juega; las demás muestran su cabecera (nombre y puntaje) y se abren al tocarla. Usa las mismas pestañas Marcador / Jugadas. **Por manos** no las necesita: la tabla de manos ya es el relato.
 - **Jugadas** (`BoardTabs`) es el relato de la partida; lo oculto (cartas de Catán) nunca aparece. Con dos lados muestra el marcador entero de cada momento ("5–4"); con más, el total de quien anotó ("total 7"); los pases de turno van en filas bajas y apagadas.
 - El relato: minuto, color del lado, qué pasó, quién y el marcador de ese momento. Cualquier jugada se borra con su ✕, y el aviso ofrece deshacer. La ayuda ("Qué es cada jugada") va al pie de esta pestaña.
@@ -243,6 +243,9 @@ Para los juegos que se anotan en vivo (bochas, básquet, truco, fútbol), el mis
 - **Filas de partidas** (`PlayRow`): se leen como la planilla. Arriba el juego y la fecha; abajo el ganador con corona y su puntaje; debajo, el resto en orden ("2º Juli · 3º Nico") o "contra Nico". Nunca una fila de avatares que se parte en dos líneas.
 - **Podio de gloria**: el escalón lleva el número (la altura y el número dicen lo mismo) y debajo una línea de rivalidad ("Valen le lleva 292 de gloria a Tomi"). Sin medallitas 1-2-3.
 - **Rankings** (`.ranking`): filas separadas por líneas finas, sin tarjetas; el primero con el puesto y el valor en dorado. El del club es una tabla (`.rank-table`) con encabezados: puesto, persona, columna del medio (V / P, Efect., V–D) y el valor. Los filtros van sin emoji y la explicación de cómo se calcula, al pie.
+- **Filtros de una lista** (`.filters`): las filas van juntas (8px). Qué mirar (Todas / Ganadas, Siempre / Este mes) va en un segmentado discreto (`.segmented.quiet`); de qué juego o categoría, en chips, que son el único naranja de los filtros. Sin emoji en los filtros ni en los títulos de sección. Una tercera fila (`.chips.sub`) marca lo elegido con borde, sin relleno.
+- **Récord de un equipo**: igual que el del perfil (victorias, barra, forma y los tantos en una frase); nunca cajas con números.
+- **Jugadores, equipos y torneos** (`.rows`): listas sin tarjetas.
 - **Jugadores**: lista sin tarjetas ordenada por gloria, con el detalle en una línea y la gloria en dorado sin ícono.
 
 ### Inputs / Fields

@@ -82,21 +82,22 @@ function GlobalRanking() {
 
   return (
     <>
-      <div className="chips scroll mt">
+      <div className="filters mt">
+      <div className="chips scroll">
         {TABS.filter((t) => t.id === 'gloria' || t.id === 'wins' || t.id === 'allround').map((t) => (
           <button key={t.id} className={'chip' + (tab === t.id ? ' active' : '')} onClick={() => setTab(t.id as GlobalTab)}>
             {t.name}
           </button>
         ))}
       </div>
-      <div className="segmented small mt">
+      <div className="segmented quiet">
         {PERIODS.map((p) => (
           <button key={p.id} className={period === p.id ? 'active' : ''} aria-pressed={period === p.id} onClick={() => setPeriod(p.id)}>
             {p.name}
           </button>
         ))}
       </div>
-      <select className="input mt" value={gameId} onChange={(e) => setGameId(e.target.value)} aria-label="Juego">
+      <select className="input" value={gameId} onChange={(e) => setGameId(e.target.value)} aria-label="Juego">
         <option value="">Todos los juegos</option>
         {games.map((g) => (
           <option key={g.id} value={g.id}>
@@ -104,6 +105,7 @@ function GlobalRanking() {
           </option>
         ))}
       </select>
+      </div>
       <p className="hint">Suma las partidas de todos los clubes y mano a mano. Sólo cuentan los jugadores que tienen cuenta (“este jugador soy yo”).</p>
       {error && <p className="error">{error}</p>}
       {rows === null && !error && <p className="muted">Cargando…</p>}
@@ -179,14 +181,15 @@ function GroupRanking() {
 
   return (
     <>
-      <div className="chips scroll mt">
+      <div className="filters mt">
+      <div className="chips scroll">
         {TABS.map((t) => (
           <button key={t.id} className={'chip' + (tab === t.id ? ' active' : '')} aria-pressed={tab === t.id} onClick={() => setTab(t.id)}>
             {t.name}
           </button>
         ))}
       </div>
-      <div className="segmented small mt">
+      <div className="segmented quiet">
         {PERIODS.map((p) => (
           <button key={p.id} className={period === p.id ? 'active' : ''} aria-pressed={period === p.id} onClick={() => setPeriod(p.id)}>
             {p.name}
@@ -194,7 +197,7 @@ function GroupRanking() {
         ))}
       </div>
       {tab === 'elo' && (
-        <div className="chips scroll">
+        <div className="chips scroll sub">
           {playedGames.map((g) => (
             <button key={g.id} className={'chip' + (eloGame === g.id ? ' active' : '')} aria-pressed={eloGame === g.id} onClick={() => setGameId(g.id)}>
               {g.name}
@@ -202,6 +205,7 @@ function GroupRanking() {
           ))}
         </div>
       )}
+      </div>
 
       {!board.views.length && (
         <div className="empty">
