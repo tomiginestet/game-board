@@ -46,6 +46,8 @@ import { useData } from '../../lib/store'
 import { deactivateClub, inviteLink, SYNC_LABEL, syncNow, useSyncState } from '../../lib/sync'
 import { cleanSlugInput, shortLink, suggestSlug, validSlug } from '../../lib/clubLink'
 import { SyncIcon } from '../../components/SyncIcon'
+import { MemberCard } from '../../components/MemberCard'
+import { memberNumber } from '../../lib/memberCard'
 import { formatDate, plural, useBoard } from '../../lib/hooks'
 import { NextMedals } from '../../components/NextMedals'
 import { SquadGames, SquadLeaders, SquadShowcase, useGamesPlayed, useSquadMedals } from '../../components/Squad'
@@ -106,7 +108,7 @@ function GroupView({ group }: { group: MyGroup }) {
   useEffect(load, [load, group.pending_requests])
 
   useEffect(() => {
-    if (location.hash === '#yo') document.getElementById('yo')?.scrollIntoView({ block: 'start' })
+    if (location.hash === '#yo' || location.hash === '#carnet') document.getElementById(location.hash.slice(1))?.scrollIntoView({ block: 'start' })
   }, [location.hash])
 
   const run = async (fn: () => Promise<unknown>) => {
@@ -202,6 +204,20 @@ function GroupView({ group }: { group: MyGroup }) {
             <ArrowsClockwiseIcon /> Reintentar
           </button>
         </p>
+      )}
+
+      {!duo && (
+        <section id="carnet" aria-label="Tu carnet de socio">
+          <MemberCard
+            club={group}
+            player={data.players.find((p) => p.id === group.player_id)}
+            joinedAt={group.joined_at}
+            number={me && members ? memberNumber(members, me) : undefined}
+            role={ROLE_NAMES[group.role]}
+            stats={{ played: board.players.get(group.player_id ?? '')?.played ?? 0, wins: board.players.get(group.player_id ?? '')?.wins ?? 0 }}
+            link={group.slug ? shortLink(group.slug, window.location.href) : inviteLink(group.code)}
+          />
+        </section>
       )}
 
       {!group.player_id && <WhoAmI group={group} />}

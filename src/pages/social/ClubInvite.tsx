@@ -5,6 +5,8 @@ import { Avatar } from '../../components/Avatar'
 import { ErrorText } from '../../components/Feedback'
 import { GameBadge } from '../../components/GameBits'
 import { Logo } from '../../components/Logo'
+import { MedalSheet } from '../../components/MedalSheet'
+import { MEMBERSHIP_FAMILY } from '../../lib/medals'
 import { linkClub, setGuest, useAuth } from '../../lib/auth'
 import { savePendingInvite } from '../../lib/pendingInvite'
 import { allGames, findGame } from '../../lib/games'
@@ -64,6 +66,8 @@ export function ClubInvite({ target, onLogin, standalone }: { target: Target; on
   const { card, error: findError } = useClubCard(target)
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState('')
+  // Recién sumado: primero se festeja la medalla de socio (el carnet nuevo) y después se entra.
+  const [welcome, setWelcome] = useState(false)
   const mine = card ? groups?.find((g) => g.code === card.code) : undefined
   const gameId = params.get('juego') ?? undefined
   const game = gameId ? findGame({ games: [] }, gameId) : undefined
@@ -72,7 +76,8 @@ export function ClubInvite({ target, onLogin, standalone }: { target: Target; on
     const list = await refreshGroups()
     const g = list.find((x) => x.code === code)
     if (g) await switchToGroup(g)
-    navigate(game ? playPath(game) : isVenue ? '/' : '/grupo#yo', { replace: true })
+    // En un club de lugar cada uno ya tiene su jugador: se va directo al carnet nuevo.
+    navigate(game ? playPath(game) : isVenue ? '/grupo#carnet' : '/grupo#yo', { replace: true })
   }
 
   const join = async () => {
@@ -84,6 +89,8 @@ export function ClubInvite({ target, onLogin, standalone }: { target: Target; on
         await linkClub(card.code)
         // En un club de lugar nadie conoce a nadie: cada cuenta entra con su jugador, sin elegir "quién sos".
         if (card.venue) await ensureMyPlayer(card.code)
+        setWelcome(true)
+        return
       }
       await goInside(card.code, !!card.venue)
     } catch (e) {
@@ -181,6 +188,15 @@ export function ClubInvite({ target, onLogin, standalone }: { target: Target; on
         )}
         <ErrorText>{error}</ErrorText>
       </header>
+
+      {welcome && (
+        <MedalSheet
+          family={MEMBERSHIP_FAMILY}
+          level={0}
+          celebrate={{ who: card.name, step: 1, total: 1, onNext: () => void goInside(card.code, !!card.venue) }}
+          onClose={() => void goInside(card.code, !!card.venue)}
+        />
+      )}
 
       <ClubRankingPreview code={card.code} venueGames={card.venue?.games ?? []} focusGame={gameId} />
 
