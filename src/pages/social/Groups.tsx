@@ -1,9 +1,8 @@
-import { ArrowLeftIcon, CaretRightIcon, CheckIcon, MagnifyingGlassIcon, PlusIcon, SignInIcon, SwordIcon, UserPlusIcon } from '@phosphor-icons/react'
-import { useEffect, useState } from 'react'
-import { Link, useNavigate, useParams } from 'react-router-dom'
-import { linkClub } from '../../lib/auth'
-import { refreshGroups, switchToGroup, useMyGroups, type MyGroup } from '../../lib/social'
-import { findClub, normalizeCode, useSyncState } from '../../lib/sync'
+import { ArrowLeftIcon, CaretRightIcon, CheckIcon, MagnifyingGlassIcon, PlusIcon, SwordIcon, UserPlusIcon } from '@phosphor-icons/react'
+import { useState } from 'react'
+import { Link, useNavigate } from 'react-router-dom'
+import { switchToGroup, useMyGroups, type MyGroup } from '../../lib/social'
+import { useSyncState } from '../../lib/sync'
 import { GroupForm, GroupSearch } from './GroupForms'
 import { friendlyError } from '../../lib/text'
 import { ErrorText } from '../../components/Feedback'
@@ -119,65 +118,6 @@ export function SearchGroupsPage() {
           if (g) void switchToGroup(g).then(() => navigate('/grupo'))
         }}
       />
-    </div>
-  )
-}
-
-/** Link de invitación con sesión: se suma el grupo a la cuenta. */
-export function JoinByLink() {
-  const { code: raw } = useParams()
-  const code = normalizeCode(raw ?? '')
-  const navigate = useNavigate()
-  const { groups } = useMyGroups()
-  const [name, setName] = useState<string | null | undefined>(undefined)
-  const [busy, setBusy] = useState(false)
-  const [error, setError] = useState('')
-  const mine = groups?.find((g) => g.code === code)
-
-  useEffect(() => {
-    let cancelled = false
-    findClub(code)
-      .then((n) => !cancelled && setName(n))
-      .catch(() => !cancelled && setName(null))
-    return () => {
-      cancelled = true
-    }
-  }, [code])
-
-  const join = async () => {
-    setBusy(true)
-    setError('')
-    try {
-      if (!mine) await linkClub(code)
-      const list = await refreshGroups()
-      const g = list.find((x) => x.code === code)
-      if (g) await switchToGroup(g)
-      navigate('/grupo#yo')
-    } catch (e) {
-      setError(friendlyError(e))
-    } finally {
-      setBusy(false)
-    }
-  }
-
-  return (
-    <div className="page">
-      <h1>Invitación</h1>
-      {name === undefined && <p className="muted">Buscando el club…</p>}
-      {name === null && <div className="card warn">El link no corresponde a ningún club. Revisá que esté completo.</div>}
-      {name && (
-        <section className="card highlight">
-          <h2>{mine ? `Ya sos parte de “${name}”` : `Te invitaron a “${name}”`}</h2>
-          <p className="muted">Vas a ver los jugadores, partidas y el ranking del club, y vas a poder anotar partidas.</p>
-          <button className="btn primary big block" disabled={busy} onClick={join}>
-            <SignInIcon /> {mine ? 'Ir al club' : 'Sumarme al club'}
-          </button>
-        </section>
-      )}
-      <ErrorText>{error}</ErrorText>
-      <Link to="/" className="back mt">
-        <ArrowLeftIcon /> Inicio
-      </Link>
     </div>
   )
 }

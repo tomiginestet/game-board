@@ -1,7 +1,9 @@
-import { CheckIcon, GlobeHemisphereWestIcon, HourglassIcon, LockSimpleIcon, MagnifyingGlassIcon, SparkleIcon, UsersThreeIcon } from '@phosphor-icons/react'
+import { CheckIcon, GlobeHemisphereWestIcon, StorefrontIcon, XIcon, HourglassIcon, LockSimpleIcon, MagnifyingGlassIcon, SparkleIcon, UsersThreeIcon } from '@phosphor-icons/react'
 import { useEffect, useState } from 'react'
 import { ReportButton } from '../../components/ReportButton'
-import { cancelJoinRequest, createGroup, requestJoin, searchGroups, updateGroup, type FoundGroup, type MyGroup } from '../../lib/social'
+import { cancelJoinRequest, createGroup, requestJoin, searchGroups, setClubVenue, updateGroup, type FoundGroup, type MyGroup, type Venue } from '../../lib/social'
+import { allGames } from '../../lib/games'
+import { GameBadge } from '../../components/GameBits'
 import { useData } from '../../lib/store'
 import { friendlyError } from '../../lib/text'
 import { ErrorText } from '../../components/Feedback'
@@ -19,6 +21,11 @@ export function GroupForm({ initial, onDone }: { initial?: MyGroup; onDone: (g?:
   const [isPublic, setIsPublic] = useState(initial?.is_public ?? false)
   const hasLocal = !initial && data.players.length + data.plays.length + data.matches.length + data.cups.length + data.games.length > 0
   const [importLocal, setImportLocal] = useState(hasLocal)
+  // Club de un lugar: sólo si el servidor ya lo maneja (`venue` viene en los grupos, aunque sea null).
+  const venueSupported = !initial || initial.venue !== undefined
+  const [isVenue, setIsVenue] = useState(!!initial?.venue)
+  const [address, setAddress] = useState(initial?.venue?.address ?? '')
+  const [venueGames, setVenueGames] = useState<string[]>(initial?.venue?.games ?? [])
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState('')
 
@@ -31,11 +38,16 @@ export function GroupForm({ initial, onDone }: { initial?: MyGroup; onDone: (g?:
         setBusy(true)
         setError('')
         try {
+          const venue: Venue | null = isVenue ? { address: address.trim() || null, games: venueGames } : null
+          const venueChanged = JSON.stringify(venue) !== JSON.stringify(initial?.venue ? { address: initial.venue.address || null, games: initial.venue.games } : null)
           if (initial) {
             await updateGroup(initial.code, { name: name.trim(), description, emoji, isPublic })
+            if (venueSupported && venueChanged) await setClubVenue(initial.code, venue)
             onDone()
           } else {
-            onDone(await createGroup({ name: name.trim(), description, emoji, isPublic, importLocal: hasLocal && importLocal }))
+            const g = await createGroup({ name: name.trim(), description, emoji, isPublic, importLocal: hasLocal && importLocal })
+            if (venue) await setClubVenue(g.code, venue)
+            onDone(g)
           }
         } catch (err) {
           setError(friendlyError(err))
@@ -87,6 +99,17 @@ export function GroupForm({ initial, onDone }: { initial?: MyGroup; onDone: (g?:
           ? 'Aparece en el buscador. Quien quiera entrar te pide permiso y vos (o un admin) lo aceptás.'
           : 'No aparece en el buscador. Se entra sólo por invitación o con el link.'}
       </p>
+      {venueSupported && (
+        <>
+          <label className="check-row mt">
+            <input type="checkbox" checked={isVenue} onChange={(e) => setIsVenue(e.target.checked)} />
+            <span>
+              <StorefrontIcon aria-hidden /> Es el club de un lugar (un bar, un club, un complejo de canchas)
+            </span>
+          </label>
+          {isVenue && <VenueFields address={address} onAddress={setAddress} games={venueGames} onGames={setVenueGames} />}
+        </>
+      )}
       {hasLocal && (
         <label className="check-row">
           <input type="checkbox" checked={importLocal} onChange={(e) => setImportLocal(e.target.checked)} />
@@ -183,6 +206,72 @@ export function GroupSearch({ onOpenMine }: { onOpenMine?: (groupId: string) => 
         ))}
       </div>
       {results?.some((g) => g.my_status === 'pending') && <p className="muted small">Te avisamos cuando te acepten. Tocá “Pedido” para cancelar la solicitud.</p>}
+    </div>
+  )
+}
+
+/** Los juegos que suele tener un bar, para elegir rápido. */
+const BAR_GAMES = ['pingpong', 'pool', 'metegol', 'dardos', 'bowling', 'sapo', 'tejo', 'beerpong', 'cornhole', 'truco', 'generala', 'jenga']
+
+const norm = (t: string) => t.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().trim()
+
+/** Dirección y juegos del lugar. */
+function VenueFields({ address, onAddress, games, onGames }: { address: string; onAddress: (v: string) => void; games: string[]; onGames: (v: string[]) => void }) {
+  const data = useData()
+  const catalog = allGames(data)
+  const [q, setQ] = useState('')
+  const picked = games.map((id) => catalog.find((g) => g.id === id)).filter((g) => !!g)
+  const query = norm(q)
+  const options = (query ? catalog.filter((g) => norm(g.name).includes(query)) : BAR_GAMES.map((id) => catalog.find((g) => g.id === id)).filter((g) => !!g))
+    .filter((g) => !games.includes(g.id))
+    .slice(0, 12)
+  return (
+    <div className="venue-fields">
+      <p className="muted small">
+        En un club de lugar se anota con cuenta, así cada partida queda a nombre de quien la jugó. Los juegos del lugar salen primero al anotar y en el ranking.
+      </p>
+      <label className="field">
+        <span className="field-label">Dirección (opcional)</span>
+        <input className="input" maxLength={120} placeholder="Av. Corrientes 1234, CABA" value={address} onChange={(e) => onAddress(e.target.value)} />
+      </label>
+      <div className="field">
+        <span className="field-label" id="venue-games-label">
+          Juegos del lugar
+        </span>
+        {picked.length > 0 ? (
+          <ul className="venue-games" aria-labelledby="venue-games-label">
+            {picked.map((g) => (
+              <li key={g.id}>
+                <GameBadge game={g} size={24} /> {g.name}
+                <button type="button" className="tool-btn small" aria-label={`Sacar ${g.name}`} onClick={() => onGames(games.filter((id) => id !== g.id))}>
+                  <XIcon />
+                </button>
+              </li>
+            ))}
+          </ul>
+        ) : (
+          <p className="muted small">Todavía no elegiste ninguno.</p>
+        )}
+      </div>
+      <label className="search">
+        <MagnifyingGlassIcon aria-hidden />
+        <input className="input" placeholder="Buscar otro juego" value={q} onChange={(e) => setQ(e.target.value)} aria-label="Buscar juego para sumar al lugar" />
+      </label>
+      <div className="chips">
+        {options.map((g) => (
+          <button
+            key={g.id}
+            type="button"
+            className="chip"
+            onClick={() => {
+              onGames([...games, g.id])
+              setQ('')
+            }}
+          >
+            + {g.name}
+          </button>
+        ))}
+      </div>
     </div>
   )
 }

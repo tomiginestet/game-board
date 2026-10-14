@@ -1,0 +1,6 @@
+{
+  "rewrites": [
+    { "source": "/c/:slug", "destination": "/api/club?slug=:slug" },
+    { "source": "/unirse/:code", "destination": "/api/club?code=:code" }
+  ]
+}

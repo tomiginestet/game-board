@@ -8,6 +8,8 @@ import { Loader, Logo } from './components/Logo'
 import { TopBar } from './components/TopBar'
 import { Visits } from './components/Visits'
 import { useAuth } from './lib/auth'
+// Va en el paquete principal: la pantalla de entrada (`Gate`) ya la usa para los links sin sesión.
+import { InviteRoute, ShortLinkRoute } from './pages/social/ClubInvite'
 import { useDocumentTitle } from './lib/hooks'
 import { loaderForPath } from './lib/logo'
 import { Home } from './pages/Home'
@@ -19,7 +21,6 @@ function page<M extends Record<string, unknown>, K extends keyof M>(load: () => 
 }
 const AddGame = page(() => import('./pages/AddGame'), 'AddGame')
 const EditGame = page(() => import('./pages/AddGame'), 'EditGame')
-const ClubPage = page(() => import('./pages/ClubPage'), 'ClubPage')
 const CupDetail = page(() => import('./pages/CupDetail'), 'CupDetail')
 const Cups = page(() => import('./pages/Cups'), 'Cups')
 const GameDetail = page(() => import('./pages/GameDetail'), 'GameDetail')
@@ -45,7 +46,7 @@ const Settings = page(() => import('./pages/Settings'), 'Settings')
 const Friends = page(() => import('./pages/social/Friends'), 'Friends')
 const GroupPage = page(() => import('./pages/social/GroupPage'), 'GroupPage')
 const Groups = page(() => import('./pages/social/Groups'), 'Groups')
-const JoinByLink = page(() => import('./pages/social/Groups'), 'JoinByLink')
+const PrintCard = page(() => import('./pages/social/PrintCard'), 'PrintCard')
 const NewGroupPage = page(() => import('./pages/social/Groups'), 'NewGroupPage')
 const SearchGroupsPage = page(() => import('./pages/social/Groups'), 'SearchGroupsPage')
 const Notifications = page(() => import('./pages/social/Notifications'), 'Notifications')
@@ -91,7 +92,7 @@ const TITLES: [RegExp, string][] = [
   [/^\/equipos/, 'Equipos'],
   [/^\/historial/, 'Historial'],
   [/^\/ajustes/, 'Ajustes'],
-  [/^\/(club|grupo|grupos|unirse)/, 'Club'],
+  [/^\/(club|grupo|grupos|unirse|c\/)/, 'Club'],
   [/^\/amigos/, 'Amigos'],
   [/^\/notificaciones/, 'Notificaciones'],
   [/^\/(perfil|cuenta)/, 'Perfil'],
@@ -149,17 +150,13 @@ function NotFound() {
   )
 }
 
-/** Link de invitación: con sesión se suma a la cuenta; sin cuenta, como antes (club en el dispositivo). */
-function JoinRoute() {
-  const auth = useAuth()
-  return auth.session ? <JoinByLink /> : <ClubPage />
-}
-
 /** Las rutas de la app. De acá sale también la pantalla genérica que se cuenta en las visitas. */
 const routes = (
   <>
     {/* Marcador del ping pong a pantalla completa (el mismo del Ping Pong Club). */}
     <Route path="/partido/:id" element={<MatchScreen />} />
+    {/* Tarjeta del club para imprimir, sin la barra ni la navegación. */}
+    <Route path="/club/tarjeta" element={<PrintCard />} />
     <Route element={<Layout />}>
       <Route index element={<Home />} />
       <Route path="/anotar" element={<QuickPick />} />
@@ -188,7 +185,8 @@ const routes = (
       <Route path="/ajustes" element={<Settings />} />
       <Route path="/club" element={<GroupPage />} />
       <Route path="/cuenta" element={<Profile />} />
-      <Route path="/unirse/:code" element={<JoinRoute />} />
+      <Route path="/unirse/:code" element={<InviteRoute />} />
+      <Route path="/c/:slug" element={<ShortLinkRoute />} />
       <Route path="/grupo" element={<GroupPage />} />
       <Route path="/grupos" element={<Groups />} />
       <Route path="/grupos/nuevo" element={<NewGroupPage />} />

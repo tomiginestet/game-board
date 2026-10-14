@@ -729,3 +729,242 @@ button.group-row:hover {
     font-size: 20px;
   }
 }
+
+/* Invitación por link o QR: el club, cómo sumarse y su ranking. */
+.invite-brand {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-family: 'Lilita One', system-ui, sans-serif;
+  font-size: 20px;
+  margin-bottom: 4px;
+}
+.invite-kicker {
+  margin: 0 0 4px;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--accent);
+}
+.invite-game {
+  margin: 0;
+  font-weight: 600;
+}
+.invite-ranking {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.invite-ranking h2 {
+  margin: 0;
+}
+.invite-game-head {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+/* Link corto del club. */
+.short-link {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 8px;
+  margin-top: 14px;
+  padding-top: 14px;
+  border-top: 1px solid var(--border);
+}
+.short-link .field {
+  width: 100%;
+  margin: 0;
+}
+.slug-input {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.slug-input .input {
+  flex: 1;
+  min-width: 0;
+  font-family: ui-monospace, 'SF Mono', Menlo, monospace;
+}
+
+/* Club de un lugar: dirección y juegos. */
+.venue-fields {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 12px;
+  border-radius: 12px;
+  background: var(--bg-2);
+}
+.venue-fields .field {
+  margin: 0;
+}
+.venue-games {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.venue-games li {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 2px 2px 2px 6px;
+  border-radius: 999px;
+  background: var(--card-2);
+  font-size: 14px;
+  font-weight: 600;
+}
+
+/* Carnet de socio: un pase de billetera troquelado en dos mitades. Cada mitad recorta sus propios
+   semicírculos con una máscara, así el troquel es un agujero de verdad (se ve el fondo) y no un dibujo encima. */
+.pass {
+  --pass-stripe: #ff6b35;
+  --notch: 11px;
+  display: flex;
+  flex-direction: column;
+  filter: drop-shadow(0 14px 22px rgba(0, 0, 0, 0.45));
+}
+.pass-main,
+.pass-stub {
+  position: relative;
+  background: linear-gradient(160deg, color-mix(in srgb, var(--pass-stripe) 14%, var(--card-2)), var(--card) 70%);
+}
+.pass-main {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 12px;
+  padding: 20px 18px 16px;
+  border-radius: 20px 20px 0 0;
+  -webkit-mask:
+    radial-gradient(circle var(--notch) at 0 100%, #0000 98%, #000) left / 51% 100% no-repeat,
+    radial-gradient(circle var(--notch) at 100% 100%, #0000 98%, #000) right / 51% 100% no-repeat;
+  mask:
+    radial-gradient(circle var(--notch) at 0 100%, #0000 98%, #000) left / 51% 100% no-repeat,
+    radial-gradient(circle var(--notch) at 100% 100%, #0000 98%, #000) right / 51% 100% no-repeat;
+}
+.pass-main::before {
+  /* la franja de color de arriba, como en los pases de las billeteras */
+  content: '';
+  position: absolute;
+  inset: 0 0 auto;
+  height: 4px;
+  border-radius: 20px 20px 0 0;
+  background: var(--pass-stripe);
+}
+.pass-who {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+.pass-name {
+  font-family: 'Lilita One', system-ui, sans-serif;
+  font-weight: 400;
+  font-size: 24px;
+  line-height: 1.1;
+  overflow-wrap: anywhere;
+}
+.pass-meta {
+  font-size: 13px;
+  line-height: 1.35;
+  color: var(--muted);
+}
+.pass-number {
+  align-self: start;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 2px;
+  font-size: 12px;
+  color: var(--muted);
+  white-space: nowrap;
+}
+.pass-number b {
+  font-family: ui-monospace, 'SF Mono', Menlo, monospace;
+  font-size: 14px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  color: var(--text);
+  font-variant-numeric: tabular-nums;
+}
+.pass-stub {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  min-height: 44px;
+  padding: 16px 16px 16px 12px;
+  border: 0;
+  border-radius: 0 0 20px 20px;
+  background: linear-gradient(160deg, var(--card), color-mix(in srgb, var(--pass-stripe) 8%, var(--bg-2)));
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+  -webkit-mask:
+    radial-gradient(circle var(--notch) at 0 0, #0000 98%, #000) left / 51% 100% no-repeat,
+    radial-gradient(circle var(--notch) at 100% 0, #0000 98%, #000) right / 51% 100% no-repeat;
+  mask:
+    radial-gradient(circle var(--notch) at 0 0, #0000 98%, #000) left / 51% 100% no-repeat,
+    radial-gradient(circle var(--notch) at 100% 0, #0000 98%, #000) right / 51% 100% no-repeat;
+}
+.pass-stub::before {
+  /* la línea de puntos del troquel, entre los dos agujeros */
+  content: '';
+  position: absolute;
+  top: 0;
+  left: calc(var(--notch) + 6px);
+  right: calc(var(--notch) + 6px);
+  border-top: 2px dashed color-mix(in srgb, var(--muted) 45%, transparent);
+}
+.pass-stub:hover {
+  background: linear-gradient(160deg, var(--card-2), color-mix(in srgb, var(--pass-stripe) 12%, var(--bg-2)));
+}
+.pass-stub:focus-visible {
+  outline: none;
+}
+.pass:has(.pass-stub:focus-visible) {
+  /* el talón tiene máscara (recortaría su contorno): el foco se marca en todo el carnet */
+  outline: 2px solid var(--accent);
+  outline-offset: 3px;
+  border-radius: 22px;
+}
+.pass-stub-text {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+.pass-stub-text b {
+  font-size: 16px;
+}
+.pass-next {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin-top: 6px;
+}
+.pass-progress {
+  display: block;
+  height: 4px;
+  border-radius: 999px;
+  background: var(--border);
+  overflow: hidden;
+}
+.pass-progress span {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: var(--accent-2);
+}
+.pass-caret {
+  color: var(--muted);
+}

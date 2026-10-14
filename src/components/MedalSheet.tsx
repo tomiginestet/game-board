@@ -167,7 +167,7 @@ export function MedalSheet({
         </div>
 
         <div className="ms-facts">
-          <Fact icon={<TargetIcon />} label="Cómo se gana" main={`Llegá a ${family.unit(l.at)}`} sub={family.measures} />
+          <Fact icon={<TargetIcon />} label="Cómo se gana" main={l.at === 0 && family.startLabel ? family.startLabel : `Llegá a ${family.unit(l.at)}`} sub={family.measures} />
 
           {mine && <Progress who={mine.name} value={mine.value} target={l.at} got={mine.level >= level} unit={family.unit} />}
 

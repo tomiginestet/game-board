@@ -8,7 +8,8 @@ import { useEffect, useSyncExternalStore } from 'react'
 import type { RealtimeChannel } from '@supabase/supabase-js'
 import { currentUserId, useAuth } from './auth'
 import { BUILTIN_GAMES } from './games'
-import { activateClub, adoptLocalData, supabase, useSyncState, type Club } from './sync'
+import { activateClub, adoptLocalData, inviteLink, supabase, useSyncState, type Club } from './sync'
+import { shortLink } from './clubLink'
 
 function client() {
   const sb = supabase()
@@ -126,6 +127,16 @@ export interface MyGroup {
   joined_at: string
   members: number
   pending_requests: number
+  /** Link corto (`/c/<slug>`). Puede faltar si el servidor todavía no tiene la migración de links. */
+  slug?: string | null
+  /** Si es el club de un lugar (bar, club, complejo de canchas). */
+  venue?: Venue | null
+}
+
+/** Datos de un club de lugar: dirección y juegos que tiene (ids del catálogo). */
+export interface Venue {
+  address?: string | null
+  games: string[]
 }
 
 let groupsState: { userId?: string; groups?: MyGroup[]; loading: boolean; error?: string } = { loading: false }
@@ -144,6 +155,16 @@ export async function refreshGroups(): Promise<MyGroup[]> {
   setGroups({ ...groupsState, userId: uid, loading: true })
   try {
     const groups = (await rpc<MyGroup[] | null>('my_groups')) ?? []
+    // Link corto y lugar de cada club. Si el servidor todavía no tiene la función, quedan sin definir y la app
+    // no muestra esas opciones.
+    const links = await rpc<{ code: string; slug: string | null; venue: Venue | null }[] | null>('my_group_links').catch(() => null)
+    if (links) {
+      const byCode = new Map(links.map((l) => [l.code, l]))
+      for (const g of groups) {
+        g.slug = byCode.get(g.code)?.slug ?? null
+        g.venue = byCode.get(g.code)?.venue ?? null
+      }
+    }
     setGroups({ userId: uid, groups, loading: false })
     return groups
   } catch (e) {
@@ -205,6 +226,51 @@ export async function createGroup(input: { name: string; description?: string; e
 export async function updateGroup(code: string, input: { name: string; description?: string; emoji?: string; isPublic: boolean }): Promise<void> {
   await rpc('update_group', { p_code: code, p_name: input.name, p_description: input.description ?? null, p_emoji: input.emoji ?? null, p_public: input.isPublic })
   await refreshGroups()
+}
+
+/** El link para compartir un club: el corto si tiene, si no el de invitación. */
+export function clubShareLink(g: { code: string; slug?: string | null }): string {
+  return g.slug ? shortLink(g.slug, window.location.href, import.meta.env.VITE_PUBLIC_URL as string | undefined) : inviteLink(g.code)
+}
+
+/** Pone, cambia o saca (`null`) el link corto del club. */
+export async function setClubSlug(code: string, slug: string | null): Promise<void> {
+  await rpc('set_club_slug', { p_code: code, p_slug: slug })
+  await refreshGroups()
+}
+
+/** Hace del club un club de lugar, o deja de serlo con `null`. */
+export async function setClubVenue(code: string, venue: Venue | null): Promise<void> {
+  await rpc('set_club_venue', { p_code: code, p_venue: venue })
+  await refreshGroups()
+}
+
+/** Lo que se ve de un club antes de entrar (por su código o por su link corto). Funciona sin cuenta. */
+export interface ClubCard {
+  code: string
+  name: string
+  emoji: string | null
+  description: string | null
+  slug: string | null
+  venue: Venue | null
+  members: number
+}
+
+/** `null` si no hay club con ese código o ese link. */
+export async function findClubCard(target: { code: string } | { slug: string }): Promise<ClubCard | null> {
+  if ('slug' in target) {
+    const rows = await rpc<ClubCard[] | null>('club_by_slug', { p_slug: target.slug })
+    return rows?.[0] ?? null
+  }
+  try {
+    const rows = await rpc<ClubCard[] | null>('club_card', { p_code: target.code })
+    return rows?.[0] ?? null
+  } catch (e) {
+    // Sin la migración de links, se cae al nombre solo (como antes).
+    if (!/club_card/.test(e instanceof Error ? e.message : String(e))) throw e
+    const name = await rpc<string | null>('get_club', { p_code: target.code })
+    return name ? { code: target.code, name, emoji: null, description: null, slug: null, venue: null, members: 0 } : null
+  }
 }
 
 export interface FoundGroup {

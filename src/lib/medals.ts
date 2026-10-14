@@ -13,6 +13,8 @@ export interface MedalFamily {
   measures: string
   unit: (n: number) => string
   levels: AwardLevel[]
+  /** Cómo se gana un nivel que arranca en 0 (el de Socio se gana al sumarse). */
+  startLabel?: string
 }
 
 export interface MedalProgress {
@@ -153,6 +155,36 @@ export const GLOBAL_FAMILIES: GlobalFamily[] = [
 
 export function globalMedals(s: GlobalStats): MedalProgress[] {
   return GLOBAL_FAMILIES.map((f) => progressOf(f, f.value(s)))
+}
+
+// ---------------------------------------------------------------------------
+// Socio: antigüedad en un club (de las cuentas, por la fecha en que se sumaron). El primer nivel es sumarse.
+
+const DAY_MS = 86_400_000
+
+export const MEMBERSHIP_FAMILY: MedalFamily = {
+  id: 'membership',
+  name: 'Socio',
+  measures: 'Tiempo en el club desde que te sumaste',
+  unit: (n) => plural(n, 'día de socio', 'días de socio'),
+  startLabel: 'Sumate al club',
+  levels: [
+    { at: 0, name: 'Carnet nuevo', description: 'Te sumaste al club. Foto carnet, número de socio y a jugar.' },
+    { at: 30, name: 'Cuota al día', description: 'Un mes en el club y la cuota al día (es gratis, pero igual).' },
+    { at: 180, name: 'De la casa', description: 'Seis meses: ya te guardan la mesa y saben cómo tomás el café.' },
+    { at: 365, name: 'Placa en la puerta', description: 'Un año de club. Tu nombre en la placa de bronce de la entrada.' },
+    { at: 1095, name: 'Socio vitalicio', description: 'Tres años. El carnet ya no vence: sos parte del edificio.' },
+  ],
+}
+
+/** Días completos en el club desde `joinedAt` (nunca negativo). */
+export function membershipDays(joinedAt: string | number, now = Date.now()): number {
+  const t = typeof joinedAt === 'number' ? joinedAt : Date.parse(joinedAt)
+  return Number.isFinite(t) ? Math.max(0, Math.floor((now - t) / DAY_MS)) : 0
+}
+
+export function membershipMedal(joinedAt: string | number, now = Date.now()): MedalProgress {
+  return progressOf(MEMBERSHIP_FAMILY, membershipDays(joinedAt, now))
 }
 
 // ---------------------------------------------------------------------------
