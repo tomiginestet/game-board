@@ -13,6 +13,8 @@ export interface MedalFamily {
   measures: string
   unit: (n: number) => string
   levels: AwardLevel[]
+  /** Cómo se gana un nivel que arranca en 0 (el de Socio se gana al sumarse). */
+  startLabel?: string
 }
 
 export interface MedalProgress {
@@ -165,6 +167,7 @@ export const MEMBERSHIP_FAMILY: MedalFamily = {
   name: 'Socio',
   measures: 'Tiempo en el club desde que te sumaste',
   unit: (n) => plural(n, 'día de socio', 'días de socio'),
+  startLabel: 'Sumate al club',
   levels: [
     { at: 0, name: 'Carnet nuevo', description: 'Te sumaste al club. Foto carnet, número de socio y a jugar.' },
     { at: 30, name: 'Cuota al día', description: 'Un mes en el club y la cuota al día (es gratis, pero igual).' },
