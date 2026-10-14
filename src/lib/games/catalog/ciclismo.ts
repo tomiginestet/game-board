@@ -21,9 +21,9 @@ export const ciclismo: GameDef = {
       id: 'wins', name: 'Maillot amarillo', measures: 'Carreras de ciclismo ganadas', metric: { type: 'wins' },
       unit: '{n} carreras', unitOne: '1 carrera',
       levels: [
-        lv(3, 'Rueditas sacadas', 'Tres carreras ganadas. Ya no hacen falta las rueditas.', 'road', '#FFD43B'),
-        lv(10, 'Rey de la montaña', 'Diez victorias: las subidas te dan risa.', 'trophy', '#FAB005'),
-        lv(30, 'Gran vuelta del barrio', 'Treinta ganadas. Te esperan con banderitas en cada esquina.', 'crown', '#E67700'),
+        lv(3, 'Rueditas sacadas', 'Tres carreras ganadas. Ya no hacen falta las rueditas.'),
+        lv(10, 'Rey de la montaña', 'Diez victorias: las subidas te dan risa.'),
+        lv(30, 'Gran vuelta del barrio', 'Treinta ganadas. Te esperan con banderitas en cada esquina.'),
       ],
     },
   ],

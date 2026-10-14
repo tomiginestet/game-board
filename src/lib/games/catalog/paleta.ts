@@ -22,9 +22,9 @@ export const paleta: GameDef = {
       id: 'wins', name: 'Frontón', measures: 'Partidos de paleta ganados', metric: { type: 'wins' },
       unit: '{n} partidos', unitOne: '1 partido',
       levels: [
-        lv(5, 'Paleta de pino', 'Cinco partidos ganados. La paleta todavía tiene astillas.', 'shield', '#D6336C'),
-        lv(20, 'Pared del club', 'Veinte victorias: la pared tiene tu marca de tanto pegarle.', 'house', '#C2255C'),
-        lv(60, 'Vasco del barrio', 'Sesenta ganados. Te invitan a jugar a Euskadi con boina.', 'crown', '#A61E4D'),
+        lv(5, 'Paleta de pino', 'Cinco partidos ganados. La paleta todavía tiene astillas.'),
+        lv(20, 'Pared del club', 'Veinte victorias: la pared tiene tu marca de tanto pegarle.'),
+        lv(60, 'Vasco del barrio', 'Sesenta ganados. Te invitan a jugar a Euskadi con boina.'),
       ],
     },
   ],

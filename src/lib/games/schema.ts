@@ -207,7 +207,7 @@ export interface AwardLevel {
   /** Nombre del nivel; también es la clave de su ilustración. */
   name: string
   description: string
-  /** Si no hay ilustración con ese nombre: dibujo genérico y color de fondo. */
+  /** Sólo para juegos agregados por el grupo o la IA (sin ilustración propia): dibujo genérico y color de acento. */
   glyph?: Glyph
   color?: string
   /** Color de fondo de la ilustración, si no usa el del material. */

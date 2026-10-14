@@ -65,7 +65,8 @@ de datos) que el [Ping Pong Club](https://github.com/tomiginestet/ping-pong-web-
 - **Medallas** con ilustraciones propias y niveles bronce → leyenda:
   - generales (todos los juegos juntos), genéricas de cada juego (sirven aunque el juego no tenga premios propios)
     y **propias de cada juego** (Ruta 40 en el Catán, Cantor de envidos en el truco, Rey del heno…);
-  - los juegos agregados por el grupo usan dibujos genéricos con su color.
+  - los juegos agregados por el grupo o por la IA usan dibujos genéricos, dibujados con el mismo estilo de estampa
+    y un toque del color del juego.
 - **Clubes sincronizados** con link de invitación (los mismos del Ping Pong Club) y **cuentas opcionales**
   (mail o Google) para tener tus clubes en cualquier dispositivo y decir qué jugador sos.
 
@@ -107,6 +108,8 @@ Stack: React + TypeScript + Vite, React Router (HashRouter), Supabase, Vitest.
 
 ### Cómo agregar un juego de fábrica
 
-Un archivo en `src/lib/games/catalog/<id>.ts` que exporte un `GameDef` (se carga solo). Las ilustraciones de sus
-medallas van en `src/lib/art/` (cualquier `Record` exportado con nombre terminado en `_ART`), con la clave igual al
-nombre del nivel. Los tests verifican que la ficha sea coherente y que cada medalla tenga su dibujo.
+Un archivo en `src/lib/games/catalog/<id>.ts` que exporte un `GameDef` (se carga solo). Cada nivel de sus medallas
+lleva su ilustración propia en `src/lib/art/nuevas/<id>.ts` (un `Record` exportado con nombre terminado en `_ART`, con
+la clave igual al nombre del nivel), dibujada con el kit de `src/lib/art/kit.ts` y el lenguaje de
+[docs/medallas-filosofia.md](docs/medallas-filosofia.md). Los juegos del catálogo no usan los dibujos genéricos
+(`glyph`): los tests verifican que la ficha sea coherente y que cada medalla tenga su ilustración.

@@ -24,9 +24,9 @@ export const natacion: GameDef = {
       id: 'wins', name: 'Pez', measures: 'Carreras de natación ganadas', metric: { type: 'wins' },
       unit: '{n} carreras', unitOne: '1 carrera',
       levels: [
-        lv(3, 'Patito de goma', 'Tres carreras ganadas. Flotás con estilo.', 'heart', '#99E9F2'),
-        lv(10, 'Delfín de pileta', 'Diez victorias: hacés la vuelta olímpica en la pared.', 'star', '#3BC9DB'),
-        lv(30, 'Meolans de club', 'Treinta ganadas. Te piden autógrafos en el vestuario.', 'crown', '#0C8599'),
+        lv(3, 'Patito de goma', 'Tres carreras ganadas. Flotás con estilo.'),
+        lv(10, 'Delfín de pileta', 'Diez victorias: hacés la vuelta olímpica en la pared.'),
+        lv(30, 'Meolans de club', 'Treinta ganadas. Te piden autógrafos en el vestuario.'),
       ],
     },
   ],
