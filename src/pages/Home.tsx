@@ -1,5 +1,5 @@
 import { ArrowRightIcon, CheckCircleIcon, GearSixIcon, PencilSimpleIcon, PlusIcon, TrashIcon, UsersIcon } from '@phosphor-icons/react'
-import { lazy, Suspense, useState } from 'react'
+import { lazy, Suspense, useEffect, useState } from 'react'
 import { Link, useNavigate, type NavigateFunction } from 'react-router-dom'
 import { toast } from '../lib/feedback'
 import { ClubHero, JoinRequests } from '../components/ClubHero'
@@ -19,7 +19,7 @@ import type { GameDef } from '../lib/games/schema'
 import { gameOrMissing, useBoard, usePlayerMap } from '../lib/hooks'
 import { tournamentChampion } from '../lib/pingpong/stats'
 import { groupingOf, joinNames, planRematch, type RematchPlan } from '../lib/rematch'
-import { canPickClubGames, useActiveGroup, type MyGroup } from '../lib/social'
+import { canPickClubGames, refreshGroupsIfStale, useActiveGroup, type MyGroup } from '../lib/social'
 import { actions, getData, useData } from '../lib/store'
 import { syncAvailable, useSyncState } from '../lib/sync'
 import type { Id, Play, Player, PPMatch as Match } from '../lib/types'
@@ -90,6 +90,8 @@ export function Home() {
   const sync = useSyncState()
   const navigate = useNavigate()
   const [stepsClosed, setStepsClosed] = useState(() => readFlag(FIRST_STEPS_KEY))
+  // Al abrir el club, sus números (cuentas, pedidos) al día aunque la app haya quedado abierta.
+  useEffect(() => refreshGroupsIfStale(), [])
 
   const live = [
     ...data.plays.filter((p) => p.status === 'live' && !p.cupId).map((p) => ({ kind: 'play' as const, at: p.startedAt ?? p.createdAt, p })),

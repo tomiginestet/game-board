@@ -178,12 +178,32 @@ export async function refreshGroups(): Promise<MyGroup[]> {
       const byCode = new Map(games.map((x) => [x.code, x.games]))
       for (const g of groups) g.games = byCode.get(g.code) ?? null
     }
+    groupsFetchedAt = Date.now()
     setGroups({ userId: uid, groups, loading: false })
     return groups
   } catch (e) {
     setGroups({ ...groupsState, userId: uid, loading: false, error: e instanceof Error ? e.message : String(e) })
     throw e
   }
+}
+
+let groupsFetchedAt = 0
+const GROUPS_MAX_AGE_MS = 60_000
+
+/**
+ * Vuelve a pedir los clubes si la lista tiene más de un minuto. Los números de cada club (cuántas cuentas,
+ * pedidos para entrar) cambian sin que este dispositivo se entere: alguien entra con el link mientras la app
+ * sigue abierta en otro teléfono.
+ */
+export function refreshGroupsIfStale(): void {
+  if (!currentUserId() || groupsState.loading || Date.now() - groupsFetchedAt < GROUPS_MAX_AGE_MS) return
+  void refreshGroups().catch(() => {})
+}
+
+if (typeof document !== 'undefined') {
+  document.addEventListener('visibilitychange', () => {
+    if (document.visibilityState === 'visible' && groupsState.groups) refreshGroupsIfStale()
+  })
 }
 
 /** Grupos de la cuenta: `undefined` mientras cargan. */
