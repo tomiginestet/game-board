@@ -887,7 +887,7 @@ button.group-row:hover {
 }
 .pass-main {
   display: grid;
-  grid-template-columns: auto minmax(0, 1fr) auto;
+  grid-template-columns: auto minmax(0, 1fr);
   align-items: center;
   gap: 12px;
   padding: 20px 18px 16px;
@@ -915,11 +915,30 @@ button.group-row:hover {
   min-width: 0;
 }
 .pass-name {
+  margin: 0 0 2px;
+  padding-right: 72px;
   font-family: 'Lilita One', system-ui, sans-serif;
   font-weight: 400;
-  font-size: 24px;
+  font-size: 28px;
   line-height: 1.1;
   overflow-wrap: anywhere;
+}
+.pass-club {
+  color: var(--text-soft);
+  font-weight: 700;
+}
+.pass-gloria {
+  display: block;
+  margin-top: 2px;
+  font-size: 14px;
+  color: var(--text-soft);
+}
+.pass-gloria svg,
+.pass-gloria b {
+  color: var(--accent-2);
+}
+.pass-gloria svg {
+  vertical-align: -2px;
 }
 .pass-meta {
   font-size: 13px;
@@ -927,7 +946,10 @@ button.group-row:hover {
   color: var(--muted);
 }
 .pass-number {
-  align-self: start;
+  /* Arriba a la derecha, fuera de la grilla: el texto del carnet usa todo el ancho. */
+  position: absolute;
+  top: 18px;
+  right: 18px;
   display: flex;
   flex-direction: column;
   align-items: flex-end;
@@ -1091,6 +1113,15 @@ button.group-row:hover {
   color: var(--text);
   text-decoration: none;
 }
+button.settings-row {
+  width: 100%;
+  border: 0;
+  border-bottom: 1px solid var(--border);
+  background: none;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
 .settings-row > svg:first-child {
   flex: none;
   color: var(--accent-2);
@@ -1157,9 +1188,6 @@ button.group-row:hover {
 }
 
 /* Vos */
-.me-club-line {
-  margin: -4px 0 0;
-}
 .account-who {
   margin: -6px 0 0;
   overflow-wrap: anywhere;

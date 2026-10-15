@@ -1,4 +1,4 @@
-import { CaretRightIcon } from '@phosphor-icons/react'
+import { CaretRightIcon, SparkleIcon } from '@phosphor-icons/react'
 import { useState } from 'react'
 import { membershipMedal, MEMBERSHIP_FAMILY } from '../lib/medals'
 import { padNumber, seniorityOf, sinceLabel } from '../lib/memberCard'
@@ -12,24 +12,27 @@ const STRIPES = ['#ff6b35', '#4c8dff', '#22c55e', '#b98cff']
 const stripeOf = (code: string) => STRIPES[[...code].reduce((a, c) => (a * 31 + c.charCodeAt(0)) >>> 0, 7) % STRIPES.length]
 
 /**
- * Carnet de socio, como un pase de billetera troquelado: arriba quién sos (número, rol, partidas)
- * y en el talón la medalla de socio, desde cuándo estás y cuánto falta para el próximo nivel.
- * El nombre del club no va: el carnet se muestra debajo del encabezado del club.
+ * Carnet de socio, como un pase de billetera troquelado. Es el encabezado de la pantalla Vos: arriba quién
+ * sos (nombre, rol en el club, gloria y puesto, número de socio) y en el talón la medalla de socio, desde
+ * cuándo estás y cuánto falta para el próximo nivel. Las partidas y victorias van abajo, en tu récord.
  */
 export function MemberCard({
   clubCode,
+  clubName,
   player,
   joinedAt,
   number,
   role,
-  stats,
+  gloria,
 }: {
   clubCode: string
+  clubName: string
   player?: Player
   joinedAt: string
   number?: number
   role: string
-  stats: { played: number; wins: number }
+  /** Gloria y puesto en el club; sin datos si todavía no jugó. */
+  gloria?: { value: number; position: number }
 }) {
   const [open, setOpen] = useState(false)
   const medal = membershipMedal(joinedAt)
@@ -39,13 +42,21 @@ export function MemberCard({
   return (
     <article className="pass" style={{ '--pass-stripe': stripeOf(clubCode) } as React.CSSProperties} aria-label="Tu carnet de socio">
       <div className="pass-main">
-        {player && <Avatar player={player} size={48} />}
+        {player && <Avatar player={player} size={56} />}
         <div className="pass-who">
-          <b className="pass-name">{player?.name ?? 'Socio'}</b>
-          <span className="pass-meta">{role}</span>
+          <h1 className="pass-name">{player?.name ?? 'Socio'}</h1>
           <span className="pass-meta">
-            {stats.played === 1 ? '1 partida' : `${stats.played} partidas`}
-            {stats.played > 0 && ` · ${stats.wins === 1 ? '1 victoria' : `${stats.wins} victorias`}`}
+            {role} de <b className="pass-club">{clubName}</b>
+          </span>
+          <span className="pass-gloria">
+            {gloria ? (
+              <>
+                <SparkleIcon weight="fill" aria-hidden /> <b className="num">{gloria.value}</b> de gloria
+                {gloria.position > 0 && ` · ${gloria.position}º del club`}
+              </>
+            ) : (
+              <span className="pass-meta">Todavía sin partidas</span>
+            )}
           </span>
         </div>
         {number !== undefined && (

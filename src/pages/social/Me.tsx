@@ -7,6 +7,7 @@ import { useIsAdmin } from '../../lib/admin'
 import { claimedPlayers, claimPlayer, signOut, useAuth } from '../../lib/auth'
 import { ROLE_NAMES, ensureMyPlayer, groupMembers, leaveGroup, refreshGroups, useActiveGroup, useMyGroups, useProfile, userAsPlayer, type Member, type MyGroup } from '../../lib/social'
 import { useData } from '../../lib/store'
+import type { Player } from '../../lib/types'
 import { deactivateClub, syncNow } from '../../lib/sync'
 import { MemberCard } from '../../components/MemberCard'
 import { NextMedals } from '../../components/NextMedals'
@@ -59,18 +60,24 @@ function MeView() {
   const clubs = groups?.filter((g) => g.kind === 'group').length ?? 0
   const duos = groups?.filter((g) => g.kind === 'duo').length ?? 0
 
+  if (editing) {
+    return (
+      <div className="page">
+        <h1>Editar perfil</h1>
+        <ProfileForm initial={profile} submitLabel="Guardar" onSaved={() => setEditing(false)} />
+        <p className="muted small">El nombre, emoji y color se actualizan también en tu jugador de cada club.</p>
+        <button className="btn" onClick={() => setEditing(false)}>
+          Cancelar
+        </button>
+      </div>
+    )
+  }
+
+  // En un club, el carnet es el encabezado (quién sos, tu rol, tu gloria). Sin club o en un mano a mano, el tuyo.
+  const withCard = !!group && group.kind === 'group'
   return (
     <div className="page">
-      {editing ? (
-        <section>
-          <h1>Editar perfil</h1>
-          <ProfileForm initial={profile} submitLabel="Guardar" onSaved={() => setEditing(false)} />
-          <p className="muted small">El nombre, emoji y color se actualizan también en tu jugador de cada club.</p>
-          <button className="btn" onClick={() => setEditing(false)}>
-            Cancelar
-          </button>
-        </section>
-      ) : (
+      {!withCard && (
         <header className="pd-head" style={{ ['--player-color' as string]: profile.color ?? '#3b82f6' }}>
           <Avatar player={userAsPlayer(profile)} size={72} />
           <div className="pd-id">
@@ -78,21 +85,19 @@ function MeView() {
             <p className="pd-sub">
               {stats && stats.played > 0 ? (
                 <>
-                  <SparkleIcon weight="fill" aria-hidden /> <b className="num">{stats.gloria}</b> de gloria{position ? ` · ${position}º del club` : ''}
+                  <SparkleIcon weight="fill" aria-hidden /> <b className="num">{stats.gloria}</b> de gloria{position ? ` · ${position}º` : ''}
+                  {group ? ` en ${group.name}` : ''}
                 </>
               ) : (
                 <>@{profile.username}</>
               )}
             </p>
           </div>
-          <button className="btn pd-edit" onClick={() => setEditing(true)} aria-label="Editar perfil">
-            <PencilSimpleIcon />
-          </button>
         </header>
       )}
 
       {group ? (
-        <ClubSection key={group.code} group={group} />
+        <ClubSection key={group.code} group={group} fallback={userAsPlayer(profile)} />
       ) : (
         <div className="empty">
           <p>No tenés un club activo.</p>
@@ -108,6 +113,14 @@ function MeView() {
           @{profile.username} · {auth.session?.user.email}
         </p>
         <nav className="list rows" aria-label="Tu cuenta">
+          <button type="button" className="settings-row" onClick={() => (setEditing(true), window.scrollTo({ top: 0 }))}>
+            <PencilSimpleIcon size={22} aria-hidden />
+            <span className="grow">
+              <b className="block">Editar perfil</b>
+              <span className="muted small block">Nombre, emoji y color, en todos tus clubes</span>
+            </span>
+            <CaretRightIcon aria-hidden />
+          </button>
           <Link to="/grupos" className="settings-row">
             <UsersThreeIcon size={22} aria-hidden />
             <span className="grow">
@@ -175,8 +188,8 @@ function MeView() {
   )
 }
 
-/** Vos en el club activo: el rol, quién sos, el carnet, las próximas medallas y tus números. */
-function ClubSection({ group }: { group: MyGroup }) {
+/** Vos en el club activo: el carnet (que hace de encabezado), quién sos si falta, las próximas medallas y tus números. */
+function ClubSection({ group, fallback }: { group: MyGroup; fallback: Player }) {
   const auth = useAuth()
   const data = useData()
   const board = useBoard()
@@ -184,7 +197,7 @@ function ClubSection({ group }: { group: MyGroup }) {
   const duo = group.kind === 'duo'
   const [members, setMembers] = useState<Member[] | null>(null)
   const player = data.players.find((p) => p.id === group.player_id)
-  const stats = board.players.get(group.player_id ?? '')
+  const stats = player ? board.players.get(player.id) : undefined
 
   useEffect(() => {
     if (duo) return
@@ -195,23 +208,20 @@ function ClubSection({ group }: { group: MyGroup }) {
 
   return (
     <>
-      <p className="muted small me-club-line">
-        {duo ? 'En el mano a mano' : `${ROLE_NAMES[group.role]} de`} <b className="strong">{group.name}</b> desde el{' '}
-        {new Date(group.joined_at).toLocaleDateString('es', { day: 'numeric', month: 'short', year: 'numeric' })}
-      </p>
-      {!group.player_id && <WhoAmI group={group} />}
       {!duo && (
         <section id="carnet" aria-label="Tu carnet de socio">
           <MemberCard
             clubCode={group.code}
-            player={player}
+            clubName={group.name}
+            player={player ?? fallback}
             joinedAt={group.joined_at}
             number={me && members ? memberNumber(members, me) : undefined}
             role={ROLE_NAMES[group.role]}
-            stats={{ played: stats?.played ?? 0, wins: stats?.wins ?? 0 }}
+            gloria={stats && stats.played > 0 ? { value: stats.gloria, position: gloriaPosition(board, stats.playerId) } : undefined}
           />
         </section>
       )}
+      {!group.player_id && <WhoAmI group={group} />}
       {player && (
         <>
           <NextMedals playerIds={[player.id]} title="Tus próximas medallas" />
