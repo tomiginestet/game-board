@@ -1,6 +1,9 @@
-import { ArrowLeftIcon } from '@phosphor-icons/react'
-import { useState } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
+import { ArrowLeftIcon, CaretRightIcon, PencilSimpleIcon, SquaresFourIcon } from '@phosphor-icons/react'
+import { useEffect, useState } from 'react'
+import { Link, useLocation, useNavigate } from 'react-router-dom'
+import { JoinRequests } from '../../components/ClubHero'
+import { plural } from '../../lib/hooks'
+import { ClubAccounts, InviteSection } from './ClubMembers'
 import { ErrorText } from '../../components/Feedback'
 import { FEATURED } from '../../lib/games'
 import { useClubGames } from '../../lib/clubGames'
@@ -8,6 +11,66 @@ import { canPickClubGames, setClubGames, useActiveGroup, type MyGroup } from '..
 import { useSyncState } from '../../lib/sync'
 import { friendlyError } from '../../lib/text'
 import { GroupForm, GamePicker } from './GroupForms'
+
+/**
+ * Gestionar club: lo administrativo, fuera de la pantalla del club. Quién pide entrar, los datos y los juegos
+ * del club (admins), invitar (cualquiera) y las cuentas con sus permisos.
+ */
+export function ClubManage() {
+  const group = useActiveGroup()
+  const club = useClubGames()
+  const location = useLocation()
+  const ready = !!group
+  useEffect(() => {
+    if (ready && location.hash === '#invitar') document.getElementById('invitar')?.scrollIntoView({ block: 'start' })
+  }, [ready, location.hash])
+  if (!group) return <NoClub />
+  const isAdmin = group.role === 'owner' || group.role === 'admin'
+  const duo = group.kind === 'duo'
+  const chosen = club.chosen.length
+
+  return (
+    <div className="page">
+      <Link to="/" className="back">
+        <ArrowLeftIcon /> {group.name}
+      </Link>
+      <h1>Gestionar {duo ? 'mano a mano' : 'club'}</h1>
+
+      <JoinRequests group={group} />
+
+      {(isAdmin || canPickClubGames(group)) && (
+        <nav className="list rows" aria-label="Ajustes del club">
+          {isAdmin && !duo && (
+            <Link to="/club/editar" className="settings-row">
+              <PencilSimpleIcon size={22} aria-hidden />
+              <span className="grow">
+                <b className="block">Datos del club</b>
+                <span className="muted small block">Nombre, emoji, descripción y quién puede encontrarlo</span>
+              </span>
+              <CaretRightIcon aria-hidden />
+            </Link>
+          )}
+          {canPickClubGames(group) && (
+            <Link to="/club/juegos" className="settings-row">
+              <SquaresFourIcon size={22} aria-hidden />
+              <span className="grow">
+                <b className="block">Juegos del club</b>
+                <span className="muted small block">{chosen ? `${plural(chosen, 'elegido', 'elegidos')}: ${club.chosen.slice(0, 3).map((g) => g.name).join(', ')}${chosen > 3 ? '…' : ''}` : 'Sin elegir: se muestran los más jugados'}</span>
+              </span>
+              <CaretRightIcon aria-hidden />
+            </Link>
+          )}
+        </nav>
+      )}
+
+      {!duo && <InviteSection group={group} />}
+
+      <div className="section-divided">
+        <ClubAccounts group={group} />
+      </div>
+    </div>
+  )
+}
 
 /** Editar nombre, emoji, descripción y si es público (admins). */
 export function ClubEdit() {
@@ -17,11 +80,11 @@ export function ClubEdit() {
   if (group.role !== 'owner' && group.role !== 'admin') return <NotAdmin />
   return (
     <div className="page">
-      <Link to="/" className="back">
-        <ArrowLeftIcon /> {group.name}
+      <Link to="/club/gestion" className="back">
+        <ArrowLeftIcon /> Gestionar club
       </Link>
-      <h1>Editar club</h1>
-      <GroupForm initial={group} onDone={() => navigate('/')} />
+      <h1>Datos del club</h1>
+      <GroupForm initial={group} onDone={() => navigate('/club/gestion')} />
     </div>
   )
 }
@@ -58,8 +121,8 @@ function ClubGamesForm({ group }: { group: MyGroup }) {
 
   return (
     <div className="page">
-      <Link to="/" className="back">
-        <ArrowLeftIcon /> {group.name}
+      <Link to="/club/gestion" className="back">
+        <ArrowLeftIcon /> Gestionar club
       </Link>
       <h1>Juegos del club</h1>
       <p className="muted">Los que tienen o juegan siempre. Salen destacados en el club, primero en “Para jugar hoy” y primero al anotar. El orden es el que elijas.</p>

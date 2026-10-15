@@ -356,7 +356,7 @@ export function Home() {
         )
       )}
 
-      {group && <SquadShowcase medals={medals.earned} title="Vitrina del club" />}
+      {group && <SquadShowcase medals={medals.earned} title="Vitrina del club" max={4} />}
 
       {group && (
         <Suspense fallback={null}>

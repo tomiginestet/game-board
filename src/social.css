@@ -106,13 +106,6 @@
   border: 2px solid var(--bg);
 }
 
-.tool-btn.avatar-btn {
-  width: 44px;
-  height: 44px;
-  padding: 0;
-  overflow: hidden;
-}
-
 .who-banner {
   display: block;
   max-width: 680px;
@@ -590,9 +583,12 @@ button.group-row:hover {
 }
 .club-hero-title h1 {
   margin: 0 0 6px;
+  font-size: clamp(24px, 7vw, 28px);
   overflow-wrap: anywhere;
+  text-wrap: balance;
 }
 .club-edit {
+  position: relative;
   align-self: start;
 }
 .club-meta {
@@ -615,21 +611,24 @@ button.group-row:hover {
   color: var(--text-soft);
   line-height: 1.45;
 }
+/* Los números del club en una franja: columnas separadas por líneas finas, sin cajas. */
 .club-stats {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: 8px;
   margin: 0;
+  padding-top: 14px;
+  border-top: 1px solid var(--border);
 }
 .club-stats > div {
   display: flex;
   flex-direction: column-reverse;
   align-items: center;
   gap: 2px;
-  padding: 10px 4px;
-  border-radius: 12px;
-  background: var(--bg-2);
   min-width: 0;
+  padding: 0 4px;
+}
+.club-stats > div + div {
+  border-left: 1px solid var(--border);
 }
 .club-stats dt {
   font-size: 12px;
@@ -719,6 +718,18 @@ button.group-row:hover {
   gap: 4px;
   flex: none;
   font-weight: 800;
+}
+
+@media (max-width: 400px) {
+  .club-hero-top {
+    gap: 12px;
+  }
+  .club-hero .group-emoji.huge {
+    width: 56px;
+    height: 56px;
+    font-size: 34px;
+    border-radius: 16px;
+  }
 }
 
 @media (max-width: 360px) {
@@ -1015,4 +1026,167 @@ button.group-row:hover {
 }
 .pass-caret {
   color: var(--muted);
+}
+
+/* ---------- Pantalla del club y gestión ---------- */
+
+/* Integrantes: filas sin tarjeta (como la lista de jugadores). */
+.rows > .club-member {
+  min-height: 60px;
+  padding: 8px 0;
+  border-bottom: 1px solid var(--border);
+}
+
+/* Pedidos para entrar: quién arriba, su mensaje y las dos acciones debajo, para que nada se apriete en una fila. */
+.join-requests h2 {
+  margin: 0;
+}
+.request-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+}
+.request {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 14px 0;
+}
+.request + .request {
+  border-top: 1px solid var(--border);
+}
+.request:last-child {
+  padding-bottom: 0;
+}
+.request:first-child {
+  padding-top: 4px;
+}
+.request-who {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+}
+.request-who .grow {
+  min-width: 0;
+}
+.request-message {
+  margin: 0;
+  padding: 10px 12px;
+  border-radius: 12px;
+  background: var(--bg-2);
+  color: var(--text-soft);
+  font-size: 15px;
+  line-height: 1.4;
+  overflow-wrap: anywhere;
+}
+.request-actions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  max-width: 420px;
+}
+
+/* Filas de ajustes y de la cuenta: ícono, título con su detalle y la flecha. */
+.settings-row {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  min-height: 64px;
+  padding: 10px 0;
+  border-bottom: 1px solid var(--border);
+  color: var(--text);
+  text-decoration: none;
+}
+.settings-row > svg:first-child {
+  flex: none;
+  color: var(--accent-2);
+}
+.settings-row > svg:last-child {
+  flex: none;
+  color: var(--muted);
+}
+.settings-row .grow {
+  min-width: 0;
+}
+.settings-row:focus-visible {
+  outline: 3px solid var(--accent-2);
+  outline-offset: 2px;
+  border-radius: 8px;
+}
+
+/* Cuentas del club: las acciones van debajo del nombre, como links. */
+.account-list {
+  list-style: none;
+  margin: 8px 0 0;
+  padding: 0;
+}
+.account-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 10px 0;
+  border-bottom: 1px solid var(--border);
+}
+.account-row.center {
+  align-items: center;
+}
+.account-row > .avatar,
+.account-row > :first-child {
+  flex: none;
+}
+.account-body {
+  flex: 1;
+  min-width: 0;
+}
+.account-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0 16px;
+  margin: 2px 0 -8px;
+}
+.account-actions .link-btn {
+  padding-left: 0;
+  padding-right: 0;
+}
+
+/* Invitar: el link primero, con sus dos botones repartiendo el ancho. */
+.invite h2 {
+  margin-bottom: 4px;
+}
+.invite .field {
+  margin-top: 20px;
+}
+.invite-actions {
+  display: grid;
+  grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr);
+  gap: 8px;
+}
+
+/* Vos */
+.me-club-line {
+  margin: -4px 0 0;
+}
+.account-who {
+  margin: -6px 0 0;
+  overflow-wrap: anywhere;
+}
+.me-exits {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 20px;
+}
+
+/* Pestaña Vos: tu avatar en vez del ícono; elegida, con un anillo naranja (además del texto en blanco). */
+.nav-avatar {
+  display: inline-grid;
+  place-items: center;
+  border-radius: 999px;
+  box-shadow: 0 0 0 2px transparent;
+}
+.nav-avatar.active {
+  box-shadow: 0 0 0 2px var(--accent);
 }

@@ -45,7 +45,7 @@ export function MemberCard({
           <span className="pass-meta">{role}</span>
           <span className="pass-meta">
             {stats.played === 1 ? '1 partida' : `${stats.played} partidas`}
-            {stats.played > 0 && ` · ${stats.wins === 1 ? '1 ganada' : `${stats.wins} ganadas`}`}
+            {stats.played > 0 && ` · ${stats.wins === 1 ? '1 victoria' : `${stats.wins} victorias`}`}
           </span>
         </div>
         {number !== undefined && (

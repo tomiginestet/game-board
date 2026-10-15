@@ -104,9 +104,10 @@ export function PlayerDetail() {
 
 /**
  * Perfil de un jugador en el club: gloria y puesto, récord, medallas, sus juegos y las últimas partidas.
- * `self`: es el tuyo (pestaña Vos); `afterHead` va entre la cabecera y el récord (el carnet de socio).
+ * `self`: es el tuyo (pestaña Vos, que pone su propia cabecera con `head={false}`); `afterHead` va entre la
+ * cabecera y el récord.
  */
-export function PlayerProfile({ player, self, afterHead }: { player: Player; self?: boolean; afterHead?: ReactNode }) {
+export function PlayerProfile({ player, self, head = true, afterHead }: { player: Player; self?: boolean; head?: boolean; afterHead?: ReactNode }) {
   const [params, setParams] = useSearchParams()
   const data = useData()
   const board = useBoard()
@@ -135,8 +136,7 @@ export function PlayerProfile({ player, self, afterHead }: { player: Player; sel
     data.cups.filter((c) => c.entrants.some((e) => e.players.includes(player.id))).length +
     data.tournaments.filter((t) => t.playerIds.includes(player.id)).length
   const game = gameId ? gameOrMissing(data, gameId) : undefined
-  const position =
-    [...board.players.values()].filter((x) => x.played > 0).sort((a, b) => b.gloria - a.gloria).findIndex((x) => x.playerId === player.id) + 1
+  const position = gloriaPosition(board, player.id)
 
   const history = [
     ...data.plays.filter((p) => p.status === 'finished' && p.sides.some((x) => x.players.includes(player.id))).map((p) => ({ k: 'play' as const, at: p.finishedAt ?? 0, p })),
@@ -147,7 +147,7 @@ export function PlayerProfile({ player, self, afterHead }: { player: Player; sel
 
   return (
     <>
-      {editing ? (
+      {!head ? null : editing ? (
         <PlayerForm
           initial={player}
           submitLabel="Guardar"
@@ -305,6 +305,11 @@ export function PlayerProfile({ player, self, afterHead }: { player: Player; sel
       )}
     </>
   )
+}
+
+/** Puesto en el club por gloria (0 si todavía no jugó). */
+export function gloriaPosition(board: ReturnType<typeof useBoard>, playerId: string): number {
+  return [...board.players.values()].filter((x) => x.played > 0).sort((a, b) => b.gloria - a.gloria).findIndex((x) => x.playerId === playerId) + 1
 }
 
 function streakText(streak: number): string {

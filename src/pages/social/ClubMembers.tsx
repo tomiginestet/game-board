@@ -1,4 +1,4 @@
-import { ArrowRightIcon, CheckIcon, CopyIcon, CrownIcon, LinkIcon, MagnifyingGlassIcon, PencilSimpleIcon, PrinterIcon, ShareNetworkIcon, ShieldStarIcon, SparkleIcon, UserPlusIcon, XIcon } from '@phosphor-icons/react'
+import { ArrowRightIcon, CheckIcon, CopyIcon, CrownIcon, LinkIcon, MagnifyingGlassIcon, PencilSimpleIcon, PrinterIcon, ShareNetworkIcon, UserPlusIcon } from '@phosphor-icons/react'
 import { useCallback, useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { Avatar } from '../../components/Avatar'
@@ -14,42 +14,32 @@ import { friendlyError } from '../../lib/text'
 import { ErrorText } from '../../components/Feedback'
 import { confirmAction } from '../../lib/feedback'
 
-// La parte de abajo de la pantalla del club: equipos, integrantes, cuentas e invitaciones. Se baja aparte
-// para que lo de arriba (anotar, lo que está en juego) aparezca al toque.
+// La gente del club. Abajo de la pantalla del club van los equipos y los integrantes (se bajan aparte, para
+// que lo de arriba aparezca al toque); las cuentas, los permisos y las invitaciones van en "Gestionar club".
 
-/** Equipos, integrantes, cuentas e invitaciones del club. */
-export function ClubPeople({ group }: { group: MyGroup }) {
-  const auth = useAuth()
-  const data = useData()
-  const board = useBoard()
-  const medals = useSquadMedals()
-  const me = auth.session?.user.id
-  const isAdmin = group.role === 'owner' || group.role === 'admin'
-  const duo = group.kind === 'duo'
+/** Las cuentas del club (`null` mientras cargan), con lo que hace falta para volver a pedirlas. */
+function useMembers(group: MyGroup) {
   const [members, setMembers] = useState<Member[] | null>(null)
   const [error, setError] = useState('')
-  const [busy, setBusy] = useState(false)
-
   const load = useCallback(() => {
     groupMembers(group.code)
       .then(setMembers)
       .catch((e) => setError(friendlyError(e)))
   }, [group.code])
   useEffect(load, [load, group.members])
+  return { members, error, load }
+}
 
-  const run = async (fn: () => Promise<unknown>) => {
-    setBusy(true)
-    setError('')
-    try {
-      await fn()
-    } catch (e) {
-      setError(friendlyError(e))
-    } finally {
-      setBusy(false)
-    }
-  }
+/** Equipos e integrantes del club. */
+export function ClubPeople({ group }: { group: MyGroup }) {
+  const auth = useAuth()
+  const data = useData()
+  const board = useBoard()
+  const medals = useSquadMedals()
+  const me = auth.session?.user.id
+  const duo = group.kind === 'duo'
+  const { members } = useMembers(group)
 
-  const playerCount = data.players.length
   const accountOf = new Map((members ?? []).filter((m) => m.player_id).map((m) => [m.player_id!, m]))
   // Cuentas que entraron pero todavía no eligieron quién son: también son del club.
   const withoutPlayer = duo ? [] : (members ?? []).filter((m) => !m.player_id)
@@ -103,38 +93,37 @@ export function ClubPeople({ group }: { group: MyGroup }) {
       <section>
         <div className="section-head">
           <h2>
-            Integrantes <span className="muted small">{playerCount + withoutPlayer.length}</span>
+            Integrantes <span className="muted small">{data.players.length + withoutPlayer.length}</span>
           </h2>
           <Link to="/jugadores">
             Ver todo <ArrowRightIcon className="inline-icon" size="1em" />
           </Link>
         </div>
-        <div className="list">
+        {/* Lista sin tarjetas, como la de jugadores: el detalle en una línea y la gloria en dorado. */}
+        <div className="list rows">
           {roster.map((p) => {
             const s = board.players.get(p.id)
             const account = accountOf.get(p.id)
             const won = medals.won.get(p.id) ?? 0
             return (
-              <Link key={p.id} to={`/jugadores/${p.id}`} className="card club-member">
-                <Avatar player={p} size={44} />
+              <Link key={p.id} to={p.id === group.player_id ? '/perfil' : `/jugadores/${p.id}`} className="club-member">
+                <Avatar player={p} size={40} />
                 <span className="grow">
                   <b className="block ellipsis">
                     {p.name} {p.id === group.player_id && <span className="muted small">(vos)</span>}
                   </b>
-                  <span className="muted small">
+                  <span className="muted small block ellipsis">
                     {account && account.role !== 'member' && !duo && (
                       <>
                         {account.role === 'owner' && <CrownIcon className="inline-icon" weight="fill" aria-hidden />} {ROLE_NAMES[account.role]} ·{' '}
                       </>
                     )}
-                    {plural(s?.played ?? 0, 'partida', 'partidas')} · {plural(s?.wins ?? 0, 'victoria', 'victorias')}
+                    {plural(s?.played ?? 0, 'partida', 'partidas')}
+                    {won > 0 && ` · ${plural(won, 'medalla', 'medallas')}`}
                   </span>
                 </span>
-                <span className="club-member-score">
-                  <span className="club-member-gloria num" aria-label={`${s?.gloria ?? 0} de gloria`}>
-                    <SparkleIcon weight="fill" className="gloria-icon" aria-hidden /> {s?.gloria ?? 0}
-                  </span>
-                  {won > 0 && <span className="muted small">{plural(won, 'medalla', 'medallas')}</span>}
+                <span className="player-gloria num" aria-label={`${s?.gloria ?? 0} de gloria`}>
+                  {s?.gloria ?? 0}
                 </span>
               </Link>
             )
@@ -142,12 +131,12 @@ export function ClubPeople({ group }: { group: MyGroup }) {
           {withoutPlayer.map((m) => {
             const body = (
               <>
-                <Avatar player={userAsPlayer(m)} size={44} />
+                <Avatar player={userAsPlayer(m)} size={40} />
                 <span className="grow">
                   <b className="block ellipsis">
                     {m.display_name ?? m.username ?? 'Sin nombre'} {m.user_id === me && <span className="muted small">(vos)</span>}
                   </b>
-                  <span className="muted small">
+                  <span className="muted small block ellipsis">
                     {m.role !== 'member' && (
                       <>
                         {m.role === 'owner' && <CrownIcon className="inline-icon" weight="fill" aria-hidden />} {ROLE_NAMES[m.role]} ·{' '}
@@ -159,76 +148,123 @@ export function ClubPeople({ group }: { group: MyGroup }) {
               </>
             )
             return m.user_id === me ? (
-              <Link key={m.user_id} to="/grupo#yo" className="card club-member">
+              <Link key={m.user_id} to="/perfil#yo" className="club-member">
                 {body}
               </Link>
             ) : (
-              <div key={m.user_id} className="card club-member">
+              <div key={m.user_id} className="club-member">
                 {body}
               </div>
             )
           })}
         </div>
+        {!duo && (
+          <Link to="/club/gestion#invitar" className="btn block mt">
+            <UserPlusIcon /> Invitar al club
+          </Link>
+        )}
       </section>
-
-      <section className="section-divided">
-        <h2>Cuentas del club</h2>
-        <p className="muted small">Quienes entraron con su cuenta. Los demás jugadores se anotan sin cuenta.</p>
-        <div className="list">
-          {members === null && <p className="muted">Cargando…</p>}
-          {members?.map((m) => (
-            <div key={m.user_id} className="member-row">
-              <Avatar player={userAsPlayer(m)} size={36} />
-              <span className="grow">
-                <b className="block ellipsis">
-                  {m.display_name ?? 'Sin nombre'} {m.user_id === me && <span className="muted small">(vos)</span>}
-                </b>
-                <span className="muted small">
-                  {m.username ? `@${m.username}` : ''} {!duo && <> · {m.role === 'owner' && <CrownIcon className="inline-icon" weight="fill" />} {ROLE_NAMES[m.role]}</>}
-                </span>
-              </span>
-              {group.role === 'owner' && !duo && m.user_id !== me && (
-                <button
-                  className="tool-btn"
-                  title={m.role === 'admin' ? 'Quitar admin' : 'Hacer admin'}
-                  aria-label={m.role === 'admin' ? 'Quitar admin' : 'Hacer admin'}
-                  disabled={busy}
-                  onClick={() => run(() => setMemberRole(group.code, m.user_id, m.role === 'admin' ? 'member' : 'admin').then(load))}
-                >
-                  <ShieldStarIcon weight={m.role === 'admin' ? 'fill' : 'regular'} />
-                </button>
-              )}
-              {isAdmin && !duo && m.user_id !== me && m.role !== 'owner' && (
-                <button
-                  className="tool-btn"
-                  aria-label={`Sacar a ${m.display_name}`}
-                  disabled={busy}
-                  onClick={async () => {
-                    const ok = await confirmAction({
-                      title: `¿Sacar a ${m.display_name} del club?`,
-                      detail: 'Sus partidas quedan en el historial. Puede volver a sumarse con una invitación.',
-                      confirmLabel: 'Sacar del club',
-                      danger: true,
-                    })
-                    if (ok) void run(() => removeMember(group.code, m.user_id).then(load))
-                  }}
-                >
-                  <XIcon />
-                </button>
-              )}
-            </div>
-          ))}
-        </div>
-      </section>
-
-      {!duo && <InviteSection group={group} members={members ?? []} />}
-
-      <ErrorText>{error}</ErrorText>
     </>
   )
 }
 
-function InviteSection({ group, members }: { group: MyGroup; members: Member[] }) {
+/**
+ * Cuentas del club: quién entró con su cuenta y con qué permiso. El admin principal nombra admins; los admins
+ * pueden sacar a alguien. Las acciones van debajo del nombre para que la fila no se parta en pantallas chicas.
+ */
+export function ClubAccounts({ group }: { group: MyGroup }) {
+  const auth = useAuth()
+  const me = auth.session?.user.id
+  const isAdmin = group.role === 'owner' || group.role === 'admin'
+  const duo = group.kind === 'duo'
+  const { members, error: loadError, load } = useMembers(group)
+  const [error, setError] = useState('')
+  const [busy, setBusy] = useState(false)
+
+  const run = async (fn: () => Promise<unknown>) => {
+    setBusy(true)
+    setError('')
+    try {
+      await fn()
+    } catch (e) {
+      setError(friendlyError(e))
+    } finally {
+      setBusy(false)
+    }
+  }
+
+  const sorted = [...(members ?? [])].sort((a, b) => ROLE_ORDER[a.role] - ROLE_ORDER[b.role] || (a.display_name ?? '').localeCompare(b.display_name ?? '', 'es'))
+
+  return (
+    <section aria-labelledby="accounts-title">
+      <div className="section-head">
+        <h2 id="accounts-title">
+          Cuentas {members && <span className="muted small">{members.length}</span>}
+        </h2>
+      </div>
+      <p className="muted small">Quienes entraron con su cuenta. Los demás jugadores se anotan sin cuenta.</p>
+      {members === null && !loadError && <p className="muted">Cargando…</p>}
+      <ul className="account-list">
+        {sorted.map((m) => {
+          const canRole = group.role === 'owner' && !duo && m.user_id !== me
+          const canRemove = isAdmin && !duo && m.user_id !== me && m.role !== 'owner'
+          const name = m.display_name ?? m.username ?? 'Sin nombre'
+          return (
+            <li key={m.user_id} className="account-row">
+              <Avatar player={userAsPlayer(m)} size={40} />
+              <div className="account-body">
+                <b className="block ellipsis">
+                  {name} {m.user_id === me && <span className="muted small">(vos)</span>}
+                </b>
+                <span className="muted small block ellipsis">
+                  {!duo && (
+                    <>
+                      {m.role === 'owner' && <CrownIcon className="inline-icon" weight="fill" aria-hidden />} {ROLE_NAMES[m.role]}
+                    </>
+                  )}
+                  {m.username ? `${duo ? '' : ' · '}@${m.username}` : ''}
+                </span>
+                {(canRole || canRemove) && (
+                  <div className="account-actions">
+                    {canRole && (
+                      <button className="link-btn small" disabled={busy} onClick={() => run(() => setMemberRole(group.code, m.user_id, m.role === 'admin' ? 'member' : 'admin').then(load))}>
+                        {m.role === 'admin' ? 'Quitar admin' : 'Hacer admin'}
+                      </button>
+                    )}
+                    {canRemove && (
+                      <button
+                        className="link-btn small danger-text"
+                        disabled={busy}
+                        onClick={async () => {
+                          const ok = await confirmAction({
+                            title: `¿Sacar a ${name} del club?`,
+                            detail: 'Sus partidas quedan en el historial. Puede volver a sumarse con una invitación.',
+                            confirmLabel: 'Sacar del club',
+                            danger: true,
+                          })
+                          if (ok) void run(() => removeMember(group.code, m.user_id).then(load))
+                        }}
+                      >
+                        Sacar del club
+                      </button>
+                    )}
+                  </div>
+                )}
+              </div>
+            </li>
+          )
+        })}
+      </ul>
+      <ErrorText>{error || loadError}</ErrorText>
+    </section>
+  )
+}
+
+const ROLE_ORDER = { owner: 0, admin: 1, member: 2 } as const
+
+/** Invitar: el link (lo principal), buscar cuentas por nombre, el link corto y la tarjeta para imprimir. */
+export function InviteSection({ group }: { group: MyGroup }) {
+  const { members } = useMembers(group)
   const [q, setQ] = useState('')
   const [found, setFound] = useState<FoundUser[]>([])
   const [invited, setInvited] = useState<string[]>([])
@@ -260,48 +296,15 @@ function InviteSection({ group, members }: { group: MyGroup; members: Member[] }
   }
 
   return (
-    <section className="card">
-      <h2>
-        <UserPlusIcon className="inline-icon" /> Invitar
-      </h2>
-      <label className="search">
-        <MagnifyingGlassIcon />
-        <input className="input" placeholder="Buscar por nombre o @usuario" value={q} onChange={(e) => setQ(e.target.value)} autoCapitalize="none" />
-      </label>
-      <div className="list">
-        {shown.map((u) => {
-          const member = members.some((m) => m.user_id === u.user_id)
-          const done = invited.includes(u.user_id)
-          return (
-            <div key={u.user_id} className="member-row">
-              <Avatar player={userAsPlayer(u)} size={36} />
-              <span className="grow">
-                <b className="block">{u.display_name}</b>
-                <span className="muted small">@{u.username}</span>
-              </span>
-              <button
-                className={'btn small' + (member || done ? '' : ' primary')}
-                disabled={member || done}
-                onClick={() =>
-                  inviteToGroup(group.code, u.user_id)
-                    .then(() => setInvited((x) => [...x, u.user_id]))
-                    .catch((e) => setError(friendlyError(e)))
-                }
-              >
-                {member ? 'Ya está' : done ? 'Invitación enviada' : 'Invitar'}
-              </button>
-            </div>
-          )
-        })}
-      </div>
-      <ErrorText>{error}</ErrorText>
-      <p className="muted small mt">O compartí el link (quien lo tenga puede entrar sin pedir permiso):</p>
+    <section id="invitar" aria-labelledby="invite-title" className="invite">
+      <h2 id="invite-title">Invitar</h2>
+      <p className="muted small">Quien tenga el link puede entrar sin pedir permiso.</p>
       <div className="invite-box">
         <code>{link}</code>
       </div>
-      <div className="row gap wrap">
+      <div className="invite-actions">
         <button
-          className="btn"
+          className="btn primary"
           onClick={async () => {
             if (navigator.share) {
               try {
@@ -316,10 +319,55 @@ function InviteSection({ group, members }: { group: MyGroup; members: Member[] }
         >
           <ShareNetworkIcon /> Compartir link
         </button>
-        <button className="btn" onClick={copy}>
+        <button className="btn" onClick={copy} aria-live="polite">
           {copied ? <CheckIcon /> : <CopyIcon />} {copied ? 'Copiado' : 'Copiar'}
         </button>
       </div>
+
+      <label className="field mt">
+        <span className="field-label">O buscá a alguien que ya tenga cuenta</span>
+        <span className="search">
+          <MagnifyingGlassIcon aria-hidden />
+          <input className="input" placeholder="Nombre o @usuario" value={q} onChange={(e) => setQ(e.target.value)} autoCapitalize="none" />
+        </span>
+      </label>
+      {shown.length > 0 && (
+        <ul className="account-list">
+          {shown.map((u) => {
+            const member = (members ?? []).some((m) => m.user_id === u.user_id)
+            const done = invited.includes(u.user_id)
+            return (
+              <li key={u.user_id} className="account-row center">
+                <Avatar player={userAsPlayer(u)} size={40} />
+                <div className="account-body">
+                  <b className="block ellipsis">{u.display_name}</b>
+                  <span className="muted small block ellipsis">@{u.username}</span>
+                </div>
+                <button
+                  className={'btn small' + (member || done ? '' : ' primary')}
+                  disabled={member || done}
+                  onClick={() =>
+                    inviteToGroup(group.code, u.user_id)
+                      .then(() => setInvited((x) => [...x, u.user_id]))
+                      .catch((e) => setError(friendlyError(e)))
+                  }
+                >
+                  {member ? 'Ya está' : done ? (
+                    <>
+                      <CheckIcon /> Invitado
+                    </>
+                  ) : (
+                    'Invitar'
+                  )}
+                </button>
+              </li>
+            )
+          })}
+        </ul>
+      )}
+      {q.trim().length >= 2 && !shown.length && <p className="muted small">No encontramos cuentas con “{q.trim()}”.</p>}
+      <ErrorText>{error}</ErrorText>
+
       {isAdmin && group.kind === 'group' && group.slug !== undefined && <ShortLinkEditor group={group} />}
       {group.kind === 'group' && (
         <div className="short-link">
