@@ -564,7 +564,8 @@ button.group-row:hover {
   margin: 4px 0 12px;
 }
 
-/* Perfil del club: tarjeta de presentación con el emoji alineado al título y los números del club abajo. */
+/* Pantalla del club: arriba el emoji y el engranaje en una fila; debajo el nombre a todo el ancho, la
+   descripción y los números del club. */
 .club-hero {
   display: flex;
   flex-direction: column;
@@ -576,20 +577,22 @@ button.group-row:hover {
     var(--card);
 }
 .club-hero-top {
-  display: grid;
-  grid-template-columns: auto minmax(0, 1fr) auto;
+  display: flex;
   align-items: center;
-  gap: 16px;
+  justify-content: space-between;
+  gap: 12px;
+}
+.club-hero-title {
+  margin-top: -4px;
 }
 .club-hero-title h1 {
   margin: 0 0 6px;
-  font-size: clamp(24px, 7vw, 28px);
   overflow-wrap: anywhere;
   text-wrap: balance;
 }
 .club-edit {
   position: relative;
-  align-self: start;
+  flex: none;
 }
 .club-meta {
   display: flex;
@@ -718,18 +721,6 @@ button.group-row:hover {
   gap: 4px;
   flex: none;
   font-weight: 800;
-}
-
-@media (max-width: 400px) {
-  .club-hero-top {
-    gap: 12px;
-  }
-  .club-hero .group-emoji.huge {
-    width: 56px;
-    height: 56px;
-    font-size: 34px;
-    border-radius: 16px;
-  }
 }
 
 @media (max-width: 360px) {

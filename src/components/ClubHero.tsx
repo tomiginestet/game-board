@@ -30,29 +30,11 @@ export function ClubHero({ group, medals }: { group: MyGroup; medals: number }) 
   return (
     <>
       <header className="card club-hero">
+        {/* Arriba el emoji y el engranaje, alineados; debajo el nombre con todo el ancho para él. */}
         <div className="club-hero-top">
           <span className="group-emoji huge" aria-hidden>
             {group.emoji ?? (duo ? '⚔️' : '🎲')}
           </span>
-          <div className="club-hero-title">
-            <h1>{group.name}</h1>
-            <p className="club-meta">
-              {duo ? (
-                <span>
-                  <SwordIcon aria-hidden /> Mano a mano
-                </span>
-              ) : group.venue ? (
-                <span>
-                  <StorefrontIcon aria-hidden /> {group.venue.address || 'Club de un lugar'}
-                </span>
-              ) : (
-                <span>
-                  {group.is_public ? <GlobeHemisphereWestIcon aria-hidden /> : <LockSimpleIcon aria-hidden />} {group.is_public ? 'Público' : 'Privado'}
-                </span>
-              )}
-              {!duo && <span>{plural(group.members, 'cuenta', 'cuentas')}</span>}
-            </p>
-          </div>
           <Link to="/club/gestion" className="tool-btn club-edit" aria-label={duo ? 'Gestionar mano a mano' : 'Gestionar club'} title={duo ? 'Gestionar mano a mano' : 'Gestionar club'}>
             <GearSixIcon size={22} />
             {group.pending_requests > 0 && (
@@ -61,6 +43,25 @@ export function ClubHero({ group, medals }: { group: MyGroup; medals: number }) 
               </span>
             )}
           </Link>
+        </div>
+        <div className="club-hero-title">
+          <h1>{group.name}</h1>
+          <p className="club-meta">
+            {duo ? (
+              <span>
+                <SwordIcon aria-hidden /> Mano a mano
+              </span>
+            ) : group.venue ? (
+              <span>
+                <StorefrontIcon aria-hidden /> {group.venue.address || 'Club de un lugar'}
+              </span>
+            ) : (
+              <span>
+                {group.is_public ? <GlobeHemisphereWestIcon aria-hidden /> : <LockSimpleIcon aria-hidden />} {group.is_public ? 'Público' : 'Privado'}
+              </span>
+            )}
+            {!duo && <span>{plural(group.members, 'cuenta', 'cuentas')}</span>}
+          </p>
         </div>
         {group.description && <p className="club-desc">{group.description}</p>}
         {/* Una franja, no cajas: los cuatro números se leen de corrido. */}
