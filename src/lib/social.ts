@@ -9,7 +9,7 @@ import type { RealtimeChannel } from '@supabase/supabase-js'
 import { setAccess } from './access'
 import { currentUserId, useAuth } from './auth'
 import { BUILTIN_GAMES } from './games'
-import { activateClub, adoptLocalData, inviteLink, supabase, syncAvailable, useSyncState, type Club } from './sync'
+import { activateClub, adoptLocalData, currentClubCode, inviteLink, supabase, syncAvailable, useSyncState, type Club } from './sync'
 import { shortLink } from './clubLink'
 
 function client() {
@@ -224,19 +224,23 @@ export async function switchToGroup(g: MyGroup): Promise<void> {
   await activateClub(groupToClub(g))
 }
 
-/** Crea un grupo y lo deja activo. `importLocal`: los datos de este dispositivo pasan al grupo. */
+/**
+ * Crea un grupo y lo deja activo. `importLocal`: los datos de este dispositivo (los de sin club) pasan al grupo.
+ * Si hay un club activo no se importa nada: el grupo nuevo arranca sólo con quien lo crea.
+ */
 export async function createGroup(input: { name: string; description?: string; emoji?: string; isPublic: boolean; importLocal?: boolean }): Promise<MyGroup> {
+  const importLocal = !!input.importLocal && !currentClubCode()
   const code = await rpc<string>('create_group', {
     p_name: input.name,
     p_description: input.description ?? null,
     p_emoji: input.emoji ?? null,
     p_public: input.isPublic,
-    p_with_player: !input.importLocal,
+    p_with_player: !importLocal,
   })
   const groups = await refreshGroups()
   const g = groups.find((x) => x.code === code)
   if (!g) throw new Error('No encontramos el club recién creado. Recargá la app y debería aparecer.')
-  if (input.importLocal) await adoptLocalData(groupToClub(g))
+  if (importLocal) await adoptLocalData(groupToClub(g))
   else await switchToGroup(g)
   return g
 }
