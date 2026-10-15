@@ -115,6 +115,8 @@ export function searchUsers(q: string): Promise<FoundUser[]> {
 
 export type Role = 'owner' | 'admin' | 'member'
 
+export const ROLE_NAMES: Record<Role, string> = { owner: 'Admin principal', admin: 'Admin', member: 'Integrante' }
+
 export interface MyGroup {
   code: string
   id: string
@@ -132,6 +134,11 @@ export interface MyGroup {
   slug?: string | null
   /** Si es el club de un lugar (bar, club, complejo de canchas). */
   venue?: Venue | null
+  /**
+   * Juegos del club, elegidos por un admin, en orden (ids del catálogo o del club). `null`: todavía no eligió.
+   * Falta si el servidor todavía no tiene la migración de juegos del club.
+   */
+  games?: string[] | null
 }
 
 /** Datos de un club de lugar: dirección y juegos que tiene (ids del catálogo). */
@@ -165,6 +172,11 @@ export async function refreshGroups(): Promise<MyGroup[]> {
         g.slug = byCode.get(g.code)?.slug ?? null
         g.venue = byCode.get(g.code)?.venue ?? null
       }
+    }
+    const games = await rpc<{ code: string; games: string[] | null }[] | null>('my_club_games').catch(() => null)
+    if (games) {
+      const byCode = new Map(games.map((x) => [x.code, x.games]))
+      for (const g of groups) g.games = byCode.get(g.code) ?? null
     }
     setGroups({ userId: uid, groups, loading: false })
     return groups
@@ -265,6 +277,17 @@ export async function setClubSlug(code: string, slug: string | null): Promise<vo
 export async function setClubVenue(code: string, venue: Venue | null): Promise<void> {
   await rpc('set_club_venue', { p_code: code, p_venue: venue })
   await refreshGroups()
+}
+
+/** Elige (o saca, con `null`) los juegos del club. */
+export async function setClubGames(code: string, games: string[] | null): Promise<void> {
+  await rpc('set_club_games', { p_code: code, p_games: games })
+  await refreshGroups()
+}
+
+/** Puede elegir los juegos del club: un admin, o cualquiera de los dos en un mano a mano. */
+export function canPickClubGames(g: MyGroup): boolean {
+  return g.games !== undefined && (g.kind === 'duo' || g.role === 'owner' || g.role === 'admin')
 }
 
 /** Lo que se ve de un club antes de entrar (por su código o por su link corto). Funciona sin cuenta. */

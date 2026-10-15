@@ -60,7 +60,7 @@ export function PrintCard() {
   return (
     <div className="print-root" style={{ '--print-zoom': zoom } as CSSProperties}>
       <div className="print-toolbar">
-        <Link to="/grupo" className="btn">
+        <Link to="/" className="btn">
           <ArrowLeftIcon /> Volver
         </Link>
         <button className="btn primary" onClick={() => window.print()}>

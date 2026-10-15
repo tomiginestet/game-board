@@ -1,9 +1,9 @@
-import { BellIcon, GearSixIcon, CaretDownIcon, CheckIcon, MagnifyingGlassIcon, PlusIcon, SwordIcon, UserCircleIcon, UsersThreeIcon, XIcon } from '@phosphor-icons/react'
+import { BellIcon, GearSixIcon, CaretDownIcon, CheckIcon, MagnifyingGlassIcon, PlusIcon, SwordIcon, UsersThreeIcon, XIcon } from '@phosphor-icons/react'
 import { useRef, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { useAuth } from '../lib/auth'
 import { plural } from '../lib/hooks'
-import { switchToGroup, useMyGroups, useNotifications, useProfile, userAsPlayer, type MyGroup } from '../lib/social'
+import { switchToGroup, useMyGroups, useNotifications, type MyGroup } from '../lib/social'
 import { SYNC_LABEL, syncAvailable, useSyncState } from '../lib/sync'
 import { friendlyError } from '../lib/text'
 import { useModal } from '../lib/feedback'
@@ -11,13 +11,11 @@ import { ErrorText } from './Feedback'
 import { Logo } from './Logo'
 import { SyncBadge } from './SyncBadge'
 import { SyncIcon } from './SyncIcon'
-import { Avatar } from './Avatar'
 
-/** Barra de arriba con sesión: club activo (para cambiar), notificaciones y perfil. */
+/** Barra de arriba con sesión: club activo (para cambiar) y notificaciones. Vos está en la barra de abajo. */
 export function TopBar() {
   const auth = useAuth()
   const sync = useSyncState()
-  const { profile } = useProfile()
   const { unread } = useNotifications()
   const { groups } = useMyGroups()
   const [open, setOpen] = useState(false)
@@ -75,12 +73,9 @@ export function TopBar() {
             </span>
           )}
         </Link>
-        <Link to="/perfil" className="tool-btn avatar-btn" aria-label="Tu perfil">
-          {profile ? <Avatar player={userAsPlayer(profile)} size={34} /> : <UserCircleIcon size={26} />}
-        </Link>
       </header>
       {needsPlayer && (
-        <Link to="/grupo#yo" className="who-banner">
+        <Link to="/perfil#yo" className="who-banner">
           👋 ¿Quién sos en “{active.name}”? Tocá para elegir tu jugador.
         </Link>
       )}

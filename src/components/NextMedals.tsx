@@ -64,7 +64,8 @@ export function NextMedals({ playerIds, title, max = 3 }: { playerIds?: string[]
   }, [data, board, pp, meId, idsKey, max])
 
   if (!list.length) return null
-  const mine = !!meId && list.every((x) => x.playerId === meId)
+  // Las de una sola persona (las tuyas, o la pestaña Vos) no repiten el nombre en cada fila.
+  const mine = (!!meId && list.every((x) => x.playerId === meId)) || playerIds?.length === 1
 
   return (
     <section>

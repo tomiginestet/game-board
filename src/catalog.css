@@ -174,14 +174,12 @@
 
 /* Foco y hover compartidos: la tarjeta "se levanta" y el emoji crece. */
 .shelf-card,
-.catalog-card,
-.catalog-cta {
+.catalog-card {
   -webkit-tap-highlight-color: transparent;
 }
 
 .shelf-card:focus-visible,
 .catalog-card:focus-visible,
-.catalog-cta:focus-visible,
 .hero-card .btn:focus-visible,
 .hero-arrow:focus-visible,
 .hero-dot:focus-visible,
@@ -513,99 +511,11 @@
   }
 }
 
-/* ---------- Entrada al catálogo ---------- */
-
-.catalog-cta {
-  position: relative;
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  min-height: 132px;
-  padding: 18px;
-  border-radius: 20px;
-  overflow: hidden;
-  color: var(--text);
-  background:
-    radial-gradient(90% 140% at 100% 0%, rgba(255, 107, 53, 0.35), transparent 60%),
-    linear-gradient(135deg, #1d2433, #121722);
-  border: 1px solid rgba(255, 255, 255, 0.09);
-  box-shadow: 0 10px 26px rgba(0, 0, 0, 0.35);
-  transition:
-    transform 0.2s ease,
-    border-color 0.2s ease;
-}
-
-.cta-collage {
-  position: absolute;
-  top: -18px;
-  right: -30px;
-  bottom: -18px;
-  width: 70%;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  transform: rotate(-10deg);
-  opacity: 0.95;
-  -webkit-mask-image: linear-gradient(to right, transparent, #000 45%);
-  mask-image: linear-gradient(to right, transparent, #000 45%);
-  pointer-events: none;
-}
-
-.cta-collage .gcover {
-  flex: 0 0 72px;
-  width: 72px;
-  border-radius: 8px;
-  box-shadow: 0 6px 14px rgba(0, 0, 0, 0.5);
-}
-
-.cta-collage .gcover:nth-child(even) {
-  transform: translateY(26px);
-}
-
-.cta-text {
-  position: relative;
-  z-index: 1;
-  display: flex;
-  flex-direction: column;
-  gap: 3px;
-  max-width: 62%;
-  text-shadow: 0 1px 8px rgba(0, 0, 0, 0.7);
-}
-
-.cta-text b {
-  font-size: 20px;
-  font-weight: 900;
-  line-height: 1.1;
-}
-
-.cta-count {
-  color: var(--text-soft);
-  font-size: 13px;
-}
-
-.cta-arrow {
-  position: relative;
-  z-index: 1;
-  margin-left: auto;
-  display: grid;
-  place-items: center;
-  flex-shrink: 0;
-  width: 40px;
-  height: 40px;
-  border-radius: 999px;
-  background: var(--accent-fill);
-  color: var(--on-fill);
-  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.45);
-}
-
-@media (hover: hover) {
-  .catalog-cta:hover {
-    border-color: rgba(255, 107, 53, 0.5);
-    transform: translateY(-2px);
-  }
-}
-
 /* ---------- Catálogo completo ---------- */
+
+.catalog-title {
+  margin: 0;
+}
 
 .catalog-sub {
   margin: 2px 0 0;
@@ -826,14 +736,12 @@
 @media (prefers-reduced-motion: reduce) {
   .gcover-emoji,
   .cc-cover,
-  .catalog-cta,
   .hero-dot::before {
     transition: none;
   }
 
   .shelf-card:hover .cc-cover,
   .catalog-card:hover .cc-cover,
-  .catalog-cta:hover,
   .shelf-card:active .cc-cover,
   .catalog-card:active .cc-cover {
     transform: none;

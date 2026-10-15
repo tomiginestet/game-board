@@ -1,5 +1,5 @@
 import { ArrowLeftIcon, ArrowRightIcon, CrownIcon, PencilSimpleIcon, SparkleIcon, TrashIcon, UserCircleCheckIcon } from '@phosphor-icons/react'
-import { useState } from 'react'
+import { useState, type ReactNode } from 'react'
 import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom'
 import { Avatar } from '../components/Avatar'
 import { ErrorText } from '../components/Feedback'
@@ -10,37 +10,30 @@ import { PlayerForm } from '../components/PlayerForm'
 import { Sparkline } from '../components/Sparkline'
 import { claimPlayer, useAuth } from '../lib/auth'
 import { confirmAction, toast } from '../lib/feedback'
-import { refreshGroups } from '../lib/social'
+import { refreshGroups, useActiveGroup } from '../lib/social'
 import { gameOrMissing, plural, useBoard, useLeaderboard, usePlayerMap } from '../lib/hooks'
 import { gameMedals, globalMedals } from '../lib/medals'
 import { involves } from '../lib/pingpong/teams'
 import { gameRanking, globalStatsOf, recentForm, winRate, type FormResult } from '../lib/stats'
 import { actions, useData } from '../lib/store'
+import type { Player } from '../lib/types'
 import { useSyncState } from '../lib/sync'
 import { canDelete, canEdit, useAccess } from '../lib/access'
 import { friendlyError } from '../lib/text'
 
 export function PlayerDetail() {
   const { id } = useParams()
-  const [params, setParams] = useSearchParams()
   const data = useData()
-  const board = useBoard()
-  const ppBoard = useLeaderboard()
-  const players = usePlayerMap()
   const navigate = useNavigate()
   const auth = useAuth()
   const sync = useSyncState()
   const access = useAccess()
-  const [editing, setEditing] = useState(false)
+  const group = useActiveGroup()
   const [claimMsg, setClaimMsg] = useState<string | null>(null)
   const [claimError, setClaimError] = useState('')
   const player = data.players.find((p) => p.id === id)
 
-  const s = player ? globalStatsOf(board, player.id) : undefined
-  const perGame = s ? [...s.perGame.values()].sort((a, b) => b.played - a.played) : []
-  const gameId = params.get('juego') ?? perGame[0]?.gameId // '' = ninguno abierto
-
-  if (!player || !s) {
+  if (!player) {
     return (
       <div className="page">
         <p>Jugador no encontrado.</p>
@@ -50,33 +43,6 @@ export function PlayerDetail() {
       </div>
     )
   }
-
-  const gs = gameId ? s.perGame.get(gameId) : undefined
-  // Puesto en el club de cada juego que jugó, y el juego donde mejor está parado.
-  const ranks = new Map(
-    perGame.map((x) => {
-      const r = gameRanking(board, x.gameId)
-      return [x.gameId, { pos: r.findIndex((y) => y.playerId === player.id) + 1, of: r.length }] as const
-    }),
-  )
-  const best = perGame
-    .filter((x) => gameOrMissing(data, x.gameId).mode !== 'coop' && (ranks.get(x.gameId)?.of ?? 0) > 1)
-    .sort((a, b) => ranks.get(a.gameId)!.pos - ranks.get(b.gameId)!.pos || b.played - a.played)[0]
-  const strongest = best && { name: gameOrMissing(data, best.gameId).name, ...ranks.get(best.gameId)! }
-  // Torneos en los que está anotado (incluye los que siguen en juego).
-  const cupsPlayed =
-    data.cups.filter((c) => c.entrants.some((e) => e.players.includes(player.id))).length +
-    data.tournaments.filter((t) => t.playerIds.includes(player.id)).length
-  const game = gameId ? gameOrMissing(data, gameId) : undefined
-  const position =
-    [...board.players.values()].filter((x) => x.played > 0).sort((a, b) => b.gloria - a.gloria).findIndex((x) => x.playerId === player.id) + 1
-
-  const history = [
-    ...data.plays.filter((p) => p.status === 'finished' && p.sides.some((x) => x.players.includes(player.id))).map((p) => ({ k: 'play' as const, at: p.finishedAt ?? 0, p })),
-    ...data.matches.filter((m) => m.status === 'finished' && involves(m, player.id)).map((m) => ({ k: 'match' as const, at: m.finishedAt ?? 0, m })),
-  ]
-    .sort((a, b) => b.at - a.at)
-    .slice(0, 10)
 
   const hasPlayed =
     data.matches.some((m) => involves(m, player.id)) ||
@@ -111,7 +77,77 @@ export function PlayerDetail() {
         <ArrowLeftIcon /> Jugadores
       </Link>
 
-      {editing ? (
+      <PlayerProfile player={player} />
+
+      {auth.session && sync.club && group?.player_id !== player.id && (
+        <div className="card">
+          <button className="btn block" onClick={claim}>
+            <UserCircleCheckIcon /> Este jugador soy yo
+          </button>
+          {claimMsg && (
+            <p className="small mt" role="status">
+              {claimMsg}
+            </p>
+          )}
+          <ErrorText>{claimError}</ErrorText>
+        </div>
+      )}
+
+      {!hasPlayed && canDelete(access, 'player', player) && (
+        <button className="btn danger block mt" onClick={remove}>
+          <TrashIcon /> Borrar jugador
+        </button>
+      )}
+    </div>
+  )
+}
+
+/**
+ * Perfil de un jugador en el club: gloria y puesto, récord, medallas, sus juegos y las últimas partidas.
+ * `self`: es el tuyo (pestaña Vos, que pone su propia cabecera con `head={false}`); `afterHead` va entre la
+ * cabecera y el récord.
+ */
+export function PlayerProfile({ player, self, head = true, afterHead }: { player: Player; self?: boolean; head?: boolean; afterHead?: ReactNode }) {
+  const [params, setParams] = useSearchParams()
+  const data = useData()
+  const board = useBoard()
+  const ppBoard = useLeaderboard()
+  const players = usePlayerMap()
+  const access = useAccess()
+  const [editing, setEditing] = useState(false)
+
+  const s = globalStatsOf(board, player.id)
+  const perGame = [...s.perGame.values()].sort((a, b) => b.played - a.played)
+  const gameId = params.get('juego') ?? perGame[0]?.gameId // '' = ninguno abierto
+  const gs = gameId ? s.perGame.get(gameId) : undefined
+  // Puesto en el club de cada juego que jugó, y el juego donde mejor está parado.
+  const ranks = new Map(
+    perGame.map((x) => {
+      const r = gameRanking(board, x.gameId)
+      return [x.gameId, { pos: r.findIndex((y) => y.playerId === player.id) + 1, of: r.length }] as const
+    }),
+  )
+  const best = perGame
+    .filter((x) => gameOrMissing(data, x.gameId).mode !== 'coop' && (ranks.get(x.gameId)?.of ?? 0) > 1)
+    .sort((a, b) => ranks.get(a.gameId)!.pos - ranks.get(b.gameId)!.pos || b.played - a.played)[0]
+  const strongest = best && { name: gameOrMissing(data, best.gameId).name, ...ranks.get(best.gameId)! }
+  // Torneos en los que está anotado (incluye los que siguen en juego).
+  const cupsPlayed =
+    data.cups.filter((c) => c.entrants.some((e) => e.players.includes(player.id))).length +
+    data.tournaments.filter((t) => t.playerIds.includes(player.id)).length
+  const game = gameId ? gameOrMissing(data, gameId) : undefined
+  const position = gloriaPosition(board, player.id)
+
+  const history = [
+    ...data.plays.filter((p) => p.status === 'finished' && p.sides.some((x) => x.players.includes(player.id))).map((p) => ({ k: 'play' as const, at: p.finishedAt ?? 0, p })),
+    ...data.matches.filter((m) => m.status === 'finished' && involves(m, player.id)).map((m) => ({ k: 'match' as const, at: m.finishedAt ?? 0, m })),
+  ]
+    .sort((a, b) => b.at - a.at)
+    .slice(0, 10)
+
+  return (
+    <>
+      {!head ? null : editing ? (
         <PlayerForm
           initial={player}
           submitLabel="Guardar"
@@ -138,6 +174,8 @@ export function PlayerDetail() {
           )}
         </header>
       )}
+
+      {afterHead}
 
       {s.played > 0 ? (
         <section className="pd-record" aria-label="Récord">
@@ -184,14 +222,14 @@ export function PlayerDetail() {
           </dl>
         </section>
       ) : (
-        <p className="muted">Todavía no jugó ninguna partida.</p>
+        <p className="muted">{self ? 'Todavía no jugaste ninguna partida en este club.' : 'Todavía no jugó ninguna partida.'}</p>
       )}
 
       <MedalsSection title="Medallas generales" list={globalMedals(s)} playerName={player.name} />
 
       {perGame.length > 0 && (
         <section>
-          <h2>Sus juegos</h2>
+          <h2>{self ? 'Tus juegos' : 'Sus juegos'}</h2>
           {/* Una fila por juego, comparables en columna. Tocar una la abre con la curva de Elo y sus medallas abajo. */}
           <div className="pd-games num" role="list">
             <div className="pd-games-head" aria-hidden>
@@ -265,28 +303,13 @@ export function PlayerDetail() {
           </div>
         </section>
       )}
-
-      {auth.session && sync.club && (
-        <div className="card">
-          <button className="btn block" onClick={claim}>
-            <UserCircleCheckIcon /> Este jugador soy yo
-          </button>
-          {claimMsg && (
-            <p className="small mt" role="status">
-              {claimMsg}
-            </p>
-          )}
-          <ErrorText>{claimError}</ErrorText>
-        </div>
-      )}
-
-      {!hasPlayed && canDelete(access, 'player', player) && (
-        <button className="btn danger block mt" onClick={remove}>
-          <TrashIcon /> Borrar jugador
-        </button>
-      )}
-    </div>
+    </>
   )
+}
+
+/** Puesto en el club por gloria (0 si todavía no jugó). */
+export function gloriaPosition(board: ReturnType<typeof useBoard>, playerId: string): number {
+  return [...board.players.values()].filter((x) => x.played > 0).sort((a, b) => b.gloria - a.gloria).findIndex((x) => x.playerId === playerId) + 1
 }
 
 function streakText(streak: number): string {

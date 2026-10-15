@@ -1,4 +1,4 @@
-import { CheckIcon, GlobeHemisphereWestIcon, StorefrontIcon, XIcon, HourglassIcon, LockSimpleIcon, MagnifyingGlassIcon, SparkleIcon, UsersThreeIcon } from '@phosphor-icons/react'
+import { CaretDownIcon, CaretUpIcon, CheckIcon, GlobeHemisphereWestIcon, StorefrontIcon, XIcon, HourglassIcon, LockSimpleIcon, MagnifyingGlassIcon, SparkleIcon, UsersThreeIcon } from '@phosphor-icons/react'
 import { useEffect, useState } from 'react'
 import { ReportButton } from '../../components/ReportButton'
 import { cancelJoinRequest, createGroup, requestJoin, searchGroups, setClubVenue, updateGroup, type FoundGroup, type MyGroup, type Venue } from '../../lib/social'
@@ -220,14 +220,6 @@ const norm = (t: string) => t.normalize('NFD').replace(/[\u0300-\u036f]/g, '').t
 
 /** Dirección y juegos del lugar. */
 function VenueFields({ address, onAddress, games, onGames }: { address: string; onAddress: (v: string) => void; games: string[]; onGames: (v: string[]) => void }) {
-  const data = useData()
-  const catalog = allGames(data)
-  const [q, setQ] = useState('')
-  const picked = games.map((id) => catalog.find((g) => g.id === id)).filter((g) => !!g)
-  const query = norm(q)
-  const options = (query ? catalog.filter((g) => norm(g.name).includes(query)) : BAR_GAMES.map((id) => catalog.find((g) => g.id === id)).filter((g) => !!g))
-    .filter((g) => !games.includes(g.id))
-    .slice(0, 12)
   return (
     <div className="venue-fields">
       <p className="muted small">
@@ -237,15 +229,51 @@ function VenueFields({ address, onAddress, games, onGames }: { address: string; 
         <span className="field-label">Dirección (opcional)</span>
         <input className="input" maxLength={120} placeholder="Av. Corrientes 1234, CABA" value={address} onChange={(e) => onAddress(e.target.value)} />
       </label>
+      <GamePicker label="Juegos del lugar" games={games} onGames={onGames} suggestions={BAR_GAMES} />
+    </div>
+  )
+}
+
+/**
+ * Elegir juegos (del lugar o del club): los elegidos, en orden, con un buscador y sugerencias para sumar.
+ * `suggestions`: ids que se ofrecen mientras no se busca nada.
+ */
+export function GamePicker({ label, games, onGames, suggestions, max = 24 }: { label: string; games: string[]; onGames: (v: string[]) => void; suggestions: string[]; max?: number }) {
+  const data = useData()
+  const catalog = allGames(data)
+  const [q, setQ] = useState('')
+  const picked = games.map((id) => catalog.find((g) => g.id === id)).filter((g) => !!g)
+  const query = norm(q)
+  const full = games.length >= max
+  const options = (query ? catalog.filter((g) => norm(g.name).includes(query)) : suggestions.map((id) => catalog.find((g) => g.id === id)).filter((g) => !!g))
+    .filter((g) => !games.includes(g.id))
+    .slice(0, 12)
+  const move = (i: number, by: number) => {
+    const next = [...games]
+    ;[next[i], next[i + by]] = [next[i + by], next[i]]
+    onGames(next)
+  }
+  return (
+    <>
       <div className="field">
-        <span className="field-label" id="venue-games-label">
-          Juegos del lugar
+        <span className="field-label" id="picked-games-label">
+          {label}
         </span>
         {picked.length > 0 ? (
-          <ul className="venue-games" aria-labelledby="venue-games-label">
-            {picked.map((g) => (
+          <ul className="venue-games" aria-labelledby="picked-games-label">
+            {picked.map((g, i) => (
               <li key={g.id}>
-                <GameBadge game={g} size={24} /> {g.name}
+                <GameBadge game={g} size={24} /> <span className="grow ellipsis">{g.name}</span>
+                {picked.length > 1 && (
+                  <>
+                    <button type="button" className="tool-btn small" aria-label={`Subir ${g.name}`} disabled={i === 0} onClick={() => move(i, -1)}>
+                      <CaretUpIcon />
+                    </button>
+                    <button type="button" className="tool-btn small" aria-label={`Bajar ${g.name}`} disabled={i === picked.length - 1} onClick={() => move(i, 1)}>
+                      <CaretDownIcon />
+                    </button>
+                  </>
+                )}
                 <button type="button" className="tool-btn small" aria-label={`Sacar ${g.name}`} onClick={() => onGames(games.filter((id) => id !== g.id))}>
                   <XIcon />
                 </button>
@@ -256,25 +284,31 @@ function VenueFields({ address, onAddress, games, onGames }: { address: string; 
           <p className="muted small">Todavía no elegiste ninguno.</p>
         )}
       </div>
-      <label className="search">
-        <MagnifyingGlassIcon aria-hidden />
-        <input className="input" placeholder="Buscar otro juego" value={q} onChange={(e) => setQ(e.target.value)} aria-label="Buscar juego para sumar al lugar" />
-      </label>
-      <div className="chips">
-        {options.map((g) => (
-          <button
-            key={g.id}
-            type="button"
-            className="chip"
-            onClick={() => {
-              onGames([...games, g.id])
-              setQ('')
-            }}
-          >
-            + {g.name}
-          </button>
-        ))}
-      </div>
-    </div>
+      {full ? (
+        <p className="muted small">Ya elegiste {max}: sacá alguno para sumar otro.</p>
+      ) : (
+        <>
+          <label className="search">
+            <MagnifyingGlassIcon aria-hidden />
+            <input className="input" placeholder="Buscar otro juego" value={q} onChange={(e) => setQ(e.target.value)} aria-label="Buscar juego para sumar" />
+          </label>
+          <div className="chips">
+            {options.map((g) => (
+              <button
+                key={g.id}
+                type="button"
+                className="chip"
+                onClick={() => {
+                  onGames([...games, g.id])
+                  setQ('')
+                }}
+              >
+                + {g.name}
+              </button>
+            ))}
+          </div>
+        </>
+      )}
+    </>
   )
 }

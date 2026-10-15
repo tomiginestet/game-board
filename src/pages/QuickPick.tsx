@@ -7,6 +7,7 @@ import type { GameDef } from '../lib/games/schema'
 import { useBoard, useGames } from '../lib/hooks'
 import { useData } from '../lib/store'
 import { useActiveGroup } from '../lib/social'
+import { useClubGames } from '../lib/clubGames'
 import { playPath } from './GameDetail'
 import './quickpick.css'
 
@@ -54,11 +55,11 @@ export function QuickPick() {
     return last
   }, [board.views])
 
-  // En el club de un lugar (un bar), primero los juegos que tiene el lugar.
+  // Primero los juegos del club (los que eligió, o los que tiene el lugar si es un bar).
   const group = useActiveGroup()
-  const venueGames = group?.venue ? pickGames(data, group.venue.games) : []
-  const venueIds = new Set(venueGames.map((g) => g.id))
-  const clubGames = pickGames(data, [...lastPlayed.entries()].sort((a, b) => b[1] - a[1]).map(([id]) => id)).filter((g) => !venueIds.has(g.id))
+  const chosenGames = useClubGames().chosen
+  const chosenIds = new Set(chosenGames.map((g) => g.id))
+  const clubGames = pickGames(data, [...lastPlayed.entries()].sort((a, b) => b[1] - a[1]).map(([id]) => id)).filter((g) => !chosenIds.has(g.id))
   const custom = games.filter((g) => g.source && g.source !== 'builtin' && !lastPlayed.has(g.id))
 
   const query = norm(q)
@@ -118,11 +119,11 @@ export function QuickPick() {
         )
       ) : (
         <>
-          {venueGames.length > 0 && (
-            <section aria-labelledby="qp-venue">
-              <h2 id="qp-venue">En {group!.name}</h2>
-              <ul className="qp-list" aria-labelledby="qp-venue">
-                {venueGames.map(row)}
+          {chosenGames.length > 0 && (
+            <section aria-labelledby="qp-club">
+              <h2 id="qp-club">En {group!.name}</h2>
+              <ul className="qp-list" aria-labelledby="qp-club">
+                {chosenGames.map(row)}
               </ul>
             </section>
           )}

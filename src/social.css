@@ -106,13 +106,6 @@
   border: 2px solid var(--bg);
 }
 
-.tool-btn.avatar-btn {
-  width: 44px;
-  height: 44px;
-  padding: 0;
-  overflow: hidden;
-}
-
 .who-banner {
   display: block;
   max-width: 680px;
@@ -571,7 +564,8 @@ button.group-row:hover {
   margin: 4px 0 12px;
 }
 
-/* Perfil del club: tarjeta de presentación con el emoji alineado al título y los números del club abajo. */
+/* Pantalla del club: arriba el emoji y el engranaje en una fila; debajo el nombre a todo el ancho, la
+   descripción y los números del club. */
 .club-hero {
   display: flex;
   flex-direction: column;
@@ -583,17 +577,22 @@ button.group-row:hover {
     var(--card);
 }
 .club-hero-top {
-  display: grid;
-  grid-template-columns: auto minmax(0, 1fr) auto;
+  display: flex;
   align-items: center;
-  gap: 16px;
+  justify-content: space-between;
+  gap: 12px;
+}
+.club-hero-title {
+  margin-top: -4px;
 }
 .club-hero-title h1 {
   margin: 0 0 6px;
   overflow-wrap: anywhere;
+  text-wrap: balance;
 }
 .club-edit {
-  align-self: start;
+  position: relative;
+  flex: none;
 }
 .club-meta {
   display: flex;
@@ -615,21 +614,24 @@ button.group-row:hover {
   color: var(--text-soft);
   line-height: 1.45;
 }
+/* Los números del club en una franja: columnas separadas por líneas finas, sin cajas. */
 .club-stats {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: 8px;
   margin: 0;
+  padding-top: 14px;
+  border-top: 1px solid var(--border);
 }
 .club-stats > div {
   display: flex;
   flex-direction: column-reverse;
   align-items: center;
   gap: 2px;
-  padding: 10px 4px;
-  border-radius: 12px;
-  background: var(--bg-2);
   min-width: 0;
+  padding: 0 4px;
+}
+.club-stats > div + div {
+  border-left: 1px solid var(--border);
 }
 .club-stats dt {
   font-size: 12px;
@@ -850,18 +852,23 @@ button.group-row:hover {
   margin: 0;
   padding: 0;
   display: flex;
-  flex-wrap: wrap;
+  flex-direction: column;
   gap: 6px;
 }
+/* Una fila por juego elegido: en orden, con subir, bajar y sacar a mano. */
 .venue-games li {
-  display: inline-flex;
+  display: flex;
   align-items: center;
-  gap: 6px;
-  padding: 2px 2px 2px 6px;
-  border-radius: 999px;
+  gap: 8px;
+  min-width: 0;
+  padding: 2px 2px 2px 8px;
+  border-radius: 12px;
   background: var(--card-2);
-  font-size: 14px;
+  font-size: 15px;
   font-weight: 600;
+}
+.venue-games li .tool-btn:disabled {
+  opacity: 0.35;
 }
 
 /* Carnet de socio: un pase de billetera troquelado en dos mitades. Cada mitad recorta sus propios
@@ -880,7 +887,7 @@ button.group-row:hover {
 }
 .pass-main {
   display: grid;
-  grid-template-columns: auto minmax(0, 1fr) auto;
+  grid-template-columns: auto minmax(0, 1fr);
   align-items: center;
   gap: 12px;
   padding: 20px 18px 16px;
@@ -908,11 +915,30 @@ button.group-row:hover {
   min-width: 0;
 }
 .pass-name {
+  margin: 0 0 2px;
+  padding-right: 72px;
   font-family: 'Lilita One', system-ui, sans-serif;
   font-weight: 400;
-  font-size: 24px;
+  font-size: 28px;
   line-height: 1.1;
   overflow-wrap: anywhere;
+}
+.pass-club {
+  color: var(--text-soft);
+  font-weight: 700;
+}
+.pass-gloria {
+  display: block;
+  margin-top: 2px;
+  font-size: 14px;
+  color: var(--text-soft);
+}
+.pass-gloria svg,
+.pass-gloria b {
+  color: var(--accent-2);
+}
+.pass-gloria svg {
+  vertical-align: -2px;
 }
 .pass-meta {
   font-size: 13px;
@@ -920,7 +946,10 @@ button.group-row:hover {
   color: var(--muted);
 }
 .pass-number {
-  align-self: start;
+  /* Arriba a la derecha, fuera de la grilla: el texto del carnet usa todo el ancho. */
+  position: absolute;
+  top: 18px;
+  right: 18px;
   display: flex;
   flex-direction: column;
   align-items: flex-end;
@@ -1010,6 +1039,175 @@ button.group-row:hover {
 }
 .pass-caret {
   color: var(--muted);
+}
+
+/* ---------- Pantalla del club y gestión ---------- */
+
+/* Integrantes: filas sin tarjeta (como la lista de jugadores). */
+.rows > .club-member {
+  min-height: 60px;
+  padding: 8px 0;
+  border-bottom: 1px solid var(--border);
+}
+
+/* Pedidos para entrar: quién arriba, su mensaje y las dos acciones debajo, para que nada se apriete en una fila. */
+.join-requests h2 {
+  margin: 0;
+}
+.request-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+}
+.request {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 14px 0;
+}
+.request + .request {
+  border-top: 1px solid var(--border);
+}
+.request:last-child {
+  padding-bottom: 0;
+}
+.request:first-child {
+  padding-top: 4px;
+}
+.request-who {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+}
+.request-who .grow {
+  min-width: 0;
+}
+.request-message {
+  margin: 0;
+  padding: 10px 12px;
+  border-radius: 12px;
+  background: var(--bg-2);
+  color: var(--text-soft);
+  font-size: 15px;
+  line-height: 1.4;
+  overflow-wrap: anywhere;
+}
+.request-actions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  max-width: 420px;
+}
+
+/* Filas de ajustes y de la cuenta: ícono, título con su detalle y la flecha. */
+.settings-row {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  min-height: 64px;
+  padding: 10px 0;
+  border-bottom: 1px solid var(--border);
+  color: var(--text);
+  text-decoration: none;
+}
+button.settings-row {
+  width: 100%;
+  border: 0;
+  border-bottom: 1px solid var(--border);
+  background: none;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+.settings-row > svg:first-child {
+  flex: none;
+  color: var(--accent-2);
+}
+.settings-row > svg:last-child {
+  flex: none;
+  color: var(--muted);
+}
+.settings-row .grow {
+  min-width: 0;
+}
+.settings-row:focus-visible {
+  outline: 3px solid var(--accent-2);
+  outline-offset: 2px;
+  border-radius: 8px;
+}
+
+/* Cuentas del club: las acciones van debajo del nombre, como links. */
+.account-list {
+  list-style: none;
+  margin: 8px 0 0;
+  padding: 0;
+}
+.account-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 10px 0;
+  border-bottom: 1px solid var(--border);
+}
+.account-row.center {
+  align-items: center;
+}
+.account-row > .avatar,
+.account-row > :first-child {
+  flex: none;
+}
+.account-body {
+  flex: 1;
+  min-width: 0;
+}
+.account-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0 16px;
+  margin: 2px 0 -8px;
+}
+.account-actions .link-btn {
+  padding-left: 0;
+  padding-right: 0;
+}
+
+/* Invitar: el link primero, con sus dos botones repartiendo el ancho. */
+.invite h2 {
+  margin-bottom: 4px;
+}
+.invite .field {
+  margin-top: 20px;
+}
+.invite-actions {
+  display: grid;
+  grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr);
+  gap: 8px;
+}
+
+/* Vos */
+.account-who {
+  margin: -6px 0 0;
+  overflow-wrap: anywhere;
+}
+.me-exits {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 20px;
+}
+
+/* Pestaña Vos: tu avatar en vez del ícono; elegida, con un anillo naranja (además del texto en blanco). */
+.nav-avatar {
+  display: inline-grid;
+  place-items: center;
+  border-radius: 999px;
+  box-shadow: 0 0 0 2px transparent;
+}
+.nav-avatar.active {
+  box-shadow: 0 0 0 2px var(--accent);
 }
 
 /* Aviso de versión nueva: mismo formato que el anuncio, con el botón a la vista. */

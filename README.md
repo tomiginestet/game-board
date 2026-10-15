@@ -7,8 +7,8 @@ de datos) que el [Ping Pong Club](https://github.com/tomiginestet/ping-pong-web-
 ## Qué hace
 
 - **Catálogo tipo Steam / Game Pass**: carátulas generadas para cada juego (dibujo por categoría, color y emoji del juego;
-  los juegos del grupo pueden usar una imagen propia con `cover`), carrusel de destacados, estantes por categoría y
-  un catálogo completo con buscador, filtros y orden.
+  los juegos del grupo pueden usar una imagen propia con `cover`), "Para jugar hoy" (primero los juegos del club) y
+  un catálogo completo con buscador, filtros y orden. Cada club elige sus juegos destacados.
 - **Cuentas, grupos y amigos**:
   - al entrar: cuenta (Google o link por mail), perfil con @usuario y un onboarding para crear un grupo, buscar uno,
     entrar con un link o ir a buscar amigos;

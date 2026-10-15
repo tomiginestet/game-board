@@ -77,7 +77,7 @@ export function ClubInvite({ target, onLogin, standalone }: { target: Target; on
     const g = list.find((x) => x.code === code)
     if (g) await switchToGroup(g)
     // En un club de lugar cada uno ya tiene su jugador: se va directo al carnet nuevo.
-    navigate(game ? playPath(game) : isVenue ? '/grupo#carnet' : '/grupo#yo', { replace: true })
+    navigate(game ? playPath(game) : isVenue ? '/perfil#carnet' : '/perfil#yo', { replace: true })
   }
 
   const join = async () => {
