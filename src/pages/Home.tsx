@@ -1,23 +1,25 @@
-import { ArrowRightIcon, CaretLeftIcon, CaretRightIcon, CheckCircleIcon, GearSixIcon, PlusIcon, TrashIcon, UsersIcon } from '@phosphor-icons/react'
-import { useRef, useState } from 'react'
+import { ArrowRightIcon, CheckCircleIcon, GearSixIcon, PencilSimpleIcon, PlusIcon, TrashIcon, UsersIcon } from '@phosphor-icons/react'
+import { lazy, Suspense, useState } from 'react'
 import { Link, useNavigate, type NavigateFunction } from 'react-router-dom'
 import { toast } from '../lib/feedback'
-import { HeroCard, ShelfCard, Shelf } from '../components/GameCard'
-import { GameCover } from '../components/GameCover'
+import { ClubHero, JoinRequests } from '../components/ClubHero'
+import { ShelfCard, Shelf } from '../components/GameCard'
 import { GameBadge, PlayRow, playTitle, sideName } from '../components/GameBits'
 import { Logo } from '../components/Logo'
 import { MatchRow } from '../components/MatchRow'
 import { NextMedals } from '../components/NextMedals'
-import { GloriaPodium } from '../components/Squad'
+import { GloriaPodium, SquadShowcase, useSquadMedals } from '../components/Squad'
+import { useClubGames } from '../lib/clubGames'
 import { cupChampion } from '../lib/cups'
 import { computeLive } from '../lib/engine'
 import { computeMatch } from '../lib/pingpong/scoring'
 import { sidePlayers, teamName } from '../lib/pingpong/teams'
-import { FEATURED, findGame, HERO, pickGames } from '../lib/games'
-import type { Category, GameDef } from '../lib/games/schema'
-import { gameOrMissing, useBoard, useGames, usePlayerMap } from '../lib/hooks'
+import { findGame, pickGames } from '../lib/games'
+import type { GameDef } from '../lib/games/schema'
+import { gameOrMissing, useBoard, usePlayerMap } from '../lib/hooks'
 import { tournamentChampion } from '../lib/pingpong/stats'
 import { groupingOf, joinNames, planRematch, type RematchPlan } from '../lib/rematch'
+import { canPickClubGames, useActiveGroup, type MyGroup } from '../lib/social'
 import { actions, getData, useData } from '../lib/store'
 import { syncAvailable, useSyncState } from '../lib/sync'
 import type { Id, Play, Player, PPMatch as Match } from '../lib/types'
@@ -27,14 +29,8 @@ import { mayCreateNow } from '../lib/access'
 import { lineup } from '../lib/calls'
 import { useMyPlayerId } from '../lib/me'
 
-/** Estantes por categoría del inicio. */
-const HOME_SHELVES: { cat: Category; title: string; subtitle: string }[] = [
-  { cat: 'cartas', title: 'Noches de cartas', subtitle: 'Truco, buraco y compañía' },
-  { cat: 'tcg', title: 'Duelos de cartas', subtitle: 'Magic, Pokémon, Yu-Gi-Oh! y compañía' },
-  { cat: 'fiesta', title: 'Para la previa', subtitle: 'Juegos de fiesta para muchos' },
-  { cat: 'mesa', title: 'Juegos de mesa', subtitle: 'Para sacar la caja y quedarse un rato' },
-  { cat: 'deporte', title: 'A la cancha', subtitle: 'Fútbol, pádel, vóley y compañía' },
-]
+// Equipos, integrantes e invitaciones: abajo de todo, se bajan aparte.
+const ClubPeople = lazy(async () => ({ default: (await import('./social/ClubMembers')).ClubPeople }))
 
 /** Se recuerda en el dispositivo si ya se cerró la guía de primeros pasos. */
 const FIRST_STEPS_KEY = 'game-board-first-steps-closed'
@@ -80,11 +76,17 @@ function discardMatch(match: Match) {
   toast('Descartaste el partido de ping pong.', { label: 'Deshacer', run: () => actions.restoreMatch(match) })
 }
 
+/**
+ * La pantalla del club (o, sin club, la de este dispositivo): anotar, lo que está en juego y lo que viene,
+ * los juegos del club, quién manda, torneos, medallas, últimas partidas y la gente del club.
+ */
 export function Home() {
   const data = useData()
   const board = useBoard()
   const players = usePlayerMap()
-  const games = useGames()
+  const club = useClubGames()
+  const group = useActiveGroup()
+  const medals = useSquadMedals()
   const sync = useSyncState()
   const navigate = useNavigate()
   const [stepsClosed, setStepsClosed] = useState(() => readFlag(FIRST_STEPS_KEY))
@@ -110,21 +112,8 @@ export function Home() {
     .sort((x, y) => y.at - x.at)
     .slice(0, 5)
 
-  // Cuántas veces y cuándo fue la última vez que el club jugó cada juego.
-  const playedCount = new Map<string, number>()
-  const lastPlayed = new Map<string, number>()
-  for (const v of board.views) {
-    playedCount.set(v.gameId, (playedCount.get(v.gameId) ?? 0) + 1)
-    lastPlayed.set(v.gameId, Math.max(lastPlayed.get(v.gameId) ?? 0, v.at))
-  }
-  const byId = (ids: string[]) => pickGames(data, ids)
-  const againGames = byId([...lastPlayed.entries()].sort((a, b) => b[1] - a[1]).map(([id]) => id)).slice(0, 3)
-  const topGames = byId([...playedCount.entries()].sort((a, b) => b[1] - a[1]).map(([id]) => id)).slice(0, 10)
-  // El carrusel: primero los más jugados por el club (si hay), después los elegidos.
-  const hero = byId([...topGames.slice(0, 2).map((g) => g.id), ...HERO]).slice(0, 6)
-  const featured = byId(FEATURED)
-  const shelfOf = (cat: Category) => games.filter((g) => g.category === cat).sort((a, b) => (playedCount.get(b.id) ?? 0) - (playedCount.get(a.id) ?? 0))
-  const custom = games.filter((g) => g.source && g.source !== 'builtin')
+  // "Jugar de nuevo": los últimos que jugó el club.
+  const againGames = pickGames(data, [...club.last.entries()].sort((a, b) => b[1] - a[1]).map(([id]) => id)).slice(0, 3)
 
   const ranked = [...board.players.values()]
     .filter((s) => s.played > 0)
@@ -152,32 +141,39 @@ export function Home() {
 
   return (
     <div className="page">
-      <header className="home-header">
-        <div className="grow">
-          {syncAvailable ? (
-            <>
-              <h1 className="brand-title">¿A qué jugamos hoy?</h1>
-              {sync.club && (
-                <p className="muted">
-                  En <b className="strong">{sync.club.name}</b>
-                </p>
-              )}
-            </>
-          ) : (
-            <>
-              <h1 className="brand-title title-with-icon">
-                <Logo className="title-logo" size={30} /> Game Board
-              </h1>
-              <p className="muted">Partidas, torneos y quién manda en cada juego.</p>
-            </>
+      {group ? (
+        <>
+          <ClubHero group={group} medals={medals.earned.length} />
+          <JoinRequests group={group} />
+        </>
+      ) : (
+        <header className="home-header">
+          <div className="grow">
+            {syncAvailable ? (
+              <>
+                <h1 className="brand-title">¿A qué jugamos hoy?</h1>
+                {sync.club && (
+                  <p className="muted">
+                    En <b className="strong">{sync.club.name}</b>
+                  </p>
+                )}
+              </>
+            ) : (
+              <>
+                <h1 className="brand-title title-with-icon">
+                  <Logo className="title-logo" size={30} /> Game Board
+                </h1>
+                <p className="muted">Partidas, torneos y quién manda en cada juego.</p>
+              </>
+            )}
+          </div>
+          {!syncAvailable && (
+            <Link to="/ajustes" className="tool-btn" aria-label="Ajustes y copia de seguridad">
+              <GearSixIcon size={22} />
+            </Link>
           )}
-        </div>
-        {!syncAvailable && (
-          <Link to="/ajustes" className="tool-btn" aria-label="Ajustes y copia de seguridad">
-            <GearSixIcon size={22} />
-          </Link>
-        )}
-      </header>
+        </header>
+      )}
 
       {showFirstSteps ? (
         <section className="card first-steps" aria-labelledby="first-steps-title">
@@ -300,6 +296,8 @@ export function Home() {
         </section>
       )}
 
+      <ClubGamesShelf group={group} />
+
       {ranked.length > 0 && (
         <section aria-labelledby="podium-title">
           <div className="section-head">
@@ -330,7 +328,7 @@ export function Home() {
         </section>
       )}
 
-      <NextMedals />
+      {group ? <NextMedals playerIds={data.players.map((p) => p.id)} title="Medallas a la vista" /> : <NextMedals />}
 
       {recent.length > 0 ? (
         <section aria-labelledby="recent-title">
@@ -358,43 +356,52 @@ export function Home() {
         )
       )}
 
-      <HeroCarousel games={hero} plays={playedCount} />
+      {group && <SquadShowcase medals={medals.earned} title="Vitrina del club" />}
 
-      {topGames.length > 2 && (
-        <Shelf title="Lo más jugado del club" to="/juegos?orden=jugados">
-          {topGames.map((g, i) => (
-            <ShelfCard key={g.id} game={g} note={`#${i + 1}`} />
-          ))}
-        </Shelf>
+      {group && (
+        <Suspense fallback={null}>
+          <ClubPeople group={group} />
+        </Suspense>
       )}
-
-      <Shelf title="Destacados" subtitle="Los infaltables de cualquier juntada" to="/juegos">
-        {featured.map((g) => (
-          <ShelfCard key={g.id} game={g} plays={playedCount.get(g.id)} />
-        ))}
-      </Shelf>
-
-      {custom.length > 0 && (
-        <Shelf title="Hechos por el club" to="/juegos?cat=mine">
-          {custom.map((g) => (
-            <ShelfCard key={g.id} game={g} plays={playedCount.get(g.id)} />
-          ))}
-        </Shelf>
-      )}
-
-      {HOME_SHELVES.map((sh) => {
-        const list = shelfOf(sh.cat)
-        return list.length > 0 ? (
-          <Shelf key={sh.cat} title={sh.title} subtitle={sh.subtitle} to={`/juegos?cat=${sh.cat}`}>
-            {list.map((g) => (
-              <ShelfCard key={g.id} game={g} plays={playedCount.get(g.id)} />
-            ))}
-          </Shelf>
-        ) : null
-      })}
-
-      <CatalogCta games={games} />
     </div>
+  )
+}
+
+/**
+ * Los juegos del club: los que eligió un admin o, si todavía no eligió, los que más juegan. Quien puede
+ * elegirlos ve "Elegir" (o "Cambiar") en vez de "Ver todo".
+ */
+function ClubGamesShelf({ group }: { group?: MyGroup }) {
+  const club = useClubGames()
+  const editable = !!group && canPickClubGames(group)
+  const chosen = club.chosen.length > 0
+  const list = chosen ? club.chosen : club.mostPlayed.slice(0, 10)
+  if (!list.length && !editable) return null
+
+  const title = group ? (group.kind === 'duo' ? 'Lo que juegan' : 'Juegos del club') : 'Lo más jugado'
+  const action = editable ? (
+    <Link to="/club/juegos" className="shelf-all" aria-label={chosen ? 'Cambiar los juegos del club' : 'Elegir los juegos del club'}>
+      <PencilSimpleIcon className="inline-icon" size="1em" aria-hidden /> {chosen ? 'Cambiar' : 'Elegir'}
+    </Link>
+  ) : undefined
+
+  if (!list.length) {
+    return (
+      <section className="card empty-state" aria-labelledby="club-games-title">
+        <h2 id="club-games-title">{title}</h2>
+        <p className="muted">Elegí los juegos que tiene o juega el club: salen acá, primero en “Para jugar hoy” y primero al anotar.</p>
+        <Link to="/club/juegos" className="btn">
+          <PencilSimpleIcon /> Elegir juegos
+        </Link>
+      </section>
+    )
+  }
+  return (
+    <Shelf title={title} subtitle={chosen ? undefined : 'Los que más juegan'} to="/juegos?cat=mine" action={action}>
+      {list.map((g) => (
+        <ShelfCard key={g.id} game={g} plays={club.played.get(g.id)} />
+      ))}
+    </Shelf>
   )
 }
 
@@ -403,94 +410,6 @@ function SeeAll({ to, label }: { to: string; label: string }) {
   return (
     <Link to={to} className="see-all" aria-label={label}>
       Ver todo <ArrowRightIcon className="inline-icon" size="1em" aria-hidden />
-    </Link>
-  )
-}
-
-/** Carrusel grande de arriba: banners con scroll-snap, flechas y puntitos. */
-function HeroCarousel({ games, plays }: { games: GameDef[]; plays: Map<string, number> }) {
-  const ref = useRef<HTMLDivElement>(null)
-  const [active, setActive] = useState(0)
-  if (!games.length) return null
-
-  const go = (i: number) => {
-    const el = ref.current
-    const card = el?.children[i] as HTMLElement | undefined
-    if (!el || !card) return
-    const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches
-    el.scrollTo({ left: card.offsetLeft - el.offsetLeft - (el.clientWidth - card.clientWidth) / 2, behavior: reduce ? 'auto' : 'smooth' })
-  }
-  const onScroll = () => {
-    const el = ref.current
-    if (!el) return
-    const mid = el.scrollLeft + el.clientWidth / 2
-    let best = 0
-    let dist = Infinity
-    Array.from(el.children).forEach((c, i) => {
-      const card = c as HTMLElement
-      const d = Math.abs(card.offsetLeft - el.offsetLeft + card.clientWidth / 2 - mid)
-      if (d < dist) {
-        dist = d
-        best = i
-      }
-    })
-    if (best !== active) setActive(best)
-  }
-
-  // Con el foco en la fila, las flechas del teclado pasan de juego en juego.
-  const onKeyDown = (e: React.KeyboardEvent) => {
-    if (e.target !== e.currentTarget) return
-    if (e.key === 'ArrowRight') go(Math.min(games.length - 1, active + 1))
-    else if (e.key === 'ArrowLeft') go(Math.max(0, active - 1))
-    else return
-    e.preventDefault()
-  }
-
-  return (
-    <section className="hero-carousel" aria-roledescription="carrusel" aria-labelledby="hero-title">
-      <h2 id="hero-title">Para jugar hoy</h2>
-      <div className="hero-track" ref={ref} onScroll={onScroll} onKeyDown={onKeyDown} tabIndex={0} role="region" aria-label="Juegos para jugar hoy. Usá las flechas para pasar.">
-        {games.map((g, i) => (
-          <HeroCard key={g.id} game={g} playTo={playPath(g)} plays={plays.get(g.id)} index={i} total={games.length} />
-        ))}
-      </div>
-      {games.length > 1 && (
-        <div className="hero-nav">
-          <button className="hero-arrow" onClick={() => go(Math.max(0, active - 1))} disabled={active === 0} aria-label="Juego anterior">
-            <CaretLeftIcon aria-hidden />
-          </button>
-          <div className="hero-dots">
-            {games.map((g, i) => (
-              // Fuera del orden de tabulación: con teclado se pasa con las flechas.
-              <button key={g.id} className={'hero-dot' + (i === active ? ' active' : '')} onClick={() => go(i)} aria-label={`Ver ${g.name}`} aria-current={i === active} tabIndex={-1} />
-            ))}
-          </div>
-          <button className="hero-arrow" onClick={() => go(Math.min(games.length - 1, active + 1))} disabled={active === games.length - 1} aria-label="Juego siguiente">
-            <CaretRightIcon aria-hidden />
-          </button>
-        </div>
-      )}
-    </section>
-  )
-}
-
-/** Entrada grande al catálogo completo, con un collage de carátulas. */
-function CatalogCta({ games }: { games: GameDef[] }) {
-  const collage = ['catan', 'truco', 'mariokart', 'pandemic', 'generala', 'dixit', 'ajedrez'].map((id) => games.find((g) => g.id === id)).filter((g): g is GameDef => !!g)
-  return (
-    <Link to="/juegos" className="catalog-cta">
-      <span className="cta-collage" aria-hidden>
-        {collage.map((g) => (
-          <GameCover key={g.id} game={g} showTitle={false} decorative />
-        ))}
-      </span>
-      <span className="cta-text">
-        <b>Ver el catálogo completo</b>
-        <span className="cta-count">{games.length} juegos: cartas, mesa, fiesta, videojuegos y más</span>
-      </span>
-      <span className="cta-arrow" aria-hidden>
-        <ArrowRightIcon />
-      </span>
     </Link>
   )
 }

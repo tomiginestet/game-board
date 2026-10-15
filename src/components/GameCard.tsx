@@ -17,7 +17,7 @@ function SourcePill({ game }: { game: GameDef }) {
   return null
 }
 
-/** Caja chica para los estantes horizontales del inicio. */
+/** Caja chica para los estantes horizontales (los juegos del club). */
 export function ShelfCard({ game, plays, note }: { game: GameDef; plays?: number; note?: string }) {
   return (
     // El nombre está dibujado en la carátula: lo repetimos oculto para que el link se lea igual que se ve.
@@ -65,7 +65,7 @@ export function CatalogCard({ game, plays }: { game: GameDef; plays?: number }) 
   )
 }
 
-/** Tarjeta grande del carrusel de arriba del inicio. */
+/** Tarjeta grande del carrusel "Para jugar hoy". */
 export function HeroCard({ game, playTo, plays, index, total }: { game: GameDef; playTo: string; plays?: number; index: number; total: number }) {
   return (
     <article className="hero-card" style={{ ['--gc' as string]: game.color }} aria-roledescription="diapositiva" aria-label={`${index + 1} de ${total}: ${game.name}`}>
@@ -98,8 +98,8 @@ export function HeroCard({ game, playTo, plays, index, total }: { game: GameDef;
   )
 }
 
-/** Estante horizontal con título y "Ver todo". */
-export function Shelf({ title, subtitle, to, children }: { title: string; subtitle?: string; to?: string; children: ReactNode }) {
+/** Estante horizontal con título y "Ver todo" (o la acción que se pase, como "Elegir"). */
+export function Shelf({ title, subtitle, to, action, children }: { title: string; subtitle?: string; to?: string; action?: ReactNode; children: ReactNode }) {
   return (
     <section className="shelf">
       <div className="shelf-head">
@@ -107,7 +107,8 @@ export function Shelf({ title, subtitle, to, children }: { title: string; subtit
           <h2>{title}</h2>
           {subtitle && <p className="muted small">{subtitle}</p>}
         </div>
-        {to && (
+        {action}
+        {to && !action && (
           <Link to={to} className="shelf-all">
             Ver todo <ArrowRightIcon className="inline-icon" size="1em" />
           </Link>

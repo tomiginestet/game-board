@@ -1,5 +1,5 @@
-import { HouseIcon, RankingIcon, SquaresFourIcon, TrophyIcon, UsersIcon, UsersThreeIcon } from '@phosphor-icons/react'
-import { createRoutesFromElements, HashRouter, Link, NavLink, Outlet, Route, Routes, useLocation } from 'react-router-dom'
+import { HouseIcon, RankingIcon, SquaresFourIcon, TrophyIcon, UserCircleIcon, UsersIcon, UsersThreeIcon } from '@phosphor-icons/react'
+import { createRoutesFromElements, HashRouter, Link, Navigate, NavLink, Outlet, Route, Routes, useLocation } from 'react-router-dom'
 import { lazy, Suspense, type ComponentType } from 'react'
 import { Announcement } from './components/Announcement'
 import { ErrorBoundary } from './components/ErrorBoundary'
@@ -9,6 +9,7 @@ import { Loader, Logo } from './components/Logo'
 import { TopBar } from './components/TopBar'
 import { Visits } from './components/Visits'
 import { useAuth } from './lib/auth'
+import { useSyncState } from './lib/sync'
 // Va en el paquete principal: la pantalla de entrada (`Gate`) ya la usa para los links sin sesión.
 import { InviteRoute, ShortLinkRoute } from './pages/social/ClubInvite'
 import { useDocumentTitle } from './lib/hooks'
@@ -46,6 +47,9 @@ const Ranking = page(() => import('./pages/Ranking'), 'Ranking')
 const Settings = page(() => import('./pages/Settings'), 'Settings')
 const Friends = page(() => import('./pages/social/Friends'), 'Friends')
 const GroupPage = page(() => import('./pages/social/GroupPage'), 'GroupPage')
+const ClubPage = page(() => import('./pages/ClubPage'), 'ClubPage')
+const ClubEdit = page(() => import('./pages/social/ClubSettings'), 'ClubEdit')
+const ClubGamesEdit = page(() => import('./pages/social/ClubSettings'), 'ClubGamesEdit')
 const Groups = page(() => import('./pages/social/Groups'), 'Groups')
 const PrintCard = page(() => import('./pages/social/PrintCard'), 'PrintCard')
 const NewGroupPage = page(() => import('./pages/social/Groups'), 'NewGroupPage')
@@ -72,7 +76,6 @@ function PageLoader() {
 }
 
 const NAV = [
-  { to: '/', label: 'Inicio', Icon: HouseIcon, end: true },
   { to: '/juegos', label: 'Juegos', Icon: SquaresFourIcon },
   { to: '/torneos', label: 'Torneos', Icon: TrophyIcon },
   { to: '/ranking', label: 'Ranking', Icon: RankingIcon },
@@ -93,6 +96,8 @@ const TITLES: [RegExp, string][] = [
   [/^\/equipos/, 'Equipos'],
   [/^\/historial/, 'Historial'],
   [/^\/ajustes/, 'Ajustes'],
+  [/^\/grupo$/, 'Vos'],
+  [/^\/club\/juegos/, 'Juegos del club'],
   [/^\/(club|grupo|grupos|unirse|c\/)/, 'Club'],
   [/^\/amigos/, 'Amigos'],
   [/^\/notificaciones/, 'Notificaciones'],
@@ -103,9 +108,18 @@ const TITLES: [RegExp, string][] = [
 function Layout() {
   const location = useLocation()
   const auth = useAuth()
-  useDocumentTitle(TITLES.find(([re]) => re.test(location.pathname))?.[1])
-  // Con cuenta, la última pestaña es el club (integrantes, invitaciones, solicitudes); sin cuenta, los jugadores.
-  const nav = [...NAV, auth.session ? { to: '/grupo', label: 'Club', Icon: UsersThreeIcon } : { to: '/jugadores', label: 'Jugadores', Icon: UsersIcon }]
+  const sync = useSyncState()
+  // Con cuenta y club, la primera pestaña es el club (lo que pasa, sus juegos y su gente) y la última sos vos
+  // en ese club. Con cuenta y sin club, la última lleva a tus clubes; sin cuenta, a los jugadores.
+  const inClub = !!auth.session && !!sync.club
+  const home = inClub && sync.club?.kind !== 'duo' ? { to: '/', label: 'Club', Icon: UsersThreeIcon } : { to: '/', label: 'Inicio', Icon: HouseIcon }
+  const last = !auth.session
+    ? { to: '/jugadores', label: 'Jugadores', Icon: UsersIcon }
+    : inClub
+      ? { to: '/grupo', label: 'Vos', Icon: UserCircleIcon }
+      : { to: '/grupos', label: 'Clubes', Icon: UsersThreeIcon }
+  const nav = [home, ...NAV, last]
+  useDocumentTitle(location.pathname === '/' ? home.label : TITLES.find(([re]) => re.test(location.pathname))?.[1])
   return (
     <div className="app">
       <a className="skip-link" href="#contenido" onClick={(e) => (e.preventDefault(), document.getElementById('contenido')?.focus())}>
@@ -124,7 +138,7 @@ function Layout() {
       </main>
       <nav className="bottom-nav" aria-label="Principal">
         {nav.map((n) => (
-          <NavLink key={n.to} to={n.to} end={'end' in n ? n.end : undefined} className={({ isActive }) => 'nav-item' + (isActive ? ' active' : '')}>
+          <NavLink key={n.to} to={n.to} end={n.to === '/'} className={({ isActive }) => 'nav-item' + (isActive ? ' active' : '')}>
             {({ isActive }) => (
               <>
                 <n.Icon className="nav-icon" size={24} weight={isActive ? 'fill' : 'regular'} />
@@ -150,6 +164,12 @@ function NotFound() {
       </Link>
     </div>
   )
+}
+
+/** `/club`: con cuenta, el club es el inicio; sin cuenta, la pantalla para crear un club o entrar a uno. */
+function ClubRoute() {
+  const auth = useAuth()
+  return auth.session ? <Navigate to="/" replace /> : <ClubPage />
 }
 
 /** Las rutas de la app. De acá sale también la pantalla genérica que se cuenta en las visitas. */
@@ -185,7 +205,9 @@ const routes = (
       <Route path="/convocar/:gameId" element={<NeedsAccount title="Entrá para convocar"><NewCall /></NeedsAccount>} />
       <Route path="/historial" element={<History />} />
       <Route path="/ajustes" element={<Settings />} />
-      <Route path="/club" element={<GroupPage />} />
+      <Route path="/club" element={<ClubRoute />} />
+      <Route path="/club/editar" element={<ClubEdit />} />
+      <Route path="/club/juegos" element={<ClubGamesEdit />} />
       <Route path="/cuenta" element={<Profile />} />
       <Route path="/unirse/:code" element={<InviteRoute />} />
       <Route path="/c/:slug" element={<ShortLinkRoute />} />

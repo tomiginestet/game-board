@@ -252,7 +252,7 @@ Para los juegos que se anotan en vivo (bochas, básquet, truco, fútbol), el mis
 Siempre con etiqueta visible (`.field` + `.field-label`); el placeholder es un ejemplo, no la etiqueta. Errores debajo del campo, enlazados con `aria-describedby`.
 
 ### Navigation
-Barra inferior de 5 pestañas (Inicio, Juegos, Torneos, Ranking, Club/Jugadores) con ícono relleno y texto en la activa. Arriba: selector de club (con estado de guardado), notificaciones y perfil.
+Barra inferior de 5 pestañas con ícono relleno y texto en la activa. Con cuenta y club: **Club** (la pantalla del club: anotar, lo que está en juego, los juegos del club, quién manda, medallas, últimas partidas y su gente), **Juegos** ("Para jugar hoy" arriba y el catálogo completo con buscador), Torneos, Ranking y **Vos** (tu carnet y tus números en ese club). Sin club, la primera es Inicio y la última Clubes; sin cuenta, Inicio y Jugadores. Arriba: selector de club (con estado de guardado), notificaciones y perfil.
 
 ### Feedback
 - **Aviso** (`toast`): abajo, sobre la navegación, `aria-live`. Con acción "Deshacer" cuando algo se borró y se puede recuperar.

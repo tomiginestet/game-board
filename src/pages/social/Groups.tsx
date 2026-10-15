@@ -19,12 +19,12 @@ export function Groups() {
   const duos = (groups ?? []).filter((g) => g.kind === 'duo')
 
   const open = async (g: MyGroup) => {
-    if (g.code === sync.club?.code) return navigate('/grupo')
+    if (g.code === sync.club?.code) return navigate('/')
     setBusy(g.code)
     setError('')
     try {
       await switchToGroup(g)
-      navigate('/grupo')
+      navigate('/')
     } catch (e) {
       setError(friendlyError(e))
     } finally {
@@ -97,7 +97,7 @@ export function NewGroupPage() {
         <ArrowLeftIcon /> Clubes
       </Link>
       <h1>Nuevo club</h1>
-      <GroupForm onDone={() => navigate('/grupo')} />
+      <GroupForm onDone={() => navigate('/')} />
     </div>
   )
 }
@@ -115,7 +115,7 @@ export function SearchGroupsPage() {
       <GroupSearch
         onOpenMine={(id) => {
           const g = groups?.find((x) => x.id === id)
-          if (g) void switchToGroup(g).then(() => navigate('/grupo'))
+          if (g) void switchToGroup(g).then(() => navigate('/'))
         }}
       />
     </div>

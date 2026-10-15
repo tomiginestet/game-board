@@ -90,7 +90,7 @@ export function Notifications() {
     const g = groups.find((x) => x.id === groupId)
     if (g) {
       await switchToGroup(g)
-      navigate('/grupo')
+      navigate('/')
     }
   }
 

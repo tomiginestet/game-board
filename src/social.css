@@ -850,18 +850,23 @@ button.group-row:hover {
   margin: 0;
   padding: 0;
   display: flex;
-  flex-wrap: wrap;
+  flex-direction: column;
   gap: 6px;
 }
+/* Una fila por juego elegido: en orden, con subir, bajar y sacar a mano. */
 .venue-games li {
-  display: inline-flex;
+  display: flex;
   align-items: center;
-  gap: 6px;
-  padding: 2px 2px 2px 6px;
-  border-radius: 999px;
+  gap: 8px;
+  min-width: 0;
+  padding: 2px 2px 2px 8px;
+  border-radius: 12px;
   background: var(--card-2);
-  font-size: 14px;
+  font-size: 15px;
   font-weight: 600;
+}
+.venue-games li .tool-btn:disabled {
+  opacity: 0.35;
 }
 
 /* Carnet de socio: un pase de billetera troquelado en dos mitades. Cada mitad recorta sus propios
