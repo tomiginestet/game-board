@@ -1,8 +1,10 @@
 import { createClient, type RealtimeChannel, type SupabaseClient } from '@supabase/supabase-js'
 import { useSyncExternalStore } from 'react'
 import { getAccess, onAccessChange, reportDenied } from './access'
-import { entityKey, KINDS, listOf, type EntityChange, type EntityKind, type RemoteEntity } from './diff'
+import { applyEntities, entityKey, KINDS, listOf, type EntityChange, type EntityKind, type RemoteEntity } from './diff'
 import { applyRemote, copyCurrentTo, EMPTY, getData, hasScope, onLocalChanges, replaceAllFromRemote, stampAuthor, switchScope } from './store'
+import type { AppData } from './types'
+import { inviteLinkFor } from './clubLink'
 
 /**
  * Sincronización con Supabase (la misma base y los mismos clubes que el Ping Pong Club).
@@ -141,6 +143,11 @@ function save() {
 function setState(patch: Partial<SyncState>) {
   state = { ...state, ...patch, club: persisted.club, pending: Object.keys(persisted.outbox).length }
   listeners.forEach((l) => l())
+}
+
+/** Código del club activo (si el dispositivo está en uno). */
+export function currentClubCode(): string | undefined {
+  return persisted.club?.code
 }
 
 export function useSyncState(): SyncState {
@@ -380,6 +387,17 @@ export async function findClub(code: string): Promise<string | null> {
 }
 
 /**
+ * Los datos de un club sin entrar (para la vista previa de un link o un QR): no tocan los de este dispositivo.
+ */
+export async function fetchClubSnapshot(code: string): Promise<AppData> {
+  const sb = getClient()
+  if (!sb) throw new Error('Los clubes compartidos no están disponibles en esta versión de la app')
+  const { data, error } = await sb.rpc('pull_changes_all', { p_code: normalizeCode(code), p_since: null })
+  if (error) throw new Error(describeError(error))
+  return applyEntities(EMPTY, (data ?? []) as RemoteEntity[])
+}
+
+/**
  * Se une a un club existente.
  * - `replace`: usa sólo los datos del club.
  * - `merge`: suma los datos que se están mostrando (los de este dispositivo) a los del club.
@@ -472,9 +490,9 @@ export async function switchClub(code: string, name?: string): Promise<Club> {
   return club
 }
 
+/** Link de invitación para compartir (sin `#`, para que tenga vista previa; ver `clubLink.ts`). */
 export function inviteLink(code: string): string {
-  const base = window.location.href.split('#')[0]
-  return `${base}#/unirse/${code}`
+  return inviteLinkFor(code, window.location.href, import.meta.env.VITE_PUBLIC_URL as string | undefined)
 }
 
 // ---------------------------------------------------------------------------

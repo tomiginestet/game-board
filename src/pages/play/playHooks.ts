@@ -85,6 +85,12 @@ export function usePlayToggle(key: string, initial = false): [boolean, (v: boole
 
 /** Texto corto de una entrada del registro ("Ana +1", "🗣️ Envido: Beto"). */
 export function entryText(play: Play, game: GameDef, players: Map<Id, Player>, e: LogEntry): string {
+  // Con el cronómetro andando, cada jugada lleva su minuto: "Gol de Ana (Los Pibes) · 12'".
+  const minute = (e.k === 'pt' || e.k === 'ev') && e.m ? ` · ${e.m}'` : ''
+  return entryBase(play, game, players, e) + minute
+}
+
+function entryBase(play: Play, game: GameDef, players: Map<Id, Player>, e: LogEntry): string {
   const label = (i: number) => (i < 0 ? 'Mesa' : sideName(play.sides[i], players))
   const who = (id: Id | undefined) => (id ? players.get(id)?.name ?? '¿?' : undefined)
   if (e.k === 'pt') {

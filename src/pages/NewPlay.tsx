@@ -12,6 +12,7 @@ import { plural, useBoard, useGame } from '../lib/hooks'
 import { balanceTeams, ratingIn, teamAverage, winChance } from '../lib/balance'
 import { findGame } from '../lib/games'
 import { isTeamGame } from '../lib/teams'
+import { callPeople, goingIds, isCall } from '../lib/calls'
 import { groupingOf, lastPlayOf, previewParts, rematchConfig, rematchSides, setupProblem, suggestGrouping, type Grouping } from '../lib/rematch'
 import { actions, useData } from '../lib/store'
 import './newplay.css'
@@ -65,11 +66,23 @@ function Setup({ game }: { game: GameDef }) {
   const navigate = useNavigate()
   const [params] = useSearchParams()
   const players = useMemo(() => [...data.players].sort((a, b) => a.name.localeCompare(b.name)), [data.players])
-  const [init] = useState(() =>
-    initialSetup(game, data.plays, (id) => data.players.some((p) => p.id === id), params.get('p'), data.teams.find((t) => t.id === params.get('equipo'))),
-  )
   const board = useBoard()
   const rating = (id: Id) => ratingIn(board, id, game, (gid) => findGame(data, gid)?.category)
+  // Desde una convocatoria: juegan los que dijeron que van (y los "capaz", si no alcanza), en equipos parejos.
+  const [call] = useState(() => data.plays.find((p) => p.id === params.get('convocatoria') && isCall(p)))
+  const [init] = useState(() => {
+    if (call) {
+      const people = callPeople(call, data.teams)
+      const yes = goingIds(call, people)
+      const going = yes.length >= Math.max(2, game.players.min) ? yes : goingIds(call, people, true)
+      const base = initialSetup(game, [], (id) => data.players.some((p) => p.id === id), going.join(','))
+      const teamOf: Record<Id, number> = {}
+      if (game.sides !== 'individual' && game.sides !== 'coop' && base.selected.length >= 4)
+        balanceTeams(base.selected, rating, 2).forEach((t, i) => t.forEach((id) => (teamOf[id] = i)))
+      return { ...base, base: Object.keys(teamOf).length ? ('teams' as Grouping) : base.base, teamOf, config: { ...base.config, ...call.config } }
+    }
+    return initialSetup(game, data.plays, (id) => data.players.some((p) => p.id === id), params.get('p'), data.teams.find((t) => t.id === params.get('equipo')))
+  })
   // Equipos fijos del club elegidos para cada columna (equipo 1, equipo 2...).
   const [fixed, setFixed] = useState<(Id | null)[]>(() => init.fixed.map((t) => (t && data.teams.some((x) => x.id === t) ? t : null)))
   const fixedTeam = (t: number) => (fixed[t] ? data.teams.find((x) => x.id === fixed[t]) : undefined)
@@ -129,6 +142,13 @@ function Setup({ game }: { game: GameDef }) {
       // ignorar
     }
     if (!mayCreateNow()) return
+    if (call) {
+      // La convocatoria pasa a ser el partido: conserva el día, la cancha y quién confirmó.
+      actions.startPending(call.id, sides, config)
+      if (stake && grouping !== 'coop') actions.patchPlay(call.id, { stake })
+      navigate(`/partida/${call.id}`, { replace: true })
+      return
+    }
     const p = actions.createPlay(game.id, sides, config, grouping === 'coop' ? undefined : stake)
     navigate(`/partida/${p.id}`, { replace: true })
   }

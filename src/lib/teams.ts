@@ -53,7 +53,10 @@ export function teamRecord(data: Pick<AppData, 'plays'>, team: Team): TeamRecord
   }
   for (const play of data.plays) {
     const side = teamSide(play, team.id)
-    if (side < 0) continue
+    if (side < 0) {
+      if (play.callTeamId === team.id && play.status === 'pending') rec.upcoming.push(play)
+      continue
+    }
     if (play.status !== 'finished' || !play.result) {
       rec.upcoming.push(play)
       continue
@@ -91,4 +94,53 @@ export function teamRecord(data: Pick<AppData, 'plays'>, team: Team): TeamRecord
   rec.scorers = [...scorers.values()].sort((a, b) => b.scored - a.scored || b.assists - a.assists || b.mvps - a.mvps || b.played - a.played)
   rec.form = rec.form.slice(0, 5)
   return rec
+}
+
+export interface TeamRow {
+  team: Team
+  rec: TeamRecord
+  /** Puntos de tabla: 3 por victoria, 1 por empate. */
+  points: number
+  /** Elo de equipo, por los partidos contra otros equipos del club. */
+  elo: number
+}
+
+const TEAM_ELO = 1000
+const TEAM_K = 32
+
+/**
+ * Ranking de los equipos del club (de un deporte, si se pide): puntos, diferencia y goles a favor; el Elo sale
+ * de los partidos entre equipos del club, en orden.
+ */
+export function teamRanking(data: Pick<AppData, 'plays'>, teams: Team[], gameId?: string): TeamRow[] {
+  const pool = gameId ? teams.filter((t) => !t.gameId || t.gameId === gameId) : teams
+  const plays = gameId ? data.plays.filter((p) => p.gameId === gameId) : data.plays
+  const elo = new Map(pool.map((t) => [t.id, TEAM_ELO]))
+  const done = plays
+    .filter((p) => p.status === 'finished' && p.result && p.sides.length === 2 && p.sides.every((s) => s.teamId && elo.has(s.teamId)))
+    .sort((a, b) => when(a) - when(b))
+  for (const p of done) {
+    const [a, b] = p.sides.map((s) => s.teamId!)
+    const ra = elo.get(a)!
+    const rb = elo.get(b)!
+    const w = winnerSides(p)
+    const sa = w.includes(0) ? 1 : w.includes(1) ? 0 : 0.5
+    const ea = 1 / (1 + 10 ** ((rb - ra) / 400))
+    const d = Math.round(TEAM_K * (sa - ea))
+    elo.set(a, ra + d)
+    elo.set(b, rb - d)
+  }
+  return pool
+    .map((team) => {
+      const rec = teamRecord({ plays }, team)
+      return { team, rec, points: rec.wins * 3 + rec.draws, elo: elo.get(team.id) ?? TEAM_ELO }
+    })
+    .sort(
+      (x, y) =>
+        y.points - x.points ||
+        y.rec.scoreFor - y.rec.scoreAgainst - (x.rec.scoreFor - x.rec.scoreAgainst) ||
+        y.rec.scoreFor - x.rec.scoreFor ||
+        y.elo - x.elo ||
+        x.team.name.localeCompare(y.team.name, 'es'),
+    )
 }

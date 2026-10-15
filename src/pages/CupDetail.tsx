@@ -47,6 +47,11 @@ function CupView({ cup, game }: { cup: Cup; game: GameDef }) {
   const lowWins = !!game.scoring.lowWins
   const champion = cupChampion(cup, plays, lowWins)
   const standings = cup.format === 'knockout' ? [] : cupStandings(cup, plays, lowWins)
+  // Ligas con puntaje (goles, puntos, sets): perdidos, a favor, en contra y diferencia, como en el fútbol.
+  const scored = cup.format === 'league' && plays.some((p) => p.status === 'finished' && p.result?.scores?.some((s) => s !== null && s !== undefined))
+  const goals = game.scoring.pointsName === 'goles'
+  const [forLabel, againstLabel, diffLabel] = goals ? ['GF', 'GC', 'DG'] : ['F', 'C', 'Dif']
+  const pointsName = game.scoring.pointsName ?? 'puntos'
   // La próxima: la que está en juego o, si no, la primera del calendario (o del fixture, si no hay fechas).
   const open = plays.filter((p) => p.status !== 'finished')
   const next = open.find((p) => p.status === 'live') ?? [...open].sort((a, b) => (a.scheduledAt ?? Infinity) - (b.scheduledAt ?? Infinity))[0]
@@ -194,6 +199,24 @@ function CupView({ cup, game }: { cup: Cup; game: GameDef }) {
                       <abbr title="Empates">E</abbr>
                     </th>
                   )}
+                  {cup.format === 'league' && (
+                    <th>
+                      <abbr title="Derrotas">P</abbr>
+                    </th>
+                  )}
+                  {scored && (
+                    <>
+                      <th>
+                        <abbr title={`${pointsName} a favor`}>{forLabel}</abbr>
+                      </th>
+                      <th>
+                        <abbr title={`${pointsName} en contra`}>{againstLabel}</abbr>
+                      </th>
+                      <th>
+                        <abbr title="Diferencia">{diffLabel}</abbr>
+                      </th>
+                    </>
+                  )}
                   <th>{cup.format === 'series' && standings.some((s) => s.score) ? 'Puntaje' : <abbr title="Puntos">Pts</abbr>}</th>
                 </tr>
               </thead>
@@ -207,6 +230,14 @@ function CupView({ cup, game }: { cup: Cup; game: GameDef }) {
                     <td>{r.played}</td>
                     <td>{r.wins}</td>
                     {cup.format === 'league' && <td>{r.draws}</td>}
+                    {cup.format === 'league' && <td>{r.losses}</td>}
+                    {scored && (
+                      <>
+                        <td>{r.score}</td>
+                        <td>{r.against}</td>
+                        <td>{r.diff > 0 ? `+${r.diff}` : r.diff}</td>
+                      </>
+                    )}
                     <td>
                       <b>{cup.format === 'series' && standings.some((s) => s.score) ? r.score : r.points}</b>
                     </td>

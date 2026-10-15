@@ -5,14 +5,17 @@ import {
   CopyIcon,
   CrownIcon,
   GlobeHemisphereWestIcon,
+  LinkIcon,
   LockSimpleIcon,
   MagnifyingGlassIcon,
   PencilSimpleIcon,
   PlusIcon,
+  PrinterIcon,
   ShareNetworkIcon,
   ShieldStarIcon,
   SignOutIcon,
   SparkleIcon,
+  StorefrontIcon,
   UserPlusIcon,
   UsersIcon,
   XIcon,
@@ -31,6 +34,8 @@ import {
   refreshGroups,
   removeMember,
   searchUsers,
+  setClubSlug,
+  clubShareLink,
   setMemberRole,
   useActiveGroup,
   userAsPlayer,
@@ -40,8 +45,11 @@ import {
   type MyGroup,
 } from '../../lib/social'
 import { useData } from '../../lib/store'
-import { deactivateClub, inviteLink, SYNC_LABEL, syncNow, useSyncState } from '../../lib/sync'
+import { deactivateClub, SYNC_LABEL, syncNow, useSyncState } from '../../lib/sync'
+import { cleanSlugInput, suggestSlug, validSlug } from '../../lib/clubLink'
 import { SyncIcon } from '../../components/SyncIcon'
+import { MemberCard } from '../../components/MemberCard'
+import { memberNumber } from '../../lib/memberCard'
 import { formatDate, plural, useBoard } from '../../lib/hooks'
 import { NextMedals } from '../../components/NextMedals'
 import { SquadGames, SquadLeaders, SquadShowcase, useGamesPlayed, useSquadMedals } from '../../components/Squad'
@@ -102,7 +110,7 @@ function GroupView({ group }: { group: MyGroup }) {
   useEffect(load, [load, group.pending_requests])
 
   useEffect(() => {
-    if (location.hash === '#yo') document.getElementById('yo')?.scrollIntoView({ block: 'start' })
+    if (location.hash === '#yo' || location.hash === '#carnet') document.getElementById(location.hash.slice(1))?.scrollIntoView({ block: 'start' })
   }, [location.hash])
 
   const run = async (fn: () => Promise<unknown>) => {
@@ -149,6 +157,10 @@ function GroupView({ group }: { group: MyGroup }) {
             <p className="club-meta">
               {duo ? (
                 <span>⚔️ Mano a mano</span>
+              ) : group.venue ? (
+                <span>
+                  <StorefrontIcon aria-hidden /> {group.venue.address || 'Club de un lugar'}
+                </span>
               ) : (
                 <span>
                   {group.is_public ? <GlobeHemisphereWestIcon aria-hidden /> : <LockSimpleIcon aria-hidden />} {group.is_public ? 'Público' : 'Privado'}
@@ -194,6 +206,19 @@ function GroupView({ group }: { group: MyGroup }) {
             <ArrowsClockwiseIcon /> Reintentar
           </button>
         </p>
+      )}
+
+      {!duo && (
+        <section id="carnet" aria-label="Tu carnet de socio">
+          <MemberCard
+            clubCode={group.code}
+            player={data.players.find((p) => p.id === group.player_id)}
+            joinedAt={group.joined_at}
+            number={me && members ? memberNumber(members, me) : undefined}
+            role={ROLE_NAMES[group.role]}
+            stats={{ played: board.players.get(group.player_id ?? '')?.played ?? 0, wins: board.players.get(group.player_id ?? '')?.wins ?? 0 }}
+          />
+        </section>
       )}
 
       {!group.player_id && <WhoAmI group={group} />}
@@ -466,7 +491,8 @@ function InviteSection({ group, members }: { group: MyGroup; members: Member[] }
   const [invited, setInvited] = useState<string[]>([])
   const [copied, setCopied] = useState(false)
   const [error, setError] = useState('')
-  const link = inviteLink(group.code)
+  const link = clubShareLink(group)
+  const isAdmin = group.role === 'owner' || group.role === 'admin'
 
   const shown = q.trim().length >= 2 ? found : []
 
@@ -527,6 +553,9 @@ function InviteSection({ group, members }: { group: MyGroup; members: Member[] }
       </div>
       <ErrorText>{error}</ErrorText>
       <p className="muted small mt">O compartí el link (quien lo tenga puede entrar sin pedir permiso):</p>
+      <div className="invite-box">
+        <code>{link}</code>
+      </div>
       <div className="row gap wrap">
         <button
           className="btn"
@@ -548,6 +577,105 @@ function InviteSection({ group, members }: { group: MyGroup; members: Member[] }
           {copied ? <CheckIcon /> : <CopyIcon />} {copied ? 'Copiado' : 'Copiar'}
         </button>
       </div>
+      {isAdmin && group.kind === 'group' && group.slug !== undefined && <ShortLinkEditor group={group} />}
+      {group.kind === 'group' && (
+        <div className="short-link">
+          <p className="muted small">Una tarjeta A5 con la medalla y el QR del club, lista para imprimir y dejar en el lugar.</p>
+          <Link to="/club/tarjeta" className="btn small">
+            <PrinterIcon /> Tarjeta para imprimir
+          </Link>
+        </div>
+      )}
     </section>
+  )
+}
+
+/** Link corto del club (`/c/lasartes`): el que va impreso en el QR de un bar o se dice en voz alta. */
+function ShortLinkEditor({ group }: { group: MyGroup }) {
+  const [editing, setEditing] = useState(false)
+  const [value, setValue] = useState(group.slug ?? suggestSlug(group.name))
+  const [busy, setBusy] = useState(false)
+  const [error, setError] = useState('')
+  const valid = validSlug(value)
+
+  const save = async (slug: string | null) => {
+    setBusy(true)
+    setError('')
+    try {
+      await setClubSlug(group.code, slug)
+      setEditing(false)
+    } catch (e) {
+      setError(friendlyError(e))
+    } finally {
+      setBusy(false)
+    }
+  }
+
+  if (group.slug && !editing) {
+    return (
+      <div className="short-link">
+        <p className="muted small">
+          Link corto: <b className="mono">/c/{group.slug}</b>. Es el que va en el QR.
+        </p>
+        <button className="link-btn small" onClick={() => setEditing(true)}>
+          <PencilSimpleIcon /> Cambiar link corto
+        </button>
+      </div>
+    )
+  }
+  if (!editing) {
+    return (
+      <div className="short-link">
+        <p className="muted small">Un link corto con el nombre del club es más fácil de decir y entra mejor en un QR.</p>
+        <button className="btn small" onClick={() => setEditing(true)}>
+          <LinkIcon /> Elegir link corto
+        </button>
+      </div>
+    )
+  }
+  return (
+    <form
+      className="short-link"
+      onSubmit={(e) => {
+        e.preventDefault()
+        if (valid) void save(value)
+      }}
+    >
+      <label className="field">
+        <span className="field-label">Link corto</span>
+        <span className="slug-input">
+          <span className="muted" aria-hidden>
+            /c/
+          </span>
+          <input
+            className="input"
+            value={value}
+            onChange={(e) => setValue(cleanSlugInput(e.target.value))}
+            autoCapitalize="none"
+            autoCorrect="off"
+            spellCheck={false}
+            maxLength={30}
+            aria-describedby="slug-help"
+          />
+        </span>
+      </label>
+      <p id="slug-help" className="muted small">
+        De 3 a 30 letras sin acentos, números o guiones. Si lo cambiás, los QR impresos con el link anterior dejan de andar.
+      </p>
+      <ErrorText>{error}</ErrorText>
+      <div className="row gap wrap">
+        <button className="btn primary small" disabled={busy || !valid || value === group.slug}>
+          {busy ? 'Guardando…' : 'Guardar link'}
+        </button>
+        <button type="button" className="btn small" onClick={() => setEditing(false)}>
+          Cancelar
+        </button>
+        {group.slug && (
+          <button type="button" className="btn small danger" disabled={busy} onClick={() => void save(null)}>
+            Sacar link corto
+          </button>
+        )}
+      </div>
+    </form>
   )
 }

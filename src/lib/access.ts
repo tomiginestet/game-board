@@ -4,7 +4,7 @@ import type { Id } from './types'
 
 /**
  * Quién puede cambiar qué. Son las mismas reglas que aplica el servidor al guardar
- * (`supabase/migrations/20261015000000_permisos.sql`); acá sirven para no dejar hacer en la
+ * (`supabase/migrations/20261015000300_permisos.sql`); acá sirven para no dejar hacer en la
  * pantalla lo que después el servidor rechazaría.
  *
  * - `all`: sin servidor, o con cuenta pero con los datos de este dispositivo (sin club activo).
@@ -27,8 +27,10 @@ export interface Authored {
 /** Jugadores de una partida (`play`) o de un partido de ping pong (`match`). */
 function playersOf(kind: EntityKind, e: object): Id[] {
   if (kind === 'play') {
-    const sides = (e as { sides?: { players?: Id[] }[] }).sides
-    return Array.isArray(sides) ? sides.flatMap((s) => (Array.isArray(s?.players) ? s.players : [])) : []
+    // En una convocatoria, los citados también: responden si van.
+    const { sides, invited } = e as { sides?: { players?: Id[] }[]; invited?: Id[] }
+    const inSides = Array.isArray(sides) ? sides.flatMap((s) => (Array.isArray(s?.players) ? s.players : [])) : []
+    return Array.isArray(invited) ? [...inSides, ...invited] : inSides
   }
   if (kind === 'match') {
     const m = e as { playerA?: Id; playerB?: Id; partnerA?: Id; partnerB?: Id }

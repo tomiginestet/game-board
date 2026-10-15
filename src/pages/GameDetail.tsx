@@ -1,4 +1,4 @@
-import { ArrowLeftIcon, ArrowRightIcon, CopyIcon, LinkIcon, CrownIcon, GaugeIcon, PencilSimpleIcon, PlayIcon, PulseIcon, ShieldIcon, SparkleIcon, TrashIcon, TrophyIcon, UsersIcon } from '@phosphor-icons/react'
+import { ArrowLeftIcon, ArrowRightIcon, CopyIcon, CrownIcon, GaugeIcon, LinkIcon, MegaphoneIcon, PencilSimpleIcon, PlayIcon, PulseIcon, ShieldIcon, SparkleIcon, TrashIcon, TrophyIcon, UsersIcon } from '@phosphor-icons/react'
 import { useMemo, useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 import { Avatar, TeamAvatar } from '../components/Avatar'
@@ -203,6 +203,11 @@ function GameView({ game }: { game: GameDef }) {
         {game.formats.length > 0 && (
           <Link to={game.id === 'pingpong' ? '/ping-pong/torneo/nuevo' : `/torneos/nuevo?juego=${game.id}`} className="btn big">
             <TrophyIcon /> Torneo
+          </Link>
+        )}
+        {game.category === 'deporte' && game.id !== 'pingpong' && (
+          <Link to={`/convocar/${game.id}`} className="btn big">
+            <MegaphoneIcon /> Convocar
           </Link>
         )}
         {isTeamGame(game) && game.category === 'deporte' && (

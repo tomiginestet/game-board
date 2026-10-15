@@ -37,8 +37,8 @@ update public.entities e
 where e.created_by is not null and not e.deleted and e.data is not null
   and e.data ->> 'createdBy' is distinct from e.created_by::text;
 
--- ¿Juega `p_player` en esta partida o partido?
-create function public._plays_in(p_kind text, p_data jsonb, p_player text)
+-- ¿Juega `p_player` en esta partida o partido (o está citado a la convocatoria)?
+create or replace function public._plays_in(p_kind text, p_data jsonb, p_player text)
 returns boolean
 language sql
 immutable
@@ -50,6 +50,8 @@ as $$
       from jsonb_array_elements(case when jsonb_typeof(p_data -> 'sides') = 'array' then p_data -> 'sides' else '[]'::jsonb end) s,
            jsonb_array_elements_text(case when jsonb_typeof(s -> 'players') = 'array' then s -> 'players' else '[]'::jsonb end) pl
       where pl = p_player)
+      -- En una convocatoria, los citados también: responden si van.
+      or (jsonb_typeof(p_data -> 'invited') = 'array' and p_data -> 'invited' ? p_player)
     when 'match' then p_player in (p_data ->> 'playerA', p_data ->> 'playerB', p_data ->> 'partnerA', p_data ->> 'partnerB')
     else false
   end;

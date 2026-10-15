@@ -9,6 +9,9 @@ import { hasReturnPath, takeReturnPath } from '../../lib/login'
 import { isProfileComplete, refreshGroups, switchToGroup, useAccessSync, useMyGroups, useProfile, watchNotifications } from '../../lib/social'
 import { findClub, normalizeCode, syncAvailable, useSyncState } from '../../lib/sync'
 import { GroupForm, GroupSearch } from './GroupForms'
+import { ClubInvite } from './ClubInvite'
+import { inviteTarget } from '../../lib/clubLink'
+import { pendingInviteCode, readPendingInvite, savePendingInvite } from '../../lib/pendingInvite'
 
 /** Progreso del alta: barra + texto (no un rótulo arriba del título). */
 function StepProgress({ step, total }: { step: number; total: number }) {
@@ -26,26 +29,8 @@ function StepProgress({ step, total }: { step: number; total: number }) {
   )
 }
 
-const PENDING_INVITE_KEY = 'game-board-pending-invite'
 const ONBOARDED_KEY = 'game-board-onboarded-v1'
 const LAST_GROUP_KEY = 'game-board-last-group'
-
-function readSession(key: string): string | null {
-  try {
-    return sessionStorage.getItem(key)
-  } catch {
-    return null
-  }
-}
-
-function writeSession(key: string, value: string | null) {
-  try {
-    if (value === null) sessionStorage.removeItem(key)
-    else sessionStorage.setItem(key, value)
-  } catch {
-    // ignorar
-  }
-}
 
 function onboarded(uid: string): boolean {
   try {
@@ -106,18 +91,17 @@ export function Gate({ children }: { children: ReactNode }) {
   const [skipped, setSkipped] = useState(false)
   useAccessSync()
 
-  // Al abrir un link de invitación sin sesión, se guarda para después de entrar.
-  const inviteCode = location.pathname.match(/^\/unirse\/([^/]+)/)?.[1]
+  // Link de invitación o QR (`/unirse/abc`, `/c/lasartes`). Sin sesión se ve primero el club y su ranking;
+  // al tocar "Sumarme" se guarda la invitación, se entra y se retoma.
+  const target = inviteTarget(location.pathname)
+  const [, setLoginWanted] = useState(false)
   useEffect(() => {
-    if (inviteCode && !uid && !guest) writeSession(PENDING_INVITE_KEY, inviteCode)
-  }, [inviteCode, uid, guest])
-  useEffect(() => {
-    const pending = readSession(PENDING_INVITE_KEY)
+    const pending = readPendingInvite()
     if (uid && isProfileComplete(profile) && pending) {
-      writeSession(PENDING_INVITE_KEY, null)
-      if (!location.pathname.startsWith('/unirse/')) navigate(`/unirse/${pending}`)
+      savePendingInvite(null)
+      if (location.pathname + location.search !== pending) navigate(pending, { replace: true })
     }
-  }, [uid, profile, location.pathname, navigate])
+  }, [uid, profile, location.pathname, location.search, navigate])
 
   // Entró desde una pantalla (por ejemplo, el link de un juego): vuelve ahí en vez de pasar por el onboarding.
   const returning = !!uid && isProfileComplete(profile) && hasReturnPath()
@@ -140,7 +124,7 @@ export function Gate({ children }: { children: ReactNode }) {
         .catch(() => {})
       return
     }
-    if (!active && groups.length && !location.pathname.startsWith('/unirse/')) {
+    if (!active && groups.length && !inviteTarget(location.pathname)) {
       const g = groups.find((x) => x.code === lastGroup()) ?? groups.find((x) => x.kind === 'group') ?? groups[0]
       void switchToGroup(g).catch(() => {})
     }
@@ -152,10 +136,16 @@ export function Gate({ children }: { children: ReactNode }) {
 
   if (!syncAvailable) return <>{children}</>
   if (!auth.ready) return <Splash />
-  if (!auth.session) return !guest && (inviteCode || location.pathname === '/') ? <Welcome inviteCode={inviteCode} /> : <>{children}</>
+  if (!auth.session) {
+    if (guest) return <>{children}</>
+    if (target && !readPendingInvite()) return <ClubInvite target={target} standalone onLogin={() => setLoginWanted(true)} />
+    // Un link a un juego (o a cualquier otra pantalla) entra derecho a mirar; la bienvenida, sólo en el inicio.
+    if (target || location.pathname === '/') return <Welcome inviteCode={pendingInviteCode()} />
+    return <>{children}</>
+  }
   if (profile === undefined) return <Splash />
   if (!isProfileComplete(profile)) return <ProfileSetup />
-  if (location.pathname.startsWith('/unirse/')) return <>{children}</>
+  if (target) return <>{children}</>
   if (groups === undefined) return groupsError || sync.club ? <>{children}</> : <Splash />
   if (!groups.length && !sync.club && !skipped && !onboarded(auth.session.user.id))
     return (

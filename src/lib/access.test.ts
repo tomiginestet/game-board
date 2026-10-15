@@ -44,6 +44,14 @@ describe('canChange', () => {
     expect(canChange(member, 'play', notMine, notMine)).toBe(false)
   })
 
+  it('en una convocatoria, los citados responden aunque todavía no estén en ningún lado', () => {
+    const call = { id: 'c', createdBy: other, sides: [], invited: ['p-me', 'p-2'] }
+    expect(canChange(member, 'play', call, call)).toBe(true)
+    expect(canChange(member, 'play', call, undefined)).toBe(false)
+    const notInvited = { ...call, invited: ['p-2'] }
+    expect(canChange(member, 'play', notInvited, call)).toBe(false)
+  })
+
   it('en ping pong cuenta el compañero de dobles', () => {
     const match = { id: 'm', createdBy: other, playerA: 'p-1', playerB: 'p-2', partnerB: 'p-me' }
     expect(canChange(member, 'match', match, match)).toBe(true)

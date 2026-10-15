@@ -13,9 +13,9 @@ export const hockey: GameDef = {
   teamSize: 2,
   mode: 'counter',
   weight: 2,
-  scoring: { quick: [1], quickLabel: 'Gol', pointsName: 'goles', allowDraw: true },
+  scoring: { quick: [1], quickLabel: 'Gol', pointsName: 'goles', allowDraw: true, clock: { periods: 4, minutes: 15, minutesOption: 'quarter', periodName: 'cuarto' } },
   perPlayer: { scorer: true, unit: 'goles', unitOne: 'gol', assists: true, mvp: true },
-  options: [],
+  options: [{ id: 'quarter', label: 'Cada cuarto', type: 'select', default: 15, choices: [{ value: 10, label: '10 minutos' }, { value: 12, label: '12 minutos' }, { value: 15, label: '15 minutos' }] }],
   events: [
     { id: 'corto', name: 'Gol de corner corto', emoji: '📐', type: 'count', byPlayer: true, help: 'Además del gol: vino de un corner corto.' },
     { id: 'verde', name: 'Tarjeta verde', emoji: '🟩', type: 'count', byPlayer: true },
