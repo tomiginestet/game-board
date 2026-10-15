@@ -5,6 +5,7 @@ import { cancelJoinRequest, createGroup, requestJoin, searchGroups, setClubVenue
 import { allGames } from '../../lib/games'
 import { GameBadge } from '../../components/GameBits'
 import { useData } from '../../lib/store'
+import { useSyncState } from '../../lib/sync'
 import { friendlyError } from '../../lib/text'
 import { ErrorText } from '../../components/Feedback'
 import { EmojiPicker } from '../../components/PlayerForm'
@@ -15,11 +16,13 @@ const GROUP_EMOJIS = ['🎲', '🔥', '🃏', '🏓', '🍕', '🧉', '🏆', '�
 /** Formulario para crear (o editar) un club. */
 export function GroupForm({ initial, onDone }: { initial?: MyGroup; onDone: (g?: MyGroup) => void }) {
   const data = useData()
+  const sync = useSyncState()
   const [name, setName] = useState(initial?.name ?? '')
   const [description, setDescription] = useState(initial?.description ?? '')
   const [emoji, setEmoji] = useState(initial?.emoji ?? GROUP_EMOJIS[0])
   const [isPublic, setIsPublic] = useState(initial?.is_public ?? false)
-  const hasLocal = !initial && data.players.length + data.plays.length + data.matches.length + data.cups.length + data.games.length > 0
+  // Sólo los datos sin club son "de este teléfono": los de un club activo son de ese club y no se copian al nuevo.
+  const hasLocal = !initial && !sync.club && data.players.length + data.plays.length + data.matches.length + data.cups.length + data.games.length > 0
   const [importLocal, setImportLocal] = useState(hasLocal)
   // Club de un lugar: sólo si el servidor ya lo maneja (`venue` viene en los grupos, aunque sea null).
   const venueSupported = !initial || initial.venue !== undefined
