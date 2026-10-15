@@ -6,9 +6,10 @@
 
 import { useEffect, useSyncExternalStore } from 'react'
 import type { RealtimeChannel } from '@supabase/supabase-js'
+import { setAccess } from './access'
 import { currentUserId, useAuth } from './auth'
 import { BUILTIN_GAMES } from './games'
-import { activateClub, adoptLocalData, inviteLink, supabase, useSyncState, type Club } from './sync'
+import { activateClub, adoptLocalData, inviteLink, supabase, syncAvailable, useSyncState, type Club } from './sync'
 import { shortLink } from './clubLink'
 
 function client() {
@@ -196,6 +197,23 @@ export function useActiveGroup(): MyGroup | undefined {
   const sync = useSyncState()
   const { groups } = useMyGroups()
   return groups?.find((g) => g.code === sync.club?.code)
+}
+
+/** Mantiene al día quién puede cambiar qué (`lib/access`): sesión, club activo y rol en él. */
+export function useAccessSync() {
+  const auth = useAuth()
+  const sync = useSyncState()
+  const group = useActiveGroup()
+  const uid = auth.session?.user.id
+  const admin = group?.role === 'owner' || group?.role === 'admin'
+  const playerId = group?.player_id ?? null
+  useEffect(() => {
+    if (!syncAvailable) setAccess({ mode: 'all' })
+    else if (!auth.ready) setAccess({ mode: 'guest' })
+    else if (!uid) setAccess({ mode: 'guest' })
+    else if (!sync.club) setAccess({ mode: 'all', uid })
+    else setAccess({ mode: 'member', uid, admin, playerId })
+  }, [auth.ready, uid, sync.club, admin, playerId])
 }
 
 export function groupToClub(g: Pick<MyGroup, 'code' | 'name' | 'kind' | 'emoji'>): Club {

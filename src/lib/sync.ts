@@ -1,7 +1,8 @@
 import { createClient, type RealtimeChannel, type SupabaseClient } from '@supabase/supabase-js'
 import { useSyncExternalStore } from 'react'
+import { getAccess, onAccessChange, reportDenied } from './access'
 import { applyEntities, entityKey, KINDS, listOf, type EntityChange, type EntityKind, type RemoteEntity } from './diff'
-import { applyRemote, copyCurrentTo, EMPTY, getData, hasScope, onLocalChanges, replaceAllFromRemote, switchScope } from './store'
+import { applyRemote, copyCurrentTo, EMPTY, getData, hasScope, onLocalChanges, replaceAllFromRemote, stampAuthor, switchScope } from './store'
 import type { AppData } from './types'
 import { inviteLinkFor } from './clubLink'
 
@@ -200,15 +201,23 @@ function describeError(e: unknown): string {
   return String(e)
 }
 
+/** Lo que el servidor no aceptó por permisos: `[{ rejected_kind, rejected_id }]` (los servidores viejos devuelven un número). */
+function rejectedOf(data: unknown): { kind: EntityKind; id: string }[] {
+  if (!Array.isArray(data)) return []
+  return data.map((r: { rejected_kind: EntityKind; rejected_id: string }) => ({ kind: r.rejected_kind, id: r.rejected_id }))
+}
+
 async function push(): Promise<void> {
   const sb = getClient()
   const club = persisted.club
-  if (!sb || !club) return
+  // Sin cuenta no se guarda nada en el servidor: lo pendiente espera a que se entre.
+  if (!sb || !club || getAccess().mode === 'guest') return
   if (pushing) {
     await pushing
     return schedulePush(0)
   }
   let newerRejected = false
+  const denied: { kind: EntityKind; id: string }[] = []
   pushing = (async () => {
     const items = Object.values(persisted.outbox)
     if (!items.length) return
@@ -227,15 +236,18 @@ async function push(): Promise<void> {
         const newer = payload.filter((x) => NEWER_KINDS.has(x.kind))
         const sent = new Set<string>()
         if (known.length) {
-          const { error } = await sb.rpc('push_changes', { p_code: club.code, p_items: known })
+          const { data, error } = await sb.rpc('push_changes', { p_code: club.code, p_items: known })
           if (error) throw error
           for (const x of known) sent.add(entityKey(x.kind, x.id))
+          denied.push(...rejectedOf(data))
         }
         if (newer.length) {
-          const { error } = await sb.rpc('push_changes', { p_code: club.code, p_items: newer })
+          const { data, error } = await sb.rpc('push_changes', { p_code: club.code, p_items: newer })
           if (error && !/kind_check/.test(describeError(error))) throw error
-          if (!error) for (const x of newer) sent.add(entityKey(x.kind, x.id))
-          else newerRejected = true
+          if (!error) {
+            for (const x of newer) sent.add(entityKey(x.kind, x.id))
+            denied.push(...rejectedOf(data))
+          } else newerRejected = true
         }
         // Se cambió de grupo mientras subíamos: la cola de este grupo se limpia la próxima vez.
         if (persisted.club?.code !== club.code) return
@@ -256,6 +268,13 @@ async function push(): Promise<void> {
     await pushing
   } finally {
     pushing = null
+  }
+  // Lo rechazado vuelve a como está en el servidor (se olvida la versión local y se baja todo de nuevo).
+  if (denied.length && persisted.club?.code === club.code) {
+    for (const d of denied) delete persisted.versions[entityKey(d.kind, d.id)]
+    save()
+    reportDenied('permission')
+    await pull(true)
   }
   // Lo que el servidor no aceptó (equipos sin migración) se reintenta en la próxima sincronización, no ya.
   if (Object.keys(persisted.outbox).length && state.status === 'ok' && !newerRejected) schedulePush(0)
@@ -350,6 +369,8 @@ export async function adoptLocalData(club: Club): Promise<void> {
   copyCurrentTo(club.code)
   switchScope(club.code)
   persisted = { club, versions: {}, outbox: {}, cursor: undefined }
+  const access = getAccess()
+  if (access.mode !== 'guest' && access.uid) stampAuthor(access.uid)
   enqueue(allLocalEntities())
   connectRealtime()
   await push()
@@ -399,6 +420,8 @@ export async function joinClub(code: string, mode: 'replace' | 'merge'): Promise
   // Bajar primero: si hay datos locales más viejos que los del club, gana el club.
   await pull(true)
   const pendingLocal = allLocalEntities().filter((e) => !(entityKey(e.kind, e.id) in persisted.versions))
+  const access = getAccess()
+  if (access.mode !== 'guest' && access.uid) stampAuthor(access.uid, new Set(pendingLocal.map((e) => entityKey(e.kind, e.id))))
   enqueue(pendingLocal)
   await push()
   connectRealtime()
@@ -486,6 +509,10 @@ export function startSync() {
     schedulePush()
   })
   if (!syncAvailable) return
+  // Al entrar con una cuenta se sube lo que quedó pendiente.
+  onAccessChange(() => {
+    if (persisted.club && getAccess().mode !== 'guest' && Object.keys(persisted.outbox).length) schedulePush(0)
+  })
   // Estos disparadores no hacen nada mientras el dispositivo no esté en un club.
   setInterval(() => {
     if (persisted.club && document.visibilityState === 'visible') void syncNow()

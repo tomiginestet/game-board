@@ -2,6 +2,7 @@ import { ArrowCounterClockwiseIcon, ArrowLeftIcon, FlagCheckeredIcon, SkipForwar
 import { useEffect, useId, useMemo, useRef, useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 import { TeamAvatar } from '../components/Avatar'
+import { ReadOnlyNote } from '../components/ReadOnlyNote'
 import { GameBadge, sideName, sidePlayersOf } from '../components/GameBits'
 import { computeLive, eliminateOf, isDraw, nextTurn, roundsOf, targetOf, winnerSides, type LiveState } from '../lib/engine'
 import { planillaOf } from '../lib/games/planilla'
@@ -187,7 +188,7 @@ function PlayView({ play, game }: { play: Play; game: GameDef }) {
       return
     }
     const removed = play
-    actions.deletePlay(play.id)
+    if (!actions.deletePlay(play.id)) return
     navigate('/')
     toast('Descartaste la partida.', { label: 'Deshacer', run: () => actions.restorePlay(removed) })
   }
@@ -210,6 +211,7 @@ function PlayView({ play, game }: { play: Play; game: GameDef }) {
         )}
       </header>
 
+      <ReadOnlyNote kind="play" entity={play} />
       {!showLive ? (
         <Summary play={play} game={game} live={live} players={players} />
       ) : finishing ? (

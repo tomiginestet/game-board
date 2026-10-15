@@ -8,6 +8,7 @@ import { Loader } from '../components/Logo'
 import { MedalList, MedalListRow, RuleList } from '../components/MedalList'
 import { MedalSheet } from '../components/MedalSheet'
 import { generateWithApi, parseGameResponse, promptForChat, type Checked } from '../lib/ai'
+import { canEdit, useAccess } from '../lib/access'
 import { useAppConfig } from '../lib/appConfig'
 import { aiSpentThisMonth, useAuth } from '../lib/auth'
 import { findGame } from '../lib/games'
@@ -300,7 +301,17 @@ export function EditGame() {
   const data = useData()
   const navigate = useNavigate()
   const game = data.games.find((g) => g.id === id)
+  const access = useAccess()
   if (!game) return <div className="page">Juego no encontrado.</div>
+  if (!canEdit(access, 'game', game))
+    return (
+      <div className="page">
+        <Link to={`/juegos/${game.id}`} className="back">
+          <ArrowLeftIcon /> {game.name}
+        </Link>
+        <p>Este juego lo pueden cambiar quien lo agregó o un admin del club.</p>
+      </div>
+    )
   return (
     <div className="page">
       <Link to={`/juegos/${game.id}`} className="back">

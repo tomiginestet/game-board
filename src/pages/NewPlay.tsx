@@ -17,6 +17,7 @@ import { groupingOf, lastPlayOf, previewParts, rematchConfig, rematchSides, setu
 import { actions, useData } from '../lib/store'
 import './newplay.css'
 import type { Id, Play, PlaySide, PlayStake, Team } from '../lib/types'
+import { mayCreateNow } from '../lib/access'
 
 const lastConfigKey = (gameId: string) => `gb-last-config-${gameId}`
 
@@ -140,6 +141,7 @@ function Setup({ game }: { game: GameDef }) {
     } catch {
       // ignorar
     }
+    if (!mayCreateNow()) return
     if (call) {
       // La convocatoria pasa a ser el partido: conserva el día, la cancha y quién confirmó.
       actions.startPending(call.id, sides, config)

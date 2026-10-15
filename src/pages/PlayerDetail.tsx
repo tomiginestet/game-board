@@ -17,6 +17,7 @@ import { involves } from '../lib/pingpong/teams'
 import { gameRanking, globalStatsOf, recentForm, winRate, type FormResult } from '../lib/stats'
 import { actions, useData } from '../lib/store'
 import { useSyncState } from '../lib/sync'
+import { canDelete, canEdit, useAccess } from '../lib/access'
 import { friendlyError } from '../lib/text'
 
 export function PlayerDetail() {
@@ -29,6 +30,7 @@ export function PlayerDetail() {
   const navigate = useNavigate()
   const auth = useAuth()
   const sync = useSyncState()
+  const access = useAccess()
   const [editing, setEditing] = useState(false)
   const [claimMsg, setClaimMsg] = useState<string | null>(null)
   const [claimError, setClaimError] = useState('')
@@ -129,9 +131,11 @@ export function PlayerDetail() {
               {position ? ` · ${position}º del club` : ''}
             </p>
           </div>
-          <button className="btn pd-edit" onClick={() => setEditing(true)} aria-label={`Editar a ${player.name}`}>
-            <PencilSimpleIcon />
-          </button>
+          {canEdit(access, 'player', player) && (
+            <button className="btn pd-edit" onClick={() => setEditing(true)} aria-label={`Editar a ${player.name}`}>
+              <PencilSimpleIcon />
+            </button>
+          )}
         </header>
       )}
 
@@ -276,7 +280,7 @@ export function PlayerDetail() {
         </div>
       )}
 
-      {!hasPlayed && (
+      {!hasPlayed && canDelete(access, 'player', player) && (
         <button className="btn danger block mt" onClick={remove}>
           <TrashIcon /> Borrar jugador
         </button>

@@ -11,7 +11,13 @@ de datos) que el [Ping Pong Club](https://github.com/tomiginestet/ping-pong-web-
   un catálogo completo con buscador, filtros y orden.
 - **Cuentas, grupos y amigos**:
   - al entrar: cuenta (Google o link por mail), perfil con @usuario y un onboarding para crear un grupo, buscar uno,
-    entrar con un link o ir a buscar amigos. También se puede usar sin cuenta, como antes;
+    entrar con un link o ir a buscar amigos;
+  - **sin cuenta se mira**: el catálogo, las fichas y los clubes se ven sin entrar (un link a un juego abre directo
+    su ficha), pero para anotar partidas, armar torneos o agregar juegos se pide entrar (y después se vuelve a donde
+    estabas);
+  - **quién cambia qué** dentro de un club: cualquier integrante crea cosas nuevas; lo que ya existe lo cambian o
+    borran quien lo creó y el dueño o los admins; una partida también la anotan los que juegan (no la borran), y cada
+    uno cambia su jugador. Lo creado antes de esta regla no tiene autor: lo manejan los admins;
   - una cuenta puede estar en **varios grupos** y cambiar entre ellos desde la barra de arriba (los datos de cada grupo
     quedan guardados en el dispositivo, así el cambio es instantáneo);
   - grupos **públicos** (aparecen en el buscador; se pide permiso para entrar y le llega una notificación al dueño y
@@ -89,7 +95,10 @@ de datos) que el [Ping Pong Club](https://github.com/tomiginestet/ping-pong-web-
 Las dos apps comparten el proyecto de Supabase. Los grupos son los mismos clubes (con dueño, descripción, emoji y
 visibilidad); amigos, solicitudes, invitaciones, notificaciones y el ranking global están en
 `supabase/migrations/20261013000000_groups_social.sql`. El código de un grupo sigue siendo secreto: el buscador nunca
-lo devuelve y sólo llega a quien entra (por link, invitación aceptada o solicitud aceptada). En la tabla `entities`, los tipos `player`, `match` y `tournament`
+lo devuelve y sólo llega a quien entra (por link, invitación aceptada o solicitud aceptada). Con el código se puede
+leer; para guardar cambios hace falta una cuenta que sea parte del club, y `push_changes` aplica las reglas de quién
+cambia qué (`supabase/migrations/20261015000300_permisos.sql`; la app aplica las mismas en `src/lib/access.ts`). El
+Ping Pong Club, que no tiene cuentas, quedó en sólo lectura. En la tabla `entities`, los tipos `player`, `match` y `tournament`
 son los del Ping Pong Club (las dos apps los leen y escriben con el mismo formato) y Game Board agrega `play`
 (partida de cualquier juego), `cup` (torneo) y `game` (juego agregado por el grupo). `pull_changes` sigue
 devolviendo sólo lo de ping pong; Game Board usa `pull_changes_all`. Ver `supabase/migrations/`.

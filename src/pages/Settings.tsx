@@ -31,7 +31,7 @@ export function Settings() {
         danger: true,
       })
       if (!ok) return
-      actions.importData(parsed)
+      if (!actions.importData(parsed)) return
       setMessage({ kind: 'ok', text: 'Listo: los datos de la copia ya están cargados.' })
     } catch (e) {
       setMessage({ kind: 'error', text: friendlyError(e) })
@@ -94,8 +94,7 @@ export function Settings() {
               confirmLabel: 'Borrar todo',
               danger: true,
             })
-            if (ok) {
-              actions.resetAll()
+            if (ok && actions.resetAll()) {
               setMessage({ kind: 'info', text: 'Listo: borramos todos los datos.' })
             }
           }}

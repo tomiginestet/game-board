@@ -1,5 +1,6 @@
 import { useSyncExternalStore } from 'react'
-import { applyEntities, diffData, type EntityChange, type RemoteEntity } from './diff'
+import { canChange, denialFor, getAccess, reportDenied, type Authored } from './access'
+import { applyEntities, diffData, entityKey, KINDS, LISTS, listOf, type EntityChange, type RemoteEntity } from './diff'
 import { autoResult, computeLive, defaultConfig } from './engine'
 import { clockElapsed, clockRuleOf, matchMinute } from './clock'
 import { knockoutSeedsIdx, nextTables, roundRobinIdx, splitTables, tableRounds, cupStandings } from './cups'
@@ -82,12 +83,41 @@ export function onLocalChanges(fn: (changes: EntityChange[]) => void) {
   changeListener = fn
 }
 
-function commit(next: AppData, options: { remote?: boolean } = {}) {
+/**
+ * Cambios hechos acá: si alguno no está permitido (sin cuenta, o algo que no es tuyo) no se guarda
+ * nada y se avisa. Lo nuevo queda a nombre de quien lo crea.
+ */
+function authorize(prev: AppData, next: AppData, changes: EntityChange[]): AppData | null {
+  const access = getAccess()
+  const uid = access.mode === 'guest' ? undefined : access.uid
+  let out = next
+  for (const c of changes) {
+    const before = listOf(prev, c.kind).find((e) => e.id === c.id) as Authored | undefined
+    const after = c.deleted ? undefined : listOf(next, c.kind).find((e) => e.id === c.id)
+    if (!canChange(access, c.kind, before, after)) {
+      reportDenied(denialFor(access))
+      return null
+    }
+    if (!before && after && uid && !(after as Authored).createdBy) {
+      const list = listOf(out, c.kind).map((e) => (e.id === c.id ? { ...e, createdBy: uid } : e))
+      out = { ...out, [LISTS[c.kind]]: list }
+    }
+  }
+  return out
+}
+
+/** Devuelve `false` si el cambio no estaba permitido (y no se guardó). */
+function commit(next: AppData, options: { remote?: boolean } = {}): boolean {
   const prev = data
-  data = next
-  if (!options.remote && changeListener) {
+  if (!options.remote) {
     const changes = diffData(prev, next)
-    if (changes.length) changeListener(changes)
+    const allowed = changes.length ? authorize(prev, next, changes) : next
+    if (!allowed) return false
+    next = allowed
+    data = next
+    if (changes.length && changeListener) changeListener(changes)
+  } else {
+    data = next
   }
   try {
     localStorage.setItem(storageKey, JSON.stringify(data))
@@ -95,6 +125,7 @@ function commit(next: AppData, options: { remote?: boolean } = {}) {
     // Sin espacio o modo privado: seguimos en memoria.
   }
   listeners.forEach((l) => l())
+  return true
 }
 
 const keyFor = (scope: string | null) => (scope ? SCOPE_PREFIX + scope : STORAGE_KEY)
@@ -163,6 +194,19 @@ export function getData(): AppData {
 /** Cambios que vienen del servidor: no se vuelven a marcar para subir. */
 export function applyRemote(items: RemoteEntity[]) {
   if (items.length) commit(applyEntities(data, items), { remote: true })
+}
+
+/**
+ * Pone `uid` como autor de lo que no tiene (o sólo de `only`, claves de `entityKey`), sin generar cambios
+ * para subir: al pasar los datos de este dispositivo a un club, antes de subirlos.
+ */
+export function stampAuthor(uid: string, only?: Set<string>) {
+  const next: AppData = { ...data }
+  for (const kind of KINDS) {
+    const list = listOf(data, kind) as Authored[]
+    ;(next as unknown as Record<string, unknown>)[LISTS[kind]] = list.map((e) => (e.createdBy || (only && !only.has(entityKey(kind, e.id))) ? e : { ...e, createdBy: uid }))
+  }
+  commit(next, { remote: true })
 }
 
 /** Reemplaza todos los datos locales sin generar cambios para subir. */
@@ -334,8 +378,8 @@ const playActions = {
     updatePlay(playId, (p) => ({ ...p, ...patch }))
   },
 
-  deletePlay(playId: Id) {
-    commit({ ...data, plays: data.plays.filter((p) => p.id !== playId) })
+  deletePlay(playId: Id): boolean {
+    return commit({ ...data, plays: data.plays.filter((p) => p.id !== playId) })
   },
 
   /** Vuelve a poner una partida borrada (para "Deshacer"). */
@@ -354,8 +398,7 @@ const playActions = {
   /** Borra un juego agregado. Sólo si no tiene partidas ni torneos. */
   deleteGame(id: Id): boolean {
     if (data.plays.some((p) => p.gameId === id) || data.cups.some((c) => c.gameId === id)) return false
-    commit({ ...data, games: data.games.filter((g) => g.id !== id) })
-    return true
+    return commit({ ...data, games: data.games.filter((g) => g.id !== id) })
   },
 
   createCup(input: NewCup): Cup {
@@ -570,8 +613,8 @@ const playActions = {
   },
 
   /** Borra un equipo. Sus partidas quedan en el historial, con el nombre que tenían. */
-  deleteTeam(id: Id) {
-    commit({ ...data, teams: data.teams.filter((t) => t.id !== id) })
+  deleteTeam(id: Id): boolean {
+    return commit({ ...data, teams: data.teams.filter((t) => t.id !== id) })
   },
 
   restoreTeam(team: Team) {
@@ -608,8 +651,8 @@ const playActions = {
     commit({ ...data, cups: data.cups.map((c) => (c.id === cupId ? { ...c, closedAt: closed ? Date.now() : undefined } : c)) })
   },
 
-  deleteCup(cupId: Id) {
-    commit({ ...data, cups: data.cups.filter((c) => c.id !== cupId), plays: data.plays.filter((p) => p.cupId !== cupId) })
+  deleteCup(cupId: Id): boolean {
+    return commit({ ...data, cups: data.cups.filter((c) => c.id !== cupId), plays: data.plays.filter((p) => p.cupId !== cupId) })
   },
 }
 
@@ -633,8 +676,7 @@ export const actions = {
     const teams = data.teams.some((t) => t.players.includes(id))
       ? data.teams.map((t) => (t.players.includes(id) ? { ...t, players: t.players.filter((x) => x !== id), ...(t.captain === id ? { captain: undefined } : {}) } : t))
       : data.teams
-    commit({ ...data, players: data.players.filter((p) => p.id !== id), teams })
-    return true
+    return commit({ ...data, players: data.players.filter((p) => p.id !== id), teams })
   },
 
   /** Crea un partido. Cada equipo tiene 1 jugador (singles) o 2 (dobles). */
@@ -696,8 +738,8 @@ export const actions = {
     })
   },
 
-  deleteMatch(matchId: Id) {
-    commit({ ...data, matches: data.matches.filter((m) => m.id !== matchId) })
+  deleteMatch(matchId: Id): boolean {
+    return commit({ ...data, matches: data.matches.filter((m) => m.id !== matchId) })
   },
 
   /** Vuelve a poner un partido borrado (para "Deshacer"). */
@@ -766,8 +808,8 @@ export const actions = {
     return m
   },
 
-  deleteTournament(id: Id) {
-    commit({
+  deleteTournament(id: Id): boolean {
+    return commit({
       ...data,
       tournaments: data.tournaments.filter((t) => t.id !== id),
       matches: data.matches.filter((m) => m.tournamentId !== id),
@@ -776,11 +818,11 @@ export const actions = {
 
   ...playActions,
 
-  importData(next: AppData) {
-    commit(validate(next))
+  importData(next: AppData): boolean {
+    return commit(validate(next))
   },
 
-  resetAll() {
-    commit(EMPTY)
+  resetAll(): boolean {
+    return commit(EMPTY)
   },
 }

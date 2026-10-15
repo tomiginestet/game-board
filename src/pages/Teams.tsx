@@ -195,7 +195,7 @@ function TeamView({ team }: { team: Team }) {
 
   const remove = () => {
     const removed = team
-    actions.deleteTeam(team.id)
+    if (!actions.deleteTeam(team.id)) return
     navigate('/equipos')
     toast(`Borraste “${removed.name}”. Sus partidos quedan en el historial.`, { label: 'Deshacer', run: () => actions.restoreTeam(removed) })
   }

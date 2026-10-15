@@ -22,6 +22,7 @@ import { joinNames, stakeText } from './winnerText'
 import { formatScore } from '../../lib/score'
 import { setsLine } from '../../lib/sets'
 import { PlayerLinesCard } from './PlayerLines'
+import { mayCreateNow } from '../../lib/access'
 
 /** Hasta cuánto después de terminarla se festeja como recién terminada (igual que las medallas). */
 const FRESH_MS = 15 * 60 * 1000
@@ -82,6 +83,7 @@ export function Summary({ play, game, live, players }: { play: Play; game: GameD
 
   const rematch = () => {
     // Mismos lados (los bandos por rol vuelven a ser uno por jugador), reglas y prenda, con opciones nuevas por defecto.
+    if (!mayCreateNow()) return
     const p = actions.createPlay(game.id, rematchSides(play), rematchConfig(game, play), play.stake)
     navigate(`/partida/${p.id}`, { replace: true })
   }
@@ -208,7 +210,7 @@ export function Summary({ play, game, live, players }: { play: Play; game: GameD
           onClick={() => {
             // Se puede recuperar mientras dure el aviso: se borra sin preguntar y se ofrece deshacer.
             const removed = play
-            actions.deletePlay(play.id)
+            if (!actions.deletePlay(play.id)) return
             navigate('/')
             toast('Borraste la partida.', { label: 'Deshacer', run: () => actions.restorePlay(removed) })
           }}
