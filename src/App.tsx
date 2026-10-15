@@ -7,6 +7,7 @@ import { FeedbackHost } from './components/Feedback'
 import { AccessHost, GuestBanner, NeedsAccount } from './components/LoginSheet'
 import { Loader, Logo } from './components/Logo'
 import { TopBar } from './components/TopBar'
+import { UpdateBanner } from './components/UpdateBanner'
 import { Visits } from './components/Visits'
 import { useAuth } from './lib/auth'
 import { useProfile, userAsPlayer } from './lib/social'
@@ -125,6 +126,7 @@ function Layout() {
       </a>
       <TopBar />
       <Announcement />
+      <UpdateBanner />
       <main className="content" id="contenido" tabIndex={-1}>
         <GuestBanner />
         {/* Se reinicia al cambiar de pantalla. */}

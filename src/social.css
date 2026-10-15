@@ -1209,3 +1209,15 @@ button.settings-row {
 .nav-avatar.active {
   box-shadow: 0 0 0 2px var(--accent);
 }
+
+/* Aviso de versión nueva: mismo formato que el anuncio, con el botón a la vista. */
+.announcement.update {
+  align-items: center;
+}
+
+.announcement .update-btn {
+  margin: -10px -4px -10px 0;
+  padding: 0 12px;
+  color: var(--accent);
+  font-weight: 700;
+}
