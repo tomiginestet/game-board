@@ -7,6 +7,7 @@ import { FeedbackHost } from './components/Feedback'
 import { AccessHost, GuestBanner, NeedsAccount } from './components/LoginSheet'
 import { Loader, Logo } from './components/Logo'
 import { TopBar } from './components/TopBar'
+import { UpdateBanner } from './components/UpdateBanner'
 import { Visits } from './components/Visits'
 import { useAuth } from './lib/auth'
 // Va en el paquete principal: la pantalla de entrada (`Gate`) ya la usa para los links sin sesión.
@@ -113,6 +114,7 @@ function Layout() {
       </a>
       <TopBar />
       <Announcement />
+      <UpdateBanner />
       <main className="content" id="contenido" tabIndex={-1}>
         <GuestBanner />
         {/* Se reinicia al cambiar de pantalla. */}

@@ -10,6 +10,7 @@ import { loadArt } from './lib/art'
 import { startAuth } from './lib/auth'
 import { startSync } from './lib/sync'
 import { hashRedirect } from './lib/clubLink'
+import { startUpdateCheck } from './lib/appUpdate'
 
 // El link corto de un QR puede llegar sin `#` (`/c/lasartes` o `?c=lasartes`): se pasa a la ruta de la app.
 const redirect = hashRedirect(window.location)
@@ -17,6 +18,7 @@ if (redirect) history.replaceState(null, '', redirect)
 
 startSync()
 startAuth()
+startUpdateCheck()
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
