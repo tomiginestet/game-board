@@ -42,6 +42,33 @@ function busy(): boolean {
   return !!document.querySelector('dialog[open]')
 }
 
+/** El error que tira el navegador cuando no puede bajar una pantalla aparte (cada uno lo dice a su manera). */
+const STALE_CHUNK = /Importing a module script failed|Failed to fetch dynamically imported module|error loading dynamically imported module|Unable to preload CSS/i
+
+export function isStaleChunkError(error: unknown): boolean {
+  return error instanceof Error && STALE_CHUNK.test(error.message)
+}
+
+const RELOADED_AT = 'gb-reloaded-at'
+/** Si recargar no alcanzó (se volvió a romper enseguida), no se insiste: así no queda recargando en loop. */
+const RELOAD_GAP = 30_000
+
+/**
+ * Recarga la app para traer la versión nueva cuando una pantalla no se pudo bajar. Devuelve `false` (y no recarga)
+ * si ya se recargó hace un momento por lo mismo.
+ */
+export function reloadForStaleCode(): boolean {
+  try {
+    const last = Number(sessionStorage.getItem(RELOADED_AT))
+    if (last && Date.now() - last < RELOAD_GAP) return false
+    sessionStorage.setItem(RELOADED_AT, String(Date.now()))
+  } catch {
+    return false
+  }
+  applyUpdate()
+  return true
+}
+
 let lastCheck = 0
 
 async function check(): Promise<boolean> {
@@ -73,15 +100,7 @@ export function startUpdateCheck() {
 
   // Después de un deploy, las pantallas que se bajan aparte cambian de nombre: si falla una, la versión es vieja.
   window.addEventListener('vite:preloadError', (e) => {
-    const key = 'gb-reloaded-for'
-    try {
-      if (sessionStorage.getItem(key) === __APP_VERSION__) return
-      sessionStorage.setItem(key, __APP_VERSION__)
-    } catch {
-      return
-    }
-    e.preventDefault()
-    applyUpdate()
+    if (reloadForStaleCode()) e.preventDefault()
   })
 
   document.addEventListener('visibilitychange', () => {
