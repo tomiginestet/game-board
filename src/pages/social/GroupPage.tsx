@@ -128,6 +128,8 @@ function GroupView({ group }: { group: MyGroup }) {
   const playerCount = data.players.length
   const playsCount = data.plays.filter((p) => p.status === 'finished').length + data.matches.filter((m) => m.status === 'finished').length
   const accountOf = new Map((members ?? []).filter((m) => m.player_id).map((m) => [m.player_id!, m]))
+  // Cuentas que entraron pero todavía no eligieron quién son: también son del club.
+  const withoutPlayer = duo ? [] : (members ?? []).filter((m) => !m.player_id)
   const roster = [...data.players].sort(
     (a, b) => (board.players.get(b.id)?.gloria ?? 0) - (board.players.get(a.id)?.gloria ?? 0) || a.name.localeCompare(b.name, 'es'),
   )
@@ -309,7 +311,7 @@ function GroupView({ group }: { group: MyGroup }) {
       <section>
         <div className="section-head">
           <h2>
-            Integrantes <span className="muted small">{playerCount}</span>
+            Integrantes <span className="muted small">{playerCount + withoutPlayer.length}</span>
           </h2>
           <Link to="/jugadores">
             Ver todo <ArrowRightIcon className="inline-icon" size="1em" />
@@ -343,6 +345,35 @@ function GroupView({ group }: { group: MyGroup }) {
                   {won > 0 && <span className="muted small">{plural(won, 'medalla', 'medallas')}</span>}
                 </span>
               </Link>
+            )
+          })}
+          {withoutPlayer.map((m) => {
+            const body = (
+              <>
+                <Avatar player={userAsPlayer(m)} size={44} />
+                <span className="grow">
+                  <b className="block ellipsis">
+                    {m.display_name ?? m.username ?? 'Sin nombre'} {m.user_id === me && <span className="muted small">(vos)</span>}
+                  </b>
+                  <span className="muted small">
+                    {m.role !== 'member' && (
+                      <>
+                        {m.role === 'owner' && <CrownIcon className="inline-icon" weight="fill" aria-hidden />} {ROLE_NAMES[m.role]} ·{' '}
+                      </>
+                    )}
+                    {m.user_id === me ? 'Falta elegir quién sos' : 'Todavía no eligió quién es'}
+                  </span>
+                </span>
+              </>
+            )
+            return m.user_id === me ? (
+              <Link key={m.user_id} to="/grupo#yo" className="card club-member">
+                {body}
+              </Link>
+            ) : (
+              <div key={m.user_id} className="card club-member">
+                {body}
+              </div>
             )
           })}
         </div>
