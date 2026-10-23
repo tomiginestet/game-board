@@ -17,6 +17,7 @@ import { gameMedals } from '../lib/medals'
 import { isTeamGame } from '../lib/teams'
 import { beltOf, gameRanking, gameStatsOf, levelFor, winRate } from '../lib/stats'
 import { actions, useData } from '../lib/store'
+import { skin } from '../skins'
 
 export const MODE_NAMES: Record<PlayMode, string> = {
   rally: 'Marcador punto a punto',
@@ -48,7 +49,7 @@ async function shareGame(game: GameDef) {
   const url = `${window.location.href.split('#')[0]}#/juegos/${game.id}`
   try {
     if (navigator.share) {
-      await navigator.share({ title: game.name, text: `${game.name} en Game Board`, url })
+      await navigator.share({ title: game.name, text: `${game.name} en ${skin.name}`, url })
       return
     }
   } catch (e) {

@@ -4,6 +4,7 @@ import { useAuth } from '../lib/auth'
 import { toast, useModal } from '../lib/feedback'
 import { supabase } from '../lib/sync'
 import { friendlyError } from '../lib/text'
+import { skin } from '../skins'
 
 type Target = { kind: 'user'; user_id: string } | { kind: 'group'; group_id: string } | { kind: 'game'; code: string; id: string }
 
@@ -47,7 +48,7 @@ function ReportDialog({ target, name, onClose }: { target: Target; name: string;
         }}
       >
         <h2 id="report-title">Reportar {name}</h2>
-        <p className="muted">Contanos qué pasa. Lo lee sólo quien administra Game Board.</p>
+        <p className="muted">Contanos qué pasa. Lo lee sólo quien administra {skin.name}.</p>
         <textarea className="input" rows={3} maxLength={500} value={reason} onChange={(e) => setReason(e.target.value)} aria-label="Qué pasa" autoFocus />
         <div className="confirm-actions">
           <button type="button" className="btn" onClick={onClose}>

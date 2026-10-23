@@ -12,6 +12,7 @@ import { GroupForm, GroupSearch } from './GroupForms'
 import { ClubInvite } from './ClubInvite'
 import { inviteTarget } from '../../lib/clubLink'
 import { pendingInviteCode, readPendingInvite, savePendingInvite } from '../../lib/pendingInvite'
+import { skin } from '../../skins'
 
 /** Progreso del alta: barra + texto (no un rótulo arriba del título). */
 function StepProgress({ step, total }: { step: number; total: number }) {
@@ -184,7 +185,7 @@ function Welcome({ inviteCode }: { inviteCode?: string }) {
             </span>
           ))}
         </div>
-        <h1>Game Board</h1>
+        <h1>{skin.name}</h1>
         <p className="entry-lead">Partidas, torneos y quién manda en cada juego. Rankings y medallas de cualquier juego con tu club.</p>
       </div>
       <div className="entry-body">

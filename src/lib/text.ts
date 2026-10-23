@@ -1,5 +1,7 @@
 /** Errores contados en criollo: qué pasó y cómo seguir (los plurales están en `hooks.ts`). */
 
+import { skin } from '../skins'
+
 const GENERIC = 'Algo salió mal. Probá de nuevo en un rato.'
 
 /** Errores conocidos (de la red, de Supabase o del servidor) traducidos a qué pasó y cómo seguir. */
@@ -12,7 +14,7 @@ const KNOWN: [RegExp, string][] = [
   [/permission denied|row-level security|not allowed|forbidden|403/i, 'No tenés permiso para hacer eso en este club.'],
   [/duplicate key|already exists|unique constraint/i, 'Eso ya existe. Probá con otro nombre.'],
   [/club inexistente|no existe un club/i, 'No encontramos ese club. Revisá que el link o el código estén completos.'],
-  [/json|unexpected token|syntaxerror|formato de datos inválido/i, 'No pudimos leer esos datos: el formato no es el de Game Board.'],
+  [/json|unexpected token|syntaxerror|formato de datos inválido/i, `No pudimos leer esos datos: el formato no es el de ${skin.name}.`],
   [/lote inválido|cambio inválido|elemento demasiado grande|pedido inválido/i, 'No pudimos guardar ese cambio. Probá de nuevo; si sigue pasando, recargá la app.'],
   [/no están configuradas|VITE_|no está configurada/i, 'Esto no está disponible en esta versión de la app.'],
 ]

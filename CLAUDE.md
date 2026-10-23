@@ -12,3 +12,9 @@ App de clubes de juegos y deportes (React + TS + Vite, Supabase). Ver README.md,
 - Referencia de detalle: los últimos dibujados (`eafc.ts`, `pingpong.ts`, los deportes). Revisar cada medalla grande
   y a 44 px con `npm run medals -- salida.png nuevas/<juego>` antes de darla por terminada.
 - `npm test` falla si una medalla del catálogo no tiene ilustración propia.
+
+## Skins
+
+- Game Board es un motor; cada app (skin) vive en `src/skins/<id>/` y se elige al compilar con `VITE_SKIN`.
+  Plan y pendientes en [docs/motor.md](docs/motor.md).
+- El nombre de la app en pantallas y textos es `skin.name`, nunca "Game Board" escrito a mano.

@@ -7,6 +7,7 @@ import { toast, useModal } from '../lib/feedback'
 import { askLogin, closeLoginAsk, rememberReturnPath, useLoginAsk, type Ask } from '../lib/login'
 import { LoginForm } from './LoginForm'
 import { Logo } from './Logo'
+import { skin } from '../skins'
 
 /** Dibuja la invitación a entrar y avisa cuando algo no se puede cambiar por permisos. */
 export function AccessHost() {
@@ -89,7 +90,7 @@ export function GuestBanner() {
     <div className="guest-banner">
       <EyeIcon size={20} aria-hidden />
       <span className="grow">Estás mirando sin cuenta.</span>
-      <button className="btn small primary" onClick={() => askLogin('Entrá a Game Board')}>
+      <button className="btn small primary" onClick={() => askLogin(`Entrá a ${skin.name}`)}>
         Entrar
       </button>
     </div>

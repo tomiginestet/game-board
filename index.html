@@ -6,16 +6,16 @@
     <link rel="apple-touch-icon" href="./favicon.svg" />
     <link rel="manifest" href="./manifest.webmanifest" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-    <meta name="theme-color" content="#0d1117" />
+    <meta name="theme-color" content="%SKIN_BG%" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-    <!-- Lilita One: la voz de la marca (títulos, logo, medallas y celebraciones). -->
+    <!-- La fuente de la marca (títulos, logo, medallas y celebraciones). Los valores entre % los completa vite.config.ts con la marca del skin. -->
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Lilita+One&display=swap" />
-    <meta name="description" content="Partidas, torneos y quién manda en cada juego. Rankings y medallas de cualquier juego con tu club." />
-    <title>Game Board</title>
+    <link rel="stylesheet" href="%SKIN_FONT_HREF%" />
+    <meta name="description" content="%SKIN_DESCRIPTION%" />
+    <title>%SKIN_NAME%</title>
     <style>
       /* Pantalla de inicio mientras baja la app; main.tsx la saca cuando React ya dibujó. */
       #splash {
@@ -26,9 +26,9 @@
         place-content: center;
         justify-items: center;
         gap: 18px;
-        background: #0d1117;
-        color: #f0f3f8;
-        font: 400 32px 'Lilita One', system-ui, sans-serif;
+        background: %SKIN_BG%;
+        color: %SKIN_TEXT%;
+        font: 400 32px '%SKIN_FONT%', system-ui, sans-serif;
         transition: opacity 0.25s ease;
       }
       #splash img {
@@ -48,7 +48,7 @@
         <source media="(prefers-reduced-motion: reduce)" srcset="./favicon.svg" />
         <img src="./logo-secuencia.svg" alt="" />
       </picture>
-      Game Board
+      %SKIN_NAME%
     </div>
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>

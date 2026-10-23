@@ -19,6 +19,7 @@ import { friendlyError } from '../../lib/text'
 import type { AppData } from '../../lib/types'
 import { ClubPage } from '../ClubPage'
 import { playPath } from '../GameDetail'
+import { skin } from '../../skins'
 
 type Target = { code: string } | { slug: string }
 
@@ -212,7 +213,7 @@ export function ClubInvite({ target, onLogin, standalone }: { target: Target; on
 function BrandBar() {
   return (
     <div className="invite-brand">
-      <Logo size={28} /> Game Board
+      <Logo size={28} /> {skin.name}
     </div>
   )
 }

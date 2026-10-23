@@ -5,6 +5,7 @@ import { computeLeaderboard } from './pingpong/stats'
 import { computeBoard } from './stats'
 import { useData } from './store'
 import type { Id, Player } from './types'
+import { skin } from '../skins'
 
 /** Estadísticas de todos los juegos (todo el historial). */
 export function useBoard() {
@@ -59,6 +60,6 @@ export function plural(n: number, one: string, many: string): string {
 /** Título de la pestaña del navegador ("Ranking · Game Board"): ayuda a ubicarse y a los lectores de pantalla. */
 export function useDocumentTitle(title?: string) {
   useEffect(() => {
-    document.title = title ? `${title} · Game Board` : 'Game Board'
+    document.title = title ? `${title} · ${skin.name}` : skin.name
   }, [title])
 }

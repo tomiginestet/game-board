@@ -28,6 +28,7 @@ import { formatWhen } from '../lib/schedule'
 import { mayCreateNow } from '../lib/access'
 import { lineup } from '../lib/calls'
 import { useMyPlayerId } from '../lib/me'
+import { skin } from '../skins'
 
 // Equipos, integrantes e invitaciones: abajo de todo, se bajan aparte.
 const ClubPeople = lazy(async () => ({ default: (await import('./social/ClubMembers')).ClubPeople }))
@@ -161,7 +162,7 @@ export function Home() {
             ) : (
               <>
                 <h1 className="brand-title title-with-icon">
-                  <Logo className="title-logo" size={30} /> Game Board
+                  <Logo className="title-logo" size={30} /> {skin.name}
                 </h1>
                 <p className="muted">Partidas, torneos y quién manda en cada juego.</p>
               </>

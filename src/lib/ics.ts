@@ -1,5 +1,7 @@
 // Agendar un partido: archivo de calendario (.ics, con recordatorio) o link de Google Calendar.
 
+import { skin } from '../skins'
+
 const pad = (n: number) => String(n).padStart(2, '0')
 
 /** 20261021T230000Z */
@@ -25,7 +27,7 @@ export function icsText(ev: CalendarEvent): string {
   const lines = [
     'BEGIN:VCALENDAR',
     'VERSION:2.0',
-    'PRODID:-//Game Board//Convocatorias//ES',
+    `PRODID:-//${skin.name}//Convocatorias//ES`,
     'CALSCALE:GREGORIAN',
     'METHOD:PUBLISH',
     'BEGIN:VEVENT',

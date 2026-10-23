@@ -8,6 +8,7 @@ import { findGame } from '../../lib/games'
 import { formatDate } from '../../lib/hooks'
 import { friendlyError } from '../../lib/text'
 import { AdminError, AdminHead } from './Admin'
+import { skin } from '../../skins'
 
 const when = (iso: string | null | undefined) => (iso ? formatDate(new Date(iso).getTime()) : '—')
 
@@ -349,7 +350,7 @@ export function AdminClub() {
           }}
         >
           <h3>Mandar un mensaje a los integrantes</h3>
-          <p className="muted small">Les llega a sus notificaciones, como un aviso de Game Board.</p>
+          <p className="muted small">Les llega a sus notificaciones, como un aviso de {skin.name}.</p>
           <label className="field">
             <span>Título</span>
             <input className="input" value={message.title} maxLength={120} onChange={(e) => setMessage({ ...message, title: e.target.value })} />

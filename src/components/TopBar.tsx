@@ -11,6 +11,7 @@ import { ErrorText } from './Feedback'
 import { Logo } from './Logo'
 import { SyncBadge } from './SyncBadge'
 import { SyncIcon } from './SyncIcon'
+import { skin } from '../skins'
 
 /** Barra de arriba con sesión: club activo (para cambiar) y notificaciones. Vos está en la barra de abajo. */
 export function TopBar() {
@@ -27,7 +28,7 @@ export function TopBar() {
     return (
       <header className="top-bar">
         <p className="top-brand grow title-with-icon">
-          <Logo className="title-logo" size={26} /> Game Board
+          <Logo className="title-logo" size={26} /> {skin.name}
         </p>
         <SyncBadge />
         <Link to="/ajustes" className="tool-btn" aria-label="Ajustes y copia de seguridad">

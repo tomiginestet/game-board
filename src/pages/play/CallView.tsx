@@ -16,6 +16,7 @@ import { useMyPlayerId } from '../../lib/me'
 import { formatWhen } from '../../lib/schedule'
 import { actions, getData, useData } from '../../lib/store'
 import type { Id, Play, Player, Rsvp } from '../../lib/types'
+import { skin } from '../../skins'
 
 const ANSWERS: Rsvp[] = ['yes', 'maybe', 'no']
 const CAPACITIES = [0, 6, 8, 10, 12, 14, 16, 18, 22]
@@ -81,7 +82,7 @@ export function CallView({ play, game, players }: { play: Play; game: GameDef; p
         start: play.scheduledAt,
         minutes: rule ? rule.periods * rule.minutes + 15 : 90,
         location: play.venue,
-        description: `Convocatoria en Game Board: ${url}`,
+        description: `Convocatoria en ${skin.name}: ${url}`,
         remindBefore: 120,
       }
     : undefined
