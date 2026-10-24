@@ -7,6 +7,7 @@ import { GroupForm, GroupSearch } from './GroupForms'
 import { friendlyError } from '../../lib/text'
 import { ErrorText } from '../../components/Feedback'
 import { plural } from '../../lib/hooks'
+import { say } from '../../skins/say'
 
 /** Todos tus grupos y mano a mano, para cambiar entre ellos o crear/buscar otros. */
 export function Groups() {
@@ -54,7 +55,7 @@ export function Groups() {
       <div className="section-head">
         <h1>Clubes</h1>
       </div>
-      <p className="muted">Cada club tiene sus jugadores, partidas, torneos y ranking. Podés estar en varios y cambiar cuando quieras.</p>
+      <p className="muted">{say('Cada club tiene sus jugadores, partidas, torneos y ranking. Podés estar en varios y cambiar cuando quieras.')}</p>
       <div className="row gap wrap">
         <Link to="/grupos/nuevo" className="btn primary">
           <PlusIcon /> Crear club

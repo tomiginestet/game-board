@@ -10,6 +10,7 @@ import { friendlyError } from '../../lib/text'
 import { ErrorText } from '../../components/Feedback'
 import { EmojiPicker } from '../../components/PlayerForm'
 import { ChoiceGroup } from '../../components/PlayerPicker'
+import { say } from '../../skins/say'
 
 const GROUP_EMOJIS = ['🎲', '🔥', '🃏', '🏓', '🍕', '🧉', '🏆', '🎉', '👾', '🦁', '🐙', '🌮', '♟️', '🚀', '🍻', '⚽']
 
@@ -116,7 +117,7 @@ export function GroupForm({ initial, onDone }: { initial?: MyGroup; onDone: (g?:
       {hasLocal && (
         <label className="check-row">
           <input type="checkbox" checked={importLocal} onChange={(e) => setImportLocal(e.target.checked)} />
-          <span>Sumar al club los jugadores y partidas que ya cargaste en este teléfono</span>
+          <span>{say('Sumar al club los jugadores y partidas que ya cargaste en este teléfono')}</span>
         </label>
       )}
       <ErrorText>{error}</ErrorText>
@@ -223,13 +224,13 @@ function VenueFields({ address, onAddress, games, onGames }: { address: string; 
   return (
     <div className="venue-fields">
       <p className="muted small">
-        En un club de lugar se anota con cuenta, así cada partida queda a nombre de quien la jugó. Los juegos del lugar salen primero al anotar y en el ranking.
+        {say('En un club de lugar se anota con cuenta, así cada partida queda a nombre de quien la jugó. Los juegos del lugar salen primero al anotar y en el ranking.')}
       </p>
       <label className="field">
         <span className="field-label">Dirección (opcional)</span>
         <input className="input" maxLength={120} placeholder="Av. Corrientes 1234, CABA" value={address} onChange={(e) => onAddress(e.target.value)} />
       </label>
-      <GamePicker label="Juegos del lugar" games={games} onGames={onGames} suggestions={BAR_GAMES} />
+      <GamePicker label={say('Juegos del lugar')} games={games} onGames={onGames} suggestions={BAR_GAMES} />
     </div>
   )
 }
@@ -285,12 +286,12 @@ export function GamePicker({ label, games, onGames, suggestions, max = 24 }: { l
         )}
       </div>
       {full ? (
-        <p className="muted small">Ya elegiste {max}: sacá alguno para sumar otro.</p>
+        <p className="muted small">{say('Ya elegiste {max}: sacá alguno para sumar otro.', { max })}</p>
       ) : (
         <>
           <label className="search">
             <MagnifyingGlassIcon aria-hidden />
-            <input className="input" placeholder="Buscar otro juego" value={q} onChange={(e) => setQ(e.target.value)} aria-label="Buscar juego para sumar" />
+            <input className="input" placeholder={say('Buscar otro juego')} value={q} onChange={(e) => setQ(e.target.value)} aria-label={say('Buscar juego para sumar')} />
           </label>
           <div className="chips">
             {options.map((g) => (

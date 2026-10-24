@@ -20,6 +20,7 @@ import type { AppData } from '../../lib/types'
 import { ClubPage } from '../ClubPage'
 import { playPath } from '../GameDetail'
 import { skin } from '../../skins'
+import { say } from '../../skins/say'
 
 type Target = { code: string } | { slug: string }
 
@@ -165,7 +166,7 @@ export function ClubInvite({ target, onLogin, standalone }: { target: Target; on
           </div>
         </div>
         {card.description && <p className="club-desc">{card.description}</p>}
-        {game && !mine && <p className="invite-game">Después de sumarte, anotás la partida de {game.name}.</p>}
+        {game && !mine && <p className="invite-game">{say('Después de sumarte, anotás la partida de {juego}.', { juego: game.name })}</p>}
         {auth.session ? (
           <button className="btn primary big block" disabled={busy} onClick={join}>
             <SignInIcon /> {busy ? 'Un momento…' : action}
@@ -177,7 +178,7 @@ export function ClubInvite({ target, onLogin, standalone }: { target: Target; on
             </button>
             <p className="muted small">
               {card.venue
-                ? 'Entrás con Google o con tu mail. Así cada partida queda a tu nombre y nadie anota por vos.'
+                ? say('Entrás con Google o con tu mail. Así cada partida queda a tu nombre y nadie anota por vos.')
                 : 'Entrás con Google o con tu mail y quedás en el club desde cualquier teléfono.'}
             </p>
             {!card.venue && (
@@ -256,12 +257,12 @@ export function ClubRankingPreview({ code, venueGames, focusGame }: { code: stri
   const current = games.find((g) => g.game.id === picked) ?? games.find((g) => g.plays > 0) ?? games[0]
 
   if (state?.code === code && state.error) return <ErrorText>{state.error}</ErrorText>
-  if (!data || !board) return <p className="muted">Cargando el ranking…</p>
+  if (!data || !board) return <p className="muted">{say('Cargando el ranking…')}</p>
   if (!games.length) {
     return (
       <section className="invite-ranking">
-        <h2>Ranking</h2>
-        <div className="empty">Todavía no hay partidas anotadas. La primera que anoten arma la tabla.</div>
+        <h2>{say('Ranking')}</h2>
+        <div className="empty">{say('Todavía no hay partidas anotadas. La primera que anoten arma la tabla.')}</div>
       </section>
     )
   }
@@ -292,7 +293,7 @@ export function ClubRankingPreview({ code, venueGames, focusGame }: { code: stri
           <GameBadge game={current.game} size={36} />
           <span>
             <b className="block">{current.game.name}</b>
-            <span className="muted small">{current.plays ? plural(current.plays, 'partida anotada', 'partidas anotadas') : 'Sin partidas todavía'}</span>
+            <span className="muted small">{current.plays ? plural(current.plays, say('partida anotada'), say('partidas anotadas')) : say('Sin partidas todavía')}</span>
           </span>
         </div>
       )}

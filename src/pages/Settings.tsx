@@ -5,6 +5,7 @@ import { actions, getData } from '../lib/store'
 import { useSyncState } from '../lib/sync'
 import { confirmAction } from '../lib/feedback'
 import { friendlyError } from '../lib/text'
+import { say } from '../skins/say'
 
 export function Settings() {
   const fileRef = useRef<HTMLInputElement>(null)
@@ -26,7 +27,7 @@ export function Settings() {
       const parsed = JSON.parse(await file.text())
       const ok = await confirmAction({
         title: '¿Reemplazar los datos por los del archivo?',
-        detail: 'Los jugadores, partidas y torneos que hay ahora en este teléfono se cambian por los de la copia.',
+        detail: say('Los jugadores, partidas y torneos que hay ahora en este teléfono se cambian por los de la copia.'),
         confirmLabel: 'Reemplazar datos',
         danger: true,
       })
@@ -90,7 +91,7 @@ export function Settings() {
           onClick={async () => {
             const ok = await confirmAction({
               title: '¿Borrar todos los datos?',
-              detail: 'Se borran todos los jugadores, partidas, torneos y juegos agregados de este teléfono. No se puede deshacer.',
+              detail: say('Se borran todos los jugadores, partidas, torneos y juegos agregados de este teléfono. No se puede deshacer.'),
               confirmLabel: 'Borrar todo',
               danger: true,
             })

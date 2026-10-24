@@ -8,6 +8,7 @@ import { askLogin, closeLoginAsk, rememberReturnPath, useLoginAsk, type Ask } fr
 import { LoginForm } from './LoginForm'
 import { Logo } from './Logo'
 import { skin } from '../skins'
+import { say } from '../skins/say'
 
 /** Dibuja la invitación a entrar y avisa cuando algo no se puede cambiar por permisos. */
 export function AccessHost() {
@@ -73,7 +74,7 @@ export function NeedsAccount({ children, title = 'Entrá para jugar' }: { childr
     <div className="page needs-account">
       <Logo kind="secuencia" size={64} />
       <h1>{title}</h1>
-      <p className="muted">Sin cuenta podés mirar el catálogo, los juegos y sus medallas. Para anotar partidas, armar torneos o agregar juegos, entrá o creá tu cuenta: es gratis y lleva un minuto.</p>
+      <p className="muted">{say('Sin cuenta podés mirar el catálogo, los juegos y sus medallas. Para anotar partidas, armar torneos o agregar juegos, entrá o creá tu cuenta: es gratis y lleva un minuto.')}</p>
       <LoginForm />
       <Link to="/juegos" className="link-btn small mt">
         Seguir mirando el catálogo
