@@ -28,4 +28,11 @@ export interface Skin extends SkinBrand {
     ranking: string
     players: string
   }
+  /** Textos del inicio. */
+  home: {
+    /** Título del inicio sin club ("¿A qué jugamos hoy?"). */
+    greeting: string
+    /** "Últimas partidas". */
+    recent: string
+  }
 }

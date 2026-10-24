@@ -1,10 +1,12 @@
 // Las marcas de cada skin, sin nada más: es lo único del skin que importa `vite.config.ts`.
 
+import type { LogoPalette } from '../lib/logo.ts'
+import { brand as futbol } from './futbol/brand.ts'
 import { brand as gameboard } from './gameboard/brand.ts'
 
 /**
- * La marca: datos puros, sin imports, porque también los lee `vite.config.ts` para armar el
- * `index.html` (título, pantalla de inicio, colores) y el manifest de la PWA.
+ * La marca: datos puros, porque también los lee `vite.config.ts` para armar el `index.html` (título,
+ * pantalla de inicio, colores), el manifest de la PWA y los SVG del logo.
  */
 export interface SkinBrand {
   /** Clave del skin: `VITE_SKIN=gameboard`. */
@@ -22,9 +24,11 @@ export interface SkinBrand {
   text: string
   /** Fuente de la marca (títulos, logo, medallas): familia y hoja de Google Fonts. */
   font: { family: string; href: string }
+  /** Colores de los cuatro cuadraditos y del fondo del ícono. */
+  logo: LogoPalette
 }
 
-export const BRANDS: Record<string, SkinBrand> = { gameboard }
+export const BRANDS: Record<string, SkinBrand> = { gameboard, futbol }
 
 export const DEFAULT_SKIN = 'gameboard'
 

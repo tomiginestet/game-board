@@ -1,0 +1,39 @@
+/*
+ * Picado: negro de estadio de noche, lima de transmisión y letra condensada de zócalo.
+ * Sólo pisa variables de src/index.css (y algún detalle de marca); todo lo demás es el motor.
+ * Contrastes: --muted y --border-strong como en el tema base (≥4.5:1 y ≥3:1 sobre tarjeta).
+ */
+:root[data-skin='futbol'] {
+  --bg: #06100b;
+  --bg-2: #0b1811;
+  --card: #102117;
+  --card-2: #16301f;
+  --border: #1f3a2a;
+  --border-strong: #5e8a6d;
+  --text: #f1f7f2;
+  --muted: #9fb8a8;
+  --text-soft: #d3e3d8;
+  /* Lima para texto, bordes y lo que se destaca; los rellenos con texto blanco van en verde cancha (AA). */
+  --accent: #c6ff3d;
+  --accent-soft: #e2ff9e;
+  --accent-fill: #15803d;
+  --accent-fill-hover: #11692f;
+  --accent-2: #ffd447;
+  --font-brand: 'Anton', 'Arial Narrow', system-ui, sans-serif;
+}
+
+/* El botón principal, como en el menú del FC: lima con letra negra (14:1). */
+:root[data-skin='futbol'] .btn.primary {
+  background: var(--accent);
+  color: var(--bg);
+}
+
+:root[data-skin='futbol'] .btn.primary:hover {
+  background: var(--accent-soft);
+}
+
+/* Títulos de marca en mayúscula, como un zócalo de TV. */
+:root[data-skin='futbol'] .brand-title {
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+}

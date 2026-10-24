@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import { BUILTIN_GAMES } from '../lib/games'
 import { BRANDS, brandFor, DEFAULT_SKIN } from './brands'
-import { skin } from '.'
+import { skin, SKINS } from '.'
 
 describe('skins', () => {
   it('sin VITE_SKIN se arma Game Board', () => {
@@ -21,8 +21,16 @@ describe('skins', () => {
     }
   })
 
-  it('los destacados y el carrusel son juegos del catálogo del skin', () => {
-    const shown = new Set(BUILTIN_GAMES.filter(skin.catalog.include ?? (() => true)).map((g) => g.id))
-    for (const id of [...skin.catalog.featured, ...skin.catalog.hero]) expect(shown.has(id), id).toBe(true)
+  it('cada marca tiene su skin y cada skin lleva su marca', () => {
+    expect(Object.keys(SKINS).sort()).toEqual(Object.keys(BRANDS).sort())
+    for (const [id, s] of Object.entries(SKINS)) expect(s).toMatchObject(BRANDS[id])
+  })
+
+  it('los destacados y el carrusel de cada skin son juegos de su catálogo', () => {
+    for (const s of Object.values(SKINS)) {
+      const shown = new Set(BUILTIN_GAMES.filter(s.catalog.include ?? (() => true)).map((g) => g.id))
+      expect(shown.size, s.id).toBeGreaterThan(0)
+      for (const id of [...s.catalog.featured, ...s.catalog.hero]) expect(shown.has(id), `${s.id}: ${id}`).toBe(true)
+    }
   })
 })

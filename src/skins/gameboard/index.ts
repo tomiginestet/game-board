@@ -12,4 +12,5 @@ export const gameboard: Skin = {
   },
   modules: { tournaments: true, ranking: true },
   words: { games: 'Juegos', play: 'Partida', tournaments: 'Torneos', ranking: 'Ranking', players: 'Jugadores' },
+  home: { greeting: '¿A qué jugamos hoy?', recent: 'Últimas partidas' },
 }

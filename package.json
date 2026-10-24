@@ -5,13 +5,14 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
+    "dev:futbol": "VITE_SKIN=futbol vite",
     "build": "tsc -b && vite build",
+    "build:futbol": "tsc -b && VITE_SKIN=futbol vite build",
     "lint": "oxlint",
     "preview": "vite preview",
     "test": "vitest run",
     "build:ai": "node scripts/build-ai-function.mjs",
-    "medals": "node scripts/preview-medals.mjs",
-    "logo": "node scripts/build-logo.mjs"
+    "medals": "node scripts/preview-medals.mjs"
   },
   "dependencies": {
     "@phosphor-icons/react": "^2.1.10",

@@ -1,7 +1,7 @@
 // Logo de Game Board: cuatro cuadraditos (uno por amigo) que se transforman en un momento del juego
 // y vuelven a la grilla. El dorado aparece sólo para quien gana.
 // Genera SVG animado con SMIL: anda igual inline, como <img> y como archivo suelto.
-// Sin dependencias, para poder usarlo también desde scripts/build-logo.mjs.
+// Sin dependencias, para poder usarlo también desde vite.config.ts (ícono y animación de inicio de cada skin).
 
 export type LogoKind = 'secuencia' | 'podio' | 'tabla' | 'turnos' | 'medalla' | 'escalera' | 'duelo'
 
@@ -11,6 +11,29 @@ const GOLD = '#ffb400'
 const DIM = '#2a3445'
 const TILE = '#202938'
 const INK = '#0d1117'
+
+/**
+ * Colores del logo de cada skin: los cuatro cuadraditos, el fondo del ícono (`ink`) y las casillas apagadas.
+ * El dorado del ganador no cambia: es del motor. Las animaciones se arman con la paleta de Game Board y
+ * `recolorLogo` la cambia al final.
+ */
+export interface LogoPalette {
+  a: string
+  b: string
+  c: string
+  d: string
+  ink: string
+  tile: string
+  dim: string
+}
+
+export const LOGO_PALETTE: LogoPalette = { ...LOGO_COLORS, ink: INK, tile: TILE, dim: DIM }
+
+/** Pasa un SVG del logo de la paleta de Game Board a otra. */
+export function recolorLogo(svg: string, palette: LogoPalette): string {
+  const swap = new Map((Object.keys(LOGO_PALETTE) as (keyof LogoPalette)[]).map((k) => [LOGO_PALETTE[k].toLowerCase(), palette[k]]))
+  return svg.replace(/#[0-9a-f]{6}\b/gi, (hex) => swap.get(hex.toLowerCase()) ?? hex)
+}
 const EASE = '.6 0 .25 1'
 
 type Val = number | string
@@ -362,12 +385,13 @@ export function logoAnimation(kind: LogoKind): Built {
 export const LOGO_STATIC = KEYS.map((k) => rect(GRID[k], null, 0)).join('')
 
 /** SVG completo, listo para guardar como archivo. Con `bg` lleva el fondo del ícono de la app. */
-export function logoSvg(kind: LogoKind | 'quieto', opts: { bg?: boolean; title?: string } = {}): string {
+export function logoSvg(kind: LogoKind | 'quieto', opts: { bg?: boolean; title?: string; palette?: LogoPalette } = {}): string {
   const inner = kind === 'quieto' ? LOGO_STATIC : logoAnimation(kind).inner
   const vb = opts.bg ? '-10 -10 84 84' : '0 0 64 64'
   const back = opts.bg ? `<rect x="-10" y="-10" width="84" height="84" rx="19" fill="${INK}"/>` : ''
   const title = opts.title ? `<title>${opts.title}</title>` : ''
-  return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="${vb}" role="img">${title}${back}${inner}</svg>\n`
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="${vb}" role="img">${title}${back}${inner}</svg>\n`
+  return opts.palette ? recolorLogo(svg, opts.palette) : svg
 }
 
 /** Qué animación de carga corresponde a cada pantalla, según de qué se trata. */

@@ -139,7 +139,7 @@
 
 .cc-pill.mine {
   color: var(--accent-2);
-  border-color: rgba(255, 180, 0, 0.45);
+  border-color: color-mix(in srgb, var(--accent-2) 45%, transparent);
 }
 
 .cc-chip {
@@ -161,8 +161,8 @@
 }
 
 .cc-chip.hot {
-  background: rgba(255, 107, 53, 0.16);
-  border-color: rgba(255, 107, 53, 0.35);
+  background: color-mix(in srgb, var(--accent) 16%, transparent);
+  border-color: color-mix(in srgb, var(--accent) 35%, transparent);
   color: var(--accent-soft);
 }
 
