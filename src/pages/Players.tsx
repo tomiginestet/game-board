@@ -5,6 +5,7 @@ import { Avatar } from '../components/Avatar'
 import { PlayerForm } from '../components/PlayerForm'
 import { plural, useBoard } from '../lib/hooks'
 import { actions, useData } from '../lib/store'
+import { say } from '../skins/say'
 
 export function Players() {
   const data = useData()
@@ -47,7 +48,7 @@ export function Players() {
               <div className="grow">
                 <strong>{p.name}</strong>
                 <div className="muted small ellipsis">
-                  {s?.played ? `${plural(s.played, 'partida', 'partidas')} · juega ${plural(s.gamesPlayed, 'juego', 'juegos')}` : 'Todavía no jugó'}
+                  {s?.played ? `${plural(s.played, say('partida'), say('partidas'))} · juega ${plural(s.gamesPlayed, say('juego'), say('juegos'))}` : 'Todavía no jugó'}
                 </div>
               </div>
               <span className="player-gloria num">

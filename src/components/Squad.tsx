@@ -13,6 +13,7 @@ import type { Id } from '../lib/types'
 import { Avatar } from './Avatar'
 import { Medal } from './Medal'
 import { MedalSheet, type MedalHolder } from './MedalSheet'
+import { say } from '../skins/say'
 
 export interface SquadMedal {
   key: string
@@ -91,7 +92,7 @@ export function SquadLeaders({ ids, title = 'Quién manda' }: { ids?: Id[]; titl
       <div className="section-head">
         <h2>{title}</h2>
         <Link to="/ranking">
-          Ranking <ArrowRightIcon className="inline-icon" size="1em" />
+          {say('Ranking')} <ArrowRightIcon className="inline-icon" size="1em" />
         </Link>
       </div>
       <GloriaPodium top={top} />
@@ -203,7 +204,7 @@ export function SquadGames({ ids, max = 3 }: { ids?: Id[]; max?: number }) {
       <div className="section-head">
         <h2>Lo que más se juega</h2>
         <Link to="/juegos">
-          Juegos <ArrowRightIcon className="inline-icon" size="1em" />
+          {say('Juegos')} <ArrowRightIcon className="inline-icon" size="1em" />
         </Link>
       </div>
       <div className="list">
@@ -214,7 +215,7 @@ export function SquadGames({ ids, max = 3 }: { ids?: Id[]; max?: number }) {
             </span>
             <span className="grow">
               <b className="block ellipsis">{game.name}</b>
-              <span className="muted small">{plural(n, 'partida', 'partidas')}</span>
+              <span className="muted small">{plural(n, say('partida'), say('partidas'))}</span>
             </span>
             {belt && (
               <span className="squad-belt">

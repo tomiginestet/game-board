@@ -9,6 +9,7 @@ import { friendlyError } from '../lib/text'
 import { Avatar } from './Avatar'
 import { ErrorText } from './Feedback'
 import { useGamesPlayed } from './Squad'
+import { say } from '../skins/say'
 
 /**
  * Cabecera de la pantalla del club: emoji, nombre, de qué club se trata y sus números en una franja
@@ -22,8 +23,8 @@ export function ClubHero({ group, medals }: { group: MyGroup; medals: number }) 
   const playsCount = data.plays.filter((p) => p.status === 'finished').length + data.matches.filter((m) => m.status === 'finished').length
   const stats = [
     { n: data.players.length, one: 'jugador', many: 'jugadores' },
-    { n: playsCount, one: 'partida', many: 'partidas' },
-    { n: gamesPlayed, one: 'juego', many: 'juegos' },
+    { n: playsCount, one: say('partida'), many: say('partidas') },
+    { n: gamesPlayed, one: say('juego'), many: say('juegos') },
     { n: medals, one: 'medalla', many: 'medallas' },
   ]
 

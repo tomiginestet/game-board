@@ -10,6 +10,7 @@ import { spokenNames } from '../pages/play/winnerText'
 import { Logo } from './Logo'
 import { Medal } from './Medal'
 import '../styles/celebration.css'
+import { say } from '../skins/say'
 
 /** Cuántas caras se muestran como mucho cuando el resultado es de todos (empate, cooperativo). */
 const MAX_FACES = 6
@@ -67,7 +68,7 @@ export function WinnerHero({
     // Igual que en la pausa del punto final: 'Ana y Beto', no 'Ana & Beto'.
     title = joinNames(winners.flatMap((i) => spokenNames(play.sides[i], players)))
     const many = winners.length > 1 || play.sides[winners[0]].players.length > 1 || !!play.sides[winners[0]].name
-    verdict = winners.length > 1 ? 'comparten el primer puesto' : many ? 'ganaron la partida' : 'ganó la partida'
+    verdict = winners.length > 1 ? 'comparten el primer puesto' : many ? say('ganaron la partida') : say('ganó la partida')
     if (lowWins && hasScores) verdict += game.scoring.time ? ' con el mejor tiempo' : ' con el puntaje más bajo'
     faces = winners.map((i) => sidePlayersOf(play.sides[i], players))
     kind = 'podio'
