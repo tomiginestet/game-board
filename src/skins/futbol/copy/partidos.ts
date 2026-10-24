@@ -13,7 +13,6 @@ export const partidos: Record<string, string> = {
     'El partido sigue en el torneo, listo para jugarse de nuevo. Lo anotado no se puede recuperar.',
   'Descartaste la partida.': 'Descartaste el partido.',
   'Descartar partida': 'Descartar partido',
-  Partida: 'Partido',
   'de partida': 'de partido',
   'Cerrar la partida': 'Cerrar el partido',
   'Ya sumamos lo que se vio en la partida y lo oculto. Corregí si hace falta.': 'Ya sumamos lo que se vio en el partido y lo oculto. Corregí si hace falta.',
@@ -23,7 +22,6 @@ export const partidos: Record<string, string> = {
   'Todavía no hay partidas terminadas. Lo que anoten va a quedar acá, para cuando haya que discutir quién ganó.':
     'Todavía no hay partidos terminados. Lo que anoten va a quedar acá, para cuando haya que discutir si fue offside.',
   '¿De qué juego?': '¿De qué modalidad?',
-  Partidas: 'Partidos',
   'Primera partida': 'Primer partido',
   'Reglas de las partidas': 'Reglas de los partidos',
   'Se borran también todas sus partidas. No se puede deshacer.': 'Se borran también todos sus partidos. No se puede deshacer.',

@@ -6,6 +6,7 @@ import { club } from './club'
 import { inicio } from './inicio'
 import { juegos } from './juegos'
 import { jugadores } from './jugadores'
+import { palabras } from './palabras'
 import { partidos } from './partidos'
 
-export const copy: Record<string, string> = { ...inicio, ...juegos, ...jugadores, ...partidos, ...club }
+export const copy: Record<string, string> = { ...palabras, ...inicio, ...juegos, ...jugadores, ...partidos, ...club }

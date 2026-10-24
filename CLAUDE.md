@@ -18,3 +18,5 @@ App de clubes de juegos y deportes (React + TS + Vite, Supabase). Ver README.md,
 - Game Board es un motor; cada app (skin) vive en `src/skins/<id>/` y se elige al compilar con `VITE_SKIN`.
   Plan y pendientes en [docs/motor.md](docs/motor.md).
 - El nombre de la app en pantallas y textos es `skin.name`, nunca "Game Board" escrito a mano.
+- Un texto nuevo que diga partida, juego o ranking va con `say('...')` (`src/skins/say.ts`) y su versión de fútbol en
+  `src/skins/futbol/copy/`.

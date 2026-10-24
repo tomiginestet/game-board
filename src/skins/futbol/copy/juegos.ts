@@ -1,16 +1,11 @@
 // Modalidades y catálogo: la ficha, el listado, el carrusel, el buscador rápido y el armado de una modalidad.
 
 export const juegos: Record<string, string> = {
-  // Sueltas, para los plurales (`plural(n, say('partida'), say('partidas'))`).
-  partida: 'partido',
-  partidas: 'partidos',
   '1 juego': '1 modalidad',
   '{n} juegos': '{n} modalidades',
 
   // Ficha de la modalidad.
   'Juego no encontrado.': 'No encontramos esa modalidad.',
-  Juegos: 'Modalidades',
-  Catálogo: 'Modalidades',
   '¿Borrar {juego} del catálogo?': '¿Borrar {juego} de las modalidades?',
   'Borrar juego': 'Borrar modalidad',
   'Editar juego': 'Editar modalidad',

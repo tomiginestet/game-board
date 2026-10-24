@@ -16,7 +16,6 @@ export const club: Record<string, string> = {
   'Entrás con Google o con tu mail. Así cada partida queda a tu nombre y nadie anota por vos.':
     'Entrás con Google o con tu mail. Así cada partido queda a tu nombre y nadie anota por vos.',
   'Cargando el ranking…': 'Cargando la tabla…',
-  Ranking: 'Tabla',
   'Todavía no hay partidas anotadas. La primera que anoten arma la tabla.':
     'Todavía no hay partidos anotados. El primero que anoten arma la tabla.',
   'partida anotada': 'partido anotado',
@@ -24,8 +23,6 @@ export const club: Record<string, string> = {
   'Sin partidas todavía': 'Sin partidos todavía',
 
   // Integrantes
-  partida: 'partido',
-  partidas: 'partidos',
   'Sus partidas quedan en el historial. Puede volver a sumarse con una invitación.':
     'Sus partidos quedan en el historial. Puede volver a sumarse con una invitación.',
 
@@ -37,9 +34,6 @@ export const club: Record<string, string> = {
   'Ya elegiste {max}: sacá alguno para sumar otro.': 'Ya elegiste {max}: sacá alguna para sumar otra.',
   'Buscar otro juego': 'Buscar otra modalidad',
   'Buscar juego para sumar': 'Buscar modalidad para sumar',
-  elegido: 'elegida',
-  elegidos: 'elegidas',
-  Elegidos: 'Elegidas',
   'Sin elegir: se muestran los más jugados': 'Sin elegir: se muestran las más jugadas',
   'Los que tienen o juegan siempre. Salen destacados en el club, primero en “Para jugar hoy” y primero al anotar. El orden es el que elijas.':
     'Las que juegan siempre: fútbol 5, futsal, lo que sea. Salen destacadas en el club, primero en “Para jugar hoy” y primero al anotar. El orden es el que elijas.',

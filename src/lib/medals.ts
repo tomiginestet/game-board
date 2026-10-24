@@ -6,6 +6,7 @@ import type { AwardDef, AwardLevel, GameDef, Metric } from './games/schema'
 import { ACHIEVEMENT_FAMILIES } from './pingpong/achievements'
 import type { PlayerStats as PPStats } from './pingpong/stats'
 import type { GameStats, GlobalStats } from './stats'
+import { say } from '../skins/say'
 
 export interface MedalFamily {
   id: string
@@ -48,7 +49,7 @@ export const GLOBAL_FAMILIES: GlobalFamily[] = [
   {
     id: 'wins',
     name: 'Victorias',
-    measures: 'Partidas ganadas, de cualquier juego',
+    measures: say('Partidas ganadas, de cualquier juego'),
     unit: (n) => plural(n, 'victoria', 'victorias'),
     value: (s) => s.wins,
     levels: [
@@ -62,7 +63,7 @@ export const GLOBAL_FAMILIES: GlobalFamily[] = [
   {
     id: 'streak',
     name: 'Racha',
-    measures: 'Mejor racha de partidas ganadas seguidas, mezclando juegos',
+    measures: say('Mejor racha de partidas ganadas seguidas, mezclando juegos'),
     unit: (n) => plural(n, 'victoria seguida', 'victorias seguidas'),
     value: (s) => s.bestStreak,
     levels: [
@@ -77,8 +78,8 @@ export const GLOBAL_FAMILIES: GlobalFamily[] = [
   {
     id: 'played',
     name: 'Habitué',
-    measures: 'Partidas jugadas, ganadas o perdidas',
-    unit: (n) => plural(n, 'partida', 'partidas'),
+    measures: say('Partidas jugadas, ganadas o perdidas'),
+    unit: (n) => plural(n, say('partida'), say('partidas')),
     value: (s) => s.played,
     levels: [
       { at: 10, name: 'Fichado', description: 'Diez partidas: ya marcás tarjeta.' },
@@ -92,8 +93,8 @@ export const GLOBAL_FAMILIES: GlobalFamily[] = [
   {
     id: 'allround',
     name: 'Todoterreno',
-    measures: 'Juegos distintos en los que ganaste al menos una vez',
-    unit: (n) => plural(n, 'juego', 'juegos'),
+    measures: say('Juegos distintos en los que ganaste al menos una vez'),
+    unit: (n) => plural(n, say('juego'), say('juegos')),
     value: (s) => s.gamesWon,
     levels: [
       { at: 3, name: 'Navaja suiza', description: 'Ganaste en tres juegos distintos. Servís para todo.' },
@@ -105,7 +106,7 @@ export const GLOBAL_FAMILIES: GlobalFamily[] = [
   {
     id: 'bigtable',
     name: 'Mesa larga',
-    measures: 'Partidas ganadas contra 3 o más rivales',
+    measures: say('Partidas ganadas contra 3 o más rivales'),
     unit: (n) => plural(n, 'mesa ganada', 'mesas ganadas'),
     value: (s) => s.bigTableWins,
     levels: [
@@ -129,7 +130,7 @@ export const GLOBAL_FAMILIES: GlobalFamily[] = [
   {
     id: 'champion',
     name: 'Campeón',
-    measures: 'Torneos ganados, de cualquier juego',
+    measures: say('Torneos ganados, de cualquier juego'),
     unit: (n) => plural(n, 'torneo', 'torneos'),
     value: (s) => s.cupsWon,
     levels: [
@@ -202,7 +203,7 @@ function specialist(game: GameDef): MedalFamily {
   return {
     id: `specialist`,
     name: `Especialista`,
-    measures: `Partidas ganadas de ${game.name}`,
+    measures: say('Partidas ganadas de {juego}', { juego: game.name }),
     unit: (n) => plural(n, 'victoria', 'victorias'),
     levels: SPECIALIST_LEVELS,
   }

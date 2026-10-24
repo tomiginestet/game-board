@@ -52,4 +52,19 @@ describe('skins', () => {
       }
     }
   })
+
+  it('ninguna frase tiene dos versiones distintas entre los archivos de un skin', () => {
+    const areas = import.meta.glob<Record<string, string>>('./*/copy/*.ts', { eager: true })
+    const seen = new Map<string, { file: string; to: string }>()
+    for (const [file, mod] of Object.entries(areas)) {
+      for (const dict of Object.values(mod)) {
+        for (const [from, to] of Object.entries(dict)) {
+          const key = file.split('/')[1] + ':' + from
+          const before = seen.get(key)
+          if (before) expect(to, `"${from}" en ${before.file} y ${file}`).toBe(before.to)
+          seen.set(key, { file, to })
+        }
+      }
+    }
+  })
 })
