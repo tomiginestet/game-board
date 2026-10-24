@@ -5,6 +5,7 @@ import { categoryName, playersLabel, WEIGHT_NAMES } from '../lib/games'
 import type { GameDef } from '../lib/games/schema'
 import { plural } from '../lib/hooks'
 import { GameCover } from './GameCover'
+import { say } from '../skins/say'
 
 function SourcePill({ game }: { game: GameDef }) {
   if (game.source === 'ai')
@@ -32,7 +33,7 @@ export function ShelfCard({ game, plays, note }: { game: GameDef; plays?: number
         {plays ? (
           <b className="shelf-count">
             <span aria-hidden>·</span> <FireIcon weight="fill" aria-hidden /> <span className="num">{plays}</span>
-            <span className="sr-only"> {plays === 1 ? 'partida' : 'partidas'}</span>
+            <span className="sr-only"> {plays === 1 ? say('partida') : say('partidas')}</span>
           </b>
         ) : note ? (
           <span>
@@ -58,7 +59,7 @@ export function CatalogCard({ game, plays }: { game: GameDef; plays?: number }) 
         <span className="cc-chips">
           <span className="cc-chip">{playersLabel(game)}</span>
           <span className="cc-chip">{categoryName(game)}</span>
-          {plays ? <span className="cc-chip hot">{plural(plays, 'partida', 'partidas')}</span> : null}
+          {plays ? <span className="cc-chip hot">{plural(plays, say('partida'), say('partidas'))}</span> : null}
         </span>
       </span>
     </Link>
@@ -76,7 +77,7 @@ export function HeroCard({ game, playTo, plays, index, total }: { game: GameDef;
         <div className="hero-chips">
           {plays ? (
             <span className="cc-chip hot">
-              <FireIcon weight="fill" aria-hidden /> {plural(plays, 'partida', 'partidas')} en el club
+              <FireIcon weight="fill" aria-hidden /> {plural(plays, say('partida'), say('partidas'))} en el club
             </span>
           ) : null}
           <span className="cc-chip">

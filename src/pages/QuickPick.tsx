@@ -9,6 +9,7 @@ import { useData } from '../lib/store'
 import { useActiveGroup } from '../lib/social'
 import { useClubGames } from '../lib/clubGames'
 import { playPath } from './GameDetail'
+import { say } from '../skins/say'
 import './quickpick.css'
 
 const norm = (s: string) => s.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().trim()
@@ -80,10 +81,10 @@ export function QuickPick() {
 
   return (
     <div className="page qp-page">
-      <h1 className="qp-title">¿Qué juegan?</h1>
+      <h1 className="qp-title">{say('¿Qué juegan?')}</h1>
 
       <form className="qp-search" role="search" onSubmit={onSubmit}>
-        <label htmlFor="qp-q">Buscar juego</label>
+        <label htmlFor="qp-q">{say('Buscar juego')}</label>
         <div className="search">
           <MagnifyingGlassIcon aria-hidden />
           <input
@@ -91,7 +92,7 @@ export function QuickPick() {
             id="qp-q"
             className="input"
             type="search"
-            placeholder="Ej.: truco, catán, generala"
+            placeholder={say('Ej.: truco, catán, generala')}
             autoComplete="off"
             enterKeyHint="go"
             value={q}
@@ -100,7 +101,7 @@ export function QuickPick() {
         </div>
       </form>
       <p className="sr-only" aria-live="polite">
-        {query ? (results.length ? `${results.length} ${results.length === 1 ? 'juego' : 'juegos'}` : 'No hay juegos con ese nombre') : ''}
+        {query ? (results.length ? (results.length === 1 ? say('1 juego') : say('{n} juegos', { n: results.length })) : say('No hay juegos con ese nombre')) : ''}
       </p>
 
       {query ? (
@@ -110,8 +111,8 @@ export function QuickPick() {
           </ul>
         ) : (
           <section className="qp-empty" aria-labelledby="qp-empty-title">
-            <h2 id="qp-empty-title">No está en el catálogo</h2>
-            <p className="muted">Agregalo y queda listo para anotar, con ranking y medallas.</p>
+            <h2 id="qp-empty-title">{say('No está en el catálogo')}</h2>
+            <p className="muted">{say('Agregalo y queda listo para anotar, con ranking y medallas.')}</p>
             <Link to={`/juegos/nuevo?nombre=${encodeURIComponent(q.trim())}`} className="btn primary block">
               <PlusIcon aria-hidden /> Agregar “{q.trim()}”
             </Link>
@@ -137,7 +138,7 @@ export function QuickPick() {
           )}
           {custom.length > 0 && (
             <section aria-labelledby="qp-custom">
-              <h2 id="qp-custom">Hechos por el club</h2>
+              <h2 id="qp-custom">{say('Hechos por el club')}</h2>
               <ul className="qp-list" aria-labelledby="qp-custom">
                 {custom.map(row)}
               </ul>
@@ -164,7 +165,7 @@ function GameRow({ game, last }: { game: GameDef; last?: number }) {
           <span className="qp-name">{game.name}</span>
           <span className="qp-meta">
             {playersRange(game)}
-            {last !== undefined && <> · jugado {ago(last)}</>}
+            {last !== undefined && <> · {say('jugado {cuando}', { cuando: ago(last) })}</>}
           </span>
         </span>
         <CaretRightIcon className="qp-caret" aria-hidden />

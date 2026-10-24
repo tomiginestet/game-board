@@ -3,6 +3,7 @@ import { useRef, useState } from 'react'
 import type { GameDef } from '../lib/games/schema'
 import { playPath } from '../pages/GameDetail'
 import { HeroCard } from './GameCard'
+import { say } from '../skins/say'
 
 /** Carrusel grande de arriba: banners con scroll-snap, flechas y puntitos. */
 export function HeroCarousel({ games, plays }: { games: GameDef[]; plays: Map<string, number> }) {
@@ -46,14 +47,14 @@ export function HeroCarousel({ games, plays }: { games: GameDef[]; plays: Map<st
   return (
     <section className="hero-carousel" aria-roledescription="carrusel" aria-labelledby="hero-title">
       <h2 id="hero-title">Para jugar hoy</h2>
-      <div className="hero-track" ref={ref} onScroll={onScroll} onKeyDown={onKeyDown} tabIndex={0} role="region" aria-label="Juegos para jugar hoy. Usá las flechas para pasar.">
+      <div className="hero-track" ref={ref} onScroll={onScroll} onKeyDown={onKeyDown} tabIndex={0} role="region" aria-label={say('Juegos para jugar hoy. Usá las flechas para pasar.')}>
         {games.map((g, i) => (
           <HeroCard key={g.id} game={g} playTo={playPath(g)} plays={plays.get(g.id)} index={i} total={games.length} />
         ))}
       </div>
       {games.length > 1 && (
         <div className="hero-nav">
-          <button className="hero-arrow" onClick={() => go(Math.max(0, active - 1))} disabled={active === 0} aria-label="Juego anterior">
+          <button className="hero-arrow" onClick={() => go(Math.max(0, active - 1))} disabled={active === 0} aria-label={say('Juego anterior')}>
             <CaretLeftIcon aria-hidden />
           </button>
           <div className="hero-dots">
@@ -62,7 +63,7 @@ export function HeroCarousel({ games, plays }: { games: GameDef[]; plays: Map<st
               <button key={g.id} className={'hero-dot' + (i === active ? ' active' : '')} onClick={() => go(i)} aria-label={`Ver ${g.name}`} aria-current={i === active} tabIndex={-1} />
             ))}
           </div>
-          <button className="hero-arrow" onClick={() => go(Math.min(games.length - 1, active + 1))} disabled={active === games.length - 1} aria-label="Juego siguiente">
+          <button className="hero-arrow" onClick={() => go(Math.min(games.length - 1, active + 1))} disabled={active === games.length - 1} aria-label={say('Juego siguiente')}>
             <CaretRightIcon aria-hidden />
           </button>
         </div>

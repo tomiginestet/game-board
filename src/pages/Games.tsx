@@ -7,13 +7,14 @@ import { todayGames, useClubGames } from '../lib/clubGames'
 import { CATEGORIES, type Category } from '../lib/games/schema'
 import { useGames } from '../lib/hooks'
 import { useData } from '../lib/store'
+import { say } from '../skins/say'
 
 type Filter = Category | 'all' | 'mine'
 type Sort = 'az' | 'jugados' | 'recientes'
 
 const SORTS: { id: Sort; name: string }[] = [
   { id: 'az', name: 'A–Z' },
-  { id: 'jugados', name: 'Más jugados' },
+  { id: 'jugados', name: say('Más jugados') },
   { id: 'recientes', name: 'Recientes del club' },
 ]
 
@@ -51,18 +52,18 @@ export function Games() {
   if (sort === 'jugados') list.sort((a, b) => (played.get(b.id) ?? 0) - (played.get(a.id) ?? 0))
   if (sort === 'recientes') list.sort((a, b) => (last.get(b.id) ?? 0) - (last.get(a.id) ?? 0))
 
-  const catName = cat === 'all' ? 'Todos los juegos' : cat === 'mine' ? 'Del club' : CATEGORIES.find((c) => c.id === cat)?.name
+  const catName = cat === 'all' ? say('Todos los juegos') : cat === 'mine' ? 'Del club' : CATEGORIES.find((c) => c.id === cat)?.name
 
   return (
     <div className="page catalog-page">
-      <h1 className="sr-only">Juegos</h1>
+      <h1 className="sr-only">{say('Juegos')}</h1>
       <HeroCarousel games={today} plays={played} />
 
       <div className="section-head">
         <div>
-          <h2 className="catalog-title">Catálogo</h2>
+          <h2 className="catalog-title">{say('Catálogo')}</h2>
           <p className="muted small catalog-sub">
-            {catName} · {list.length === 1 ? '1 juego' : `${list.length} juegos`}
+            {catName} · {list.length === 1 ? say('1 juego') : say('{n} juegos', { n: list.length })}
           </p>
         </div>
         <Link to="/juegos/nuevo" className="btn primary small">
@@ -73,7 +74,7 @@ export function Games() {
       <div className="catalog-tools">
         <label className="search">
           <MagnifyingGlassIcon />
-          <input className="input" type="search" placeholder="Buscar juego…" value={q} onChange={(e) => setQ(e.target.value)} aria-label="Buscar juego" />
+          <input className="input" type="search" placeholder={say('Buscar juego…')} value={q} onChange={(e) => setQ(e.target.value)} aria-label={say('Buscar juego')} />
         </label>
         <label className="catalog-sort">
           <select className="input" value={sort} onChange={(e) => setParam('orden', e.target.value === 'az' ? undefined : e.target.value)} aria-label="Ordenar">
@@ -111,11 +112,11 @@ export function Games() {
         (q ? (
           <div className="empty">
             No encontramos “{q}”.{' '}
-            <Link to={`/juegos/nuevo?nombre=${encodeURIComponent(q)}`}>Agregalo a la biblioteca</Link>.
+            <Link to={`/juegos/nuevo?nombre=${encodeURIComponent(q)}`}>{say('Agregalo a la biblioteca')}</Link>.
           </div>
         ) : (
           <div className="empty">
-            {cat === 'mine' ? 'Todavía no jugaron ni agregaron juegos.' : 'No hay juegos en esta categoría.'} <Link to="/juegos/nuevo">Agregá uno</Link>.
+            {cat === 'mine' ? say('Todavía no jugaron ni agregaron juegos.') : say('No hay juegos en esta categoría.')} <Link to="/juegos/nuevo">{say('Agregá uno')}</Link>.
           </div>
         ))}
     </div>
