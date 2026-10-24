@@ -7,6 +7,7 @@ import type { EventDef, GameDef } from '../../lib/games/schema'
 import { actions } from '../../lib/store'
 import type { Id, LogEntry, Play, Player } from '../../lib/types'
 import { entryText } from './playHooks'
+import { say } from '../../skins/say'
 
 /**
  * Pestañas Marcador / Jugadas de la pantalla de partida (en vivo, por turnos y por manos). El tablero va como
@@ -18,7 +19,7 @@ export function BoardTabs({ play, game, players, help, children }: { play: Play;
   const count = play.log.filter((e) => !isHidden(game, e)).length
   return (
     <>
-      <div className="board-tabs" role="tablist" aria-label="Partida">
+      <div className="board-tabs" role="tablist" aria-label={say('Partida')}>
         <button type="button" role="tab" id={`${id}-board`} aria-selected={tab === 'board'} aria-controls={`${id}-board-panel`} onClick={() => setTab('board')}>
           Marcador
         </button>

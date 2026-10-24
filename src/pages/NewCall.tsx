@@ -10,6 +10,7 @@ import { actions, useData } from '../lib/store'
 import type { Id } from '../lib/types'
 import { notifyCall } from '../lib/callNotify'
 import { useMyPlayerId } from '../lib/me'
+import { say } from '../skins/say'
 
 /** Convocar a un partido: día, cancha y a quiénes se les pregunta si vienen. */
 export function NewCall() {
@@ -39,7 +40,7 @@ export function NewCall() {
   const me = useMyPlayerId()
   const [venue, setVenue] = useState(() => team?.home ?? data.plays.filter((p) => p.gameId === gameId && p.venue).at(-1)?.venue ?? '')
 
-  if (!game) return <div className="page">Juego no encontrado.</div>
+  if (!game) return <div className="page">{say('Juego no encontrado.')}</div>
   const at = fromLocalInput(when)
   const ready = invited.length >= 2 && !!at
 

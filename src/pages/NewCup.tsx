@@ -12,6 +12,7 @@ import { actions, useData } from '../lib/store'
 import type { CupEntrant, CupSchedule, Id } from '../lib/types'
 import { fromLocalInput, nextWeekday, toLocalInput } from '../lib/schedule'
 import { isTeamGame } from '../lib/teams'
+import { say } from '../skins/say'
 
 export function NewCup() {
   const [params, setParams] = useSearchParams()
@@ -23,7 +24,7 @@ export function NewCup() {
     return (
       <div className="page">
         <h1>Nuevo torneo</h1>
-        <h2>¿De qué juego?</h2>
+        <h2>{say('¿De qué juego?')}</h2>
         <div className="game-grid">
           {games.map((g) => (
             <button key={g.id} className="game-card" style={{ ['--gc' as string]: g.color }} onClick={() => setParams({ juego: g.id })}>
@@ -164,9 +165,9 @@ function CupSetup({ game }: { game: GameDef }) {
       {(format === 'tables' || format === 'series') && (
         <div className="field row-between">
           <span className="field-label" aria-hidden>
-            {format === 'tables' ? 'Rondas' : 'Partidas'}
+            {format === 'tables' ? 'Rondas' : say('Partidas')}
           </span>
-          <Stepper value={rounds} min={1} max={20} onChange={setRounds} label={format === 'tables' ? 'Rondas' : 'Partidas'} />
+          <Stepper value={rounds} min={1} max={20} onChange={setRounds} label={format === 'tables' ? 'Rondas' : say('Partidas')} />
         </div>
       )}
       {format === 'tables' && (
@@ -274,7 +275,7 @@ function CupSetup({ game }: { game: GameDef }) {
           ) : (
             <>
               <div className="field">
-                <label htmlFor={`${id}-start`}>{format === 'league' ? 'Primera fecha' : format === 'knockout' ? 'Primera ronda' : 'Primera partida'}</label>
+                <label htmlFor={`${id}-start`}>{format === 'league' ? 'Primera fecha' : format === 'knockout' ? 'Primera ronda' : say('Primera partida')}</label>
                 <input id={`${id}-start`} className="input" type="datetime-local" value={start} onChange={(e) => setStart(e.target.value)} />
               </div>
               <div className="field">
@@ -334,7 +335,7 @@ function CupSetup({ game }: { game: GameDef }) {
 
       {game.options.length > 0 && (
         <section className="card">
-          <h2>Reglas de las partidas</h2>
+          <h2>{say('Reglas de las partidas')}</h2>
           <OptionsEditor game={game} value={config} onChange={setConfig} />
         </section>
       )}

@@ -12,6 +12,7 @@ import { MiniScore } from './MiniScore'
 import { PlanillaBoard } from './PlanillaBoard'
 import { PointsDialog } from './shared'
 import '../../styles/rounds.css'
+import { say } from '../../skins/say'
 
 export function RoundsBoard({ play, game, live, players }: { play: Play; game: GameDef; live: LiveState; players: Map<Id, Player> }) {
   const planilla = planillaOf(game)
@@ -206,7 +207,7 @@ export function RoundForm({ play, game, live, players, onDone }: { play: Play; g
         <span className="rf-ev-name">
           {e.name}
           {e.points && !e.askPoints ? <span className="muted small num"> {e.points > 0 ? `+${e.points}` : e.points}</span> : null}
-          {e.winsGame ? <span className="muted small"> gana la partida</span> : null}
+          {e.winsGame ? <span className="muted small"> {say('gana la partida')}</span> : null}
         </span>
         <span className="stepper">
           <button type="button" onClick={() => bump(e, i, -1)} disabled={!ev[e.id][i]} aria-label={`Restar uno a ${e.name} (${who})`}>

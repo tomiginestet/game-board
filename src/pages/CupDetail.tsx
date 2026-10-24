@@ -15,6 +15,7 @@ import { roundName } from '../lib/pingpong/tournament'
 import { actions, useData } from '../lib/store'
 import type { Cup, Id, Play, Player } from '../lib/types'
 import { mayCreateNow } from '../lib/access'
+import { say } from '../skins/say'
 
 export function CupDetail() {
   const { id } = useParams()
@@ -62,7 +63,7 @@ function CupView({ cup, game }: { cup: Cup; game: GameDef }) {
   const remove = async () => {
     const ok = await confirmAction({
       title: `¿Borrar el torneo “${cup.name}”?`,
-      detail: 'Se borran también todas sus partidas. No se puede deshacer.',
+      detail: say('Se borran también todas sus partidas. No se puede deshacer.'),
       confirmLabel: 'Borrar torneo',
       danger: true,
     })
@@ -189,7 +190,7 @@ function CupView({ cup, game }: { cup: Cup; game: GameDef }) {
                   <th>#</th>
                   <th className="left">{cup.entrants[0]?.players.length > 1 ? 'Equipo' : 'Jugador'}</th>
                   <th>
-                    <abbr title="Partidas jugadas">PJ</abbr>
+                    <abbr title={say('Partidas jugadas')}>PJ</abbr>
                   </th>
                   <th>
                     <abbr title="Victorias">V</abbr>
@@ -254,13 +255,13 @@ function CupView({ cup, game }: { cup: Cup; game: GameDef }) {
 
       {cup.format !== 'knockout' && (
         <section>
-          <h2>Partidas</h2>
+          <h2>{say('Partidas')}</h2>
           {groupByRound(plays).map(([round, list]) => {
             const day = Math.min(...list.map((p) => p.scheduledAt ?? Infinity))
             return (
               <div key={round} className="round-group">
                 <h3 className="muted small">
-                  {cup.format === 'league' ? `Fecha ${round + 1}` : cup.format === 'series' ? `Partida ${round + 1}` : round === cup.rounds ? 'Mesa final' : `Ronda ${round + 1}`}
+                  {cup.format === 'league' ? `Fecha ${round + 1}` : cup.format === 'series' ? say('Partida {n}', { n: round + 1 }) : round === cup.rounds ? 'Mesa final' : `Ronda ${round + 1}`}
                   {isFinite(day) ? ` · ${formatDay(day)}` : ''}
                 </h3>
                 <div className="list">

@@ -6,6 +6,7 @@ import { CUP_FORMATS } from '../lib/games/schema'
 import { gameOrMissing, usePlayerMap } from '../lib/hooks'
 import { tournamentChampion } from '../lib/pingpong/stats'
 import { useData } from '../lib/store'
+import { say } from '../skins/say'
 
 /** Todos los torneos: los de cualquier juego y los de ping pong (del Ping Pong Club). */
 export function Cups() {
@@ -54,7 +55,7 @@ export function Cups() {
       {!rows.length && (
         <div className="empty">
           <TrophyIcon size={40} weight="duotone" />
-          <p>Todavía no hay torneos. Armá uno de cualquier juego: liga, eliminación, mesas rotativas o partida acumulada.</p>
+          <p>{say('Todavía no hay torneos. Armá uno de cualquier juego: liga, eliminación, mesas rotativas o partida acumulada.')}</p>
           <Link to="/torneos/nuevo" className="btn primary">
             <PlusIcon /> Crear torneo
           </Link>

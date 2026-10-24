@@ -16,6 +16,7 @@ import { PointsDialog, WhoDialog } from './shared'
 import { BoardTabs, lastText } from './BoardTabs'
 import { ClockBar } from './ClockBar'
 import { sideKeys, undoLast, useScoreKeys } from './useScoreKeys'
+import { say } from '../../skins/say'
 
 /** Cuántas jugadas se muestran de entrada por lado; el resto queda detrás de "Ver todo". */
 /** Con pocas jugadas se muestran todas; con muchas, las más usadas y el resto en "Ver todo". */
@@ -300,7 +301,7 @@ function ScoreStrip({ play, game, live, players }: { play: Play; game: GameDef; 
     <div className="tv-strip num">
       <p className="tvs-head">
         <span>
-          <Clock from={play.startedAt} /> de partida
+          <Clock from={play.startedAt} /> {say('de partida')}
         </span>
         <span className="tvs-last">{last ? `Último: ${lastText(play, game, players, last)}` : target ? `Gana el primero a ${target}` : ''}</span>
       </p>
@@ -331,7 +332,7 @@ function MatchLine({ play, game, players }: { play: Play; game: GameDef; players
     <div className="match-line num">
       <p className="tvs-head">
         <span>
-          <Clock from={play.startedAt} /> de partida
+          <Clock from={play.startedAt} /> {say('de partida')}
         </span>
         <span className="tvs-last">{last ? `Último: ${lastText(play, game, players, last)}` : target ? `Gana el primero a ${target}` : ''}</span>
       </p>

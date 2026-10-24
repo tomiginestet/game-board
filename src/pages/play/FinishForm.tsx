@@ -9,6 +9,7 @@ import type { GameDef } from '../../lib/games/schema'
 import { actions, useData } from '../../lib/store'
 import type { Id, Play, PlayResult, Player } from '../../lib/types'
 import { parseTime } from '../../lib/score'
+import { say } from '../../skins/say'
 
 export function FinishForm({ play, game, live, players, onCancel }: { play: Play; game: GameDef; live: LiveState; players: Map<Id, Player>; onCancel?: () => void }) {
   const data = useData()
@@ -105,7 +106,7 @@ export function FinishForm({ play, game, live, players, onCancel }: { play: Play
   }
 
   return (
-    <div className="finish-form" ref={rootRef} tabIndex={-1} role="region" aria-label="Cerrar la partida">
+    <div className="finish-form" ref={rootRef} tabIndex={-1} role="region" aria-label={say('Cerrar la partida')}>
       {coop && (
         <section className="card">
           <h2>¿Cómo les fue?</h2>
@@ -152,7 +153,7 @@ export function FinishForm({ play, game, live, players, onCancel }: { play: Play
         <section className="card">
           <h2>{coop ? 'Puntaje del equipo' : game.scoring.time ? 'Tiempos' : `Puntaje final${game.scoring.pointsName ? ` (${game.scoring.pointsName})` : ''}`}</h2>
           {game.scoring.time && <p className="hint">Como en el reloj: 25:14, o 1:02:05 si pasó la hora. Gana el más rápido.</p>}
-          {game.mode === 'turns' && <p className="hint">Ya sumamos lo que se vio en la partida y lo oculto. Corregí si hace falta.</p>}
+          {game.mode === 'turns' && <p className="hint">{say('Ya sumamos lo que se vio en la partida y lo oculto. Corregí si hace falta.')}</p>}
           {(coop ? [{ players: allPlayers }] : play.sides).map((side, i) => (
             <div key={i} className="row-between score-row">
               <span className="ellipsis">{coop ? 'Todos' : sideName(side, players)}</span>

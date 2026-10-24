@@ -23,6 +23,7 @@ import { formatScore } from '../../lib/score'
 import { setsLine } from '../../lib/sets'
 import { PlayerLinesCard } from './PlayerLines'
 import { mayCreateNow } from '../../lib/access'
+import { say } from '../../skins/say'
 
 /** Hasta cuánto después de terminarla se festeja como recién terminada (igual que las medallas). */
 const FRESH_MS = 15 * 60 * 1000
@@ -212,10 +213,10 @@ export function Summary({ play, game, live, players }: { play: Play; game: GameD
             const removed = play
             if (!actions.deletePlay(play.id)) return
             navigate('/')
-            toast('Borraste la partida.', { label: 'Deshacer', run: () => actions.restorePlay(removed) })
+            toast(say('Borraste la partida.'), { label: 'Deshacer', run: () => actions.restorePlay(removed) })
           }}
         >
-          <TrashIcon /> Borrar partida
+          <TrashIcon /> {say('Borrar partida')}
         </button>
       )}
     </div>
