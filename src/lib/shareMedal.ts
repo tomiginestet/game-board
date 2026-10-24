@@ -4,6 +4,7 @@
 import { loadArt } from './art'
 import { medalSvg, TIERS } from './medalArt'
 import type { MedalFamily } from './medals'
+import { skin } from '../skins'
 
 const W = 1080
 const H = 1350
@@ -102,7 +103,7 @@ export async function medalImage(family: MedalFamily, level: number, who?: strin
   // Abajo: quién y la app.
   ctx.fillStyle = '#ffb400'
   ctx.font = `700 34px ${FONT}`
-  ctx.fillText(who ? `${who} · Game Board` : 'Game Board', W / 2, H - 50)
+  ctx.fillText(who ? `${who} · ${skin.name}` : skin.name, W / 2, H - 50)
 
   return new Promise((resolve, reject) => canvas.toBlob((b) => (b ? resolve(b) : reject(new Error('No se pudo armar la imagen'))), 'image/png'))
 }
@@ -113,7 +114,7 @@ export async function shareMedal(family: MedalFamily, level: number, who?: strin
   const blob = await medalImage(family, level, who)
   const name = `medalla-${l.name.toLowerCase().normalize('NFD').replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '')}.png`
   const file = new File([blob], name, { type: 'image/png' })
-  const text = who ? `${who} ganó la medalla "${l.name}" en Game Board 🏅` : `Medalla "${l.name}" en Game Board 🏅`
+  const text = who ? `${who} ganó la medalla "${l.name}" en ${skin.name} 🏅` : `Medalla "${l.name}" en ${skin.name} 🏅`
   if (navigator.canShare?.({ files: [file] })) {
     try {
       await navigator.share({ files: [file], title: l.name, text })

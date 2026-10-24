@@ -13,6 +13,7 @@ import { TeamCrest } from '../Teams'
 import { friendlyError } from '../../lib/text'
 import { ErrorText } from '../../components/Feedback'
 import { confirmAction } from '../../lib/feedback'
+import { skin } from '../../skins'
 
 // La gente del club. Abajo de la pantalla del club van los equipos y los integrantes (se bajan aparte, para
 // que lo de arriba aparezca al toque); las cuentas, los permisos y las invitaciones van en "Gestionar club".
@@ -308,7 +309,7 @@ export function InviteSection({ group }: { group: MyGroup }) {
           onClick={async () => {
             if (navigator.share) {
               try {
-                await navigator.share({ title: group.name, text: `Sumate a “${group.name}” en Game Board`, url: link })
+                await navigator.share({ title: group.name, text: `Sumate a “${group.name}” en ${skin.name}`, url: link })
                 return
               } catch {
                 // cancelado: copiamos

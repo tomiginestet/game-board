@@ -11,6 +11,7 @@ import { confirmAction } from '../lib/feedback'
 import { Loader } from '../components/Logo'
 import { friendlyError } from '../lib/text'
 import { ErrorText } from '../components/Feedback'
+import { skin } from '../skins'
 
 // Si hay sesión, el club queda guardado en la cuenta.
 const createClub = (name: string) => createClubRaw(name).then(async (c) => (await linkClub(c.code).catch(() => {}), c))
@@ -107,7 +108,7 @@ export function ClubPage({ inviteCode: forcedCode }: { inviteCode?: string } = {
               onClick={async () => {
                 if (navigator.share) {
                   try {
-                    await navigator.share({ title: `Club ${sync.club!.name}`, text: `Sumate a “${sync.club!.name}” en Game Board`, url: link })
+                    await navigator.share({ title: `Club ${sync.club!.name}`, text: `Sumate a “${sync.club!.name}” en ${skin.name}`, url: link })
                     return
                   } catch {
                     // cancelado: copiamos

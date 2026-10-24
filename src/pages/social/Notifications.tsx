@@ -18,6 +18,7 @@ import {
 } from '../../lib/social'
 import { friendlyError } from '../../lib/text'
 import { ErrorText } from '../../components/Feedback'
+import { skin } from '../../skins'
 
 function text(n: AppNotification): string {
   const from = n.data.from?.display_name ?? 'Alguien'
@@ -44,7 +45,7 @@ function text(n: AppNotification): string {
     case 'call_in':
       return `¡Entraste! Se liberó un lugar en ${n.data.title ?? 'el partido'}${n.data.when ? ` (${formatWhen(n.data.when)})` : ''}`
     case 'admin_message':
-      return n.data.title ?? 'Mensaje de Game Board'
+      return n.data.title ?? `Mensaje de ${skin.name}`
     default:
       return 'Novedad'
   }

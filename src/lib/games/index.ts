@@ -1,3 +1,4 @@
+import { skin } from '../../skins'
 import type { AppData } from '../types'
 import { CATEGORIES, type GameDef } from './schema'
 
@@ -12,11 +13,14 @@ export const BUILTIN_GAMES: GameDef[] = Object.values(modules)
 
 const BUILTIN_BY_ID = new Map(BUILTIN_GAMES.map((g) => [g.id, g]))
 
-/** Juegos destacados en la pantalla de inicio (estante "Destacados"). */
-export const FEATURED = ['truco', 'catan', 'pingpong', 'skullking', 'buraco', 'impostor', 'codigosecreto', 'pistascruzadas', 'generala', 'sushigo', 'tateti']
+/** Juegos destacados en la pantalla de inicio (estante "Destacados"); los elige el skin. */
+export const FEATURED = skin.catalog.featured
 
 /** Juegos del carrusel grande de arriba de todo en el inicio (5–6). */
-export const HERO = ['truco', 'catan', 'pingpong', 'skullking', 'impostor', 'pistascruzadas']
+export const HERO = skin.catalog.hero
+
+/** Los juegos de fábrica que muestra el catálogo de este skin (`findGame` reconoce todos igual). */
+const CATALOG = skin.catalog.include ? BUILTIN_GAMES.filter(skin.catalog.include) : BUILTIN_GAMES
 
 /** Nombre corto de cuánto "pesa" una partida. */
 export const WEIGHT_NAMES: Record<GameDef['weight'], string> = { 1: 'Liviano', 2: 'Medio', 3: 'Pesado' }
@@ -41,10 +45,10 @@ export function pickGames(data: Pick<AppData, 'games'>, ids: string[]): GameDef[
     .filter((g): g is GameDef => !!g)
 }
 
-/** Todos los juegos disponibles: los de fábrica más los que agregó el grupo. */
+/** Todos los juegos disponibles: los del catálogo más los que agregó el grupo. */
 export function allGames(data: Pick<AppData, 'games'>): GameDef[] {
   const custom = data.games.filter((g) => !BUILTIN_BY_ID.has(g.id))
-  return [...BUILTIN_GAMES, ...custom].sort((a, b) => a.name.localeCompare(b.name, 'es'))
+  return [...CATALOG, ...custom].sort((a, b) => a.name.localeCompare(b.name, 'es'))
 }
 
 export function findGame(data: Pick<AppData, 'games'>, id: string): GameDef | undefined {

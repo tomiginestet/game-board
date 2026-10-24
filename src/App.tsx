@@ -18,6 +18,7 @@ import { InviteRoute, ShortLinkRoute } from './pages/social/ClubInvite'
 import { useDocumentTitle } from './lib/hooks'
 import { loaderForPath } from './lib/logo'
 import { Home } from './pages/Home'
+import { skin } from './skins'
 import { Gate } from './pages/social/Entry'
 
 /** Cada pantalla se baja recién cuando se abre; mientras tanto se ve la animación de su momento. */
@@ -78,10 +79,12 @@ function PageLoader() {
   return <Loader kind={loaderForPath(location.pathname)} />
 }
 
+const { words, modules } = skin
+
 const NAV = [
-  { to: '/juegos', label: 'Juegos', Icon: SquaresFourIcon },
-  { to: '/torneos', label: 'Torneos', Icon: TrophyIcon },
-  { to: '/ranking', label: 'Ranking', Icon: RankingIcon },
+  { to: '/juegos', label: words.games, Icon: SquaresFourIcon },
+  ...(modules.tournaments ? [{ to: '/torneos', label: words.tournaments, Icon: TrophyIcon }] : []),
+  ...(modules.ranking ? [{ to: '/ranking', label: words.ranking, Icon: RankingIcon }] : []),
 ]
 
 /** Título de la pestaña según la pantalla (el más específico primero). */
@@ -89,13 +92,13 @@ const TITLES: [RegExp, string][] = [
   [/^\/$/, 'Inicio'],
   [/^\/anotar/, 'Anotar'],
   [/^\/juegos\/nuevo/, 'Agregar juego'],
-  [/^\/juegos/, 'Juegos'],
-  [/^\/(jugar|partida)\//, 'Partida'],
+  [/^\/juegos/, words.games],
+  [/^\/(jugar|partida)\//, words.play],
   [/^\/convocar/, 'Convocar'],
   [/^\/(ping-pong\/nuevo|partido)/, 'Partido'],
-  [/^\/(torneos|ping-pong\/torneo)/, 'Torneos'],
-  [/^\/ranking/, 'Ranking'],
-  [/^\/jugadores/, 'Jugadores'],
+  [/^\/(torneos|ping-pong\/torneo)/, words.tournaments],
+  [/^\/ranking/, words.ranking],
+  [/^\/jugadores/, words.players],
   [/^\/equipos/, 'Equipos'],
   [/^\/historial/, 'Historial'],
   [/^\/ajustes/, 'Ajustes'],
@@ -116,7 +119,7 @@ function Layout() {
   // sos vos (tu cuenta y tu lugar en el club activo); sin cuenta, los jugadores.
   const inClub = !!auth.session && !!sync.club
   const home = inClub && sync.club?.kind !== 'duo' ? { to: '/', label: 'Club', Icon: UsersThreeIcon } : { to: '/', label: 'Inicio', Icon: HouseIcon }
-  const last = auth.session ? { to: '/perfil', label: 'Vos', Icon: MeIcon } : { to: '/jugadores', label: 'Jugadores', Icon: UsersIcon }
+  const last = auth.session ? { to: '/perfil', label: 'Vos', Icon: MeIcon } : { to: '/jugadores', label: words.players, Icon: UsersIcon }
   const nav = [home, ...NAV, last]
   useDocumentTitle(location.pathname === '/' ? home.label : TITLES.find(([re]) => re.test(location.pathname))?.[1])
   return (

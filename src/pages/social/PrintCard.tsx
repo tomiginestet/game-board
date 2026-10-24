@@ -8,6 +8,7 @@ import { MEMBERSHIP_FAMILY } from '../../lib/medals'
 import { qrPath } from '../../lib/qr'
 import { clubShareLink, useActiveGroup } from '../../lib/social'
 import './print.css'
+import { skin } from '../../skins'
 
 /** Ancho de diseño de la tarjeta en pantalla; al imprimir se escala a 148 mm (A5). */
 const BASE_W = 355
@@ -104,7 +105,7 @@ export function PrintCard() {
           </div>
           <footer className="ps-foot">
             <span className="ps-brand">
-              <Logo size={18} /> Game Board
+              <Logo size={18} /> {skin.name}
             </span>
             <span>{shown(link)}</span>
           </footer>
@@ -113,7 +114,7 @@ export function PrintCard() {
         {/* Dorso */}
         <section className="print-sheet back" aria-label="Dorso de la tarjeta">
           <span className="ps-brand">
-            <Logo size={18} /> Game Board
+            <Logo size={18} /> {skin.name}
           </span>
           <h2 className="ps-tag">
             Partidas, torneos y<br />
