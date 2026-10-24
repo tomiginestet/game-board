@@ -1,12 +1,15 @@
-import { useEffect, useLayoutEffect, useRef, useState } from 'react'
-import { LOGO_STATIC, logoAnimation, type LogoKind } from '../lib/logo'
+import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
+import { LOGO_PALETTE, LOGO_STATIC, logoAnimation, recolorLogo, type LogoKind } from '../lib/logo'
+import { skin } from '../skins'
 
 const motionQuery = () => (typeof matchMedia === 'function' ? matchMedia('(prefers-reduced-motion: reduce)') : undefined)
 
-/** Logo de Game Board. Sin `kind` son los cuatro cuadraditos quietos; con `kind`, la animación de ese momento. */
+/** Logo de la app (con los colores del skin). Sin `kind` son los cuatro cuadraditos quietos; con `kind`, la animación de ese momento. */
 export function Logo({ kind, size = 32, className, label }: { kind?: LogoKind; size?: number; className?: string; label?: string }) {
   const ref = useRef<SVGSVGElement>(null)
   const anim = kind ? logoAnimation(kind) : undefined
+  const inner = anim ? anim.inner : LOGO_STATIC
+  const html = useMemo(() => (skin.logo === LOGO_PALETTE ? inner : recolorLogo(inner, skin.logo)), [inner])
 
   // Con "reducir movimiento" se muestra un cuadro fijo de la animación: antes de pintar
   // (así no se ve ni un cuadro moviéndose) y también si la preferencia cambia con la app abierta.
@@ -35,7 +38,7 @@ export function Logo({ kind, size = 32, className, label }: { kind?: LogoKind; s
       role={label ? 'img' : undefined}
       aria-label={label}
       aria-hidden={label ? undefined : true}
-      dangerouslySetInnerHTML={{ __html: anim ? anim.inner : LOGO_STATIC }}
+      dangerouslySetInnerHTML={{ __html: html }}
     />
   )
 }

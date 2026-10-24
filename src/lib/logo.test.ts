@@ -1,7 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import favicon from '../../public/favicon.svg?raw'
-import secuencia from '../../public/logo-secuencia.svg?raw'
-import { loaderForPath, logoAnimation, logoSvg, type LogoKind } from './logo'
+import { LOGO_PALETTE, loaderForPath, logoAnimation, logoSvg, recolorLogo, type LogoKind } from './logo'
 
 const KINDS: LogoKind[] = ['secuencia', 'podio', 'tabla', 'turnos', 'medalla', 'escalera', 'duelo']
 
@@ -22,9 +20,13 @@ describe('logo', () => {
     }
   })
 
-  it('los SVG de public/ están al día (npm run logo)', () => {
-    expect(favicon).toBe(logoSvg('quieto', { bg: true, title: 'Game Board' }))
-    expect(secuencia).toBe(logoSvg('secuencia', { title: 'Game Board' }))
+  it('con otra paleta cambian los cuadraditos y el fondo, y el dorado del ganador queda', () => {
+    const palette = { a: '#000001', b: '#000002', c: '#000003', d: '#000004', ink: '#000005', tile: '#000006', dim: '#000007' }
+    const svg = logoSvg('podio', { bg: true, palette })
+    for (const hex of Object.values(LOGO_PALETTE)) expect(svg).not.toContain(hex)
+    for (const hex of Object.values(palette).slice(0, 5)) expect(svg).toContain(hex)
+    expect(svg).toContain('#ffb400')
+    expect(recolorLogo(logoSvg('quieto'), LOGO_PALETTE)).toBe(logoSvg('quieto'))
   })
 
   it('elige la animación según la pantalla', () => {

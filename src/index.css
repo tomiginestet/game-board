@@ -93,7 +93,7 @@ button {
 
 /* Las superficies del navegador también llevan la paleta. */
 ::selection {
-  background: rgba(255, 180, 0, 0.35);
+  background: color-mix(in srgb, var(--accent-2) 35%, transparent);
   color: var(--text);
 }
 
@@ -679,7 +679,7 @@ section > .section-head {
 }
 
 .pill.accent {
-  background: rgba(255, 107, 53, 0.15);
+  background: color-mix(in srgb, var(--accent) 15%, transparent);
   color: var(--accent);
 }
 
@@ -689,7 +689,7 @@ section > .section-head {
 }
 
 .pill.gold {
-  background: rgba(255, 180, 0, 0.15);
+  background: color-mix(in srgb, var(--accent-2) 15%, transparent);
   color: var(--accent-2);
 }
 
@@ -937,7 +937,7 @@ svg {
   display: flex;
   flex-direction: column;
   gap: 12px;
-  border-color: rgba(255, 107, 53, 0.5);
+  border-color: color-mix(in srgb, var(--accent) 50%, transparent);
 }
 
 .first-steps h2,
@@ -2418,8 +2418,8 @@ svg {
   gap: 16px;
   padding: 16px 20px;
   border-radius: var(--radius);
-  background: rgba(255, 180, 0, 0.1);
-  border: 1px solid rgba(255, 180, 0, 0.5);
+  background: color-mix(in srgb, var(--accent-2) 10%, transparent);
+  border: 1px solid color-mix(in srgb, var(--accent-2) 50%, transparent);
 }
 
 .champion-banner > div {
@@ -2486,7 +2486,7 @@ svg {
 }
 
 .standings tbody tr.leader td {
-  background: rgba(255, 180, 0, 0.08);
+  background: color-mix(in srgb, var(--accent-2) 8%, transparent);
 }
 
 .standings .pts {
@@ -3148,8 +3148,8 @@ svg {
   gap: 10px;
   padding: 8px 12px;
   border-radius: 12px;
-  background: rgba(255, 180, 0, 0.1);
-  border: 1px solid rgba(255, 180, 0, 0.4);
+  background: color-mix(in srgb, var(--accent-2) 10%, transparent);
+  border: 1px solid color-mix(in srgb, var(--accent-2) 40%, transparent);
   text-align: left;
   font-size: 14px;
   color: inherit;
@@ -3359,7 +3359,7 @@ svg {
 }
 
 .card.highlight {
-  border-color: rgba(255, 107, 53, 0.5);
+  border-color: color-mix(in srgb, var(--accent) 50%, transparent);
   display: flex;
   flex-direction: column;
   gap: 10px;

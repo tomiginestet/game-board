@@ -1,5 +1,6 @@
 import react from '@vitejs/plugin-react'
 import { defineConfig, loadEnv, type Plugin } from 'vite'
+import { logoSvg } from './src/lib/logo.ts'
 import { brandFor, type SkinBrand } from './src/skins/brands.ts'
 
 // Versión de este build: el commit en Vercel, o la hora si se arma a mano. La app la compara con `version.json`
@@ -17,8 +18,9 @@ function versionFile(): Plugin {
 }
 
 /**
- * La marca del skin en el `index.html` (`%SKIN_NAME%`, `%SKIN_BG%`...) y el manifest de la PWA, que se arma
- * acá en vez de vivir en `public/` para que cada skin se instale con su nombre y sus colores.
+ * La marca del skin en el `index.html` (`%SKIN_NAME%`, `%SKIN_BG%`...), el manifest de la PWA y los SVG del logo
+ * (ícono y animación de la pantalla de inicio), que se arman acá en vez de vivir en `public/` para que cada skin
+ * se instale con su nombre, sus colores y su logo.
  */
 function skinFiles(brand: SkinBrand): Plugin {
   const manifest = JSON.stringify(
@@ -35,7 +37,13 @@ function skinFiles(brand: SkinBrand): Plugin {
     null,
     2,
   )
+  const files: Record<string, { type: string; source: string }> = {
+    'manifest.webmanifest': { type: 'application/manifest+json', source: manifest },
+    'favicon.svg': { type: 'image/svg+xml', source: logoSvg('quieto', { bg: true, title: brand.name, palette: brand.logo }) },
+    'logo-secuencia.svg': { type: 'image/svg+xml', source: logoSvg('secuencia', { title: brand.name, palette: brand.logo }) },
+  }
   const vars: Record<string, string> = {
+    SKIN_ID: brand.id,
     SKIN_NAME: brand.name,
     SKIN_DESCRIPTION: brand.description,
     SKIN_BG: brand.background,
@@ -47,13 +55,15 @@ function skinFiles(brand: SkinBrand): Plugin {
     name: 'skin-files',
     transformIndexHtml: (html) => html.replace(/%(SKIN_[A-Z_]+)%/g, (all, key: string) => vars[key] ?? all),
     configureServer(server) {
-      server.middlewares.use('/manifest.webmanifest', (_req, res) => {
-        res.setHeader('Content-Type', 'application/manifest+json')
-        res.end(manifest)
-      })
+      for (const [name, file] of Object.entries(files)) {
+        server.middlewares.use('/' + name, (_req, res) => {
+          res.setHeader('Content-Type', file.type)
+          res.end(file.source)
+        })
+      }
     },
     generateBundle() {
-      this.emitFile({ type: 'asset', fileName: 'manifest.webmanifest', source: manifest })
+      for (const [fileName, file] of Object.entries(files)) this.emitFile({ type: 'asset', fileName, source: file.source })
     },
   }
 }

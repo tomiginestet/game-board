@@ -1,3 +1,4 @@
+import { LOGO_PALETTE } from '../../lib/logo.ts'
 import type { SkinBrand } from '../brands.ts'
 
 export const brand: SkinBrand = {
@@ -9,4 +10,5 @@ export const brand: SkinBrand = {
   background: '#0d1117',
   text: '#f0f3f8',
   font: { family: 'Lilita One', href: 'https://fonts.googleapis.com/css2?family=Lilita+One&display=swap' },
+  logo: LOGO_PALETTE,
 }

@@ -6,9 +6,10 @@ import type { Player } from '../lib/types'
 import { Avatar } from './Avatar'
 import { Medal } from './Medal'
 import { MedalSheet } from './MedalSheet'
+import { skin } from '../skins'
 
 /** Un color del logo para cada club (siempre el mismo), para la franja del carnet. */
-const STRIPES = ['#ff6b35', '#4c8dff', '#22c55e', '#b98cff']
+const STRIPES = [skin.logo.a, skin.logo.b, skin.logo.c, skin.logo.d]
 const stripeOf = (code: string) => STRIPES[[...code].reduce((a, c) => (a * 31 + c.charCodeAt(0)) >>> 0, 7) % STRIPES.length]
 
 /**

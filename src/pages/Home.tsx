@@ -152,7 +152,7 @@ export function Home() {
           <div className="grow">
             {syncAvailable ? (
               <>
-                <h1 className="brand-title">¿A qué jugamos hoy?</h1>
+                <h1 className="brand-title">{skin.home.greeting}</h1>
                 {sync.club && (
                   <p className="muted">
                     En <b className="strong">{sync.club.name}</b>
@@ -164,7 +164,7 @@ export function Home() {
                 <h1 className="brand-title title-with-icon">
                   <Logo className="title-logo" size={30} /> {skin.name}
                 </h1>
-                <p className="muted">Partidas, torneos y quién manda en cada juego.</p>
+                <p className="muted">{skin.tagline}</p>
               </>
             )}
           </div>
@@ -334,7 +334,7 @@ export function Home() {
       {recent.length > 0 ? (
         <section aria-labelledby="recent-title">
           <div className="section-head">
-            <h2 id="recent-title">Últimas partidas</h2>
+            <h2 id="recent-title">{skin.home.recent}</h2>
             <SeeAll to="/historial" label="Ver todo el historial" />
           </div>
           <div className="list">
@@ -351,7 +351,7 @@ export function Home() {
         !showFirstSteps &&
         hasPlayers && (
           <section className="card empty-state" aria-labelledby="recent-title">
-            <h2 id="recent-title">Últimas partidas</h2>
+            <h2 id="recent-title">{skin.home.recent}</h2>
             <p className="muted">Todavía no anotaron partidas. La primera siempre es la más discutida.</p>
           </section>
         )
