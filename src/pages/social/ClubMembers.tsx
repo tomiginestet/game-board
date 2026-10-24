@@ -14,6 +14,7 @@ import { friendlyError } from '../../lib/text'
 import { ErrorText } from '../../components/Feedback'
 import { confirmAction } from '../../lib/feedback'
 import { skin } from '../../skins'
+import { say } from '../../skins/say'
 
 // La gente del club. Abajo de la pantalla del club van los equipos y los integrantes (se bajan aparte, para
 // que lo de arriba aparezca al toque); las cuentas, los permisos y las invitaciones van en "Gestionar club".
@@ -119,7 +120,7 @@ export function ClubPeople({ group }: { group: MyGroup }) {
                         {account.role === 'owner' && <CrownIcon className="inline-icon" weight="fill" aria-hidden />} {ROLE_NAMES[account.role]} ·{' '}
                       </>
                     )}
-                    {plural(s?.played ?? 0, 'partida', 'partidas')}
+                    {plural(s?.played ?? 0, say('partida'), say('partidas'))}
                     {won > 0 && ` · ${plural(won, 'medalla', 'medallas')}`}
                   </span>
                 </span>
@@ -239,7 +240,7 @@ export function ClubAccounts({ group }: { group: MyGroup }) {
                         onClick={async () => {
                           const ok = await confirmAction({
                             title: `¿Sacar a ${name} del club?`,
-                            detail: 'Sus partidas quedan en el historial. Puede volver a sumarse con una invitación.',
+                            detail: say('Sus partidas quedan en el historial. Puede volver a sumarse con una invitación.'),
                             confirmLabel: 'Sacar del club',
                             danger: true,
                           })

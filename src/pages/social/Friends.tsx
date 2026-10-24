@@ -7,6 +7,7 @@ import { myFriends, openDuo, removeFriend, respondFriendRequest, searchUsers, se
 import { friendlyError } from '../../lib/text'
 import { ErrorText } from '../../components/Feedback'
 import { confirmAction } from '../../lib/feedback'
+import { say } from '../../skins/say'
 
 export function Friends() {
   const navigate = useNavigate()
@@ -59,7 +60,7 @@ export function Friends() {
   return (
     <div className="page">
       <h1>Amigos</h1>
-      <p className="muted">Sumá amigos por su usuario y jueguen mano a mano. Cada mano a mano tiene su historial y su ranking; las partidas también cuentan para el ranking global.</p>
+      <p className="muted">{say('Sumá amigos por su usuario y jueguen mano a mano. Cada mano a mano tiene su historial y su ranking; las partidas también cuentan para el ranking global.')}</p>
 
       <label className="search">
         <MagnifyingGlassIcon />

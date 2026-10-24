@@ -12,6 +12,7 @@ import { Loader } from '../components/Logo'
 import { friendlyError } from '../lib/text'
 import { ErrorText } from '../components/Feedback'
 import { skin } from '../skins'
+import { say } from '../skins/say'
 
 // Si hay sesión, el club queda guardado en la cuenta.
 const createClub = (name: string) => createClubRaw(name).then(async (c) => (await linkClub(c.code).catch(() => {}), c))
@@ -91,14 +92,14 @@ export function ClubPage({ inviteCode: forcedCode }: { inviteCode?: string } = {
             {sync.pending ? ` · ${plural(sync.pending, 'cambio', 'cambios')} esperando para guardarse en el club` : ''}
           </p>
           <ErrorText>{sync.error && sync.status !== 'ok' ? friendlyError(sync.error) : ''}</ErrorText>
-          <p>Todos los que estén en este club ven los mismos jugadores, partidas, torneos, juegos y ranking. Es el mismo club que en el Ping Pong Club: los partidos de ping pong se ven en las dos apps.</p>
+          <p>{say('Todos los que estén en este club ven los mismos jugadores, partidas, torneos, juegos y ranking.')} Es el mismo club que en el Ping Pong Club: los partidos de ping pong se ven en las dos apps.</p>
         </section>
 
         <AccountCard />
 
         <section className="card">
           <h3>Invitar amigos</h3>
-          <p className="muted">Compartí este link. Quien lo abra puede ver y cargar partidas del club.</p>
+          <p className="muted">{say('Compartí este link. Quien lo abra puede ver y cargar partidas del club.')}</p>
           <div className="invite-box">
             <code>{link}</code>
           </div>
@@ -172,7 +173,7 @@ export function ClubPage({ inviteCode: forcedCode }: { inviteCode?: string } = {
         <CloudIcon className="title-icon" weight="duotone" /> Club
       </h1>
       <p className="muted">
-        Armá un club para compartir jugadores, partidas y rankings entre los celulares de todos. Se entra con un link; la cuenta es opcional y sirve para tener tus clubes en cualquier dispositivo.
+        {say('Armá un club para compartir jugadores, partidas y rankings entre los celulares de todos.')} Se entra con un link; la cuenta es opcional y sirve para tener tus clubes en cualquier dispositivo.
       </p>
 
       <AccountCard />
@@ -196,7 +197,7 @@ export function ClubPage({ inviteCode: forcedCode }: { inviteCode?: string } = {
                     onClick={async () => {
                       const ok = await confirmAction({
                         title: '¿Usar sólo los datos del club?',
-                        detail: 'Se borran los jugadores y partidas que cargaste en este teléfono y quedan los del club.',
+                        detail: say('Se borran los jugadores y partidas que cargaste en este teléfono y quedan los del club.'),
                         confirmLabel: 'Borrar los míos y unirme',
                         danger: true,
                       })

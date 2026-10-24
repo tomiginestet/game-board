@@ -13,6 +13,7 @@ import { ClubInvite } from './ClubInvite'
 import { inviteTarget } from '../../lib/clubLink'
 import { pendingInviteCode, readPendingInvite, savePendingInvite } from '../../lib/pendingInvite'
 import { skin } from '../../skins'
+import { say } from '../../skins/say'
 
 /** Progreso del alta: barra + texto (no un rótulo arriba del título). */
 function StepProgress({ step, total }: { step: number; total: number }) {
@@ -186,7 +187,7 @@ function Welcome({ inviteCode }: { inviteCode?: string }) {
           ))}
         </div>
         <h1>{skin.name}</h1>
-        <p className="entry-lead">Partidas, torneos y quién manda en cada juego. Rankings y medallas de cualquier juego con tu club.</p>
+        <p className="entry-lead">{say('Partidas, torneos y quién manda en cada juego. Rankings y medallas de cualquier juego con tu club.')}</p>
       </div>
       <div className="entry-body">
         {invitedTo && (
@@ -204,14 +205,14 @@ function Welcome({ inviteCode }: { inviteCode?: string }) {
             <SwordIcon aria-hidden /> Jugá mano a mano con tus amigos
           </li>
           <li>
-            <TrophyIcon aria-hidden /> Ranking de tu club y ranking global
+            <TrophyIcon aria-hidden /> {say('Ranking de tu club y ranking global')}
           </li>
         </ul>
         <div className="guest-option">
           <button className="link-btn" onClick={() => setGuest(true)}>
             Mirar sin cuenta
           </button>
-          <p className="muted small">Sin cuenta podés ver el catálogo y los juegos. Para anotar partidas hace falta entrar.</p>
+          <p className="muted small">{say('Sin cuenta podés ver el catálogo y los juegos. Para anotar partidas hace falta entrar.')}</p>
         </div>
       </div>
     </div>
@@ -228,7 +229,7 @@ function ProfileSetup() {
       <div className="entry-body">
         <StepProgress step={1} total={2} />
         <h1>¿Cómo te llamamos?</h1>
-        <p className="muted">Así te ven tus amigos en el club y en el ranking.</p>
+        <p className="muted">{say('Así te ven tus amigos en el club y en el ranking.')}</p>
         <ProfileForm initial={initial} email={auth.session?.user.email} submitLabel="Seguir" />
         <button className="link-btn small" onClick={() => void signOut()}>
           <SignOutIcon /> Usar otra cuenta
@@ -261,7 +262,7 @@ function Onboarding({ onSkip }: { onSkip: (to?: string) => void }) {
         {step === 'menu' && (
           <>
             <h1>¡Hola, {profile?.display_name}! {profile?.emoji}</h1>
-            <p className="muted">Las partidas y los rankings son de cada club. Podés estar en todos los clubes que quieras.</p>
+            <p className="muted">{say('Las partidas y los rankings son de cada club. Podés estar en todos los clubes que quieras.')}</p>
             <div className="onboarding-options">
               {options.map((o) => (
                 <button key={o.id} className="card onboarding-option" onClick={() => (o.id === 'friends' ? onSkip('/amigos') : setStep(o.id))}>

@@ -7,6 +7,7 @@ import { Avatar } from './Avatar'
 import { Medal } from './Medal'
 import { MedalSheet } from './MedalSheet'
 import { skin } from '../skins'
+import { say } from '../skins/say'
 
 /** Un color del logo para cada club (siempre el mismo), para la franja del carnet. */
 const STRIPES = [skin.logo.a, skin.logo.b, skin.logo.c, skin.logo.d]
@@ -56,7 +57,7 @@ export function MemberCard({
                 {gloria.position > 0 && ` · ${gloria.position}º del club`}
               </>
             ) : (
-              <span className="pass-meta">Todavía sin partidas</span>
+              <span className="pass-meta">{say('Todavía sin partidas')}</span>
             )}
           </span>
         </div>

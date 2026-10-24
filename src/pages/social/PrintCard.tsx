@@ -9,6 +9,7 @@ import { qrPath } from '../../lib/qr'
 import { clubShareLink, useActiveGroup } from '../../lib/social'
 import './print.css'
 import { skin } from '../../skins'
+import { say } from '../../skins/say'
 
 /** Ancho de diseño de la tarjeta en pantalla; al imprimir se escala a 148 mm (A5). */
 const BASE_W = 355
@@ -117,17 +118,18 @@ export function PrintCard() {
             <Logo size={18} /> {skin.name}
           </span>
           <h2 className="ps-tag">
-            Partidas, torneos y<br />
-            <em>quién manda</em> en cada juego.
+            {say('Partidas, torneos y')}
+            <br />
+            <em>quién manda</em> {say('en cada juego.')}
           </h2>
           <ul className="ps-feats">
             <li>
               <span className="ps-ico"><PencilSimpleLineIcon weight="duotone" /></span>
-              <span><b>Anotá cada partida</b><span>Desde el teléfono, en la mesa.</span></span>
+              <span><b>{say('Anotá cada partida')}</b><span>{say('Desde el teléfono, en la mesa.')}</span></span>
             </li>
             <li>
               <span className="ps-ico"><CrownIcon weight="duotone" /></span>
-              <span><b>Mirá quién manda</b><span>El ranking de cada juego del club.</span></span>
+              <span><b>Mirá quién manda</b><span>{say('El ranking de cada juego del club.')}</span></span>
             </li>
             <li>
               <span className="ps-ico"><TrophyIcon weight="duotone" /></span>
@@ -135,7 +137,7 @@ export function PrintCard() {
             </li>
             <li>
               <span className="ps-ico"><MedalIcon weight="duotone" /></span>
-              <span><b>Ganá medallas</b><span>Cada juego tiene las suyas.</span></span>
+              <span><b>Ganá medallas</b><span>{say('Cada juego tiene las suyas.')}</span></span>
               <span className="ps-medals">
                 {medals.map((name, i) => (
                   // Cada una en un metal distinto (bronce, plata, oro…), para que se vea la escala de niveles.

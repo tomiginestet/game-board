@@ -8,16 +8,17 @@ import { useData } from '../lib/store'
 import { useAuth } from '../lib/auth'
 import { globalRanking, userAsPlayer, type GlobalRow } from '../lib/social'
 import { syncAvailable, useSyncState } from '../lib/sync'
+import { say } from '../skins/say'
 
 type Tab = 'gloria' | 'wins' | 'elo' | 'allround' | 'belts'
 type Period = 'all' | 'year' | 'month' | 'week'
 
 const TABS: { id: Tab; name: string; help: string }[] = [
-  { id: 'gloria', name: 'Gloria', help: 'Puntos por cada partida: más por ganar, por mesas grandes y por juegos largos.' },
-  { id: 'wins', name: 'Victorias', help: 'Partidas ganadas sumando todos los juegos.' },
-  { id: 'elo', name: 'Elo por juego', help: 'El nivel de cada uno en un juego: sube más si le ganás a alguien mejor.' },
-  { id: 'allround', name: 'Todoterreno', help: 'En cuántos juegos distintos ganaste alguna vez.' },
-  { id: 'belts', name: 'Cinturones', help: 'Quién tiene el cinturón de cada juego: se lo saca el que le gana.' },
+  { id: 'gloria', name: 'Gloria', help: say('Puntos por cada partida: más por ganar, por mesas grandes y por juegos largos.') },
+  { id: 'wins', name: 'Victorias', help: say('Partidas ganadas sumando todos los juegos.') },
+  { id: 'elo', name: say('Elo por juego'), help: say('El nivel de cada uno en un juego: sube más si le ganás a alguien mejor.') },
+  { id: 'allround', name: 'Todoterreno', help: say('En cuántos juegos distintos ganaste alguna vez.') },
+  { id: 'belts', name: 'Cinturones', help: say('Quién tiene el cinturón de cada juego: se lo saca el que le gana.') },
 ]
 
 const PERIODS: { id: Period; name: string }[] = [
@@ -35,7 +36,7 @@ export function Ranking() {
   const scope = canGlobal && params.get('global') === '1' ? 'global' : 'group'
   return (
     <div className="page">
-      <h1>Ranking</h1>
+      <h1>{say('Ranking')}</h1>
       {canGlobal && (
         <div className="segmented">
           <button className={scope === 'group' ? 'active' : ''} onClick={() => setParams({})}>
@@ -97,8 +98,8 @@ function GlobalRanking() {
           </button>
         ))}
       </div>
-      <select className="input" value={gameId} onChange={(e) => setGameId(e.target.value)} aria-label="Juego">
-        <option value="">Todos los juegos</option>
+      <select className="input" value={gameId} onChange={(e) => setGameId(e.target.value)} aria-label={say('Juego')}>
+        <option value="">{say('Todos los juegos')}</option>
         {games.map((g) => (
           <option key={g.id} value={g.id}>
             {g.name}
@@ -106,10 +107,10 @@ function GlobalRanking() {
         ))}
       </select>
       </div>
-      <p className="hint">Suma las partidas de todos los clubes y mano a mano. Sólo cuentan los jugadores que tienen cuenta (“este jugador soy yo”).</p>
+      <p className="hint">{say('Suma las partidas de todos los clubes y mano a mano. Sólo cuentan los jugadores que tienen cuenta (“este jugador soy yo”).')}</p>
       {error && <p className="error">{error}</p>}
       {rows === null && !error && <p className="muted">Cargando…</p>}
-      {rows?.length === 0 && <div className="empty">Todavía no hay partidas de jugadores con cuenta en este período.</div>}
+      {rows?.length === 0 && <div className="empty">{say('Todavía no hay partidas de jugadores con cuenta en este período.')}</div>}
       <div className="list ranking">
         {sorted.map((r, i) => (
           <div key={r.user_id} className={'rank-row' + (r.user_id === myId ? ' me' : '')}>
@@ -121,8 +122,8 @@ function GlobalRanking() {
               </b>
               <span className="muted small block">
                 {tab === 'allround'
-                  ? `ganó en ${plural(r.games_won, 'juego', 'juegos')}`
-                  : `${plural(r.played, 'partida', 'partidas')} · ${plural(r.wins, 'victoria', 'victorias')} · ${Math.round((r.wins / Math.max(1, r.played)) * 100)}%`}
+                  ? `ganó en ${plural(r.games_won, say('juego'), say('juegos'))}`
+                  : `${plural(r.played, say('partida'), say('partidas'))} · ${plural(r.wins, 'victoria', 'victorias')} · ${Math.round((r.wins / Math.max(1, r.played)) * 100)}%`}
                 {` · ${plural(r.groups, 'club', 'clubes')}`}
               </span>
             </span>
@@ -157,7 +158,7 @@ function GroupRanking() {
     if (tab === 'gloria')
       return all
         .sort((a, b) => b.gloria - a.gloria || b.wins - a.wins)
-        .map((s) => ({ s, value: `${s.gloria}`, mid: `${s.wins}/${s.played}`, sub: `${plural(s.played, 'partida', 'partidas')} · ${plural(s.wins, 'victoria', 'victorias')}` }))
+        .map((s) => ({ s, value: `${s.gloria}`, mid: `${s.wins}/${s.played}`, sub: `${plural(s.played, say('partida'), say('partidas'))} · ${plural(s.wins, 'victoria', 'victorias')}` }))
     if (tab === 'wins')
       return all
         .sort((a, b) => b.wins - a.wins || winRate(b) - winRate(a))
@@ -165,7 +166,7 @@ function GroupRanking() {
     if (tab === 'allround')
       return all
         .sort((a, b) => b.gamesWon - a.gamesWon || b.gamesPlayed - a.gamesPlayed)
-        .map((s) => ({ s, value: `${s.gamesWon}`, mid: `${s.gamesPlayed}`, sub: `ganó en ${plural(s.gamesWon, 'juego', 'juegos')} de ${s.gamesPlayed} que jugó` }))
+        .map((s) => ({ s, value: `${s.gamesWon}`, mid: `${s.gamesPlayed}`, sub: `ganó en ${plural(s.gamesWon, say('juego'), say('juegos'))} de ${s.gamesPlayed} que jugó` }))
     return []
   })()
 
@@ -211,13 +212,13 @@ function GroupRanking() {
         <div className="empty">
           {period === 'all' ? (
             <>
-              <p>Todavía no hay partidas anotadas. Cuando terminen la primera, acá se arma la tabla.</p>
+              <p>{say('Todavía no hay partidas anotadas. Cuando terminen la primera, acá se arma la tabla.')}</p>
               <Link to="/juegos" className="btn primary">
-                Anotar una partida
+                {say('Anotar una partida')}
               </Link>
             </>
           ) : (
-            <p>No hubo partidas en este período. Probá con uno más largo.</p>
+            <p>{say('No hubo partidas en este período. Probá con uno más largo.')}</p>
           )}
         </div>
       )}

@@ -29,6 +29,7 @@ import { mayCreateNow } from '../lib/access'
 import { lineup } from '../lib/calls'
 import { useMyPlayerId } from '../lib/me'
 import { skin } from '../skins'
+import { say } from '../skins/say'
 
 // Equipos, integrantes e invitaciones: abajo de todo, se bajan aparte.
 const ClubPeople = lazy(async () => ({ default: (await import('./social/ClubMembers')).ClubPeople }))
@@ -46,7 +47,7 @@ function readFlag(key: string) {
 /** Descarta una partida en juego al toque y ofrece deshacerlo (no se pregunta antes). */
 function discardPlay(play: Play, gameName: string) {
   if (!actions.deletePlay(play.id)) return
-  toast(`Descartaste la partida de ${gameName}.`, { label: 'Deshacer', run: () => actions.restorePlay(play) })
+  toast(say('Descartaste la partida de {juego}.', { juego: gameName }), { label: 'Deshacer', run: () => actions.restorePlay(play) })
 }
 
 /**
@@ -67,7 +68,7 @@ function startRematch(game: GameDef, plan: RematchPlan, navigate: NavigateFuncti
       if (!actions.deletePlay(p.id)) return
       navigate(playPath(game), { replace: true })
       // Si ya se había anotado algo, se puede recuperar.
-      if (now && now.log.length > 0) toast(`Descartaste la partida de ${game.name}.`, { label: 'Deshacer', run: () => actions.restorePlay(now) })
+      if (now && now.log.length > 0) toast(say('Descartaste la partida de {juego}.', { juego: game.name }), { label: 'Deshacer', run: () => actions.restorePlay(now) })
     },
   })
 }
@@ -152,7 +153,7 @@ export function Home() {
           <div className="grow">
             {syncAvailable ? (
               <>
-                <h1 className="brand-title">{skin.home.greeting}</h1>
+                <h1 className="brand-title">{say('¿A qué jugamos hoy?')}</h1>
                 {sync.club && (
                   <p className="muted">
                     En <b className="strong">{sync.club.name}</b>
@@ -179,7 +180,7 @@ export function Home() {
       {showFirstSteps ? (
         <section className="card first-steps" aria-labelledby="first-steps-title">
           <h2 id="first-steps-title">¡Arranquemos!</h2>
-          <p className="muted">Dos pasos y la primera partida ya está en la tabla.</p>
+          <p className="muted">{say('Dos pasos y la primera partida ya está en la tabla.')}</p>
           <ol className="steps">
             <li className={hasPlayers ? 'done' : ''}>
               {hasPlayers ? <CheckCircleIcon weight="fill" aria-hidden /> : <span className="step-num" aria-hidden>1</span>}
@@ -190,13 +191,13 @@ export function Home() {
             <li className={hasPlayed ? 'done' : ''}>
               {hasPlayed ? <CheckCircleIcon weight="fill" aria-hidden /> : <span className="step-num" aria-hidden>2</span>}
               <span>
-                Elegí un juego y anotá la primera partida <span className="sr-only">{hasPlayed ? '(listo)' : '(pendiente)'}</span>
+                {say('Elegí un juego y anotá la primera partida')} <span className="sr-only">{hasPlayed ? '(listo)' : '(pendiente)'}</span>
               </span>
             </li>
           </ol>
           {hasPlayers ? (
             <Link to="/anotar" className="btn primary block">
-              <PlusIcon /> Anotar la primera partida
+              <PlusIcon /> {say('Anotar la primera partida')}
             </Link>
           ) : (
             <Link to="/jugadores" className="btn primary block">
@@ -208,9 +209,9 @@ export function Home() {
           </button>
         </section>
       ) : (
-        <section className="quick-start" aria-label="Anotar una partida">
+        <section className="quick-start" aria-label={say('Anotar una partida')}>
           <Link to="/anotar" className="btn primary big block">
-            <PlusIcon /> Anotar una partida
+            <PlusIcon /> {say('Anotar una partida')}
           </Link>
           {againGames.length > 0 && (
             <div className="again">
@@ -241,7 +242,7 @@ export function Home() {
                           {content}
                         </button>
                       ) : (
-                        <Link to={ongoing ? `/partida/${ongoing.id}` : playPath(g)} className="again-chip" aria-label={ongoing ? `Seguir la partida de ${g.name}` : undefined}>
+                        <Link to={ongoing ? `/partida/${ongoing.id}` : playPath(g)} className="again-chip" aria-label={ongoing ? say('Seguir la partida de {juego}', { juego: g.name }) : undefined}>
                           {content}
                         </Link>
                       )}
@@ -303,7 +304,7 @@ export function Home() {
         <section aria-labelledby="podium-title">
           <div className="section-head">
             <h2 id="podium-title">Podio de gloria</h2>
-            <SeeAll to="/ranking" label="Ver todo el ranking" />
+            <SeeAll to="/ranking" label={say('Ver todo el ranking')} />
           </div>
           <GloriaPodium top={ranked} />
         </section>
@@ -334,7 +335,7 @@ export function Home() {
       {recent.length > 0 ? (
         <section aria-labelledby="recent-title">
           <div className="section-head">
-            <h2 id="recent-title">{skin.home.recent}</h2>
+            <h2 id="recent-title">{say('Últimas partidas')}</h2>
             <SeeAll to="/historial" label="Ver todo el historial" />
           </div>
           <div className="list">
@@ -351,8 +352,8 @@ export function Home() {
         !showFirstSteps &&
         hasPlayers && (
           <section className="card empty-state" aria-labelledby="recent-title">
-            <h2 id="recent-title">{skin.home.recent}</h2>
-            <p className="muted">Todavía no anotaron partidas. La primera siempre es la más discutida.</p>
+            <h2 id="recent-title">{say('Últimas partidas')}</h2>
+            <p className="muted">{say('Todavía no anotaron partidas. La primera siempre es la más discutida.')}</p>
           </section>
         )
       )}
@@ -379,9 +380,9 @@ function ClubGamesShelf({ group }: { group?: MyGroup }) {
   const list = chosen ? club.chosen : club.mostPlayed.slice(0, 10)
   if (!list.length && !editable) return null
 
-  const title = group ? (group.kind === 'duo' ? 'Lo que juegan' : 'Juegos del club') : 'Lo más jugado'
+  const title = group ? (group.kind === 'duo' ? 'Lo que juegan' : say('Juegos del club')) : 'Lo más jugado'
   const action = editable ? (
-    <Link to="/club/juegos" className="shelf-all" aria-label={chosen ? 'Cambiar los juegos del club' : 'Elegir los juegos del club'}>
+    <Link to="/club/juegos" className="shelf-all" aria-label={chosen ? say('Cambiar los juegos del club') : say('Elegir los juegos del club')}>
       <PencilSimpleIcon className="inline-icon" size="1em" aria-hidden /> {chosen ? 'Cambiar' : 'Elegir'}
     </Link>
   ) : undefined
@@ -390,9 +391,9 @@ function ClubGamesShelf({ group }: { group?: MyGroup }) {
     return (
       <section className="card empty-state" aria-labelledby="club-games-title">
         <h2 id="club-games-title">{title}</h2>
-        <p className="muted">Elegí los juegos que tiene o juega el club: salen acá, primero en “Para jugar hoy” y primero al anotar.</p>
+        <p className="muted">{say('Elegí los juegos que tiene o juega el club: salen acá, primero en “Para jugar hoy” y primero al anotar.')}</p>
         <Link to="/club/juegos" className="btn">
-          <PencilSimpleIcon /> Elegir juegos
+          <PencilSimpleIcon /> {say('Elegir juegos')}
         </Link>
       </section>
     )
@@ -468,7 +469,7 @@ function LiveRow({ to, game, sub, score, since, onDiscard }: { to: string; game:
           </small>
         </span>
       </Link>
-      <button type="button" className="live-discard" onClick={onDiscard} aria-label={`Descartar la partida de ${game.name}`}>
+      <button type="button" className="live-discard" onClick={onDiscard} aria-label={say('Descartar la partida de {juego}', { juego: game.name })}>
         <TrashIcon aria-hidden />
       </button>
     </li>

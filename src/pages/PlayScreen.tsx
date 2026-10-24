@@ -28,6 +28,7 @@ import { FinishForm } from './play/FinishForm'
 import { Summary } from './play/Summary'
 import { CallView } from './play/CallView'
 import { isCall } from '../lib/calls'
+import { say } from '../skins/say'
 
 export function PlayScreen() {
   const { id } = useParams()
@@ -36,7 +37,7 @@ export function PlayScreen() {
   if (!play) {
     return (
       <div className="page">
-        <p>Partida no encontrada.</p>
+        <p>{say('Partida no encontrada.')}</p>
         <Link to="/" className="back">
           <ArrowLeftIcon /> Inicio
         </Link>
@@ -132,7 +133,7 @@ function PlayView({ play, game }: { play: Play; game: GameDef }) {
   // pregunte la barra porque falta algo, o que se abra el formulario de cierre).
   const askFinishFromHead = async () => {
     if (direct && !shortfall) {
-      const ok = await confirmAction({ title: '¿Terminar la partida?', detail: 'Se cierra con los puntos de ahora.', confirmLabel: 'Terminar partida' })
+      const ok = await confirmAction({ title: say('¿Terminar la partida?'), detail: 'Se cierra con los puntos de ahora.', confirmLabel: say('Terminar partida') })
       if (!ok) return
     }
     askFinish()
@@ -179,8 +180,8 @@ function PlayView({ play, game }: { play: Play; game: GameDef }) {
     if (play.cupId) {
       // Lo anotado de una partida de torneo no se puede recuperar: se pregunta antes.
       const ok = await confirmAction({
-        title: '¿Borrar lo anotado en esta partida del torneo?',
-        detail: 'La partida sigue en el torneo, lista para jugarse de nuevo. Lo anotado no se puede recuperar.',
+        title: say('¿Borrar lo anotado en esta partida del torneo?'),
+        detail: say('La partida sigue en el torneo, lista para jugarse de nuevo. Lo anotado no se puede recuperar.'),
         confirmLabel: 'Borrar lo anotado',
         danger: true,
       })
@@ -190,7 +191,7 @@ function PlayView({ play, game }: { play: Play; game: GameDef }) {
     const removed = play
     if (!actions.deletePlay(play.id)) return
     navigate('/')
-    toast('Descartaste la partida.', { label: 'Deshacer', run: () => actions.restorePlay(removed) })
+    toast(say('Descartaste la partida.'), { label: 'Deshacer', run: () => actions.restorePlay(removed) })
   }
 
   return (
@@ -205,7 +206,7 @@ function PlayView({ play, game }: { play: Play; game: GameDef }) {
           <span className="muted small block">{describePlay(game, play, live)}</span>
         </div>
         {turns && showLive && !finishing && (
-          <button ref={finishBtnRef} type="button" className="icon-btn play-finish-flag" onClick={askFinishFromHead} aria-label="Terminar partida" title="Terminar partida">
+          <button ref={finishBtnRef} type="button" className="icon-btn play-finish-flag" onClick={askFinishFromHead} aria-label={say('Terminar partida')} title={say('Terminar partida')}>
             <FlagCheckeredIcon />
           </button>
         )}
@@ -233,7 +234,7 @@ function PlayView({ play, game }: { play: Play; game: GameDef }) {
             {(game.mode === 'result' || game.mode === 'coop') && <FinishForm play={play} game={game} live={live} players={players} />}
             {!beat && (
               <button className="link-btn danger-text small center-block" onClick={discard}>
-                <TrashIcon /> {play.cupId ? 'Borrar lo anotado' : 'Descartar partida'}
+                <TrashIcon /> {play.cupId ? 'Borrar lo anotado' : say('Descartar partida')}
               </button>
             )}
           </div>
@@ -266,7 +267,7 @@ function PlayView({ play, game }: { play: Play; game: GameDef }) {
                 {/* Secundario en todos los modos: el único naranja de la pantalla es la acción de anotar. Por turnos va arriba. */}
                 {!turns && (
                   <button ref={finishBtnRef} type="button" className="btn big dock-finish" onClick={askFinish}>
-                    <FlagCheckeredIcon aria-hidden="true" /> Terminar partida
+                    <FlagCheckeredIcon aria-hidden="true" /> {say('Terminar partida')}
                   </button>
                 )}
               </div>

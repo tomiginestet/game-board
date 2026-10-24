@@ -18,6 +18,7 @@ import { gloriaPosition, PlayerProfile } from '../PlayerDetail'
 import { friendlyError } from '../../lib/text'
 import { ErrorText } from '../../components/Feedback'
 import { confirmAction } from '../../lib/feedback'
+import { say } from '../../skins/say'
 
 /**
  * "Vos": una sola pantalla para tu cuenta y tu lugar en el club activo. Arriba quién sos (y cómo te va en el
@@ -140,7 +141,7 @@ function MeView() {
           <Link to="/ranking?global=1" className="settings-row">
             <RankingIcon size={22} aria-hidden />
             <span className="grow">
-              <b className="block">Ranking global</b>
+              <b className="block">{say('Ranking global')}</b>
               <span className="muted small block">Todos los clubes, todas las cuentas</span>
             </span>
             <CaretRightIcon aria-hidden />
@@ -158,7 +159,7 @@ function MeView() {
               <ShieldCheckIcon size={22} aria-hidden />
               <span className="grow">
                 <b className="block">Panel de admin</b>
-                <span className="muted small block">Personas, clubes, juegos, métricas y control de la app</span>
+                <span className="muted small block">{say('Personas, clubes, juegos, métricas y control de la app')}</span>
               </span>
               <CaretRightIcon aria-hidden />
             </Link>
@@ -305,7 +306,7 @@ function WhoAmI({ group }: { group: MyGroup }) {
   return (
     <section className="card highlight" id="yo">
       <h2>¿Quién sos en este club?</h2>
-      <p className="muted small">Así tus partidas cuentan para tu perfil y para el ranking global.</p>
+      <p className="muted small">{say('Así tus partidas cuentan para tu perfil y para el ranking global.')}</p>
       {free.length > 0 && (
         <>
           <p className="small">Si ya te habían cargado como jugador, elegite:</p>

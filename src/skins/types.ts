@@ -28,11 +28,9 @@ export interface Skin extends SkinBrand {
     ranking: string
     players: string
   }
-  /** Textos del inicio. */
-  home: {
-    /** Título del inicio sin club ("¿A qué jugamos hoy?"). */
-    greeting: string
-    /** "Últimas partidas". */
-    recent: string
-  }
+  /**
+   * Frases propias de este skin, con la frase de Game Board como clave (ver `say`). Lo que no está acá
+   * se muestra como en Game Board.
+   */
+  copy?: Record<string, string>
 }

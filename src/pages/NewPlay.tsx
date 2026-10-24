@@ -18,6 +18,7 @@ import { actions, useData } from '../lib/store'
 import './newplay.css'
 import type { Id, Play, PlaySide, PlayStake, Team } from '../lib/types'
 import { mayCreateNow } from '../lib/access'
+import { say } from '../skins/say'
 
 const lastConfigKey = (gameId: string) => `gb-last-config-${gameId}`
 
@@ -36,7 +37,7 @@ export function NewPlay() {
   const { gameId } = useParams()
   const game = useGame(gameId)
   if (!gameId || gameId === 'pingpong') return <Navigate to="/ping-pong/nuevo" replace />
-  if (!game) return <div className="page">Juego no encontrado.</div>
+  if (!game) return <div className="page">{say('Juego no encontrado.')}</div>
   return <Setup key={game.id} game={game} />
 }
 
@@ -263,7 +264,7 @@ function Setup({ game }: { game: GameDef }) {
         </h2>
         {fromLast && selected.length > 0 && (
           <div className="row-between">
-            <p className="hint">{sameTeams ? 'Marcamos a los de la última partida, con los mismos equipos.' : 'Marcamos a los de la última partida.'}</p>
+            <p className="hint">{sameTeams ? say('Marcamos a los de la última partida, con los mismos equipos.') : say('Marcamos a los de la última partida.')}</p>
             <button className="link-btn no-shrink" onClick={() => setSelected([])}>
               Desmarcar a todos
             </button>
@@ -333,7 +334,7 @@ function Setup({ game }: { game: GameDef }) {
 
       {game.options.length > 0 && (
         <section className="card">
-          <h2>Reglas de la partida</h2>
+          <h2>{say('Reglas de la partida')}</h2>
           <OptionsEditor game={game} value={config} onChange={setConfig} />
         </section>
       )}

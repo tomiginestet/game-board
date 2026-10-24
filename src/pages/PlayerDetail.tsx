@@ -20,6 +20,7 @@ import type { Player } from '../lib/types'
 import { useSyncState } from '../lib/sync'
 import { canDelete, canEdit, useAccess } from '../lib/access'
 import { friendlyError } from '../lib/text'
+import { say } from '../skins/say'
 
 export function PlayerDetail() {
   const { id } = useParams()
@@ -68,7 +69,7 @@ export function PlayerDetail() {
     const ok = await confirmAction({ title: `¿Borrar a ${player.name}?`, detail: 'No se puede deshacer.', confirmLabel: 'Borrar jugador', danger: true })
     if (!ok) return
     if (actions.deletePlayer(player.id)) navigate('/jugadores')
-    else toast(`No se puede borrar a ${player.name}: tiene partidas o torneos.`)
+    else toast(say('No se puede borrar a {nombre}: tiene partidas o torneos.', { nombre: player.name }))
   }
 
   return (
@@ -181,7 +182,7 @@ export function PlayerProfile({ player, self, head = true, afterHead }: { player
         <section className="pd-record" aria-label="Récord">
           {/* Un solo número protagonista: las victorias. Partidas y porcentaje son el mismo dato, leído en la barra. */}
           <p className="pd-big">
-            <span className="num">{s.wins}</span> {s.wins === 1 ? 'victoria' : 'victorias'} en {plural(s.played, 'partida', 'partidas')}
+            <span className="num">{s.wins}</span> {s.wins === 1 ? 'victoria' : 'victorias'} en {plural(s.played, say('partida'), say('partidas'))}
           </p>
           <div className="pd-bar" aria-hidden>
             {s.wins > 0 && <i className="win" style={{ flexGrow: s.wins }} />}
@@ -189,7 +190,7 @@ export function PlayerProfile({ player, self, head = true, afterHead }: { player
             {s.losses > 0 && <i className="loss" style={{ flexGrow: s.losses }} />}
           </div>
           <p className="pd-bar-labels num">
-            <span className="win">{Math.round(winRate(s) * 100)}% ganadas</span>
+            <span className="win">{say('{n}% ganadas', { n: Math.round(winRate(s) * 100) })}</span>
             <span>
               {s.draws > 0 && `${plural(s.draws, 'empate', 'empates')} · `}
               {plural(s.losses, 'derrota', 'derrotas')}
@@ -205,7 +206,7 @@ export function PlayerProfile({ player, self, head = true, afterHead }: { player
             </div>
             {strongest && (
               <div>
-                <dt>Juego fuerte</dt>
+                <dt>{say('Juego fuerte')}</dt>
                 <dd>
                   {strongest.name} <small>· {strongest.pos}º de {strongest.of}</small>
                 </dd>
@@ -222,18 +223,18 @@ export function PlayerProfile({ player, self, head = true, afterHead }: { player
           </dl>
         </section>
       ) : (
-        <p className="muted">{self ? 'Todavía no jugaste ninguna partida en este club.' : 'Todavía no jugó ninguna partida.'}</p>
+        <p className="muted">{self ? say('Todavía no jugaste ninguna partida en este club.') : say('Todavía no jugó ninguna partida.')}</p>
       )}
 
       <MedalsSection title="Medallas generales" list={globalMedals(s)} playerName={player.name} />
 
       {perGame.length > 0 && (
         <section>
-          <h2>{self ? 'Tus juegos' : 'Sus juegos'}</h2>
+          <h2>{self ? say('Tus juegos') : say('Sus juegos')}</h2>
           {/* Una fila por juego, comparables en columna. Tocar una la abre con la curva de Elo y sus medallas abajo. */}
           <div className="pd-games num" role="list">
             <div className="pd-games-head" aria-hidden>
-              <span>Juego</span>
+              <span>{say('Juego')}</span>
               <span>V–D</span>
               <span>Puesto</span>
               <span>Elo</span>
@@ -271,8 +272,8 @@ export function PlayerProfile({ player, self, head = true, afterHead }: { player
                       {!coop && x.eloHistory.length > 2 && <Sparkline values={x.eloHistory} height={48} />}
                       <p className="small muted">
                         {coop
-                          ? `${plural(x.coopWins, 'victoria', 'victorias')} en equipo de ${plural(x.played, 'partida', 'partidas')}`
-                          : `${Math.round(winRate(x) * 100)}% ganadas` +
+                          ? `${plural(x.coopWins, 'victoria', 'victorias')} en equipo de ${plural(x.played, say('partida'), say('partidas'))}`
+                          : say('{n}% ganadas', { n: Math.round(winRate(x) * 100) }) +
                             (rank ? ` · ${rank.pos}º de ${rank.of} en el club` : '') +
                             (x.cupsWon ? ` · ${plural(x.cupsWon, 'torneo', 'torneos')}` : '')}
                       </p>
@@ -291,7 +292,7 @@ export function PlayerProfile({ player, self, head = true, afterHead }: { player
 
       {history.length > 0 && (
         <section>
-          <h2>Últimas partidas</h2>
+          <h2>{say('Últimas partidas')}</h2>
           <div className="list">
             {history.map((x) =>
               x.k === 'play' ? (
@@ -327,7 +328,7 @@ function FormStrip({ form }: { form: FormResult[] }) {
   return (
     <div className="pd-form">
       <span className="pd-form-label">Forma</span>
-      <ol aria-label={`Últimas ${form.length} partidas, de la más vieja a la más nueva: ${form.map((r) => FORM_NAME[r]).join(', ')}`}>
+      <ol aria-label={say('Últimas {n} partidas, de la más vieja a la más nueva: {forma}', { n: form.length, forma: form.map((r) => FORM_NAME[r]).join(', ') })}>
         {form.map((r, i) => (
           <li key={i} className={r + (i === form.length - 1 ? ' last' : '')} aria-hidden>
             {FORM_LETTER[r]}

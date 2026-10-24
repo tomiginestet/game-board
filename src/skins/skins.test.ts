@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest'
 import { BUILTIN_GAMES } from '../lib/games'
 import { BRANDS, brandFor, DEFAULT_SKIN } from './brands'
 import { skin, SKINS } from '.'
+import { say } from './say'
 
 describe('skins', () => {
   it('sin VITE_SKIN se arma Game Board', () => {
@@ -31,6 +32,39 @@ describe('skins', () => {
       const shown = new Set(BUILTIN_GAMES.filter(s.catalog.include ?? (() => true)).map((g) => g.id))
       expect(shown.size, s.id).toBeGreaterThan(0)
       for (const id of [...s.catalog.featured, ...s.catalog.hero]) expect(shown.has(id), `${s.id}: ${id}`).toBe(true)
+    }
+  })
+
+  it('say completa las llaves y deja la frase de Game Board si el skin no tiene otra', () => {
+    expect(say('Descartaste la partida de {juego}.', { juego: 'Truco' })).toBe('Descartaste la partida de Truco.')
+    expect(say('Una frase que ningún skin cambia')).toBe('Una frase que ningún skin cambia')
+  })
+
+  it('cada frase propia de un skin sigue existiendo en un say(...) y lleva las mismas llaves', () => {
+    const files = import.meta.glob<string>(['../**/*.{ts,tsx}', '!../skins/**', '!../**/*.test.ts'], { query: '?raw', import: 'default', eager: true })
+    const source = Object.values(files).join('\n')
+    const keys = (s: string) => [...s.matchAll(/\{(\w+)\}/g)].map((m) => m[1]).sort()
+    for (const s of Object.values(SKINS)) {
+      for (const [from, to] of Object.entries(s.copy ?? {})) {
+        const quoted = [`say('${from.replace(/'/g, "\\'")}'`, `say("${from}"`, `say(\`${from}\``]
+        expect(quoted.some((q) => source.includes(q)), `${s.id}: "${from}" ya no está en ningún say(...)`).toBe(true)
+        expect(keys(to), `${s.id}: "${to}"`).toEqual(keys(from))
+      }
+    }
+  })
+
+  it('ninguna frase tiene dos versiones distintas entre los archivos de un skin', () => {
+    const areas = import.meta.glob<Record<string, string>>('./*/copy/*.ts', { eager: true })
+    const seen = new Map<string, { file: string; to: string }>()
+    for (const [file, mod] of Object.entries(areas)) {
+      for (const dict of Object.values(mod)) {
+        for (const [from, to] of Object.entries(dict)) {
+          const key = file.split('/')[1] + ':' + from
+          const before = seen.get(key)
+          if (before) expect(to, `"${from}" en ${before.file} y ${file}`).toBe(before.to)
+          seen.set(key, { file, to })
+        }
+      }
     }
   })
 })

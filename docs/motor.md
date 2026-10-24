@@ -33,6 +33,10 @@ motor se arman distintas apps (**skins**), cada una con su marca, su catálogo y
 - **Tema**: `theme.css` pisa las variables de `src/index.css` bajo `:root[data-skin='<id>']` (gana siempre,
   sin importar el orden del CSS). Los rellenos con texto usan `--accent-fill` + `--on-fill`; los tonos
   suaves del acento salen de `color-mix` con `--accent` y `--accent-2`, así que cambian solos.
+- **Textos**: `say('Frase de Game Board')` (`src/skins/say.ts`) devuelve la frase del skin si tiene una propia
+  (`skin.copy`, en Fulbito `src/skins/futbol/copy/`) o la original. Frases enteras, para que cada skin las diga
+  con su género ("el partido", "los últimos"). Un test avisa si una frase del skin ya no está en ningún `say`
+  o si dos archivos la traducen distinto.
 - **Logo**: los cuatro cuadraditos y sus animaciones son el sello del motor; cada skin los pinta con su
   paleta (`brand.logo`, ver `recolorLogo` en `src/lib/logo.ts`). El dorado del ganador no cambia. El carnet
   usa los mismos colores.
@@ -47,9 +51,6 @@ motor se arman distintas apps (**skins**), cada una con su marca, su catálogo y
   skin activo (son pocos KB; si crecen, cargar sólo el del skin).
 - **Textos fuera del cliente**: `api/club.ts` y `api/club-og.ts` (vista previa de los links) y
   `src/lib/aiPrompt.ts` (se copia a la función de Supabase) siguen diciendo "Game Board".
-- **Glosario completo**: hoy la navegación, los títulos de pestaña y el inicio (saludo, "Últimas
-  partidas"). El resto de las pantallas dice
-  "partida", "jugador" o "juego" escrito a mano; se migra a medida que un skin lo necesite.
 - **Medallas generales** (`GLOBAL_FAMILIES` en `src/lib/medals.ts`): son de juegos ("Pulpo de mesa").
 - **Base de datos**: una columna `app` en los clubes, para que cada app vea sólo sus clubes. Se agrega
   cuando salga el segundo skin.
@@ -60,7 +61,7 @@ Primera versión en `src/skins/futbol/`: negro de estadio, lima de transmisión,
 letra Anton en mayúsculas, el botón principal lima con letra negra, logo en verdes y lima, catálogo de 8
 modalidades (fútbol 5, 7/11, futsal, fútbol tenis, penales, travesaño, metegol, EA FC) y palabras propias
 (Modalidades, Partido, Tabla). Falta: marcador tipo zócalo, cartas de jugador, inicio centrado en el equipo,
-el resto del glosario y la columna `app` en los clubes.
+logo propio, ayudas del editor de modalidades (ejemplos de juegos de mesa) y la columna `app` en los clubes.
 
 
 **Referencias**: EA Sports FC / FIFA, transmisiones de TV, el zócalo del marcador, el álbum de figuritas.
@@ -113,5 +114,5 @@ solo color de acento, y **el progreso siempre a la vista** (la curva, la marca p
 ## Hoja de ruta
 
 1. ✅ Sacar la configuración de skin, con Game Board como skin por defecto y sin cambiar la app.
-2. Skin Fútbol: 🟡 tema, logo, catálogo, palabras y textos del inicio. Falta lo de la lista de arriba.
+2. Skin Fútbol: 🟡 tema, catálogo y toda la app dicha en fútbol (publicada en Vercel). Falta lo de la lista de arriba.
 3. Módulo de evolución personal y skin Gimnasio.

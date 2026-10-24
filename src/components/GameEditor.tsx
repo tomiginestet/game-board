@@ -15,6 +15,7 @@ import {
   type StatDef,
 } from '../lib/games/schema'
 import { friendlyError } from '../lib/text'
+import { say } from '../skins/say'
 import { Stepper } from './ConfigEditor'
 import { ErrorText } from './Feedback'
 import { Medal } from './Medal'
@@ -28,21 +29,21 @@ const MODES: { id: Exclude<PlayMode, 'rally'>; name: string; help: string }[] = 
 ]
 
 const METRICS: { type: Metric['type']; name: string; needs?: 'event' | 'stat' | 'choice' | 'role' }[] = [
-  { type: 'wins', name: 'Partidas ganadas' },
-  { type: 'played', name: 'Partidas jugadas' },
+  { type: 'wins', name: say('Partidas ganadas') },
+  { type: 'played', name: say('Partidas jugadas') },
   { type: 'bestStreak', name: 'Mejor racha' },
-  { type: 'scoreMax', name: 'Mayor puntaje en una partida' },
+  { type: 'scoreMax', name: say('Mayor puntaje en una partida') },
   { type: 'marginMax', name: 'Mayor diferencia al ganar' },
-  { type: 'shutoutWins', name: 'Ganadas sin que el rival sume' },
-  { type: 'coopWins', name: 'Ganadas en cooperativo' },
+  { type: 'shutoutWins', name: say('Ganadas sin que el rival sume') },
+  { type: 'coopWins', name: say('Ganadas en cooperativo') },
   { type: 'eventTotal', name: 'Veces que hizo un evento (total)', needs: 'event' },
-  { type: 'eventMax', name: 'Máximo de un evento en una partida', needs: 'event' },
-  { type: 'playsWithEvent', name: 'Partidas en las que hizo un evento', needs: 'event' },
-  { type: 'winsWithEvent', name: 'Ganadas haciendo un evento', needs: 'event' },
+  { type: 'eventMax', name: say('Máximo de un evento en una partida'), needs: 'event' },
+  { type: 'playsWithEvent', name: say('Partidas en las que hizo un evento'), needs: 'event' },
+  { type: 'winsWithEvent', name: say('Ganadas haciendo un evento'), needs: 'event' },
   { type: 'statTotal', name: 'Suma de un dato final', needs: 'stat' },
   { type: 'statMax', name: 'Máximo de un dato final', needs: 'stat' },
-  { type: 'winsWithChoice', name: 'Ganadas con un valor de un dato', needs: 'choice' },
-  { type: 'winsAsRole', name: 'Ganadas con un rol', needs: 'role' },
+  { type: 'winsWithChoice', name: say('Ganadas con un valor de un dato'), needs: 'choice' },
+  { type: 'winsAsRole', name: say('Ganadas con un rol'), needs: 'role' },
 ]
 
 const TIER_NAMES = ['Bronce', 'Plata', 'Oro']
@@ -75,7 +76,7 @@ export function blankGame(name = ''): GameDef {
  * Editor de juegos: lo básico con formularios y, para lo raro, todos los datos como texto (JSON).
  * Sirve para armar un juego a mano o retocar lo que propuso la IA.
  */
-export function GameEditor({ initial, onSave, onCancel, saveLabel = 'Guardar juego' }: { initial: GameDef; onSave: (g: GameDef) => void; onCancel?: () => void; saveLabel?: string }) {
+export function GameEditor({ initial, onSave, onCancel, saveLabel = say('Guardar juego') }: { initial: GameDef; onSave: (g: GameDef) => void; onCancel?: () => void; saveLabel?: string }) {
   const [g, setG] = useState<GameDef>(initial)
   const [json, setJson] = useState<string | null>(null)
   const [error, setError] = useState('')
@@ -98,7 +99,7 @@ export function GameEditor({ initial, onSave, onCancel, saveLabel = 'Guardar jue
     return (
       <div className="game-editor">
         <label className="field">
-          <span className="field-label">Todos los datos del juego, como texto</span>
+          <span className="field-label">{say('Todos los datos del juego, como texto')}</span>
           <textarea className="input code-area" rows={24} value={json} onChange={(e) => setJson(e.target.value)} spellCheck={false} aria-describedby={`${id}-json-hint`} />
         </label>
         <p id={`${id}-json-hint`} className="hint">
@@ -137,11 +138,11 @@ export function GameEditor({ initial, onSave, onCancel, saveLabel = 'Guardar jue
       <section className="card">
         <h2>Lo básico</h2>
         <div className="field">
-          <label htmlFor={`${id}-name`}>Nombre del juego</label>
+          <label htmlFor={`${id}-name`}>{say('Nombre del juego')}</label>
           <div className="row">
-            <input className="input emoji-input" value={g.emoji} onChange={(e) => set({ emoji: e.target.value })} aria-label="Emoji del juego" maxLength={8} />
-            <input id={`${id}-name`} className="input grow" value={g.name} onChange={(e) => set({ name: e.target.value })} placeholder="Ej.: Escoba de 15" maxLength={60} />
-            <input type="color" className="color-input" value={/^#[0-9a-f]{6}$/i.test(g.color) ? g.color : '#7048E8'} onChange={(e) => set({ color: e.target.value })} aria-label="Color del juego" />
+            <input className="input emoji-input" value={g.emoji} onChange={(e) => set({ emoji: e.target.value })} aria-label={say('Emoji del juego')} maxLength={8} />
+            <input id={`${id}-name`} className="input grow" value={g.name} onChange={(e) => set({ name: e.target.value })} placeholder={say('Ej.: Escoba de 15')} maxLength={60} />
+            <input type="color" className="color-input" value={/^#[0-9a-f]{6}$/i.test(g.color) ? g.color : '#7048E8'} onChange={(e) => set({ color: e.target.value })} aria-label={say('Color del juego')} />
           </div>
         </div>
         <label className="field">
@@ -195,7 +196,7 @@ export function GameEditor({ initial, onSave, onCancel, saveLabel = 'Guardar jue
         </div>
         <div className="field row-between" role="group" aria-labelledby={`${id}-weight`}>
           <span id={`${id}-weight`} className="field-label">
-            Peso de una partida (para la gloria)
+            {say('Peso de una partida (para la gloria)')}
           </span>
           <div className="chips">
             {([1, 2, 3] as const).map((w) => (
@@ -281,7 +282,7 @@ export function GameEditor({ initial, onSave, onCancel, saveLabel = 'Guardar jue
             <PlusIcon /> Agregar
           </button>
         </div>
-        <p className="hint">Cosas que pasan en la partida y alimentan las medallas: “canasta limpia”, “camino más largo”.</p>
+        <p className="hint">{say('Cosas que pasan en la partida y alimentan las medallas: “canasta limpia”, “camino más largo”.')}</p>
         {g.events.map((e, i) => (
           <div key={i} className="editor-item">
             <div className="row">
@@ -392,7 +393,7 @@ export function GameEditor({ initial, onSave, onCancel, saveLabel = 'Guardar jue
             <PlusIcon /> Agregar
           </button>
         </div>
-        <p className="hint">Aunque no agregues ninguna, el juego ya tiene las medallas genéricas (Especialista, Racha).</p>
+        <p className="hint">{say('Aunque no agregues ninguna, el juego ya tiene las medallas genéricas (Especialista, Racha).')}</p>
         {g.awards.map((a, i) => (
           <AwardEditor key={i} award={a} game={g} onChange={(patch) => updateAward(i, patch)} onRemove={() => set({ awards: g.awards.filter((_, k) => k !== i) })} />
         ))}

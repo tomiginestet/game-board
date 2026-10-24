@@ -11,6 +11,7 @@ import { canPickClubGames, setClubGames, useActiveGroup, type MyGroup } from '..
 import { useSyncState } from '../../lib/sync'
 import { friendlyError } from '../../lib/text'
 import { GroupForm, GamePicker } from './GroupForms'
+import { say } from '../../skins/say'
 
 /**
  * Gestionar club: lo administrativo, fuera de la pantalla del club. Quién pide entrar, los datos y los juegos
@@ -54,8 +55,8 @@ export function ClubManage() {
             <Link to="/club/juegos" className="settings-row">
               <SquaresFourIcon size={22} aria-hidden />
               <span className="grow">
-                <b className="block">Juegos del club</b>
-                <span className="muted small block">{chosen ? `${plural(chosen, 'elegido', 'elegidos')}: ${club.chosen.slice(0, 3).map((g) => g.name).join(', ')}${chosen > 3 ? '…' : ''}` : 'Sin elegir: se muestran los más jugados'}</span>
+                <b className="block">{say('Juegos del club')}</b>
+                <span className="muted small block">{chosen ? `${plural(chosen, say('elegido'), say('elegidos'))}: ${club.chosen.slice(0, 3).map((g) => g.name).join(', ')}${chosen > 3 ? '…' : ''}` : say('Sin elegir: se muestran los más jugados')}</span>
               </span>
               <CaretRightIcon aria-hidden />
             </Link>
@@ -124,8 +125,8 @@ function ClubGamesForm({ group }: { group: MyGroup }) {
       <Link to="/club/gestion" className="back">
         <ArrowLeftIcon /> Gestionar club
       </Link>
-      <h1>Juegos del club</h1>
-      <p className="muted">Los que tienen o juegan siempre. Salen destacados en el club, primero en “Para jugar hoy” y primero al anotar. El orden es el que elijas.</p>
+      <h1>{say('Juegos del club')}</h1>
+      <p className="muted">{say('Los que tienen o juegan siempre. Salen destacados en el club, primero en “Para jugar hoy” y primero al anotar. El orden es el que elijas.')}</p>
       <form
         className="card group-form"
         onSubmit={(e) => {
@@ -133,11 +134,11 @@ function ClubGamesForm({ group }: { group: MyGroup }) {
           void save()
         }}
       >
-        <GamePicker label="Elegidos" games={games} onGames={setGames} suggestions={suggestions} />
-        {!games.length && <p className="muted small">Sin elegir, el club muestra los que más juegan.</p>}
+        <GamePicker label={say('Elegidos')} games={games} onGames={setGames} suggestions={suggestions} />
+        {!games.length && <p className="muted small">{say('Sin elegir, el club muestra los que más juegan.')}</p>}
         <ErrorText>{error}</ErrorText>
         <button className="btn primary block" disabled={busy}>
-          {busy ? 'Guardando…' : 'Guardar juegos'}
+          {busy ? 'Guardando…' : say('Guardar juegos')}
         </button>
       </form>
     </div>

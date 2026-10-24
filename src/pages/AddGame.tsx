@@ -17,6 +17,7 @@ import { awardFamily } from '../lib/medals'
 import { actions, useData } from '../lib/store'
 import { syncAvailable } from '../lib/sync'
 import { friendlyError } from '../lib/text'
+import { say } from '../skins/say'
 import { MODE_NAMES } from './GameDetail'
 
 const MONTHLY_LIMIT = 10
@@ -60,7 +61,7 @@ export function AddGame() {
         <button className="back link-btn" onClick={() => setDraft(null)}>
           <ArrowLeftIcon /> Volver
         </button>
-        <h1>¿Te sirve así el juego?</h1>
+        <h1>{say('¿Te sirve así el juego?')}</h1>
         <GamePreview game={draft.game} />
         {draft.warnings.length > 0 && (
           <div className="card warn">
@@ -77,7 +78,7 @@ export function AddGame() {
             <PencilSimpleIcon /> Retocar
           </button>
           <button className="btn primary big grow" onClick={() => save(draft.game)}>
-            <CheckIcon /> Agregar al catálogo
+            <CheckIcon /> {say('Agregar al catálogo')}
           </button>
         </div>
       </div>
@@ -88,28 +89,28 @@ export function AddGame() {
   return (
     <div className="page">
       <Link to="/juegos" className="back">
-        <ArrowLeftIcon /> Juegos
+        <ArrowLeftIcon /> {say('Juegos')}
       </Link>
-      <h1>Agregar un juego</h1>
-      <p className="muted">La app arma los detalles del juego: cómo se anota, qué eventos registrar, modos de torneo y medallas propias.</p>
+      <h1>{say('Agregar un juego')}</h1>
+      <p className="muted">{say('La app arma los detalles del juego: cómo se anota, qué eventos registrar, modos de torneo y medallas propias.')}</p>
 
       <div className="field">
-        <label htmlFor="gname">Nombre del juego</label>
-        <input id="gname" className="input" value={name} onChange={(e) => setName(e.target.value)} placeholder="Ej.: Carrera de mente, Bang!, Escoba…" />
+        <label htmlFor="gname">{say('Nombre del juego')}</label>
+        <input id="gname" className="input" value={name} onChange={(e) => setName(e.target.value)} placeholder={say('Ej.: Carrera de mente, Bang!, Escoba…')} />
       </div>
       <div className="field">
         <label htmlFor="gnotes">Cómo lo juegan ustedes (opcional)</label>
-        <input id="gnotes" className="input" value={notes} onChange={(e) => setNotes(e.target.value)} placeholder="Ej.: a 5000 puntos, en parejas" />
+        <input id="gnotes" className="input" value={notes} onChange={(e) => setNotes(e.target.value)} placeholder={say('Ej.: a 5000 puntos, en parejas')} />
       </div>
       <div className="field">
         <label htmlFor="grules">Reglas (opcional, pegalas si las tenés)</label>
-        <textarea id="grules" className="input" rows={5} value={rules} onChange={(e) => setRules(e.target.value)} placeholder="Ej.: Se reparten 3 cartas a cada uno…" aria-describedby="grules-hint" />
+        <textarea id="grules" className="input" rows={5} value={rules} onChange={(e) => setRules(e.target.value)} placeholder={say('Ej.: Se reparten 3 cartas a cada uno…')} aria-describedby="grules-hint" />
         <p id="grules-hint" className="hint">
-          Pegá el reglamento o un resumen: con reglas, el juego sale mucho mejor.
+          {say('Pegá el reglamento o un resumen: con reglas, el juego sale mucho mejor.')}
         </p>
       </div>
 
-      <div className="segmented" role="group" aria-label="Cómo armar el juego">
+      <div className="segmented" role="group" aria-label={say('Cómo armar el juego')}>
         <button className={way === 'paste' ? 'active' : ''} aria-pressed={way === 'paste'} onClick={() => setWay('paste')}>
           <ClipboardTextIcon /> IA gratis
         </button>
@@ -125,7 +126,7 @@ export function AddGame() {
       {way === 'api' && <ApiFlow input={input} onDraft={setDraft} />}
       {way === 'manual' && (
         <section className="card">
-          <p>Armá el juego con un formulario. Si no te querés complicar, alcanza con el nombre, la cantidad de jugadores y “Resultado final”: el juego ya tiene ranking, torneos y medallas genéricas.</p>
+          <p>{say('Armá el juego con un formulario. Si no te querés complicar, alcanza con el nombre, la cantidad de jugadores y “Resultado final”: el juego ya tiene ranking, torneos y medallas genéricas.')}</p>
           <button className="btn primary block" disabled={!name.trim()} onClick={() => setEditing({ ...blankGame(name.trim()) })}>
             <PencilSimpleIcon /> Empezar
           </button>
@@ -162,7 +163,7 @@ function PasteFlow({ input, onDraft }: { input: { name: string; notes: string; r
         </li>
         <li>
           <label htmlFor={answerId}>Copiá la respuesta entera y pegala acá:</label>
-          <textarea id={answerId} className="input mt code-area" rows={6} value={answer} onChange={(e) => setAnswer(e.target.value)} placeholder="Ej.: ¡Listo! Acá tenés el juego…" />
+          <textarea id={answerId} className="input mt code-area" rows={6} value={answer} onChange={(e) => setAnswer(e.target.value)} placeholder={say('Ej.: ¡Listo! Acá tenés el juego…')} />
         </li>
       </ol>
       <ErrorText>{error}</ErrorText>
@@ -178,7 +179,7 @@ function PasteFlow({ input, onDraft }: { input: { name: string; notes: string; r
           }
         }}
       >
-        <SparkleIcon /> Ver el juego
+        <SparkleIcon /> {say('Ver el juego')}
       </button>
     </section>
   )
@@ -224,11 +225,11 @@ function ApiFlow({ input, onDraft }: { input: { name: string; notes: string; rul
   return (
     <section className="card">
       <p className="muted small">
-        La arma Claude por vos. Hay un cupo mensual para toda la app y cada juego usa muy poco.
+        {say('La arma Claude por vos. Hay un cupo mensual para toda la app y cada juego usa muy poco.')}
         {spent !== null && ` Este mes se usó el ${Math.min(100, Math.round((spent / MONTHLY_LIMIT) * 100))}% del cupo.`}
       </p>
       <button className="btn primary big block" disabled={busy || !input.name.trim()} onClick={generate}>
-        <MagicWandIcon /> {busy ? 'Pensando el juego…' : 'Armar el juego'}
+        <MagicWandIcon /> {busy ? say('Pensando el juego…') : say('Armar el juego')}
       </button>
       {busy && <Loader kind="secuencia" text="Puede tardar un minuto." delay={0} size={88} />}
       <ErrorText>{error}</ErrorText>
@@ -302,14 +303,14 @@ export function EditGame() {
   const navigate = useNavigate()
   const game = data.games.find((g) => g.id === id)
   const access = useAccess()
-  if (!game) return <div className="page">Juego no encontrado.</div>
+  if (!game) return <div className="page">{say('Juego no encontrado.')}</div>
   if (!canEdit(access, 'game', game))
     return (
       <div className="page">
         <Link to={`/juegos/${game.id}`} className="back">
           <ArrowLeftIcon /> {game.name}
         </Link>
-        <p>Este juego lo pueden cambiar quien lo agregó o un admin del club.</p>
+        <p>{say('Este juego lo pueden cambiar quien lo agregó o un admin del club.')}</p>
       </div>
     )
   return (
@@ -317,7 +318,7 @@ export function EditGame() {
       <Link to={`/juegos/${game.id}`} className="back">
         <ArrowLeftIcon /> {game.name}
       </Link>
-      <h1>Editar juego</h1>
+      <h1>{say('Editar juego')}</h1>
       <GameEditor
         initial={game}
         onSave={(g) => {

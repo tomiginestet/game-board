@@ -18,6 +18,7 @@ import { isTeamGame } from '../lib/teams'
 import { beltOf, gameRanking, gameStatsOf, levelFor, winRate } from '../lib/stats'
 import { actions, useData } from '../lib/store'
 import { skin } from '../skins'
+import { say } from '../skins/say'
 
 export const MODE_NAMES: Record<PlayMode, string> = {
   rally: 'Marcador punto a punto',
@@ -69,9 +70,9 @@ export function GameDetail() {
   if (!game) {
     return (
       <div className="page">
-        <p>Juego no encontrado.</p>
+        <p>{say('Juego no encontrado.')}</p>
         <Link to="/juegos" className="back">
-          <ArrowLeftIcon /> Juegos
+          <ArrowLeftIcon /> {say('Juegos')}
         </Link>
       </div>
     )
@@ -147,7 +148,7 @@ function GameView({ game }: { game: GameDef }) {
   const inUse = data.plays.some((p) => p.gameId === game.id) || data.cups.some((c) => c.gameId === game.id)
   const remove = async () => {
     if (inUse) return
-    const ok = await confirmAction({ title: `¿Borrar ${game.name} del catálogo?`, detail: 'No se puede deshacer.', confirmLabel: 'Borrar juego', danger: true })
+    const ok = await confirmAction({ title: say('¿Borrar {juego} del catálogo?', { juego: game.name }), detail: 'No se puede deshacer.', confirmLabel: say('Borrar juego'), danger: true })
     if (ok && actions.deleteGame(game.id)) navigate('/juegos')
   }
 
@@ -156,7 +157,7 @@ function GameView({ game }: { game: GameDef }) {
       {/* La categoría es dónde está el juego: va en la flecha de volver, no como un dato más. */}
       <div className="gd-crumb">
         <Link to={category ? `/juegos?cat=${category.id}` : '/juegos'} className="back">
-          <ArrowLeftIcon /> {category?.name ?? 'Catálogo'}
+          <ArrowLeftIcon /> {category?.name ?? say('Catálogo')}
         </Link>
         {game.source === 'ai' && (
           <span className="gd-source ai">
@@ -222,7 +223,7 @@ function GameView({ game }: { game: GameDef }) {
       {(belt || ranking.length > 0) && (
         <section className="gd-club">
           <h2>
-            En el club {playCount > 0 && <span className="muted">· {plural(playCount, 'partida', 'partidas')}</span>}
+            En el club {playCount > 0 && <span className="muted">· {plural(playCount, say('partida'), say('partidas'))}</span>}
           </h2>
           {belt && (
             <div className="card belt">
@@ -339,7 +340,7 @@ function GameView({ game }: { game: GameDef }) {
 
       {(recentPlays.length > 0 || recentMatches.length > 0) && (
         <section>
-          <h2>Últimas partidas</h2>
+          <h2>{say('Últimas partidas')}</h2>
           <div className="list">
             {recentPlays.map((p) => (
               <PlayRow key={p.id} play={p} game={game} players={players} showGame={false} />
@@ -366,7 +367,7 @@ function GameView({ game }: { game: GameDef }) {
               </>
             ) : (
               <>
-                <PencilSimpleIcon /> Editar juego
+                <PencilSimpleIcon /> {say('Editar juego')}
               </>
             )}
           </Link>
@@ -379,10 +380,10 @@ function GameView({ game }: { game: GameDef }) {
       </div>
       {!builtin && mayDelete && inUse && (
         <p id="gd-delete-hint" className="hint mt">
-          Para borrarlo, primero borrá sus partidas y torneos.
+          {say('Para borrarlo, primero borrá sus partidas y torneos.')}
         </p>
       )}
-      {!builtin && access.mode === 'member' && !mayEdit && <p className="hint mt">Este juego lo pueden cambiar quien lo agregó o un admin del club.</p>}
+      {!builtin && access.mode === 'member' && !mayEdit && <p className="hint mt">{say('Este juego lo pueden cambiar quien lo agregó o un admin del club.')}</p>}
     </div>
   )
 }

@@ -4,6 +4,7 @@ import { PlayRow } from '../components/GameBits'
 import { MatchRow } from '../components/MatchRow'
 import { gameOrMissing, useGames, usePlayerMap } from '../lib/hooks'
 import { useData } from '../lib/store'
+import { say } from '../skins/say'
 
 /** Todas las partidas terminadas, de todos los juegos. */
 export function History() {
@@ -40,9 +41,9 @@ export function History() {
       </div>
       {!rows.length && (
         <div className="empty mt">
-          <p>Todavía no hay partidas terminadas. Lo que anoten va a quedar acá, para cuando haya que discutir quién ganó.</p>
+          <p>{say('Todavía no hay partidas terminadas. Lo que anoten va a quedar acá, para cuando haya que discutir quién ganó.')}</p>
           <Link to="/juegos" className="btn primary">
-            Anotar una partida
+            {say('Anotar una partida')}
           </Link>
         </div>
       )}
