@@ -2,8 +2,8 @@ import type { SkinBrand } from '../brands.ts'
 
 export const brand: SkinBrand = {
   id: 'futbol',
-  name: 'Picado',
-  shortName: 'Picado',
+  name: 'Fulbito',
+  shortName: 'Fulbito',
   tagline: 'Partidos, torneos y la tabla del grupo.',
   description: 'El fútbol de tu grupo: partidos, convocatorias, goleadores, torneos y medallas. Del fútbol 5 de los jueves a la liga del barrio.',
   background: '#06100b',

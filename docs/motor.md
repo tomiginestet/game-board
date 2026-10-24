@@ -54,9 +54,9 @@ motor se arman distintas apps (**skins**), cada una con su marca, su catálogo y
 - **Base de datos**: una columna `app` en los clubes, para que cada app vea sólo sus clubes. Se agrega
   cuando salga el segundo skin.
 
-## Skin Fútbol: Picado
+## Skin Fútbol: Fulbito
 
-Primera versión en `src/skins/futbol/` (el nombre es provisorio): negro de estadio, lima de transmisión,
+Primera versión en `src/skins/futbol/`: negro de estadio, lima de transmisión,
 letra Anton en mayúsculas, el botón principal lima con letra negra, logo en verdes y lima, catálogo de 8
 modalidades (fútbol 5, 7/11, futsal, fútbol tenis, penales, travesaño, metegol, EA FC) y palabras propias
 (Modalidades, Partido, Tabla). Falta: marcador tipo zócalo, cartas de jugador, inicio centrado en el equipo,

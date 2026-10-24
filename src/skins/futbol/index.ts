@@ -1,4 +1,4 @@
-// Picado: el skin de fútbol. Referencias: EA Sports FC y las transmisiones de TV (marcador tipo zócalo,
+// Fulbito: el skin de fútbol. Referencias: EA Sports FC y las transmisiones de TV (marcador tipo zócalo,
 // letra condensada, verde lima sobre negro). Ver docs/motor.md.
 
 import type { Skin } from '../types'
