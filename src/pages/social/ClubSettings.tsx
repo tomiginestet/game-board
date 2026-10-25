@@ -1,4 +1,4 @@
-import { ArrowLeftIcon, CaretRightIcon, PencilSimpleIcon, SquaresFourIcon } from '@phosphor-icons/react'
+import { ArrowCounterClockwiseIcon, ArrowLeftIcon, CaretRightIcon, PencilSimpleIcon, SquaresFourIcon } from '@phosphor-icons/react'
 import { useEffect, useState } from 'react'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { JoinRequests } from '../../components/ClubHero'
@@ -7,7 +7,8 @@ import { ClubAccounts, InviteSection } from './ClubMembers'
 import { ErrorText } from '../../components/Feedback'
 import { FEATURED } from '../../lib/games'
 import { useClubGames } from '../../lib/clubGames'
-import { canPickClubGames, setClubGames, useActiveGroup, type MyGroup } from '../../lib/social'
+import { canPickClubGames, resetClubScores, setClubGames, useActiveGroup, type MyGroup } from '../../lib/social'
+import { confirmAction, toast } from '../../lib/feedback'
 import { useSyncState } from '../../lib/sync'
 import { friendlyError } from '../../lib/text'
 import { GroupForm, GamePicker } from './GroupForms'
@@ -68,7 +69,44 @@ export function ClubManage() {
       <div className="section-divided">
         <ClubAccounts group={group} />
       </div>
+
+      {isAdmin && <ResetScores group={group} />}
     </div>
+  )
+}
+
+/** Reiniciar los puntajes (admins): borra todas las partidas del club; los jugadores y los juegos quedan. */
+function ResetScores({ group }: { group: MyGroup }) {
+  const [busy, setBusy] = useState(false)
+  const [error, setError] = useState('')
+  const reset = async () => {
+    const ok = await confirmAction({
+      title: '¿Reiniciar los puntajes?',
+      detail: `Se borran todas las partidas de ${group.name} y el ranking, el Elo y las medallas de todos vuelven a cero. Los jugadores y los juegos quedan. No se puede deshacer.`,
+      confirmLabel: 'Reiniciar puntajes',
+      danger: true,
+    })
+    if (!ok) return
+    setBusy(true)
+    setError('')
+    try {
+      const n = await resetClubScores(group.code)
+      toast(n ? `Listo: borramos ${plural(n, 'partida', 'partidas')}. Los puntajes arrancan de cero.` : 'No había partidas: los puntajes ya estaban en cero.')
+    } catch (e) {
+      setError(friendlyError(e))
+    } finally {
+      setBusy(false)
+    }
+  }
+  return (
+    <section className="section-divided">
+      <h3>Zona peligrosa</h3>
+      <p className="muted small">Para arrancar una temporada nueva: borra todas las partidas del club. Sólo lo ven los admins.</p>
+      <ErrorText>{error}</ErrorText>
+      <button className="btn danger" disabled={busy} onClick={() => void reset()}>
+        <ArrowCounterClockwiseIcon /> {busy ? 'Reiniciando…' : 'Reiniciar puntajes'}
+      </button>
+    </section>
   )
 }
 

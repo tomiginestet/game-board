@@ -334,6 +334,11 @@ export async function syncNow(): Promise<void> {
   await push()
 }
 
+/** Avisa a los demás dispositivos del club que hay cambios para bajar (hechos en el servidor, no desde la cola). */
+export function announceChange() {
+  void channel?.send({ type: 'broadcast', event: 'changed', payload: {} })
+}
+
 function connectRealtime() {
   const sb = getClient()
   const club = persisted.club

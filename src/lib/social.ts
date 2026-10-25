@@ -9,7 +9,7 @@ import type { RealtimeChannel } from '@supabase/supabase-js'
 import { setAccess } from './access'
 import { currentUserId, useAuth } from './auth'
 import { BUILTIN_GAMES } from './games'
-import { activateClub, adoptLocalData, currentClubCode, inviteLink, supabase, syncAvailable, useSyncState, type Club } from './sync'
+import { activateClub, adoptLocalData, announceChange, currentClubCode, inviteLink, supabase, syncAvailable, syncNow, useSyncState, type Club } from './sync'
 import { shortLink } from './clubLink'
 
 function client() {
@@ -283,6 +283,16 @@ export async function setClubVenue(code: string, venue: Venue | null): Promise<v
 export async function setClubGames(code: string, games: string[] | null): Promise<void> {
   await rpc('set_club_games', { p_code: code, p_games: games })
   await refreshGroups()
+}
+
+/** Borra todas las partidas del club (admins): el ranking, el Elo y las medallas vuelven a cero. Devuelve cuántas borró. */
+export async function resetClubScores(code: string): Promise<number> {
+  const n = await rpc<number>('reset_club_scores', { p_code: code })
+  if (currentClubCode() === code) {
+    await syncNow()
+    announceChange()
+  }
+  return n
 }
 
 /** Puede elegir los juegos del club: un admin, o cualquiera de los dos en un mano a mano. */
