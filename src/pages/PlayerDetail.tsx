@@ -8,7 +8,7 @@ import { MatchRow } from '../components/MatchRow'
 import { MedalsSection } from '../components/MedalsSection'
 import { PlayerForm } from '../components/PlayerForm'
 import { Sparkline } from '../components/Sparkline'
-import { claimPlayer, useAuth } from '../lib/auth'
+import { claimedPlayers, claimPlayer, useAuth } from '../lib/auth'
 import { confirmAction, toast } from '../lib/feedback'
 import { refreshGroups, useActiveGroup } from '../lib/social'
 import { gameOrMissing, plural, useBoard, useLeaderboard, usePlayerMap } from '../lib/hooks'
@@ -64,8 +64,16 @@ export function PlayerDetail() {
   }
 
   // Quien ya jugó no se puede borrar (el botón ni aparece); si cambió algo mientras se confirmaba, se avisa en vez de fallar callado.
+  // Si alguien ya se eligió como este jugador, se avisa: al borrarlo la cuenta queda sin jugador en el club.
   const remove = async () => {
-    const ok = await confirmAction({ title: `¿Borrar a ${player.name}?`, detail: 'No se puede deshacer.', confirmLabel: 'Borrar jugador', danger: true })
+    const mine = group?.player_id === player.id
+    const taken = mine || (sync.club ? await claimedPlayers(sync.club.code).catch(() => [] as string[]) : []).includes(player.id)
+    const detail = mine
+      ? 'Es tu jugador en este club: tu cuenta va a quedar sin jugador y vas a tener que elegirte o crearte otro. No se puede deshacer.'
+      : taken
+        ? `${player.name} tiene cuenta y se eligió como este jugador: va a quedar sin jugador en el club y va a tener que elegirse o crearse otro. No se puede deshacer.`
+        : 'No se puede deshacer.'
+    const ok = await confirmAction({ title: `¿Borrar a ${player.name}?`, detail, confirmLabel: 'Borrar jugador', danger: true })
     if (!ok) return
     if (actions.deletePlayer(player.id)) navigate('/jugadores')
     else toast(`No se puede borrar a ${player.name}: tiene partidas o torneos.`)
